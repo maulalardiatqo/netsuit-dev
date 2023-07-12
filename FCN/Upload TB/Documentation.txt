@@ -1,0 +1,3 @@
+yang perlu di buang : intercompeny, account payable, account receieveble
+internal ID col a-f copas dari atas
+col G 53 col H 3200 col I Opening Balance

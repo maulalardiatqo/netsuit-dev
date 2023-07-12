@@ -1,0 +1,1 @@
+nlapiLoadRecord(nlapiGetRecordType(), nlapiGetRecordId())

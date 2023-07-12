@@ -1,0 +1,2 @@
+suitlete generate download
+groupby inbound shipment / per inbound shipment subtotal

@@ -1,0 +1,14 @@
+-di publik ketika savesearch
+yg ga ada :
+line id
+update
+custemer refound id
+location list
+
+field mana saja yang perlu di update?
+
+savedsearch name : customsearch_create_crf
+
+buat 
+
+

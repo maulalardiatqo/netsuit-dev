@@ -1,0 +1,1115 @@
+<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>NetSuite</Author>
+  <LastAuthor>AYSHA NILOFAR</LastAuthor>
+  <LastSaved>2023-02-02T07:55:29Z</LastSaved>
+  <Company>NetSuite</Company>
+  <Version>16.00</Version>
+ </DocumentProperties>
+ <OfficeDocumentSettings xmlns="urn:schemas-microsoft-com:office:office">
+  <AllowPNG/>
+ </OfficeDocumentSettings>
+ <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+  <WindowHeight>7155</WindowHeight>
+  <WindowWidth>20250</WindowWidth>
+  <WindowTopX>32767</WindowTopX>
+  <WindowTopY>32767</WindowTopY>
+  <ProtectStructure>False</ProtectStructure>
+  <ProtectWindows>False</ProtectWindows>
+ </ExcelWorkbook>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Arial" ss:Size="8"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="s62">
+   <Interior ss:Color="#FFC000" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="s63">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Bottom"/>
+   <Font ss:FontName="Arial" ss:Size="7" ss:Bold="1"/>
+   <Interior ss:Color="#D0D0D0" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="s64">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Bottom"/>
+   <Font ss:FontName="Arial" ss:Size="7" ss:Bold="1"/>
+   <Interior/>
+  </Style>
+  <Style ss:ID="s66">
+   <NumberFormat ss:Format="Short Date"/>
+  </Style>
+  <Style ss:ID="s67">
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s68">
+   <Interior/>
+  </Style>
+  <Style ss:ID="s69">
+   <Borders>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s71">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="s72">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <NumberFormat ss:Format="Short Date"/>
+  </Style>
+  <Style ss:ID="s73">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Interior ss:Color="#C6E0B4" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="s74">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <Interior ss:Color="#C6E0B4" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s76">
+   <Interior ss:Color="#FFE699" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="s77">
+   <Interior ss:Color="#FFE699" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="Short Date"/>
+  </Style>
+  <Style ss:ID="s78">
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <Interior ss:Color="#FFE699" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s79">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Double" ss:Weight="3"/>
+   </Borders>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <Interior ss:Color="#FFE699" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s80">
+   <Interior ss:Color="#FFFF00" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="s81">
+   <Interior ss:Color="#FFFF00" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="Short Date"/>
+  </Style>
+  <Style ss:ID="s82">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Interior ss:Color="#FFFF00" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="s83">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <Interior ss:Color="#FFFF00" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s84">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <Interior ss:Color="#FFC000" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s86">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"
+    ss:Bold="1"/>
+   <Interior ss:Color="#FFFF00" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s88">
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s89">
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <Interior ss:Color="#FFC000" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s90">
+   <Interior/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s91">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Bottom"/>
+   <Font ss:FontName="Arial" ss:Size="7" ss:Bold="1"/>
+   <Interior ss:Color="#F8CBAD" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="s92">
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <Interior ss:Color="#F8CBAD" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s93">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <Interior ss:Color="#F8CBAD" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s94">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Double" ss:Weight="3"/>
+   </Borders>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <Interior ss:Color="#F8CBAD" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s95">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"
+    ss:Bold="1"/>
+   <Interior ss:Color="#F8CBAD" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s96">
+   <Interior ss:Color="#F8CBAD" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="s97">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"
+    ss:Bold="1"/>
+   <Interior ss:Color="#F8CBAD" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s98">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Bottom"/>
+   <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="7" ss:Bold="1"/>
+   <Interior ss:Color="#F8CBAD" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="s99">
+   <Borders>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <Interior ss:Color="#F8CBAD" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s100">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"/>
+   <Interior ss:Color="#F8CBAD" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s101">
+   <Borders>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"
+    ss:Bold="1"/>
+   <Interior ss:Color="#F8CBAD" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00_);[Red]\(#,##0.00\)"/>
+  </Style>
+  <Style ss:ID="s102">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Interior ss:Color="#F8CBAD" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="Fixed"/>
+  </Style>
+  <Style ss:ID="s103">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="8" ss:Bold="1"/>
+   <Interior ss:Color="#F8CBAD" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="0.0000"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="FCBLandedCostReportResults">
+  <Table ss:ExpandedColumnCount="27" ss:ExpandedRowCount="68" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="42" ss:DefaultRowHeight="11.25">
+   <Column ss:Width="428.25"/>
+   <Column ss:Width="89.25"/>
+   <Column ss:Width="42.75"/>
+   <Column ss:Width="189"/>
+   <Column ss:Width="65.25"/>
+   <Column ss:Index="10" ss:Width="42.75"/>
+   <Column ss:Index="13" ss:Width="42.75" ss:Span="1"/>
+   <Column ss:Index="15" ss:StyleID="s62" ss:Width="51.75"/>
+   <Column ss:StyleID="s96" ss:AutoFitWidth="0" ss:Width="65.25"/>
+   <Column ss:StyleID="s96" ss:Width="106.5"/>
+   <Column ss:StyleID="s62" ss:Width="64.5"/>
+   <Column ss:StyleID="s62" ss:Width="46.5"/>
+   <Column ss:StyleID="s62" ss:Width="72.75"/>
+   <Column ss:StyleID="s62" ss:AutoFitWidth="0" ss:Width="51"/>
+   <Column ss:StyleID="s62" ss:Width="84"/>
+   <Column ss:StyleID="s96" ss:Width="81"/>
+   <Column ss:StyleID="s96" ss:Width="132"/>
+   <Column ss:Width="57"/>
+   <Column ss:StyleID="s96" ss:Width="139.5"/>
+   <Column ss:StyleID="s96" ss:Width="57.75"/>
+   <Row ss:AutoFitHeight="0">
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Good Receipt Report number</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Inbound Shipment No</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Date</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Creditor Name</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Item</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Display Name</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Item Type</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">PO No.</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Project</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Quantity</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">UOM</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Currency</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Exchange Rate</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="String">Unit Price</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="String">Subtotal </Data></Cell>
+    <Cell ss:StyleID="s91"><Data ss:Type="String">Total (MYR)</Data></Cell>
+    <Cell ss:StyleID="s91"><Data ss:Type="String">Total cost per shipnment </Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="String">Custom Duties</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="String">Freight Charges</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="String">Marine Insurance</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="String">Handling Charges</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="String">Forwarding Charges</Data></Cell>
+    <Cell ss:StyleID="s98"><Data ss:Type="String">Total(Landed cost)</Data></Cell>
+    <Cell ss:StyleID="s91"><Data ss:Type="String">Total Landed cost per shipment </Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="String">Total (MYR)</Data></Cell>
+    <Cell ss:StyleID="s91"><Data ss:Type="String">Grand Total (Cost + Landed cost )</Data></Cell>
+    <Cell ss:StyleID="s98"><Data ss:Type="String">Cost Per unit</Data></Cell>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/itemrcpt.nl?id=34557&quot;&gt;ITEMRCPT272&lt;/a&gt;</Data></Cell>
+    <Cell><Data ss:Type="String">- None -</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="DateTime">2023-01-17T00:00:00.000</Data></Cell>
+    <Cell><Data ss:Type="String">ANQING YIPAK PACKAGING MATERIAL CO., LTD</Data></Cell>
+    <Cell><Data ss:Type="String">zA72-YST-1950</Data></Cell>
+    <Cell><Data ss:Type="String">Steam Sterilization Indicator Tapes, 19mmx50m/roll (48rolls/case)</Data></Cell>
+    <Cell><Data ss:Type="String">MICROBIOLOGY</Data></Cell>
+    <Cell><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/purchord.nl?id=34555&quot;&gt;Purchase Order #PO-000151&lt;/a&gt;</Data></Cell>
+    <Cell><Data ss:Type="String">- None -</Data></Cell>
+    <Cell><Data ss:Type="Number">6</Data></Cell>
+    <Cell><Data ss:Type="String">CASE/48</Data></Cell>
+    <Cell><Data ss:Type="String">USD</Data></Cell>
+    <Cell><Data ss:Type="Number">4.3159999999999998</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">64.8</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">388.8</Data></Cell>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">1678.0609999999999</Data></Cell>
+    <Cell ss:StyleID="s92"/>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/itemrcpt.nl?id=35586&quot;&gt;ITEMRCPT273&lt;/a&gt;</Data></Cell>
+    <Cell><Data ss:Type="String">- None -</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="DateTime">2023-01-19T00:00:00.000</Data></Cell>
+    <Cell><Data ss:Type="String">LP ITALIANA SPA</Data></Cell>
+    <Cell><Data ss:Type="String">zL03-111547</Data></Cell>
+    <Cell><Data ss:Type="String">17x120mm, 15mL PP Tube w/Screw Cap</Data></Cell>
+    <Cell><Data ss:Type="String">PLASTIC LABWARES</Data></Cell>
+    <Cell><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/purchord.nl?id=35485&quot;&gt;Purchase Order #155&lt;/a&gt;</Data></Cell>
+    <Cell><Data ss:Type="String">- None -</Data></Cell>
+    <Cell><Data ss:Type="Number">12</Data></Cell>
+    <Cell><Data ss:Type="String">CASE/1000</Data></Cell>
+    <Cell><Data ss:Type="String">EUR</Data></Cell>
+    <Cell><Data ss:Type="Number">4.6539215</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">83</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">996</Data></Cell>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">4635.3059999999996</Data></Cell>
+    <Cell ss:StyleID="s92"/>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/itemrcpt.nl?id=35586&quot;&gt;ITEMRCPT273&lt;/a&gt;</Data></Cell>
+    <Cell><Data ss:Type="String">- None -</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="DateTime">2023-01-19T00:00:00.000</Data></Cell>
+    <Cell><Data ss:Type="String">LP ITALIANA SPA</Data></Cell>
+    <Cell><Data ss:Type="String">zL03-206148</Data></Cell>
+    <Cell><Data ss:Type="String">60mL, Sterile Clear PP SCR/Cap Container with Label, 40x60mm Height</Data></Cell>
+    <Cell><Data ss:Type="String">PLASTIC LABWARES</Data></Cell>
+    <Cell><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/purchord.nl?id=35485&quot;&gt;Purchase Order #155&lt;/a&gt;</Data></Cell>
+    <Cell><Data ss:Type="String">- None -</Data></Cell>
+    <Cell><Data ss:Type="Number">3</Data></Cell>
+    <Cell><Data ss:Type="String">CASE/600</Data></Cell>
+    <Cell><Data ss:Type="String">EUR</Data></Cell>
+    <Cell><Data ss:Type="Number">4.6539215</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">45</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">135</Data></Cell>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s67"><Data ss:Type="Number">628.279</Data></Cell>
+    <Cell ss:StyleID="s92"/>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell><Data ss:Type="String">Sub Total</Data></Cell>
+    <Cell ss:Index="3" ss:StyleID="s66"/>
+    <Cell ss:Index="14" ss:StyleID="s67"/>
+    <Cell ss:StyleID="s67"/>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s69"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s69"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s69"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s69"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s69"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s99"/>
+    <Cell ss:StyleID="s101" ss:Formula="=SUM(RC[-6]:RC[-2])"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s67"/>
+    <Cell ss:StyleID="s92"/>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell ss:StyleID="s71"><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/itemrcpt.nl?id=35588&quot;&gt;ITEMRCPT274&lt;/a&gt;</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">INBSHIP52</Data></Cell>
+    <Cell ss:StyleID="s72"><Data ss:Type="DateTime">2023-01-19T00:00:00.000</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">CORNING GOSSELIN SAS</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">zG22-OS10-02</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">10uL + Needle Tip Inoculating Loops, Sterile, Calibrated, Wrapped per 20 irradiated in 1 zip bag</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">PLASTIC LABWARES</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/purchord.nl?id=34511&quot;&gt;Purchase Order #PO-000144&lt;/a&gt;</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">- None -</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="Number">12</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="String">CASE/9000</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="String">EUR</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="Number">4.6825000000000001</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">182.43</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">2189.16</Data></Cell>
+    <Cell ss:StyleID="s93" ss:Formula="=RC[-1]*RC[-3]"><Data ss:Type="Number">10250.741699999999</Data></Cell>
+    <Cell ss:StyleID="s93"/>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">817.64</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">60.98</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">1802.941</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s93" ss:Formula="=SUM(RC[-5]:RC[-1])"><Data ss:Type="Number">2681.5610000000001</Data></Cell>
+    <Cell ss:StyleID="s93"/>
+    <Cell ss:StyleID="s74" ss:Formula="=RC[-9]+RC[-2]"><Data ss:Type="Number">12932.302699999998</Data></Cell>
+    <Cell ss:StyleID="s93"/>
+    <Cell ss:StyleID="s102" ss:Formula="=RC[-2]/RC[-17]"><Data ss:Type="Number">1077.6918916666666</Data></Cell>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell ss:StyleID="s71"><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/itemrcpt.nl?id=35588&quot;&gt;ITEMRCPT274&lt;/a&gt;</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">INBSHIP52</Data></Cell>
+    <Cell ss:StyleID="s72"><Data ss:Type="DateTime">2023-01-19T00:00:00.000</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">CORNING GOSSELIN SAS</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">zG22-SB93-101</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">Disposable Petri Dishes, 3 vents, Dia 90x14.2mm (33pcs/slv, 25slv/cs)</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">PLASTIC LABWARES</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/purchord.nl?id=34511&quot;&gt;Purchase Order #PO-000144&lt;/a&gt;</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">- None -</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="Number">200</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="String">CASE/825</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="String">EUR</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="Number">4.6825000000000001</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">44.48</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">8896</Data></Cell>
+    <Cell ss:StyleID="s93" ss:Formula="=RC[-1]*RC[-3]"><Data ss:Type="Number">41655.520000000004</Data></Cell>
+    <Cell ss:StyleID="s93"/>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">1278.3599999999999</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">95.34</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">2818.8510000000001</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s93" ss:Formula="=SUM(RC[-5]:RC[-1])"><Data ss:Type="Number">4192.5509999999995</Data></Cell>
+    <Cell ss:StyleID="s93"/>
+    <Cell ss:StyleID="s74" ss:Formula="=RC[-9]+RC[-2]"><Data ss:Type="Number">45848.071000000004</Data></Cell>
+    <Cell ss:StyleID="s93"/>
+    <Cell ss:StyleID="s102" ss:Formula="=RC[-2]/RC[-17]"><Data ss:Type="Number">229.24035500000002</Data></Cell>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell ss:StyleID="s71"><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/itemrcpt.nl?id=35588&quot;&gt;ITEMRCPT274&lt;/a&gt;</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">INBSHIP52</Data></Cell>
+    <Cell ss:StyleID="s72"><Data ss:Type="DateTime">2023-01-19T00:00:00.000</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">CORNING GOSSELIN SAS</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">zG22-SM2-01</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">Stomacher bags 180x300mm, 400mL, Sterile, 5x(10x50)/case</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">PLASTIC LABWARES</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/purchord.nl?id=34511&quot;&gt;Purchase Order #PO-000144&lt;/a&gt;</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">- None -</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="Number">28</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="String">CASE/2500</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="String">EUR</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="Number">4.6825000000000001</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">111.4</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">3119.2</Data></Cell>
+    <Cell ss:StyleID="s93" ss:Formula="=RC[-1]*RC[-3]"><Data ss:Type="Number">14605.653999999999</Data></Cell>
+    <Cell ss:StyleID="s93"/>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">178.971</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">13.35</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">394.64</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s93" ss:Formula="=SUM(RC[-5]:RC[-1])"><Data ss:Type="Number">586.96100000000001</Data></Cell>
+    <Cell ss:StyleID="s93"/>
+    <Cell ss:StyleID="s74" ss:Formula="=RC[-9]+RC[-2]"><Data ss:Type="Number">15192.614999999998</Data></Cell>
+    <Cell ss:StyleID="s93"/>
+    <Cell ss:StyleID="s102" ss:Formula="=RC[-2]/RC[-17]"><Data ss:Type="Number">542.59339285714282</Data></Cell>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell ss:StyleID="s71"><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/itemrcpt.nl?id=35589&quot;&gt;ITEMRCPT275&lt;/a&gt;</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">INBSHIP52</Data></Cell>
+    <Cell ss:StyleID="s72"><Data ss:Type="DateTime">2023-01-19T00:00:00.000</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">CORNING GOSSELIN SAS</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">zG22-SB93-101</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">Disposable Petri Dishes, 3 vents, Dia 90x14.2mm (33pcs/slv, 25slv/cs)</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">PLASTIC LABWARES</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/purchord.nl?id=34512&quot;&gt;Purchase Order #PO-000145&lt;/a&gt;</Data></Cell>
+    <Cell ss:StyleID="s71"><Data ss:Type="String">- None -</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="Number">100</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="String">CASE/825</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="String">EUR</Data></Cell>
+    <Cell ss:StyleID="s73"><Data ss:Type="Number">4.6825000000000001</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">44.48</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">4448</Data></Cell>
+    <Cell ss:StyleID="s93" ss:Formula="=RC[-1]*RC[-3]"><Data ss:Type="Number">20827.760000000002</Data></Cell>
+    <Cell ss:StyleID="s93"/>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">639.17999999999995</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">47.668999999999997</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">1409.42</Data></Cell>
+    <Cell ss:StyleID="s74"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s93" ss:Formula="=SUM(RC[-5]:RC[-1])"><Data ss:Type="Number">2096.2690000000002</Data></Cell>
+    <Cell ss:StyleID="s93"/>
+    <Cell ss:StyleID="s74" ss:Formula="=RC[-9]+RC[-2]"><Data ss:Type="Number">22924.029000000002</Data></Cell>
+    <Cell ss:StyleID="s93"/>
+    <Cell ss:StyleID="s102" ss:Formula="=RC[-2]/RC[-17]"><Data ss:Type="Number">229.24029000000002</Data></Cell>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s76">
+    <Cell><Data ss:Type="String">Sub Total per Shipment*</Data></Cell>
+    <Cell ss:Index="3" ss:StyleID="s77"/>
+    <Cell ss:Index="14" ss:StyleID="s78"/>
+    <Cell ss:StyleID="s79" ss:Formula="=SUM(R[-5]C:R[-1]C)"><Data ss:Type="Number">18652.36</Data></Cell>
+    <Cell ss:StyleID="s92" ss:Formula="=SUM(R[-4]C:R[-1]C)"><Data ss:Type="Number">87339.675699999993</Data></Cell>
+    <Cell ss:StyleID="s94" ss:Formula="=RC[-1]"><Data ss:Type="Number">87339.675699999993</Data></Cell>
+    <Cell ss:StyleID="s79" ss:Formula="=SUM(R[-4]C:R[-1]C)"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s79" ss:Formula="=SUM(R[-4]C:R[-1]C)"><Data ss:Type="Number">2914.1509999999998</Data></Cell>
+    <Cell ss:StyleID="s79" ss:Formula="=SUM(R[-4]C:R[-1]C)"><Data ss:Type="Number">217.339</Data></Cell>
+    <Cell ss:StyleID="s79" ss:Formula="=SUM(R[-4]C:R[-1]C)"><Data ss:Type="Number">6425.8520000000008</Data></Cell>
+    <Cell ss:StyleID="s79" ss:Formula="=SUM(R[-4]C:R[-1]C)"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s94" ss:Formula="=SUM(RC[-5]:RC[-1])"><Data ss:Type="Number">9557.3420000000006</Data></Cell>
+    <Cell ss:StyleID="s94" ss:Formula="=RC[-1]"><Data ss:Type="Number">9557.3420000000006</Data></Cell>
+    <Cell ss:StyleID="s79" ss:Formula="=SUM(R[-4]C:R[-1]C)"><Data ss:Type="Number">96897.017699999997</Data></Cell>
+    <Cell ss:StyleID="s94" ss:Formula="=RC[-9]+RC[-2]"><Data ss:Type="Number">96897.017699999997</Data></Cell>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s80">
+    <Cell><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/itemrcpt.nl?id=36305&quot;&gt;ITEMRCPT278&lt;/a&gt;</Data></Cell>
+    <Cell><Data ss:Type="String">INBSHIP56</Data></Cell>
+    <Cell ss:StyleID="s81"><Data ss:Type="DateTime">2023-01-31T00:00:00.000</Data></Cell>
+    <Cell><Data ss:Type="String">ANQING YIPAK PACKAGING MATERIAL CO., LTD</Data></Cell>
+    <Cell ss:StyleID="s82"><Data ss:Type="String">zA72-YST-1950</Data></Cell>
+    <Cell ss:StyleID="s82"><Data ss:Type="String">Steam Sterilization Indicator Tapes, 19mmx50m/roll (48rolls/case)</Data></Cell>
+    <Cell ss:StyleID="s82"><Data ss:Type="String">MICROBIOLOGY</Data></Cell>
+    <Cell ss:StyleID="s82"><Data ss:Type="String">&lt;a href=&quot;https://6865308.app.netsuite.com/app/accounting/transactions/purchord.nl?id=36304&quot;&gt;Purchase Order #PO-000156&lt;/a&gt;</Data></Cell>
+    <Cell ss:StyleID="s82"><Data ss:Type="String">- None -</Data></Cell>
+    <Cell ss:StyleID="s82"><Data ss:Type="Number">6</Data></Cell>
+    <Cell ss:StyleID="s82"><Data ss:Type="String">CASE/48</Data></Cell>
+    <Cell ss:StyleID="s82"><Data ss:Type="String">USD</Data></Cell>
+    <Cell ss:StyleID="s82"><Data ss:Type="Number">4.2439999999999998</Data></Cell>
+    <Cell ss:StyleID="s83"><Data ss:Type="Number">64.8</Data></Cell>
+    <Cell ss:StyleID="s84"><Data ss:Type="Number">388.8</Data></Cell>
+    <Cell ss:StyleID="s97" ss:Formula="=+RC[-3]*RC[-1]"><Data ss:Type="Number">1650.0672</Data></Cell>
+    <Cell ss:StyleID="s95"/>
+    <Cell ss:StyleID="s84"><Data ss:Type="Number">417.34899999999999</Data></Cell>
+    <Cell ss:StyleID="s84"><Data ss:Type="Number">1249.981</Data></Cell>
+    <Cell ss:StyleID="s84"><Data ss:Type="Number">3.6709999999999998</Data></Cell>
+    <Cell ss:StyleID="s84"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s84"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s100"/>
+    <Cell ss:StyleID="s95" ss:Formula="=SUM(RC[-6]:RC[-2])"><Data ss:Type="Number">1671.001</Data></Cell>
+    <Cell ss:StyleID="s86" ss:Formula="=SUM(RC[-9]+RC[-1])"><Data ss:Type="Number">3321.0681999999997</Data></Cell>
+    <Cell ss:StyleID="s95"/>
+    <Cell ss:StyleID="s103" ss:Formula="=RC[-2]/RC[-17]"><Data ss:Type="Number">553.51136666666662</Data></Cell>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell><Data ss:Type="String">Sub Total</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell ss:StyleID="s88"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s89"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s89"><Data ss:Type="Number">417.35</Data></Cell>
+    <Cell ss:StyleID="s89"><Data ss:Type="Number">4164.13</Data></Cell>
+    <Cell ss:StyleID="s89"><Data ss:Type="Number">221.01</Data></Cell>
+    <Cell ss:StyleID="s89"><Data ss:Type="Number">6425.85</Data></Cell>
+    <Cell ss:StyleID="s89"><Data ss:Type="Number">0</Data></Cell>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s92"/>
+    <Cell ss:StyleID="s88"><Data ss:Type="Number">147775.37</Data></Cell>
+    <Cell ss:StyleID="s92"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell><Data ss:Type="String">* Amendments need to be made in the FCB Landed cost Reports.</Data></Cell>
+    <Cell ss:Index="4"><Data ss:Type="String"> </Data></Cell>
+    <Cell ss:Index="13" ss:StyleID="s90"/>
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+   <Row ss:AutoFitHeight="0" ss:StyleID="s68">
+    <Cell ss:Index="16" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="23" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+    <Cell ss:Index="26" ss:StyleID="s96"/>
+    <Cell ss:StyleID="s96"/>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <Unsynced/>
+   <Print>
+    <ValidPrinterInfo/>
+    <HorizontalResolution>600</HorizontalResolution>
+    <VerticalResolution>600</VerticalResolution>
+   </Print>
+   <Selected/>
+   <LeftColumnVisible>8</LeftColumnVisible>
+   <Panes>
+    <Pane>
+     <Number>3</Number>
+     <ActiveRow>9</ActiveRow>
+    </Pane>
+   </Panes>
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+</Workbook>

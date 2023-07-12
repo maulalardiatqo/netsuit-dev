@@ -1,0 +1,15 @@
+is the interest/ profit earned column  = (Initial Investment * (interest/profit rate / 365) * (maturity date, start date) / 100 
+
+is the  Accrued Interest/ Profit column = (interest/profit rate / 365) * (
+
+
+https://7222172.app.netsuite.com/app/common/scripting/script.nl?id=558
+
+https://7222172.app.netsuite.com/app/common/custom/custrecordentry.nl?id=1423&rectype=421&whence=&e=T
+
+const date1 = new Date('7/13/2010');
+const date2 = new Date('12/15/2010');
+const diffTime = Math.abs(date2 - date1);
+const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+console.log(diffTime + " milliseconds");
+console.log(diffDays + " days"); 

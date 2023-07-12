@@ -1,0 +1,15 @@
+function sysDate() {
+							var date = new Date();
+							var tdate = date.getUTCDate();
+							var month = date.getUTCMonth() + 1; // jan = 0
+							var year = date.getUTCFullYear();
+							log.debug("tdate month year", tdate + '/' + month + '/' + year);
+							
+							return tdate + '/' + month + '/' + year;
+						}
+						let today = sysDate();
+						today = format.parse({value:today, type: format.Type.DATE});
+						PO.setValue({
+							fieldId: 'trandate',
+							value: today, 
+							ignoreF

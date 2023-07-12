@@ -1,0 +1,5 @@
+Record(type,id) spesifik By Id || this()->find
+searc(type,id) jamak || this()->get
+
+record lebih ideal untuk update
+search juka mau di gunakan untuk update maka harus di looping

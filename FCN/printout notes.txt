@@ -1,0 +1,29 @@
+subtotal = ngambil dari amount
+VAT = subtotal x 11 %
+total = subtotal + VAT 11%
+pph 23 2 % = subtotal x 2%
+
+balance due = total - pph 23 2%
+
+Rp (dihilangin) di ganti ambil dari field Curremcy
+Tax di isi (x)
+pembulatan semua angka tidak ada decimal
+
+footer purchase invoice
+
+AMount = quantity x unitprice
+
+
+print SO note
+total = subtotal + ppn
+spasi di payment detail
+typo Swift Code
+payment reference : nomer SO
+Footer di hilangkan
+
+
+invoice
+total = subtotal + ppn %
+payment reference = no.invoice
+Faktur pajak : field faktur pajak
+
