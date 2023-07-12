@@ -30,6 +30,7 @@
               label: 'Cancel PR',
               functionName: "CancelPr('pr')"
             });
+            
             scriptContext.form.clientScriptModulePath = "SuiteScripts/pr_cancel_cs.js";
           }
             
