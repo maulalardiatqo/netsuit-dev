@@ -73,9 +73,13 @@ define(["N/record", "N/search"], function(
             end: 1
         });
         log.debug('searchBPNumber', searchBPNumber);
-        var startDate =  new Date(year, 0, 1);
+        log.debug('month', month)
+        var startDate = new Date(year, month - 1, 1); // Mengurangi 1 dari nilai bulan
+        startDate.setHours(0, 0, 0, 0);
         log.debug('startDate', startDate);
-        var endDate = new Date(year, 11, 31);
+
+        var endDate = new Date(year, month, 0); // Mengurangi 1 dari nilai bulan
+        endDate.setHours(23, 59, 59, 999);
         log.debug('endDate', endDate);
         
         if(searchBPNumber.length > 0){
@@ -145,7 +149,7 @@ define(["N/record", "N/search"], function(
 
             createRecordBp.setValue({
                 fieldId: 'custrecord_fcn_bpn_last_run',
-                value: formatRunning + '0001', 
+                value: formatRunning + '001', 
                 ignoreFieldChange: true
             });
             createRecordBp.setValue({
@@ -181,7 +185,7 @@ define(["N/record", "N/search"], function(
           if(saveBp){
             billpymrec.setValue({
               fieldId : 'tranid',
-              value : formatRunning + '0001',
+              value : formatRunning + '001',
               ignoreFieldChange: true
             });
             billpymrec.save({
