@@ -235,9 +235,6 @@
              sublistId: 'apply',
              fieldId: 'internalid'
            });
-           log.debug('billid', billid);
-           log.debug('transid', transid);
-           log.debug('jeId', jeID);
            if (billid == transid || billid == jeID) {
              vendorPayRec.setCurrentSublistValue({
                sublistId: 'apply',
@@ -253,7 +250,7 @@
            }
          }
 
-         let vendid = vendorPayRec.save({
+         var vendid = vendorPayRec.save({
            enableSourcing: false,
            ignoreMandatoryFields: true
          });

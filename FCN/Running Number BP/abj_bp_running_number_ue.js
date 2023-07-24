@@ -191,7 +191,7 @@ define(["N/record", "N/search"], function(
             billpymrec.save({
               enableSourcing: false,
               ignoreMandatoryFields: true
-              });
+            });
           }
 
           
