@@ -78,7 +78,6 @@ define(['N/currentRecord'], function (currentRecord) {
             var countLine = currentRecordObj.getLineCount({ sublistId: 'price5' });
             console.log('countLine', countLine);
 
-            // Sementara nonaktifkan peristiwa perubahan field untuk menghindari perulangan tak terbatas (infinite loop)
             currentRecordObj.setValue({
                 fieldId: 'custrecord_field_id_here',
                 value: true,
@@ -86,8 +85,6 @@ define(['N/currentRecord'], function (currentRecord) {
             });
 
             updateAllLines(currentRecordObj, countLine);
-
-            // Aktifkan kembali peristiwa perubahan field
             currentRecordObj.setValue({
                 fieldId: 'custrecord_field_id_here',
                 value: false,
@@ -99,8 +96,6 @@ define(['N/currentRecord'], function (currentRecord) {
     function pageInit(context) {
         console.log('masuk');
     }
-
-    // Fungsi untuk pembulatan angka
     function pembulatan(angka) {
         if (angka >= 0) {
             var bulat = Math.floor(angka);

@@ -37,14 +37,15 @@ define(["N/record", "N/search"], function(
                     id: rec.id,
                     isDynamic: true
                 });
-                var countLine = itemrec.getLineCount({ sublistId: 'price5' });
+				let Itemsublistid = 'price5';	
+                var countLine = itemrec.getLineCount({ sublistId: Itemsublistid });
                 log.debug('countLine', countLine);
                 for (var i = 0; i < countLine; i++) {
                     log.debug('i', i)
-                    var price_1 = itemrec.getSublistValue({ sublistId: 'price5', fieldId: 'price_1_', line: i });
-                    var price_2 = itemrec.getSublistValue({ sublistId: 'price5', fieldId: 'price_2_', line: i });
-                    var price_3 = itemrec.getSublistValue({ sublistId: 'price5', fieldId: 'price_3_', line: i });
-                    var price_4 = itemrec.getSublistValue({ sublistId: 'price5', fieldId: 'price_4_', line: i });
+                    var price_1 = itemrec.getSublistValue({ sublistId: Itemsublistid, fieldId: 'price_1_', line: i });
+                    var price_2 = itemrec.getSublistValue({ sublistId: Itemsublistid, fieldId: 'price_2_', line: i });
+                    var price_3 = itemrec.getSublistValue({ sublistId: Itemsublistid, fieldId: 'price_3_', line: i });
+                    var price_4 = itemrec.getSublistValue({ sublistId: Itemsublistid, fieldId: 'price_4_', line: i });
 
                     var rounded1 = pembulatan(parseFloat(price_1));
                     var rounded2 = pembulatan(parseFloat(price_2));
@@ -57,36 +58,39 @@ define(["N/record", "N/search"], function(
                     var roundedPrice_4 = pembulatanSeratus(rounded4)
 
                     log.debug('data',{i:i, roundedPrice_1:roundedPrice_1, roundedPrice_2:roundedPrice_2, roundedPrice_3:roundedPrice_3, roundedPrice_4:roundedPrice_4});
-
+                    log.debug('itemsublistid', Itemsublistid)
+					itemrec.selectLine({
+						sublistId: Itemsublistid,
+						line: i
+					});
                     itemrec.setCurrentSublistValue({
-                        sublistId: 'price5',
+                        sublistId: Itemsublistid,
                         fieldId: 'price_1_', 
-                        line: i,
                         value: roundedPrice_1,
-                        ignoreFieldChange: true
+                        ignoreFieldChange: true,
                     });
-                    itemrec.setCurrentSublistValue({
-                        sublistId: 'price5',
+                    var list1 = itemrec.setCurrentSublistValue({
+                        sublistId: Itemsublistid,
                         fieldId: 'price_2_', 
-                        line: i,
                         value: roundedPrice_2,
-                        ignoreFieldChange: true
+                        ignoreFieldChange: true,
                     });
+                    log.debug('list1', list1);
                     itemrec.setCurrentSublistValue({
-                        sublistId: 'price5',
+                        sublistId: Itemsublistid,
                         fieldId: 'price_3_', 
-                        line: i,
                         value: roundedPrice_3,
-                        ignoreFieldChange: true
+                        ignoreFieldChange: true,
                     });
                     itemrec.setCurrentSublistValue({
-                        sublistId: 'price5',
+                        sublistId: Itemsublistid,
                         fieldId: 'price_4_', 
-                        line: i,
                         value: roundedPrice_4,
-                        ignoreFieldChange: true
+                        ignoreFieldChange: true,
                     });
-                    
+					itemrec.commitLine({
+						sublistId: Itemsublistid
+					});
                 }
                 var recordId = itemrec.save({
                     enableSourcing: false,
