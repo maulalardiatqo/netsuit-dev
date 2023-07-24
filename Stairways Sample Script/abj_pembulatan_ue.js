@@ -96,7 +96,6 @@ define(["N/record", "N/search"], function(
                     enableSourcing: false,
                     ignoreMandatoryFields: true
                 });
-                log.debug('recordId', recordId);
             }
         }catch(e){
             log.error({
