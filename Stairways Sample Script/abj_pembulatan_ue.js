@@ -46,16 +46,19 @@ define(["N/record", "N/search"], function(
                     var price_2 = itemrec.getSublistValue({ sublistId: Itemsublistid, fieldId: 'price_2_', line: i });
                     var price_3 = itemrec.getSublistValue({ sublistId: Itemsublistid, fieldId: 'price_3_', line: i });
                     var price_4 = itemrec.getSublistValue({ sublistId: Itemsublistid, fieldId: 'price_4_', line: i });
+                    var price_5 = itemrec.getSublistValue({ sublistId: Itemsublistid, fieldId: 'price_5_', line: i });
 
                     var rounded1 = pembulatan(parseFloat(price_1));
                     var rounded2 = pembulatan(parseFloat(price_2));
                     var rounded3 = pembulatan(parseFloat(price_3));
                     var rounded4 = pembulatan(parseFloat(price_4));
+                    var rounded5 = pembulatan(parseFloat(price_5));
             
                     var roundedPrice_1 = pembulatanSeratus(rounded1)
                     var roundedPrice_2 = pembulatanSeratus(rounded2)
                     var roundedPrice_3 = pembulatanSeratus(rounded3)
                     var roundedPrice_4 = pembulatanSeratus(rounded4)
+                    var roundedPrice_5 = pembulatanSeratus(rounded5)
 
                     log.debug('data',{i:i, roundedPrice_1:roundedPrice_1, roundedPrice_2:roundedPrice_2, roundedPrice_3:roundedPrice_3, roundedPrice_4:roundedPrice_4});
                     log.debug('itemsublistid', Itemsublistid)
@@ -86,6 +89,12 @@ define(["N/record", "N/search"], function(
                         sublistId: Itemsublistid,
                         fieldId: 'price_4_', 
                         value: roundedPrice_4,
+                        ignoreFieldChange: true,
+                    });
+                    itemrec.setCurrentSublistValue({
+                        sublistId: Itemsublistid,
+                        fieldId: 'price_5_', 
+                        value: roundedPrice_5,
                         ignoreFieldChange: true,
                     });
 					itemrec.commitLine({
