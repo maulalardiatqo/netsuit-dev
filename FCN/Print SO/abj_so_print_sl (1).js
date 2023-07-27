@@ -28,7 +28,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
           id: subsidiari,
           isDynamic: false,
         });
-        // load for header
+        // load for header 1
         var legalName = subsidiariRec.getValue('legalname');
         var addresSubsidiaries = subsidiariRec.getValue('mainaddress_text');
         var name = subsidiariRec.getValue('name');
@@ -304,8 +304,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
       style += ".tg .tg-f_body{align: right;font-size:14px;border-bottom: solid black 2px;}";
       style += ".tg .tg-foot{font-size:11px; color: #808080; position: absolute; bottom: 0;}";
       style += "</style>";
-
-
 
       body += "<table class='tg' style=\"table-layout:fixed;\">";
       body += "<tbody>";

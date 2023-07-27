@@ -23,15 +23,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             }
         }
         function onRequest(context) {
-            
             var recid = context.request.parameters.id;
             // load PO
             var poRecord = record.load({
-                type: 'vendorbill',
+                type: record.Type.PURCHASE_ORDER,
                 id: recid,
                 isDynamic: false,
             });
-            
+            var subsidiari = poRecord.getValue('subsidiary');
             var currenc = poRecord.getValue('currency');
             if(currenc){
                 var recCurrenc = record.load({
@@ -43,7 +42,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 log.debug('tlcCurr', tlcCurr);
             }
             log.debug('currency', currenc);
-            var subsidiari = poRecord.getValue('subsidiary');
+            log.debug('subsidiari',subsidiari)
             // load subsidiarie
             if(subsidiari){
                 var subsidiariRec = record.load({
@@ -52,8 +51,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     isDynamic: false,
                 });
                 // load for header
+                var subsidiariId = subsidiari.id
                 var legalName = subsidiariRec.getValue('legalname');
+                var name = subsidiariRec.getValue('name');
                 var addresSubsidiaries = subsidiariRec.getValue('mainaddress_text');
+                if(addresSubsidiaries.includes("<br>")){
+                    addresSubsidiaries = addresSubsidiaries.replace(/<br>/g, "");
+                }
+                if(name){
+                    addresSubsidiaries = addresSubsidiaries.replace(name, "");
+                }
+
                 var retEmailAddres = subsidiariRec.getValue('email');
                 var Npwp = subsidiariRec.getValue('federalidnumber');
                 var logo = subsidiariRec.getValue('logo');
@@ -66,12 +74,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     //get url
                     urlLogo = filelogo.url.replace(/&/g, "&amp;");
                 }
-
-                if(addresSubsidiaries.includes("<br>")){
-                    addresSubsidiaries = addresSubsidiaries.replace(/<br>/g, "");
-                }
             }
-            
+            log.debug('addresSubsidiaries', addresSubsidiaries);
+            log.debug('legalName', legalName);
             // load vendor
             var vendor_id = poRecord.getValue('entity');
             log.debug('vendorid', vendor_id);
@@ -85,7 +90,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var isperson = vendorRecord.getValue('isperson');
                 log.debug('isperson', isperson)
                 if(isperson == 'T'){
-                    log.debug('condisimasuk', isperson)
                     var firstname = vendorRecord.getValue('firstname') || ''
                     var middleName = vendorRecord.getValue('middlename') || '';
                     var lastname = vendorRecord.getValue('lastname')|| ''
@@ -103,10 +107,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     
                 }
                 var venAddres = vendorRecord.getValue('billaddr1');
-                    if(venAddres === ''){
-                        venAddres = vendorRecord.getValue('defaultaddress');
-                    }
-                
+                if(venAddres === ''){
+                    venAddres = vendorRecord.getValue('defaultaddress');
+                }
                 var taxRegNo = vendorRecord.getValue('vatregnumber');
                 var count = vendorRecord.getLineCount({
                     sublistId: 'submachine'
@@ -128,216 +131,195 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                 }
             }
-            log.debug('balancebfr', balance)
             if(balance){
                 balance = format.format({
                     value: balance,
                     type: format.Type.CURRENCY
                 });
             }
-            log.debug('balance', balance);
             // PO data
-
-            var tandId = poRecord.getValue('transactionnumber');
+            var tandId = poRecord.getValue('tranid');
             var POdate = poRecord.getValue('trandate');
             var terms = poRecord.getText('terms');
+            // var subTotal = poRecord.getValue('subtotal') || 0;
             var poTotal = poRecord.getValue('total') || 0;
-            var taxtotal = poRecord.getValue('taxtotal') || 0;
-            var total = poRecord.getValue('total') || 0;
+            
+            var total = 0;
             var duedate = poRecord.getValue('duedate');
             var jobNumber = poRecord.getValue('custbody_abj_custom_jobnumber');
 
-            var subTotal = 0;
-            var totalToCount = total
+            var subTotal = poRecord.getValue('subtotal') || 0;
+            
             var totalWhTaxamount = 0;
             var totalWhTaxamountItem = 0;
             var totalWhTaxamountExp = 0;
             var whtaxammountItem = 0;
             var whtaxammountExp = 0;
             var whTaxCodetoPrint = ''
-            log.debug('countSubtotal', {total:total, taxtotal:taxtotal});
+
+
             var countItem = poRecord.getLineCount({
                 sublistId: 'item'
             });
+            
             if(countItem > 0){
-                
                 var taxpphList = [];
                 for (var i = 0; i < countItem; i++) {
-                    var account = poRecord.getSublistValue({
+                    var taxpph = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_4601_witaxrate',
+                        line: i
+                    });
+                    whtaxammountItem = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_4601_witaxamount',
+                        line: i
+                    });
+                    var amount = poRecord.getSublistValue({
                         sublistId : 'item',
-                        fieldId : 'item',
-                        line : i,
+                        fieldId : 'amount',
+                        line : i
                     });
-                    var accountRec = record.load({
-                        type: "account",
-                        id: account,
-                        isDynamic: false,
+                    var qty = poRecord.getSublistValue({
+                        sublistId : 'item',
+                        fieldId : 'quantity',
+                        line : i
                     });
-                    var cekWH = accountRec.getValue('custrecord_coa_wh');
-                    log.debug('cekWH', {account:account, cekWH: cekWH});
-                    if(cekWH === false){
-                        var taxpph = poRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_4601_witaxrate',
-                            line: i
-                        });
-                        whtaxammountItem = poRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_4601_witaxamount',
-                            line: i
-                        });
-                        var amount = poRecord.getSublistValue({
-                            sublistId : 'item',
-                            fieldId : 'amount',
-                            line : i
-                        });
-                        var qty = poRecord.getSublistValue({
-                            sublistId : 'item',
-                            fieldId : 'quantity',
-                            line : i
-                        });
-                        var taxRate = poRecord.getSublistValue({
-                            sublistId : 'item',
-                            fieldId : 'taxrate1',
-                            line : i
-                        });
-                        var whTaxCodeI = poRecord.getSublistValue({
-                            sublistId : 'item',
-                            fieldId : 'custcol_4601_witaxcode',
-                            line : i
-                        });
-    
-                        if(whTaxCodeI){
-                            var whRecI = record.load({
-                                type: 'customrecord_4601_witaxcode',
-                                id: whTaxCodeI,
-                                isDynamic: false,
-                            });
-                            whTaxCodetoPrint = whRecI.getValue('custrecord_4601_wtc_name');
-                            if (whTaxCodetoPrint.includes('Prepaid Tax') || whTaxCodetoPrint.includes('Tax Article')) {
-                                whTaxCodetoPrint = whTaxCodetoPrint.replace('Prepaid Tax', 'PPH').replace('Tax Article', 'PPH');
-                            }
-                            log.debug('whtaxcodPrint', whTaxCodetoPrint);
-                        }
-                        var totalAmount = Number(amount) * Number(qty)
-                        subTotal += totalAmount
-                        var tamount = whtaxammountItem
-                        whtaxammountItem = Math.abs(tamount);
-                        totalWhTaxamountItem += whtaxammountItem
-    
-                        if (taxpph && taxpphList.indexOf(taxpph) === -1) {
-                            log.debug('masuk kondisi')
-                            taxpphList.push(taxpph);
-                        }
-                    }
+                    var taxtRate = poRecord.getSublistValue({
+                        sublistId : 'item',
+                        fieldId : 'taxrate1',
+                        line : i
+                    });
+                    var whTaxCodeI = poRecord.getSublistValue({
+                        sublistId : 'item',
+                        fieldId : 'custcol_4601_witaxcode',
+                        line : i
+                    });
 
+                    if(whTaxCodeI){
+                        var whRecI = record.load({
+                            type: 'customrecord_4601_witaxcode',
+                            id: whTaxCodeI,
+                            isDynamic: false,
+                        });
+                        whTaxCodetoPrint = whRecI.getValue('custrecord_4601_wtc_name');
+                        if (whTaxCodetoPrint.includes('Prepaid Tax') || whTaxCodetoPrint.includes('Tax Article')) {
+                            whTaxCodetoPrint = whTaxCodetoPrint.replace('Prepaid Tax', 'PPH').replace('Tax Article', 'PPH');
+                        }
+                        log.debug('whtaxcodPrint', whTaxCodetoPrint);
+                    }
+                    var taxCode = poRecord.getSublistValue({
+                        sublistId : 'item',
+                        fieldId : 'custcol_4601_witaxcode',
+                        line : i
+                    })
+                    log.debug('countitem', {amount: amount, qty:qty})
+                    var totalAmountPerline = amount;
+                    log.debug('totalAmountPerline', totalAmountPerline);
+
+                    // subTotal += totalAmountPerline
+                    var tamount = whtaxammountItem
+                    whtaxammountItem = Math.abs(tamount);
+                    totalWhTaxamountItem += whtaxammountItem
                     
+                    if (taxpph && taxpphList.indexOf(taxpph) === -1) {
+                        taxpphList.push(taxpph);
+                    }
                 }
             }
             var countExpense = poRecord.getLineCount({
-                sublistId: 'expense'
+            sublistId: 'expense'
             });
-            log.debug('countExpense', countExpense)
             if(countExpense > 0){
                 var taxpphList = [];
                 for (var i = 0; i < countExpense; i++) {
-                    var account = poRecord.getSublistValue({
-                        sublistId : 'expense',
-                        fieldId : 'account',
-                        line : i,
+                    var taxpph = poRecord.getSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'custcol_4601_witaxrate_exp',
+                        line: i
                     });
-                    var accountRec = record.load({
-                        type: "account",
-                        id: account,
-                        isDynamic: false,
+                    whtaxammountExp = poRecord.getSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'custcol_4601_witaxamt_exp',
+                        line: i
                     });
-                    var cekWH = accountRec.getValue('custrecord_coa_wh');
-                    log.debug('cekWH', {account:account, cekWH: cekWH});
-                    if(cekWH === false){
-                        var taxpph = poRecord.getSublistValue({
-                            sublistId: 'expense',
-                            fieldId: 'custcol_4601_witaxrate_exp',
-                            line: i
+                    var amountExp = poRecord.getSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'amount',
+                        line: i
+                    });
+                    var whTaxCode = poRecord.getSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'custcol_4601_witaxcode_exp',
+                        line: i
+                    });
+                    log.debug('whtaxCode', whTaxCode);
+                    if(whTaxCode){
+                        var whRec = record.load({
+                            type: 'customrecord_4601_witaxcode',
+                            id: whTaxCode,
+                            isDynamic: false,
                         });
-                        whtaxammountExp = poRecord.getSublistValue({
-                            sublistId: 'expense',
-                            fieldId: 'custcol_4601_witaxamt_exp',
-                            line: i
-                        });
-
-                        var amountExp =  poRecord.getSublistValue({
-                            sublistId: 'expense',
-                            fieldId: 'amount',
-                            line: i
-                        });
-                        var taxRate = poRecord.getSublistValue({
-                            sublistId : 'expense',
-                            fieldId : 'taxrate1',
-                            line : i
-                        });
-                        var whTaxCode = poRecord.getSublistValue({
-                            sublistId: 'expense',
-                            fieldId: 'custcol_4601_witaxcode_exp',
-                            line: i
-                        });
-                        log.debug('whtaxCode', whTaxCode);
-                        if(whTaxCode){
-                            var whRec = record.load({
-                                type: 'customrecord_4601_witaxcode',
-                                id: whTaxCode,
-                                isDynamic: false,
-                            });
-                            whTaxCodetoPrint = whRec.getValue('custrecord_4601_wtc_name');
-                            if (whTaxCodetoPrint.includes('Prepaid Tax') || whTaxCodetoPrint.includes('Tax Article')) {
-                                whTaxCodetoPrint = whTaxCodetoPrint.replace('Prepaid Tax', 'PPH').replace('Tax Article', 'PPH');
-                            }
-                            log.debug('whtaxcodPrint', whTaxCodetoPrint);
+                        whTaxCodetoPrint = whRec.getValue('custrecord_4601_wtc_name');
+                        if (whTaxCodetoPrint.includes('Prepaid Tax') || whTaxCodetoPrint.includes('Tax Article')) {
+                            whTaxCodetoPrint = whTaxCodetoPrint.replace('Prepaid Tax', 'PPH').replace('Tax Article', 'PPH');
                         }
-                        subTotal += amountExp
-                        var tamountExp = whtaxammountExp
-                        whtaxammountExp = Math.abs(tamountExp);
-                        totalWhTaxamountExp += whtaxammountExp
-    
-                        if (taxpph && taxpphList.indexOf(taxpph) === -1) {
-                            taxpphList.push(taxpph);
-                        }
+                        log.debug('whtaxcodPrint', whTaxCodetoPrint);
                     }
+                    var taxtRate = poRecord.getSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'taxrate1',
+                        line: i
+                    });
+                    var qtyExp = poRecord.getSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'quantity',
+                        line: i
+                    });
+                    var totalAmountPerlineExp = amountExp;
+                    // subTotal += totalAmountPerlineExp
+                    var tamountExp = whtaxammountExp
+                    whtaxammountExp = Math.abs(tamountExp);
+                    totalWhTaxamountExp += whtaxammountExp
                     
+                    if (taxpph && taxpphList.indexOf(taxpph) === -1) {
+                        taxpphList.push(taxpph);
+                    }
                 }
             }
+            
             if (taxpphList.length > 0) {
                 var taxpphToPrint = taxpphList.join(' & ');
                 log.debug('taxpphToPrint', taxpphToPrint);
             }
-            log.debug('taxpphToPrintOut', taxpphToPrint)
+            log.debug('taxpph luar', taxpph);
+
+            
             var whtaxToCount = whtaxammountItem + whtaxammountExp;
-            log.debug('totalWhTaxamountItem', totalWhTaxamountItem);
-            log.debug('totalWhTaxamountExp', totalWhTaxamountExp)
             totalWhTaxamount = totalWhTaxamountItem + totalWhTaxamountExp;
             var totalWHTaxToCount = totalWhTaxamount
-            log.debug('totalWhTaxamount', totalWhTaxamount);
-            log.debug('detailCount', {total:total, taxtotal:taxtotal, totalWhTaxamount:totalWhTaxamount });
-            log.debug('subtotal', subTotal);
-
-            total = Number(subTotal) + Number(taxtotal)
-            log.debug('totalCOunt', total);
-            var totalReceived = total
-
             if(totalWhTaxamount){
-                totalWhTaxamount = pembulatan(totalWhTaxamount)
+                totalWhTaxamount = pembulatan(totalWhTaxamount);
                 totalWhTaxamount = format.format({
                     value: totalWhTaxamount,
                     type: format.Type.CURRENCY
                 });
             }
+            var taxtotal = taxtRate / 100 * Number(subTotal);
+
+            total = Number(subTotal) + Number(taxtotal);
+            var totalToCount = total
+            log.debug('taxtotal', taxtotal);
             if(poTotal){
+                poTotal = parseFloat(poTotal);
+                poTotal = poTotal.toFixed(2);
                 poTotal = format.format({
                     value: poTotal,
                     type: format.Type.CURRENCY
                 });
             }
             if(subTotal){
-                subTotal = pembulatan(subTotal);
+                subTotal = pembulatan(subTotal)
                 subTotal = format.format({
                     value: subTotal,
                     type: format.Type.CURRENCY
@@ -358,8 +340,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     type: format.Type.CURRENCY
                 });
             }
-            
-            log.debug('duedate before', duedate);
             if(duedate){
                 function sysDate() {
                     var date = duedate;
@@ -378,18 +358,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     type: format.Type.DATE
                 });
             }
-            
-            var amountRecieved = Number(totalReceived) - Number(totalWHTaxToCount);
-            amountRecieved = pembulatan(amountRecieved)
-            log.debug('totalReceived', totalReceived);
-            log.debug('totalWHTaxToCount', totalWHTaxToCount);
-            log.debug('amountR', amountRecieved);
+            log.debug(whtaxToCount);
+            var amountRecieved = Number(totalToCount) - Number(totalWHTaxToCount);
+            log.debug('amountRecieved', amountRecieved);
             if(amountRecieved){
+                amountRecieved = parseFloat(amountRecieved);
+                amountRecieved = Math.ceil(amountRecieved);
+                amountRecieved = amountRecieved.toFixed(2);
                 amountRecieved = format.format({
                     value: amountRecieved,
                     type: format.Type.CURRENCY
                 });
             }
+            log.debug('amountRecieved after', amountRecieved)
             var response = context.response;
             var xml = "";
             var header = "";
@@ -399,6 +380,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var footer = "";
             var pdfFile = null;
 
+            
             style += "<style type='text/css'>";
             style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
             style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
@@ -416,11 +398,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             style += ".tg .tg-f_body{align: right;font-size:14px;border-bottom: solid black 2px;}";
             style += ".tg .tg-foot{font-size:11px; color: #808080; position: absolute; bottom: 0;}";
             style += "</style>";
-            
+
+
             header += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
             header += "<tbody>";
             header += "</tbody>";
             header += "</table>";
+
             body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
             body += "<tbody>";
             body += "<tr>";
@@ -428,6 +412,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td class='tg-headerlogo' style='width:50%;vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
             }
             body += "<td>";
+            
             body +=  "<p class='tg-headerrow_legalName' style='margin-top: 10px; margin-bottom: 10px;'>"  + legalName + "</p>";
             body += "<p class='tg-headerrow' style='margin-top: 1px; margin-bottom: 1px;'>"+ addresSubsidiaries + "<br/>";
             body += ""+ retEmailAddres + "<br/>"
@@ -438,12 +423,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "</tr>";
             body += "<tr>";
             body += "<td>";
-            body += "<p class='tg-headerrow_left'>"+ venName + "<br/>"
-            body += ""+venAddres+"<br/>"
+            body += "<p class='tg-headerrow_left'>"+ venName+ "<br/>"
+            body += ""+ venAddres + "<br/>"
             body += "NPWP : "+ taxRegNo + "</p>"
             body += "</td>"
             body += "<td>"
-            body += "<p class='tg-headerrow_legalName'> Vendorbill # : "+ tandId + "<br/>"
+            body += "<p class='tg-headerrow_legalName'> Purchase Order # : "+ tandId + "<br/>"
             body += ""+ POdate + "</p>"
             body += "<p class='tg-headerrow' style='font-size:11px'> Terms : "+ terms + "<br/>"
             body += "Due Date :"+duedate+ "</p>"
@@ -457,11 +442,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
             body += "<tbody>";
             body += "<tr>"
-            body += "<td class='tg-head_body' style='width:12%'> QTY </td>"
-            body += "<td class='tg-head_body' style='width:35%'> DESCRIPTION </td>"
-            body += "<td class='tg-head_body'> UNIT PRICE ("+ tlcCurr+") </td>"
+            body += "<td class='tg-head_body' style='width:15%'> QTY </td>"
+            body += "<td class='tg-head_body' style='width:30%'> DESCRIPTION </td>"
+            body += "<td class='tg-head_body' style='align:right; width:18%'> UNIT PRICE ("+ tlcCurr +") </td>"
             body += "<td class='tg-head_body' style='align:right'> TAXED </td>"
-            body += "<td class='tg-head_body' style='align:right; width:20%;'> AMOUNT ("+ tlcCurr +") </td>"
+            body += "<td class='tg-head_body' style='align:right; width:23%'> AMOUNT ("+ tlcCurr +") </td>"
             body += "</tr>"
             body += getPOItem(context, poRecord);
             body += getPOExpense(context, poRecord);
@@ -471,16 +456,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td class='tg-f_body' colspan='2'>SUBTOTAL</td>"
             body += "<td class='tg-f_body'>"+removeDecimalFormat(subTotal)+"</td>"
             body += "</tr>"
-            if(taxRate != 0){
-                body += "<tr>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-f_body'></td>"
-                body += "<td class='tg-f_body'>VAT "+ taxRate +" %</td>"
-                body += "<td class='tg-f_body'>"+removeDecimalFormat(taxtotal)+"</td>"
-                body += "</tr>"
-            }
-            
+            body += "<tr>"
+            body += "<td class='tg-headerrow_left'></td>"
+            body += "<td class='tg-headerrow_left'></td>"
+            body += "<td class='tg-f_body'></td>"
+            body += "<td class='tg-f_body'>VAT "+taxtRate+" %</td>"
+            body += "<td class='tg-f_body'>"+removeDecimalFormat(taxtotal)+"</td>"
+            body += "</tr>"
             body += "<tr>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
@@ -492,11 +474,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
-                body += "<td style='align: right;font-size:12px;border-bottom: solid black 2px;' colspan='2'>"+whTaxCodetoPrint+"</td>"
+                body += "<td style='align: right;font-size:12px;border-bottom: solid black 2px;' colspan='2'>"+ whTaxCodetoPrint+"</td>"
                 body += "<td class='tg-f_body'>"+removeDecimalFormat(totalWhTaxamount)+"</td>"
                 body += "</tr>"
             }
-            
+           
             body += "<tr>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
@@ -513,7 +495,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             footer += "<table class='tg' style='table-layout: fixed;'>";
             footer += "<tbody>";
             footer += "<tr class='tg-foot'>";
-            footer += "<td style='align:left'>Purchase Invoice # "+tandId+"</td>"
+            footer += "<td style='align:left'>Purchase Order # "+tandId+"</td>"
             footer += "<td style='align:right'></td>"
             footer += "</tr>";
             footer += "</tbody>";
@@ -551,92 +533,75 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             if(itemCount > 0){
                 var body = "";
                 for(var index = 0; index < itemCount; index++){
-                     var account = poRecord.getSublistValue({
-                        sublistId : 'item',
-                        fieldId : 'item',
-                        line : index,
+                    var qty = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'quantity',
+                        line: index
                     });
-                    var accountRec = record.load({
-                        type: "account",
-                        id: account,
-                        isDynamic: false,
+                    var description = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'description',
+                        line: index
                     });
-                    var cekWH = accountRec.getValue('custrecord_coa_wh');
-                    log.debug('cekWH', {account:account, cekWH: cekWH});
-                    if(cekWH === false){
-                        var qty = poRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'quantity',
-                            line: index
-                        });
-                        var description = poRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'description',
-                            line: index
-                        });
-                        var unit = poRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'units',
-                            line: index
-                        });
-                        var rate;
-                        var rateBef = poRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'rate',
-                            line: index
-                        });
-                        var ammount = poRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'amount',
-                            line: index
-                        });
-                        if(rateBef){
-                            rate = rateBef
-                        }else{
-                            rate = Number(ammount) / Number(qty)
-                        }
-                        if(rate){
-                            rate = pembulatan(rate)
-                            var rateBefore = rate
-                            rate = format.format({
-                                value: rate,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        
-                        var taxAmt = poRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'tax1amt',
-                            line: index
-                        });
-                        if(taxAmt){
-                            taxAmt = pembulatan(taxAmt)
-                            taxAmt = format.format({
-                                value: taxAmt,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        
-                        if(ammount){
-                            ammount = pembulatan(ammount)
-                            ammount =  format.format({
-                            value : ammount,
+                    var unit = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'units',
+                        line: index
+                    });
+                    var rate;
+                    var rateBef = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'amount',
+                        line: index
+                    });
+                    var ammount = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'amount',
+                        line: index
+                    });
+                    if(rateBef){
+                        rate = rateBef
+                    }else{
+                        rate = Number(ammount) / Number(qty)
+                    }
+                    if(rate){
+                        rate = pembulatan(rate)
+                        rate = format.format({
+                            value: rate,
                             type: format.Type.CURRENCY
                         });
-                        }
-                        
-                        
-                        body += "<tr>";
-                        body += "<td class='tg-b_body'>"+qty+" - "+unit+ "Pcs</td>";
-                        body += "<td class='tg-b_body'>"+description+"</td>";
-                        body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(rate)+"</td>";
-                        body += "<td class='tg-b_body' style='align:right'>X</td>";
-                        body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(ammount)+"</td>";
-                        body += "</tr>";
                     }
                     
+                    var taxAmt = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'tax1amt',
+                        line: index
+                    });
+                    if(taxAmt){
+                        taxAmt = pembulatan(taxAmt)
+                        taxAmt = format.format({
+                            value: taxAmt,
+                            type: format.Type.CURRENCY
+                        });
                     }
-                    return body;
+                    log.debug('amount', ammount)
+                    if(ammount){
+                        ammount = pembulatan(ammount)
+                        ammount = format.format({
+                            value: ammount,
+                            type: format.Type.CURRENCY
+                        });
+                    }
+                   
+                    body += "<tr>";
+                    body += "<td class='tg-b_body'>"+qty+" - "+unit+ "Pcs</td>";
+                    body += "<td class='tg-b_body'>"+description+"</td>";
+                    body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(rate)+"</td>";
+                    body += "<td class='tg-b_body' style='align:right'> X </td>";
+                    body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(ammount)+"</td>";
+                    body += "</tr>";
+                }
+                return body;
             }
             
         }
@@ -647,66 +612,55 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             if(expCont > 0){
                 var body = "";
                 for(var index = 0; index < expCont; index++){
-                    var account = poRecord.getSublistValue({
-                        sublistId : 'expense',
-                        fieldId : 'account',
-                        line : index,
+                    var qty = 1;
+                    var description = poRecord.getSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'memo',
+                        line: index
                     });
-                    var accountRec = record.load({
-                        type: "account",
-                        id: account,
-                        isDynamic: false,
+                    var amount = poRecord.getSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'amount',
+                        line: index
                     });
-                    var cekWH = accountRec.getValue('custrecord_coa_wh');
-                    log.debug('cekWH', {account:account, cekWH: cekWH});
-                    if(cekWH === false){
-                        var qty = 1;
-                        var description = poRecord.getSublistValue({
-                            sublistId: 'expense',
-                            fieldId: 'memo',
-                            line: index
-                        });
-                        var amount = poRecord.getSublistValue({
-                            sublistId: 'expense',
-                            fieldId: 'amount',
-                            line: index
-                        });
+                    if(amount){
                         var amountBef = amount
-                        if(amount){
-                            amount = pembulatan(amount)
-                            amount = format.format({
-                                value: amount,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        var taxamt_exp = poRecord.getSublistValue({
-                            sublistId: 'expense',
-                            fieldId: 'tax1amt',
-                            line: index
-                        });
-                        if(taxamt_exp){
-                            taxamt_exp = pembulatan(taxamt_exp)
-                            taxamt_exp = format.format({
-                                value: taxamt_exp,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        var grosamt_exp = Number(amountBef) * Number(qty)
-                        grosamt_exp = pembulatan(grosamt_exp);
-                        grosamt_exp = format.format({
-                            value : grosamt_exp,
+                        
+                        amount = pembulatan(amount)
+                        amount = format.format({
+                            value: amount,
                             type: format.Type.CURRENCY
                         });
-                        
-                        body += "<tr>";
-                        body += "<td class='tg-b_body'>"+qty+"</td>";
-                        body += "<td class='tg-b_body'>"+description+"</td>";
-                        body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(amount)+"</td>";
-                        body += "<td class='tg-b_body' style='align:right'>X</td>";
-                        body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(grosamt_exp)+"</td>";
-                        body += "</tr>";
                     }
-                    
+                    var taxamt_exp = poRecord.getSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'tax1amt',
+                        line: index
+                    });
+                    if(taxamt_exp){
+                        taxamt_exp = pembulatan(taxamt_exp)
+                        taxamt_exp = format.format({
+                            value: taxamt_exp,
+                            type: format.Type.CURRENCY
+                        });
+                    }
+                    log.debug('amountbef', amountBef)
+                    var grosamt_exp = Number(amountBef) * Number(qty)
+                    log.debug('grosamt_exp', grosamt_exp)
+                    if(grosamt_exp){
+                        grosamt_exp = pembulatan(grosamt_exp)
+                        grosamt_exp = format.format({
+                            value: grosamt_exp,
+                            type: format.Type.CURRENCY
+                        });
+                    }
+                    body += "<tr>";
+                    body += "<td class='tg-b_body'>"+qty+"</td>";
+                    body += "<td class='tg-b_body'>"+description+"</td>";
+                    body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(amount)+"</td>";
+                    body += "<td class='tg-b_body' style='align:right'>X</td>";
+                    body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(grosamt_exp)+"</td>";
+                    body += "</tr>";
                 }
                 return body;
             }

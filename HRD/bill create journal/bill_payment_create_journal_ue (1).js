@@ -62,9 +62,9 @@ define(['N/ui/serverWidget', 'N/runtime', 'N/search', 'N/record'], function (ser
                       if(itemCount > 0){
                         for (var indexBill = 0; indexBill < itemCount; indexBill++){
                           var amountBill = recordBill.getSublistValue({
-                             sublistId : 'item',
-                             fieldId : 'amount',
-                             line : indexBill
+                            sublistId : 'item',
+                            fieldId : 'amount',
+                            line : indexBill
                           });
                           log.debug('amountBill', amountBill);
                           totalAmountBill += amountBill;

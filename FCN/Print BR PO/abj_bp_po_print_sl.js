@@ -13,7 +13,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var vendPayment = record.load({
                 type: "vendorpayment",
                 id: recid,
-                isDynamic: false,
+                isDynamic: true,
               });
               var subsidiari = vendPayment.getValue('subsidiary');
             log.debug('subsidiary', subsidiari);
@@ -21,7 +21,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var subsidiariRec = record.load({
                   type: "subsidiary",
                   id: subsidiari,
-                  isDynamic: false,
+                  isDynamic: true,
                 });
                 var legalName = subsidiariRec.getValue('legalname');
                 var addresSubsidiaries = subsidiariRec.getValue('mainaddress_text');
@@ -39,13 +39,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             }
 
             var noPayment = vendPayment.getValue('tranid');
-            var paidTOid = vendPayment.getValue("entity");
+            var paidToText = vendPayment.getText('entity');
+            log.debug('paintoText', paidToText);
+            var paidTOid = vendPayment.getValue('entity');
+            log.debug('paidToid')
             
-            if(paidTOid){
+            if(paidTOid || paidTOid !== ""){
+              log.debug('masukif')
                 var venRec = record.load({
                     type: "vendor",
                     id: paidTOid,
-                    isDynamic: false,
+                    isDynamic: true,
                   });
                   var nameToV = venRec.getValue('nameorig');
                   log.debug('nameToV', nameToV);
@@ -55,6 +59,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                   if(isChecklist = true){
                     paidTO = venRec.getValue('comments')
                   }
+            }else{
+              log.debug('masuk else')
+              let kataKata = paidToText.split(" ");
+              paidTO = kataKata.slice(1).join(" ");
             }
             
             log.debug('paidTO ', paidTO)
@@ -200,7 +208,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                   // Handling decimal part
                   var decimalPart = Math.round((amount % 1) * 100);
                   if (decimalPart > 0) {
-                    result += 'POINT ' + convertDecimal(decimalPart);
+                    result += ' POINT ' + convertDecimal(decimalPart);
                     hasDecimal = true;
                   }
                 }
