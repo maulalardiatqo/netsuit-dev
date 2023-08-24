@@ -1,0 +1,120 @@
+<?xml version="1.0"?><!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
+<pdf>
+<head>
+	<link name="NotoSans" type="font" subtype="truetype" src="${nsfont.NotoSans_Regular}" src-bold="${nsfont.NotoSans_Bold}" src-italic="${nsfont.NotoSans_Italic}" src-bolditalic="${nsfont.NotoSans_BoldItalic}" bytes="2" />
+	<#if .locale == "zh_CN">
+		<link name="NotoSansCJKsc" type="font" subtype="opentype" src="${nsfont.NotoSansCJKsc_Regular}" src-bold="${nsfont.NotoSansCJKsc_Bold}" bytes="2" />
+	<#elseif .locale == "zh_TW">
+		<link name="NotoSansCJKtc" type="font" subtype="opentype" src="${nsfont.NotoSansCJKtc_Regular}" src-bold="${nsfont.NotoSansCJKtc_Bold}" bytes="2" />
+	<#elseif .locale == "ja_JP">
+		<link name="NotoSansCJKjp" type="font" subtype="opentype" src="${nsfont.NotoSansCJKjp_Regular}" src-bold="${nsfont.NotoSansCJKjp_Bold}" bytes="2" />
+	<#elseif .locale == "ko_KR">
+		<link name="NotoSansCJKkr" type="font" subtype="opentype" src="${nsfont.NotoSansCJKkr_Regular}" src-bold="${nsfont.NotoSansCJKkr_Bold}" bytes="2" />
+	<#elseif .locale == "th_TH">
+		<link name="NotoSansThai" type="font" subtype="opentype" src="${nsfont.NotoSansThai_Regular}" src-bold="${nsfont.NotoSansThai_Bold}" bytes="2" />
+	</#if>
+    <macrolist>
+        <macro id="footer">
+            <table class="footer" style="width: 100%;"><tr>
+	<td align="center"><pagenumber/> of <totalpages/></td>
+	</tr></table>
+        </macro>
+    </macrolist>
+    <style type="text/css">* {
+			<#if .locale == "zh_CN">
+				font-family: NotoSans, NotoSansCJKsc, sans-serif;
+			<#elseif .locale == "zh_TW">
+				font-family: NotoSans, NotoSansCJKtc, sans-serif;
+			<#elseif .locale == "ja_JP">
+				font-family: NotoSans, NotoSansCJKjp, sans-serif;
+			<#elseif .locale == "ko_KR">
+				font-family: NotoSans, NotoSansCJKkr, sans-serif;
+			<#elseif .locale == "th_TH">
+				font-family: NotoSans, NotoSansThai, sans-serif;
+			<#else>
+				font-family: NotoSans, sans-serif;
+			</#if>
+			}
+            span.title {
+                font-size: 28pt;
+            }
+            span.number {
+                font-size: 16pt;
+            }
+            table.main td, th {
+                border-bottom: 1px solid #ddd;
+            }
+            td.empty {
+                border: none;
+            }
+            th {
+                font-weight: bold;
+                vertical-align: middle;
+                padding: 5px 6px 3px;
+                background-color: #e3e3e3;
+                color: #333333;
+            }
+            td {
+                padding: 4px 6px;
+            }
+			td p { align:left }
+</style>
+</head>
+<body footer="footer" footer-height="0.5in" padding="0.5in 0.5in 0.5in 0.5in" size="Letter">
+    <table style="width: 100%;"><tr>
+	<td>${companyInformation.companyName}<br />${companyInformation.addressText}</td>
+	<td align="right"><span class="title">${label.title}</span><br /><span class="number">#${record.tranid}</span><br />${record.trandate}</td>
+	</tr></table>
+<br /><#assign show_subsidiary = record.subsidiary@label?has_content>
+<table class="main" style="width: 100%;"><tr>
+	<th>${record.postingperiod@label}</th>
+	<#if show_subsidiary>
+	<th>&nbsp;</th>
+	</#if>
+	<th colspan="2">${record.id@label}</th>
+	<th>${record.currency@label}</th>
+	</tr>
+	<tr>
+	<td>${record.postingperiod}</td>
+	<#if show_subsidiary>
+	<td>&nbsp;</td>
+	</#if>
+	<td colspan="2">${record.id}</td>
+	<td>${record.currency}</td>
+	</tr>
+	<tr>
+	<td class="empty">&nbsp;</td>
+	</tr>
+	<#assign credit_sum=0 debit_sum=0><#list record.line as line><#if line_index==0>
+	<tr><#if show_subsidiary><#if line.linesubsidiary?has_content>
+	<th>${line.linesubsidiary@label}</th>
+	<#else>
+	<th>${record.subsidiary@label}</th>
+	</#if></#if>
+	<th>${line.account@label}</th>
+	<th>${label.debit}</th>
+	<th>${label.credit}</th>
+	<th>${line.memo@label}</th>
+	</tr>
+	</#if>
+	<tr><#if show_subsidiary><#if line.linesubsidiary?has_content>
+	<td>${line.linesubsidiary}</td>
+	<#else>
+	<td>${record.subsidiary}</td>
+	</#if></#if>
+	<td>${line.account}</td>
+	<td>${line.debitfxamount}</td>
+	<td>${line.creditfxamount}</td>
+	<td>${line.memo}</td>
+	</tr>
+	<#assign debit_sum = debit_sum + line.debitfxamount><#assign credit_sum = credit_sum + line.creditfxamount></#list>
+	<tr><#if show_subsidiary>
+	<th>&nbsp;</th>
+	</#if>
+	<th>&nbsp;</th>
+	<th>${debit_sum}</th>
+	<th>${credit_sum}</th>
+	<th>&nbsp;</th>
+	</tr></table>
+</body>
+</pdf>

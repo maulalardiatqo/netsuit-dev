@@ -1,0 +1,11 @@
+Date,Transaction Type,Transaction Number,Customer Display Name,Customer ID,Status By Today,Memo,Product Name,Product Name Internal ID,Warehouse,Warehouse ID,Unit Price,Due Date,Product Code,Description,Quantity,Unit,Tax Amount,Discount Amount,Witholding Amount,Discount %,Tax Rate,Tax Rate ID,Discount Line %,Customer Company Name,PO Check
+16/12/21,Purchase Invoice,POI2112-4,PT Lumbung Sawit Mas,371,Paid,,Viola Minyak Goreng 1L,723,Aloha,76,209000,16/12/21,,,70,Karton,0,0,0,0,,17920,0.00%,,#N/A
+16/12/21,Purchase Invoice,POI2112-4,PT Lumbung Sawit Mas,371,Paid,,Viola Minyak Goreng 2L,724,Aloha,76,209000,16/12/21,,,130,Karton,0,0,0,0,,17920,0.00%,,#N/A
+16/12/21,Purchase Invoice,POI2112-2,PT Pilar Menara Mas,440,Paid,,Beras Karya Alam Biru 5Kg,599,Aloha,76,45000,16/12/21,,,248,Sak,0,0,0,0,,17920,0.00%,,#N/A
+16/12/21,Purchase Invoice,POI2112-2,PT Pilar Menara Mas,440,Paid,,Beras Karya Alam Biru 25Kg,601,Aloha,76,218500,16/12/21,,,25,Sak,0,0,0,0,,17920,0.00%,,#N/A
+16/12/21,Purchase Invoice,POI2112-2,PT Pilar Menara Mas,440,Paid,,Beras Karya Alam Hijau 5Kg,596,Aloha,76,46500,16/12/21,,,2142,Sak,0,0,0,0,,17920,0.00%,,#N/A
+16/12/21,Purchase Invoice,POI2112-2,PT Pilar Menara Mas,440,Paid,,Beras Karya Alam Hijau 5Kg,596,Aloha,76,46500,16/12/21,,,3000,Sak,0,0,0,0,,17920,0.00%,,#N/A
+16/12/21,Purchase Invoice,POI2112-2,PT Pilar Menara Mas,440,Paid,,Beras Karya Alam Hijau 10Kg,597,Aloha,76,91500,16/12/21,,,20,Sak,0,0,0,0,,17920,0.00%,,#N/A
+16/12/21,Purchase Invoice,POI2112-2,PT Pilar Menara Mas,440,Paid,,Beras Karya Alam Hijau 25Kg,598,Aloha,76,226000,16/12/21,,,86,Sak,0,0,0,0,,17920,0.00%,,#N/A
+17/12/21,Purchase Invoice,POI2112-3,PT Pilar Menara Mas,440,Paid,,Beras Karya Alam Biru 5Kg,599,Aloha,76,45000,17/12/21,,,196,Sak,0,0,0,0,,17920,0.00%,,#N/A
+17/12/21,Purchase Invoice,POI2112-3,PT Pilar Menara Mas,440,Paid,,Beras Karya Alam Biru 25Kg,601,Aloha,76,218500,17/12/21,,,20,Sak,0,0,0,0,,17920,0.00%,,#N/A
