@@ -61,7 +61,7 @@ define(["N/record", "N/search"], function(
                     var roundedPrice_5 = pembulatanSeratus(rounded5)
 
                     log.debug('data',{i:i, roundedPrice_1:roundedPrice_1, roundedPrice_2:roundedPrice_2, roundedPrice_3:roundedPrice_3, roundedPrice_4:roundedPrice_4});
-                    log.debug('itemsublistid', Itemsublistid)
+                    log.debug('itemsublistid', Itemsublistid);
 					itemrec.selectLine({
 						sublistId: Itemsublistid,
 						line: i
