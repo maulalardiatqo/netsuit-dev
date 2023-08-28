@@ -49,17 +49,41 @@ define(['N/ui/serverWidget', 'N/file', 'N/record', 'N/format', 'N/search'], func
                                     var memo = values[10]
                                     var memoLine = values[11];
                                     var amount = values[14];
-                                    trandate = format.parse({value:trandate, type: format.Type.DATE});
-                                    var searchTrandId = search.create({
-                                        type : 'deposit',
-                                        columns: ['trandid'],
-                                        filters: [{
-                                        name: 'trandid',
-                                        operator: 'is',
-                                        values: tranid
-                                        }]
-                                    }).run().getRange(0, 1);
-                                    log.debug('searchTrandID', searchTrandId);	
+                                    log.debug('trandate atas', trandate);
+                                    if(trandate){
+                                        var trandateToConve = trandate;
+                                        trandate = format.parse({value:trandateToConve, type: format.Type.DATE});
+                                        
+                                        var parts = trandateToConve.split("/");
+                                        var month = parseInt(parts[0]);
+                                        var day = parseInt(parts[1]);
+                                        var year = parseInt(parts[2]);
+                                        var dateObject = new Date(year, month - 1, day);
+                                        var monthIndex = dateObject.getMonth();
+                                        var yearIndex = dateObject.getFullYear();
+                                        log.debug('monthIndex', monthIndex);
+                                        
+                                        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                        var periodMonth = months[monthIndex];
+                                        var periodYear = yearIndex
+                                        var postingPeriod = periodMonth + ' ' + periodYear
+                                        log.debug('postingPeriod', postingPeriod);
+                                        log.debug('periodMonth', periodMonth);
+                                        var searchPeriod = search.load({
+                                            id : 'customsearch_acounting_period'
+                                        });
+                                        searchPeriod.filters.push(search.createFilter({
+                                            name: 'periodname',
+                                            operator: search.Operator.IS,
+                                            values: postingPeriod
+                                        }));
+                                        var postingPeriodDataSet = searchPeriod.run();
+                                        searchPeriod = postingPeriodDataSet.getRange(0, 1);
+                                        var periodId = searchPeriod[0].getValue('internalid');
+                                        log.debug('periodid', periodId);
+                                    }
+                                    
+                                    
                                     if (idAccount && tranid) {
                                         if (!transactions[tranid]) {
                                             transactions[tranid] = {
@@ -68,6 +92,7 @@ define(['N/ui/serverWidget', 'N/file', 'N/record', 'N/format', 'N/search'], func
                                                 accountDepID: accountDepID,
                                                 subsidiary: subsidiary,
                                                 memo:memo,
+                                                periodId,
                                                 lines: []
                                             };
                                         }
@@ -84,8 +109,10 @@ define(['N/ui/serverWidget', 'N/file', 'N/record', 'N/format', 'N/search'], func
                             }
                         });
                         var successRec = 0;
+
                         for (var tranid in transactions) {
                             var transaction = transactions[tranid];
+                            log.debug('trandate', transaction.trandate)
                             var newRecord = record.create({
                                 type: 'deposit',
                                 isDynamic: true
@@ -103,6 +130,11 @@ define(['N/ui/serverWidget', 'N/file', 'N/record', 'N/format', 'N/search'], func
                             newRecord.setValue({
                                 fieldId: 'trandate',
                                 value: transaction.trandate,
+                                ignoreFieldChange: true
+                            });
+                            newRecord.setValue({
+                                fieldId: 'postingperiod',
+                                value: transaction.periodId,
                                 ignoreFieldChange: true
                             });
                             newRecord.setValue({
