@@ -360,11 +360,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             }
             log.debug(whtaxToCount);
             var amountRecieved = Number(totalToCount) - Number(totalWHTaxToCount);
+            log.debug('cek totalcount', totalToCount);
+            log.debug('cek totalWHTaxtocount', whtaxToCount);
             log.debug('amountRecieved', amountRecieved);
             if(amountRecieved){
-                amountRecieved = parseFloat(amountRecieved);
-                amountRecieved = Math.ceil(amountRecieved);
-                amountRecieved = amountRecieved.toFixed(2);
+                amountRecieved = pembulatan(amountRecieved);
                 amountRecieved = format.format({
                     value: amountRecieved,
                     type: format.Type.CURRENCY

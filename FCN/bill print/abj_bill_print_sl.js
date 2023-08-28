@@ -294,6 +294,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             log.debug('whtaxcodPrint', whTaxCodetoPrint);
                         }
                         subTotal += amountExp
+                        log.debug('amountExp', amountExp);
                         var tamountExp = whtaxammountExp
                         whtaxammountExp = Math.abs(tamountExp);
                         totalWhTaxamountExp += whtaxammountExp
