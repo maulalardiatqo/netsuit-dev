@@ -36,12 +36,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             }
 
             var noPayment = vendPayment.getValue('tranid');
+            log.debug('noPayment', noPayment);
             var paidToText = vendPayment.getText('entity');
             log.debug('paintoText', paidToText);
             var paidTOid = vendPayment.getValue('entity');
             
             if(paidTOid){
-              log.debug('masuk paid to id', paidTOid);
               var paidTO;
               if(paidToText.startsWith('EMP')){
                 log.debug('ini employee');
@@ -433,6 +433,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
               });
 
             if(applyCount > 0){
+                // var refnum = vendPayment.getValue('transactionnumber');
                 var refnums = [];
                 for (var index = 0; index < applyCount; index++) {
                     var isApply = vendPayment.getSublistValue({
@@ -441,12 +442,27 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         line : index
                     });
                     if(isApply === true){
-                        var refnum = vendPayment.getSublistValue({
-                            sublistId: 'apply',
-                            fieldId: 'refnum',
-                            line: index
+                        var internalid_bill = vendPayment.getSublistValue({
+                          sublistId : 'apply',
+                          fieldId : 'internalid',
+                          line : index
                         });
-                        refnums.push("Purchase Invoice #" + refnum);
+                        if(internalid_bill){
+                          var recordBill = record.load({
+                            type : 'vendorbill',
+                            id  : internalid_bill,
+                            isDynamic : true
+                          });
+                          var refnum = recordBill.getValue('transactionnumber');
+                          log.debug('refnum', refnum);
+                          refnums.push("Purchase Invoice #" + refnum);
+                        }
+                        // var refnum = vendPayment.getSublistValue({
+                        //     sublistId: 'apply',
+                        //     fieldId: 'refnum',
+                        //     line: index
+                        // });
+                        
                     }
                     
                 }
@@ -455,6 +471,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td>Payment For</td>";
                 body += "<td>:</td>";
                 body += "<td>" + refnums.join(", ") + "</td>";
+              
                 body += "<td></td>";
                 body += "</tr>";
 
