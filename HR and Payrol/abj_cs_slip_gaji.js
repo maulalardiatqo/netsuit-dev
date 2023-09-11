@@ -44,18 +44,28 @@ define(['N/currentRecord',], function (currentRecord,) {
         var lamaPeriod = currentRecordObj.getField({
             fieldId : 'custpage_lama_period_slip_gaji'
         });
+        lamaPeriod.isDisplay = false;
+
         var hariAwalPeriod = currentRecordObj.getField({
             fieldId : 'custpage_hari_awal_period_slip_gaji'
         });
+        hariAwalPeriod.isDisplay = false;
+
         var jumlahHariPeriod = currentRecordObj.getField({
             fieldId : 'custpage_jumlah_hari_period'
         });
+        jumlahHariPeriod.isDisplay = false
+
         var tanggalSlipSebelumnya = currentRecordObj.getField({
             fieldId : 'custpage_tanggal_slip_sebelumnya'
         });
+        tanggalSlipSebelumnya.isDisplay = false
+
         var tanggalAwalPeriod = currentRecordObj.getField({
             fieldId : 'custpage_tanggal_awal_period'
         })
+        tanggalAwalPeriod.isDisplay = false;
+        
         if(context.fieldId == 'custpage_period_slip_gaji'){
             console.log('change');
 
@@ -65,10 +75,6 @@ define(['N/currentRecord',], function (currentRecord,) {
             if(periodSlip == 1){
                 lamaPeriod.isDisplay = true
                 tanggalAwalPeriod.isDisplay = true
-            }else if(periodSlip == 2){
-                lamaPeriod.isDisplay = false
-                tanggalAwalPeriod.isDisplay = false
-                tanggalSlipSebelumnya.isDisplay = true
             }
         }
         if(context.fieldId == 'custpage_lama_period_slip_gaji'){

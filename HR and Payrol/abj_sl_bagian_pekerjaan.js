@@ -9,7 +9,7 @@ define(['N/ui/serverWidget', 'N/record', 'N/search'], function (serverWidget, re
     function onRequest(context) {
       if (context.request.method === 'GET') {
         var form = serverWidget.createForm({
-          title: 'Bagian Dan Pekerjaan'
+          title: 'Pengajuan Cuti'
         });
   
         var bagianSubtab = form.addSublist({
