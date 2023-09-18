@@ -147,6 +147,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var total = vencredRecord.getValue('total') || 0;
             var duedate = vencredRecord.getValue('duedate');
             var jobNumber = vencredRecord.getValue('custbody_abj_custom_jobnumber');
+            if(jobNumber.includes('\\')){
+                jobNumber = jobNumber.replace(/\\/g, '<br/>');
+            }
             var currenc = vendorRecord.getValue('currency');
             if(currenc){
                 var recCurrenc = record.load({
@@ -458,8 +461,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<tr>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
-            body += "<td style='align: right;font-size:14px;border-top: solid black 2px; font-weight: bold;' colspan='2'>BALANCE DUE</td>"
-            body += "<td style='align: right;font-size:15px;border-top: solid black 2px; font-weight: bold;'>"+removeDecimalFormat(amountRecieved)+"</td>"
+            // body += "<td style='align: right;font-size:14px;border-top: solid black 2px; font-weight: bold;' colspan='2'>BALANCE DUE</td>"
+            // body += "<td style='align: right;font-size:15px;border-top: solid black 2px; font-weight: bold;'>"+removeDecimalFormat(amountRecieved)+"</td>"
             body += "</tr>"
             body += "<tr style='height:30px;'></tr>"
             body += "<tr>"
@@ -536,6 +539,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fieldId: 'description',
                         line: index
                     });
+                    if(description.includes('\\')){
+                        description = description.replace(/\\/g, '<br/>');
+                    }
                     var unit = vencredRecord.getSublistValue({
                         sublistId: 'item',
                         fieldId: 'units',
@@ -605,6 +611,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fieldId: 'memo',
                         line: index
                     });
+                    if(description.includes('\\')){
+                                description = description.replace(/\\/g, '<br/>');
+                            }
                     var amount = vencredRecord.getSublistValue({
                         sublistId: 'expense',
                         fieldId: 'amount',

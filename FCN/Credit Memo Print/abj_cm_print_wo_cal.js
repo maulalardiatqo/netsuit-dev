@@ -152,6 +152,9 @@ var total = cmRecord.getValue('total') || 0;
 var duedate = cmRecord.getValue('duedate') || 0;
 var discount = cmRecord.getValue('discounttotal') || 0;
 var jobNumber = cmRecord.getValue('custbody_abj_custom_jobnumber');
+if(jobNumber.includes('\\')){
+  jobNumber = jobNumber.replace(/\\/g, '<br/>')
+}
 var countApply = cmRecord.getLineCount({
     sublistId : 'apply'
 });
@@ -402,8 +405,8 @@ body += "</tr>"
 body += "<tr>"
 body += "<td class='tg-headerrow_left'></td>"
 body += "<td class='tg-headerrow_left'></td>"
-body += "<td style='align: right;font-size:14px;border-top: solid black 2px; font-weight: bold;' colspan='2'>BALANCE DUE</td>"
-body += "<td style='align: right;font-size:14px;border-top: solid black 2px; font-weight: bold;'>" + removeDecimalFormat(amountRecieved) + "</td>"
+// body += "<td style='align: right;font-size:14px;border-top: solid black 2px; font-weight: bold;' colspan='2'>BALANCE DUE</td>"
+// body += "<td style='align: right;font-size:14px;border-top: solid black 2px; font-weight: bold;'>" + removeDecimalFormat(amountRecieved) + "</td>"
 body += "</tr>"
 body += "<tr style='height:30px;'></tr>"
 body += "</tbody>"
@@ -470,6 +473,9 @@ function getPOItem(context, cmRecord) {
         fieldId: 'description',
         line: index
         });
+        if(description.includes('\\')){
+          description = description.replace(/\\/g, '<br/>')
+        }
         var unit = cmRecord.getSublistValue({
         sublistId: 'item',
         fieldId: 'units',
