@@ -11,10 +11,9 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
             var allData = [];
             var searchRemunasi = search.create({
                 type: 'customrecord_remunasi',
-                columns: ['internalid', 'custrecord3', 'custrecord4', 'custrecord5', 'custrecord6', 'custrecord_metode_pph_21', 'custrecord_remunasi_jks', 'custrecord_remunasi_jkm', 'custrecord_remunasi_jkk', 'custrecord_remunasi_jht', 'custrecord_is_jht_pphh_21', 'custrecord_is_jp_pph21', 'custrecord9','custrecord3'],
+                columns: ['internalid', 'custrecord3', 'custrecord4', 'custrecord5', 'custrecord6', 'custrecord_metode_pph_21', 'custrecord_remunasi_jks', 'custrecord_remunasi_jkm', 'custrecord_remunasi_jkk', 'custrecord_remunasi_jht', 'custrecord_is_jht_pphh_21', 'custrecord_is_jp_pph21', 'custrecord9','custrecord3', 'custrecord_remunasi_tanggal_awal_period'],
             });
             var searchRemunasiSet = searchRemunasi.runPaged().count;
-            log.debug('searchRemunasiSet', searchRemunasiSet)
             searchRemunasi.run().each(function(row){
                 var employeeId = row.getValue({
                     name : 'custrecord3'
@@ -23,6 +22,9 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                     name : 'custrecord4'
                 }) || 0;
                 log.debug('gajiPokok', gajiPokok);
+                var tanggalAwalPeriod = row.getValue({
+                    name : 'custrecord_remunasi_tanggal_awal_period'
+                });
                 var mealAllowance = row.getValue({
                     name : 'custrecord5'
                 }) || 0;
@@ -72,7 +74,8 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                     isJhtPPh21 : isJhtPPh21,
                     isJpPph21 : isJpPph21,
                     jp : jp,
-                    totalIncome : totalIncome
+                    totalIncome : totalIncome,
+                    tanggalAwalPeriod : tanggalAwalPeriod
 
                 })
                 
@@ -95,45 +98,123 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                 var isJhtPPh21 = data.isJhtPPh21;
                 var isJpPph21 = data.isJpPph21;
                 var totalIncome = data.totalIncome
+                var tanggalAwalPeriod = data.tanggalAwalPeriod
 
                 var recordGaji = record.create({
                     type : 'customrecord_gaji',
                     isDynamic: true
                 });
 
+                if(tanggalAwalPeriod){
+                    var bulanSaatIni = new Date().getMonth(); 
+                    var tahunSaatIni = new Date().getFullYear();
+
+                    if (tanggalAwalPeriod <= new Date().getDate()) {
+                        bulanMulaiPeriod = bulanSaatIni;
+                        tahunMulaiPeriod = tahunSaatIni;
+                    } else {
+                        bulanMulaiPeriod = bulanSaatIni - 1;
+                        tahunMulaiPeriod = tahunSaatIni;
+                        if (bulanMulaiPeriod === -1) {
+                            bulanMulaiPeriod = 11; 
+                            tahunMulaiPeriod--; 
+                        }
+                    }
+
+                    var tanggalMulaiPeriod = tanggalAwalPeriod;
+
+                    var akhirPeriodDate = new Date(tahunMulaiPeriod, bulanMulaiPeriod, tanggalMulaiPeriod);
+
+                    if (bulanMulaiPeriod === 11) { 
+                        tahunMulaiPeriod++; 
+                        bulanMulaiPeriod = 0; 
+                    } else {
+                        bulanMulaiPeriod++; 
+                    }
+
+                    akhirPeriodDate = new Date(tahunMulaiPeriod, bulanMulaiPeriod, tanggalMulaiPeriod);
+                    akhirPeriodDate.setMonth(akhirPeriodDate.getMonth() + 1);
+                    akhirPeriodDate.setDate(akhirPeriodDate.getDate() - 1);
+
+                    var tanggalAwalPeriodStr = tanggalMulaiPeriod + ' ' + getNamaBulan(bulanMulaiPeriod) + ' ' + tahunMulaiPeriod;
+                    var tanggalAkhirPeriodStr = akhirPeriodDate.getDate() + ' ' + getNamaBulan(akhirPeriodDate.getMonth()) + ' ' + akhirPeriodDate.getFullYear();
+
+                    function getNamaBulan(index) {
+                        var namaBulan = [
+                            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                        ];
+                        return namaBulan[index];
+                    }
+
+                    var period = tanggalAwalPeriodStr + ' - ' + tanggalAkhirPeriodStr;
+                    log.debug('Period:', period);
+                }
+
                 var biayaJKS = 0
                 var premiJKS = 0
+                var jksTOPlus = 0
+                var jksTOMin = 0
+                var biayaJKS = 0
+                var premiJKS = 0
+
                 if(jks){
                     
                     if(jks == 1){
                         biayaJKS = totalIncome * 5 / 100
-                        
+
+                        recordGaji.setValue({
+                            fieldId : 'custrecord_jks',
+                            value : biayaJKS
+                        });
+                        recordGaji.setValue({
+                            fieldId : 'custrecord_jks_4per',
+                            value : 0
+                        });
+                        recordGaji.setValue({
+                            fieldId : 'custrecord_premi_jks',
+                            value : biayaJKS
+                        })
+                        recordGaji.setValue({
+                            fieldId : 'custrecord_premi_jks_1per',
+                            value : 0
+                        });
+                        jksTOPlus = biayaJKS
+                        jksTOMin = biayaJKS
                     }else{
                         biayaJKS = totalIncome * 4 / 100
                         premiJKS = totalIncome * 1 / 100
-                        
+
+                        recordGaji.setValue({
+                            fieldId : 'custrecord_jks',
+                            value : 0
+                        });
+                        recordGaji.setValue({
+                            fieldId : 'custrecord_jks_4per',
+                            value : biayaJKS
+                        });
+                        recordGaji.setValue({
+                            fieldId : 'custrecord_premi_jks',
+                            value : biayaJKS
+                        });
+                        recordGaji.setValue({
+                            fieldId : 'custrecord_premi_jks_1per',
+                            value : premiJKS
+                        });
+                        jksTOPlus = biayaJKS
+                        jksTOMin = biayaJKS + premiJKS
                     }
                     
                 }
 
-                // set biaya JKS
-                recordGaji.setValue({
-                    fieldId : 'custrecord_jks',
-                    value : biayaJKS,
-                    ignoreFieldChange: true
-                })
-                recordGaji.setValue({
-                    fieldId : 'custrecord_premi_jks',
-                    value : premiJKS,
-                    ignoreFieldChange: true
-                })
-
+                var jkkToCount = 0
                 var biayaJKK = 0
                 var premiJKK = 0
                 if(jkk){
                     if(jkk == 1){
                         biayaJKK = totalIncome * 0.24 / 100
                         premiJKK = biayaJKK
+                        
                     }else if(jkk == 2){
                         biayaJKK = totalIncome * 0.54 / 100
                         premiJKK = biayaJKK
@@ -147,6 +228,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                         biayaJKK = totalIncome * 1.74 / 100
                         premiJKK = biayaJKK
                     }
+                    jkkToCount = biayaJKK
                 }
                 // set value jkk
                 recordGaji.setValue({
@@ -160,12 +242,15 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                     ignoreFieldChange: true
                 });
 
+                var jkmTOCount = 0
                 var biayaJKM = 0
                 var premiJKM = 0
                 if(jkm){
                     biayaJKM = totalIncome * 0.3 / 100
                     premiJKM = biayaJKM
+                    jkmTOCount = biayaJKM
                 }
+
                 // set Biaya JKM
                 recordGaji.setValue({
                     fieldId : 'custrecord_jkm',
@@ -179,39 +264,42 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                 })
 
                 var biayaJHTtoCount = 0
+                var jhtToMin = 0
                 var biayaJHT = 0
                 var premiJHT = 0
                 if(jht){
                     if(jht == 1){
-                        biayaJHT = totalIncome * 3.7 /100
+                        biayaJHT = totalIncome * 3.7 / 100
+                        premiJHT = totalIncome * 2 / 100
                     }else{
                         biayaJHT = totalIncome * 5.7 / 100
+                        premiJHT = biayaJHT
                     }
                     if(isJhtPPh21){
                         biayaJHTtoCount = biayaJHT
+                        
                         recordGaji.setValue({
                             fieldId : 'custrecord_jht',
-                            value : biayaJHT,
-                            ignoreFieldChange: true
+                            value : biayaJHT
                         })
                         recordGaji.setValue({
                             fieldId : 'custrecord_premi_jht',
-                            value : 0,
-                            ignoreFieldChange: true
-                        })
+                            value : premiJHT
+                        });
+                        jhtToMin = biayaJHT + premiJHT
                     }else{
                         recordGaji.setValue({
                             fieldId : 'custrecord_jht',
-                            value : 0,
-                            ignoreFieldChange: true
-                        })
+                            value : 0
+                        });
                         recordGaji.setValue({
                             fieldId : 'custrecord_premi_jht',
-                            value : biayaJHT,
-                            ignoreFieldChange: true
-                        })
-                        premiJHT = biayaJHT
+                            value : biayaJHT
+                        });
+                        jhtToMin = biayaJHT
+                        
                     }
+                    
                 }
 
                 var biayaJPtoCuunt = 0
@@ -233,7 +321,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                         })
                         recordGaji.setValue({
                             fieldId : 'custrecord_premi_jp',
-                            value : 0,
+                            value : biayaJP,
                             ignoreFieldChange: true
                         })
                     }else{
@@ -251,7 +339,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                     }
                 }
 
-                totalIncome = totalIncome + biayaJHTtoCount + biayaJKK + biayaJKM + biayaJKS + biayaJPtoCuunt;
+                totalIncome = totalIncome + biayaJHTtoCount + jkkToCount + biayaJKM + jksTOPlus + biayaJPtoCuunt
 
                 // search Employee
 
@@ -321,10 +409,17 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
 
                     var pajakperBulan = pajak / 12
                 }
+
+
                 recordGaji.setValue({
                     fieldId : 'custrecord_employee_gaji',
                     value : employeeId,
                     ignoreFieldChange: true
+                });
+
+                recordGaji.setValue({
+                    fieldId : 'custrecord_period_gaji',
+                    value : period
                 })
 
                 recordGaji.setValue({
@@ -348,7 +443,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                     ignoreFieldChange: true
                 });
 
-                var takeHomePay = totalIncome - premiJHT - premiJKK - premiJKM - premiJKS - premiJP
+                var takeHomePay = totalIncome - jhtToMin - premiJKK - premiJKM - jksTOMin - premiJP
                 log.debug('takeHomePay', takeHomePay);
                 var pph21ditanggungKaryawan = 0
 

@@ -141,7 +141,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var tandId = poRecord.getValue('tranid');
             var POdate = poRecord.getValue('trandate');
             var terms = poRecord.getText('terms');
-            // var subTotal = poRecord.getValue('subtotal') || 0;
+            var subTotal = poRecord.getValue('subtotal') || 0;
             var poTotal = poRecord.getValue('total') || 0;
             
             var total = 0;

@@ -163,7 +163,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             log.debug('currency', currenc);
 
             log.debug('jobNumber', jobNumber)
-            var subTotal = Number(total) - Number(taxtotal);
+            var subTotal = total;
             var totalToCount = total
             var totalWhTaxamount = 0;
             var totalWhTaxamountItem = 0;
@@ -189,7 +189,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fieldId: 'custcol_4601_witaxamount',
                         line: i
                     });
-                    var whTaxCodeI = poRecord.getSublistValue({
+                    var whTaxCodeI = vendorRecord.getSublistValue({
                         sublistId : 'item',
                         fieldId : 'custcol_4601_witaxcode',
                         line : i

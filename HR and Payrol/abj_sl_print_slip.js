@@ -277,7 +277,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td style='font-size:14px'><b>Slip Gaji</b></td>"
             body += "</tr>"
             body += "<tr>"
-            body += "<td style='font-size:12px'><b>Period :</b></td>"
+            body += "<td style='font-size:12px'><b>Period : "+ periodGaji +"</b></td>"
             body += "</tr>"
             body += "<tr style='height:10px'></tr>"
             body += "</tbody>";

@@ -53,7 +53,7 @@ define(['N/currentRecord','N/record', 'N/search'], function (currentRecord, reco
             //search remunasi
             var searchRemunasi = search.create({
                 type: 'customrecord_remunasi',
-                columns: ['internalid', 'custrecord3', 'custrecord4', 'custrecord5', 'custrecord6', 'custrecord_metode_pph_21', 'custrecord_remunasi_jks', 'custrecord_remunasi_jkm', 'custrecord_remunasi_jkk', 'custrecord_remunasi_jht', 'custrecord_is_jht_pphh_21', 'custrecord_is_jp_pph21', 'custrecord9'],
+                columns: ['internalid', 'custrecord3', 'custrecord4', 'custrecord5', 'custrecord6', 'custrecord_metode_pph_21', 'custrecord_remunasi_jks', 'custrecord_remunasi_jkm', 'custrecord_remunasi_jkk', 'custrecord_remunasi_jht', 'custrecord_is_jht_pphh_21', 'custrecord_is_jp_pph21', 'custrecord9', 'custrecord_remunasi_tanggal_awal_period'],
                 filters: [{
                   name: 'custrecord3',
                   operator: 'is',
@@ -69,6 +69,9 @@ define(['N/currentRecord','N/record', 'N/search'], function (currentRecord, reco
                 var searchRemunasiRecord = searchRemunasi[0];
                 var gajiPokok = searchRemunasiRecord.getValue({
                     name : 'custrecord4'
+                });
+                var tanggalAwalPeriod = searchRemunasiRecord.getValue({
+                    name : 'custrecord_remunasi_tanggal_awal_period'
                 });
                 var mealAllowance = searchRemunasiRecord.getValue({
                     name : 'custrecord5'
@@ -102,43 +105,121 @@ define(['N/currentRecord','N/record', 'N/search'], function (currentRecord, reco
                     name : 'custrecord9'
                 });
                 
+                console.log('tanggalAwalPeriod', tanggalAwalPeriod);
 
+                if(tanggalAwalPeriod){
+                    var bulanSaatIni = new Date().getMonth(); 
+                    var tahunSaatIni = new Date().getFullYear();
+
+                    if (tanggalAwalPeriod <= new Date().getDate()) {
+                        bulanMulaiPeriod = bulanSaatIni;
+                        tahunMulaiPeriod = tahunSaatIni;
+                    } else {
+                        bulanMulaiPeriod = bulanSaatIni - 1;
+                        tahunMulaiPeriod = tahunSaatIni;
+                        if (bulanMulaiPeriod === -1) {
+                            bulanMulaiPeriod = 11; 
+                            tahunMulaiPeriod--; 
+                        }
+                    }
+
+                    var tanggalMulaiPeriod = tanggalAwalPeriod;
+
+                    var akhirPeriodDate = new Date(tahunMulaiPeriod, bulanMulaiPeriod, tanggalMulaiPeriod);
+
+                    if (bulanMulaiPeriod === 11) { 
+                        tahunMulaiPeriod++; 
+                        bulanMulaiPeriod = 0; 
+                    } else {
+                        bulanMulaiPeriod++; 
+                    }
+
+                    akhirPeriodDate = new Date(tahunMulaiPeriod, bulanMulaiPeriod, tanggalMulaiPeriod);
+                    akhirPeriodDate.setMonth(akhirPeriodDate.getMonth() + 1);
+                    akhirPeriodDate.setDate(akhirPeriodDate.getDate() - 1);
+
+                    var tanggalAwalPeriodStr = tanggalMulaiPeriod + ' ' + getNamaBulan(bulanMulaiPeriod) + ' ' + tahunMulaiPeriod;
+                    var tanggalAkhirPeriodStr = akhirPeriodDate.getDate() + ' ' + getNamaBulan(akhirPeriodDate.getMonth()) + ' ' + akhirPeriodDate.getFullYear();
+
+                    function getNamaBulan(index) {
+                        var namaBulan = [
+                            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                        ];
+                        return namaBulan[index];
+                    }
+
+                    var period = tanggalAwalPeriodStr + ' - ' + tanggalAkhirPeriodStr;
+                    console.log('Period:', period);
+                }
+                
                 
                 console.log('data', {gajiPokok, mealAllowance, metodePPH, transportAllowance});
                 var totalIncome = Number(gajiPokok) + Number(mealAllowance) + Number(transportAllowance);
 
                 // BPJS
+                var jksTOPlus = 0
+                var jksTOMin = 0
                 var biayaJKS = 0
                 var premiJKS = 0
                 if(jks){
                     
                     if(jks == 1){
                         biayaJKS = totalIncome * 5 / 100
-                        
+
+                        currentRecordObj.setValue({
+                            fieldId : 'custrecord_jks',
+                            value : biayaJKS
+                        });
+                        currentRecordObj.setValue({
+                            fieldId : 'custrecord_jks_4per',
+                            value : 0
+                        });
+                        currentRecordObj.setValue({
+                            fieldId : 'custrecord_premi_jks',
+                            value : biayaJKS
+                        })
+                        currentRecordObj.setValue({
+                            fieldId : 'custrecord_premi_jks_1per',
+                            value : 0
+                        });
+                        jksTOPlus = biayaJKS
+                        jksTOMin = biayaJKS
                     }else{
                         biayaJKS = totalIncome * 4 / 100
                         premiJKS = totalIncome * 1 / 100
-                        
+
+                        currentRecordObj.setValue({
+                            fieldId : 'custrecord_jks',
+                            value : 0
+                        });
+                        currentRecordObj.setValue({
+                            fieldId : 'custrecord_jks_4per',
+                            value : biayaJKS
+                        });
+                        console.log('biayaJKS', biayaJKS);
+                        currentRecordObj.setValue({
+                            fieldId : 'custrecord_premi_jks',
+                            value : biayaJKS
+                        });
+                        currentRecordObj.setValue({
+                            fieldId : 'custrecord_premi_jks_1per',
+                            value : premiJKS
+                        });
+                        jksTOPlus = biayaJKS
+                        jksTOMin = biayaJKS + premiJKS
                     }
                     
                 }
-
-                // set biaya JKS
-                currentRecordObj.setValue({
-                    fieldId : 'custrecord_jks',
-                    value : biayaJKS
-                })
-                currentRecordObj.setValue({
-                    fieldId : 'custrecord_premi_jks',
-                    value : premiJKS
-                })
-
+                console.log('jksTOmin', jksTOMin);
                 // BJS Tenaga Kerja
+                var jkmTOCount = 0
                 var biayaJKM = 0
                 var premiJKM = 0
                 if(jkm){
                     biayaJKM = totalIncome * 0.3 / 100
                     premiJKM = biayaJKM
+                    jkmTOCount = biayaJKM
                 }
                 // set Biaya JKM
                 currentRecordObj.setValue({
@@ -150,12 +231,14 @@ define(['N/currentRecord','N/record', 'N/search'], function (currentRecord, reco
                     value : premiJKM
                 })
 
+                var jkkToCount = 0
                 var biayaJKK = 0
                 var premiJKK = 0
                 if(jkk){
                     if(jkk == 1){
                         biayaJKK = totalIncome * 0.24 / 100
                         premiJKK = biayaJKK
+                        
                     }else if(jkk == 2){
                         biayaJKK = totalIncome * 0.54 / 100
                         premiJKK = biayaJKK
@@ -169,6 +252,7 @@ define(['N/currentRecord','N/record', 'N/search'], function (currentRecord, reco
                         biayaJKK = totalIncome * 1.74 / 100
                         premiJKK = biayaJKK
                     }
+                    jkkToCount = biayaJKK
                 }
                 // set value jkk
                 currentRecordObj.setValue({
@@ -181,35 +265,42 @@ define(['N/currentRecord','N/record', 'N/search'], function (currentRecord, reco
                 })
 
                 var biayaJHTtoCount = 0
+                var jhtToMin = 0
                 var biayaJHT = 0
                 var premiJHT = 0
                 if(jht){
                     if(jht == 1){
-                        biayaJHT = totalIncome * 3.7 /100
+                        biayaJHT = totalIncome * 3.7 / 100
+                        premiJHT = totalIncome * 2 / 100
                     }else{
                         biayaJHT = totalIncome * 5.7 / 100
+                        premiJHT = biayaJHT
                     }
                     if(isJhtPPh21){
                         biayaJHTtoCount = biayaJHT
+                        
                         currentRecordObj.setValue({
                             fieldId : 'custrecord_jht',
                             value : biayaJHT
                         })
                         currentRecordObj.setValue({
                             fieldId : 'custrecord_premi_jht',
-                            value : 0
-                        })
+                            value : premiJHT
+                        });
+                        jhtToMin = biayaJHT + premiJHT
                     }else{
                         currentRecordObj.setValue({
                             fieldId : 'custrecord_jht',
                             value : 0
-                        })
+                        });
                         currentRecordObj.setValue({
                             fieldId : 'custrecord_premi_jht',
                             value : biayaJHT
-                        })
-                        premiJHT = biayaJHT
+                        });
+                        jhtToMin = biayaJHT
+                        
                     }
+                    
                 }
 
                 var biayaJPtoCuunt = 0
@@ -230,7 +321,7 @@ define(['N/currentRecord','N/record', 'N/search'], function (currentRecord, reco
                         })
                         currentRecordObj.setValue({
                             fieldId : 'custrecord_premi_jp',
-                            value : 0
+                            value : biayaJP
                         })
                     }else{
                         currentRecordObj.setValue({
@@ -244,8 +335,8 @@ define(['N/currentRecord','N/record', 'N/search'], function (currentRecord, reco
                         premiJP = biayaJP
                     }
                 }
-                console.log('totalIncome plus BPJS', {totalIncome, biayaJHTtoCount, biayaJKK, biayaJKM, biayaJKS, biayaJPtoCuunt});
-                totalIncome = totalIncome + biayaJHTtoCount + biayaJKK + biayaJKM + biayaJKS + biayaJPtoCuunt
+
+                totalIncome = totalIncome + biayaJHTtoCount + jkkToCount + biayaJKM + jksTOPlus + biayaJPtoCuunt
                 console.log('totalincome after add bpjs', totalIncome);
 
                 // biaya jabatan
@@ -285,6 +376,10 @@ define(['N/currentRecord','N/record', 'N/search'], function (currentRecord, reco
                 }
                 console.log('totalIncomeBeforeset', totalIncome);
                 currentRecordObj.setValue({
+                    fieldId : 'custrecord_period_gaji',
+                    value : period
+                })
+                currentRecordObj.setValue({
                     fieldId : 'custrecord_gaji_gaji_pokok',
                     value : gajiPokok
                 })
@@ -302,7 +397,7 @@ define(['N/currentRecord','N/record', 'N/search'], function (currentRecord, reco
                 });
 
                 // potongan
-                var takeHomePay = totalIncome - premiJHT - premiJKK - premiJKM - premiJKS - premiJP
+                var takeHomePay = totalIncome - jhtToMin - premiJKK - premiJKM - jksTOMin - premiJP
                 var pph21ditanggungKaryawan = 0
 
                 if(metodePPH == 1){
