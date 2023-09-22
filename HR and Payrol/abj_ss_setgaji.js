@@ -141,8 +141,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
 
                     function getNamaBulan(index) {
                         var namaBulan = [
-                            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                            'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
                         ];
                         return namaBulan[index];
                     }
