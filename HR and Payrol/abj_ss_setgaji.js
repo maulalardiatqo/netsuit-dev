@@ -57,7 +57,6 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                     name : 'custrecord9'
                 }) || 0;
 
-
                 var totalIncome = Number(gajiPokok) + Number(mealAllowance) + Number(transportAllowance);
                 
 
@@ -340,6 +339,35 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
 
                 totalIncome = totalIncome + biayaJHTtoCount + jkkToCount + biayaJKM + jksTOPlus + biayaJPtoCuunt
 
+                log.debug('period', period);
+                // search Monthly Period
+                var periodSearch = search.create({
+                    type : 'customrecord_monthly_period_gaji',
+                    columns : ['internalid', 'name'],
+                    filters: [{
+                        name: 'name',
+                        operator: 'is',
+                        values: period
+                    }]
+                });
+
+                var searchPeriodSet = periodSearch.run();
+                periodSearch = searchPeriodSet.getRange({
+                    start : 0,
+                    end : 1
+                });
+                if(periodSearch == 0){
+                    var recordMonthlyPeriod = record.create({
+                        type : 'customrecord_monthly_period_gaji'
+                    });
+                    recordMonthlyPeriod.setValue({
+                        fieldId : 'name',
+                        value : period,
+                        ignoreFieldChange: true
+                    });
+                    var saveMonthly = recordMonthlyPeriod.save();
+                    log.debug('saveMonthly', saveMonthly);
+                }
                 // search Employee
 
                 var searchEmployee = search.create({

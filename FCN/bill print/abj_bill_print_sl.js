@@ -137,7 +137,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var total = poRecord.getValue('total') || 0;
             var duedate = poRecord.getValue('duedate');
             var jobNumber = poRecord.getValue('custbody_abj_custom_jobnumber');
-
+            if(jobNumber.includes('\\')){
+                jobNumber = jobNumber.replace(/\\/g, '<br/>');
+            }
             var subTotal = 0;
             var totalToCount = total
             var totalWhTaxamount = 0;
@@ -279,6 +281,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                     var cekWH = accountRec.getValue('custrecord_coa_wh');
                     if(cekWH === false){
+                        log.debug('cekWH', cekWH);
                         var taxpph = poRecord.getSublistValue({
                             sublistId: 'expense',
                             fieldId: 'custcol_4601_witaxrate_exp',
@@ -613,6 +616,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 fieldId: 'description',
                                 line: index
                             });
+                            if(description.includes('\\')){
+                                description = description.replace(/\\/g, '<br/>');
+                            }
                             var unit = poRecord.getSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'units',
@@ -706,6 +712,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId: 'memo',
                             line: index
                         });
+                        if(description.includes('\\')){
+                            description = description.replace(/\\/g, '<br/>');
+                        }
                         var amount = poRecord.getSublistValue({
                             sublistId: 'expense',
                             fieldId: 'amount',
