@@ -74,11 +74,11 @@ define(["N/record", "N/search"], function(
         });
         log.debug('searchBPNumber', searchBPNumber);
         log.debug('month', month)
-        var startDate = new Date(year, month - 1, 1); // Mengurangi 1 dari nilai bulan
+        var startDate = new Date(year, month - 1, 1); 
         startDate.setHours(0, 0, 0, 0);
         log.debug('startDate', startDate);
 
-        var endDate = new Date(year, month, 0); // Mengurangi 1 dari nilai bulan
+        var endDate = new Date(year, month, 0); 
         endDate.setHours(23, 59, 59, 999);
         log.debug('endDate', endDate);
         
@@ -146,7 +146,7 @@ define(["N/record", "N/search"], function(
                 type: 'customrecord_bp_numbering',
                 isDynamic: true
             });
-
+            
             createRecordBp.setValue({
                 fieldId: 'custrecord_fcn_bpn_last_run',
                 value: formatRunning + '001', 
