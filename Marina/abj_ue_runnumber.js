@@ -10,7 +10,7 @@ search,
 ) {
 function afterSubmit(context) {
     try {
-        if (context.type == context.UserEventType.EDIT) {
+        if (context.type == context.UserEventType.CREATE) {
 
             var rec = context.newRecord;
 
