@@ -144,10 +144,17 @@ define([
                         key.indexOf('formattedValue') === -1 &&
                         params[key] !== null &&
                         params[key] !== undefined &&
-                        params[key] !== ''
+                        params[key] !== '' &&
+                        params[key] !== 'F'
                     ) {
                         var value = params[key];
-                        log.debug(key, value);
+                        log.debug('value slip', value);
+
+                        var match = key.match(/\d+/);
+                        if (match) {
+                            var internalid_slip = parseInt(match[0], 10); 
+                            log.debug('internalid slip', internalid_slip);
+                        }
                     }
                 }
             }catch(e){
