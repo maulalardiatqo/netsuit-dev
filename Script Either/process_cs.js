@@ -100,6 +100,13 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         if(locationInProcess != location){
                           console.log('location diff')
                           alert("the location you selected is not suitable, the lot number is at " + locationText );
+                            records.setCurrentSublistValue({
+                                sublistId: "recmachcustrecord188",
+                                fieldId: "custrecord203",
+                                line: i,
+                                value: location,
+                            });
+                          
                         }
                         console.log('location', location);
                         records.setCurrentSublistValue({
