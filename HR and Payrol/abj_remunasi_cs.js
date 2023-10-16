@@ -100,6 +100,32 @@ define([
     function fieldChanged(context) {
         var vrecord = context.currentRecord;
         var FieldName = context.fieldId;
+        if(FieldName == 'custpage_slip_employee'){
+           var employee = vrecord.getValue({
+              fieldId : 'custpage_slip_employee'
+           });
+           console.log('employee', employee);
+           if(employee){
+            var empRec = search.create({
+                type : 'customrecord_msa_remunerasi',
+                columns : ['custrecord_remunerasi_employee'],
+                filters : [{
+                  name : 'custrecord_remunerasi_employee',
+                  operator: 'is',
+                  values: employee
+                }]
+            })
+            var searEmployee = empRec.runPaged().count;
+            console.log('searchEmployee',searEmployee);
+            if(searEmployee > 0){
+              alert("Employee Yang dipilih sudah tersedia di list Remunerasi ");
+              vrecord.setValue({
+                fieldId : 'custpage_slip_employee',
+                value   : ''
+              })
+            }
+           }
+        }
         var slipGajiSearch = search.create({
           type: 'customrecord_slip_gaji',
           columns: ['internalid', 'name']

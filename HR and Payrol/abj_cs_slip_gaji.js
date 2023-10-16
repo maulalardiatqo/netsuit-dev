@@ -8,29 +8,29 @@ define(['N/currentRecord',], function (currentRecord,) {
         console.log('masuk');
         var currentRecordObj = currentRecord.get();
         var lamaPeriod = currentRecordObj.getField({
-            fieldId : 'custpage_lama_period_slip_gaji'
+            fieldId : 'custrecord_lama_period'
         });
         lamaPeriod.isDisplay = false;
 
-        var hariAwalPeriod = currentRecordObj.getField({
-            fieldId : 'custpage_hari_awal_period_slip_gaji'
+        var tanggalAwal = currentRecordObj.getField({
+            fieldId : 'custrecord_tanggal_awal_period'
         });
-        hariAwalPeriod.isDisplay = false;
+        tanggalAwal.isDisplay = false;
+
+        var tanggalSlipBef = currentRecordObj.getField({
+            fieldId : 'custrecord_tanggal_slip_sebelumnya'
+        });
+        tanggalSlipBef.isDisplay = false
+
+        var hariawalPer = currentRecordObj.getField({
+            fieldId : 'custrecord_abj_msa_hari_awalper'
+        });
+        hariawalPer.isDisplay = false
 
         var jumlahHariPeriod = currentRecordObj.getField({
-            fieldId : 'custpage_jumlah_hari_period'
-        });
-        jumlahHariPeriod.isDisplay = false
-
-        var tanggalSlipSebelumnya = currentRecordObj.getField({
-            fieldId : 'custpage_tanggal_slip_sebelumnya'
-        });
-        tanggalSlipSebelumnya.isDisplay = false
-
-        var tanggalAwalPeriod = currentRecordObj.getField({
-            fieldId : 'custpage_tanggal_awal_period'
+            fieldId : 'custrecord_abj_msa_jumlah_hariperiod'
         })
-        tanggalAwalPeriod.isDisplay = false;
+        jumlahHariPeriod.isDisplay = false;
         // var absensiTerahir = currentRecordObj.getField({
         //     fieldId : 'custpage_absensi_terahir'
         // });
@@ -40,51 +40,71 @@ define(['N/currentRecord',], function (currentRecord,) {
     }
 
     function fieldChanged(context) {
-        var currentRecordObj = currentRecord.get();
-        var lamaPeriod = currentRecordObj.getField({
-            fieldId : 'custpage_lama_period_slip_gaji'
-        });
-        lamaPeriod.isDisplay = false;
+        var vrecord = context.currentRecord;
+        var FieldName = context.fieldId;
 
-        var hariAwalPeriod = currentRecordObj.getField({
-            fieldId : 'custpage_hari_awal_period_slip_gaji'
+        var lamaPeriod = vrecord.getField({
+            fieldId : 'custrecord_lama_period'
         });
-        hariAwalPeriod.isDisplay = false;
-
-        var jumlahHariPeriod = currentRecordObj.getField({
-            fieldId : 'custpage_jumlah_hari_period'
-        });
-        jumlahHariPeriod.isDisplay = false
-
-        var tanggalSlipSebelumnya = currentRecordObj.getField({
-            fieldId : 'custpage_tanggal_slip_sebelumnya'
-        });
-        tanggalSlipSebelumnya.isDisplay = false
-
-        var tanggalAwalPeriod = currentRecordObj.getField({
-            fieldId : 'custpage_tanggal_awal_period'
-        })
-        tanggalAwalPeriod.isDisplay = false;
         
-        if(context.fieldId == 'custpage_period_slip_gaji'){
-            console.log('change');
+        var tanggalAwal = vrecord.getField({
+            fieldId : 'custrecord_tanggal_awal_period'
+        });
+        
+        var tanggalSlipBef = vrecord.getField({
+            fieldId : 'custrecord_tanggal_slip_sebelumnya'
+        });
+        var hariawalPer = vrecord.getField({
+            fieldId : 'custrecord_abj_msa_hari_awalper'
+        });
+        var jumlahHariPeriod = vrecord.getField({
+            fieldId : 'custrecord_abj_msa_jumlah_hariperiod'
+        })
+        
+        if(FieldName == 'custrecord_slip_gaji_period'){
+            var period = vrecord.getValue({
+                fieldId : 'custrecord_slip_gaji_period'
+            });
+            console.log('period', period);
+           
+           
+            if(period == '1'){
+                console.log('masuk1')
+                lamaPeriod.isDisplay = true;
+                tanggalAwal.isDisplay = true;
+                tanggalSlipBef.isDisplay = false;
+                
+            }else{
+                lamaPeriod.isDisplay = false;
+                tanggalAwal.isDisplay = false;
+                tanggalSlipBef.isDisplay = true;
 
-            
-            var periodSlip = currentRecordObj.getValue('custpage_period_slip_gaji');
-            console.log('periodSlip', periodSlip);
-            if(periodSlip == 1){
-                lamaPeriod.isDisplay = true
-                tanggalAwalPeriod.isDisplay = true
             }
+            
         }
-        if(context.fieldId == 'custpage_lama_period_slip_gaji'){
-            var lamaPeriodValue = currentRecordObj.getValue('custpage_lama_period_slip_gaji');
-            console.log('lamaPeriod', lamaPeriodValue);
-            if(lamaPeriodValue == 2){
-                hariAwalPeriod.isDisplay = true
-            }else if(lamaPeriodValue == 3){
+        if(FieldName == 'custrecord_lama_period'){
+            
+            
+            var lamaPeriode = vrecord.getValue({
+                fieldId : 'custrecord_lama_period'
+            });
+            console.log('lamaPeriod', lamaPeriod);
+            if(lamaPeriode == '1'){
+                console.log('masuk1lamaperiod');
+                hariawalPer.isDisplay = false
+                tanggalAwal.isDisplay = true
+                tanggalSlipBef.isDisplay = false
+                jumlahHariPeriod.isDisplay = false
+            }else if(lamaPeriode == '2'){
+                hariawalPer.isDisplay = true
+                tanggalAwal.isDisplay = false
+                tanggalSlipBef.isDisplay = false
+                jumlahHariPeriod.isDisplay = false
+            }else if(lamaPeriode == '3'){
+                hariawalPer.isDisplay = false
+                tanggalAwal.isDisplay = false
+                tanggalSlipBef.isDisplay = true
                 jumlahHariPeriod.isDisplay = true
-                tanggalSlipSebelumnya.isDisplay = true
             }
         }
         

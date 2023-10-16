@@ -400,26 +400,16 @@ define([
                     "<Column ss:Index='7' ss:AutoFitWidth='0' ss:Width='150' />" +
                     "<Column ss:Index='8' ss:AutoFitWidth='0' ss:Width='150' />" +
                     "<Column ss:Index='9' ss:AutoFitWidth='0' ss:Width='70' />" +
-                    "<Column ss:Index='10' ss:AutoFitWidth='0' ss:Width='50' />" +
-                    "<Column ss:Index='11' ss:AutoFitWidth='0' ss:Width='100' />" +
-                    "<Column ss:Index='12' ss:AutoFitWidth='0' ss:Width='70' />" +
-                    "<Column ss:Index='13' ss:AutoFitWidth='0' ss:Width='100' />" +
-                    "<Column ss:Index='14' ss:AutoFitWidth='0' ss:Width='100' />" +
                     "<Row ss:Index='1' ss:Height='20'>" +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">ITEM</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">UPC CODE</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">BIN NUMBER</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">LOCATION</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">INVENTORY NUMBER</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">STATUS</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">ON HAND</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">AVAILABLE</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">DATE</Data></Cell>' +
+                    '<Cell ss:StyleID="BC"><Data ss:Type="String">INTERNAL ID</Data></Cell>' +
                     '<Cell ss:StyleID="BC"><Data ss:Type="String">VENDOR</Data></Cell>' +
+                    '<Cell ss:StyleID="BC"><Data ss:Type="String">DATE</Data></Cell>' +
+                    '<Cell ss:StyleID="BC"><Data ss:Type="String">CURRENCY</Data></Cell>' +
+                    '<Cell ss:StyleID="BC"><Data ss:Type="String">LOCATIONS</Data></Cell>' +
+                    '<Cell ss:StyleID="BC"><Data ss:Type="String">ITEMS</Data></Cell>' +
                     '<Cell ss:StyleID="BC"><Data ss:Type="String">QTY</Data></Cell>' +
                     '<Cell ss:StyleID="BC"><Data ss:Type="String">RATE</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">TAX CODE</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">INTERNAL ID</Data></Cell>' +
+                    '<Cell ss:StyleID="BC"><Data ss:Type="String">TAXCODE</Data></Cell>' +
                     "</Row>";
 
                 postData.forEach((data)=>{
@@ -435,17 +425,12 @@ define([
 
                     xmlStr +=
                             "<Row>" +
-                            '<Cell ss:StyleID="NB"><Data ss:Type="String">' + itemText + '</Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">'+ upcCode +'</Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">'+ binNumber +'</Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">'+ locationText +'</Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">'+inventorynumber+'</Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">'+ statusText +'</Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">'+onhand+'</Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">'+available+'</Data></Cell>' +
+                            '<Cell ss:StyleID="NB"><Data ss:Type="String"></Data></Cell>' +
                             '<Cell ss:StyleID="NBN"><Data ss:Type="String"></Data></Cell>' +
                             '<Cell ss:StyleID="NBN"><Data ss:Type="String"></Data></Cell>' +
                             '<Cell ss:StyleID="NBN"><Data ss:Type="String"></Data></Cell>' +
+                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">'+locationText+'</Data></Cell>' +
+                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">'+ itemText +'</Data></Cell>' +
                             '<Cell ss:StyleID="NBN"><Data ss:Type="String"></Data></Cell>' +
                             '<Cell ss:StyleID="NBN"><Data ss:Type="String"></Data></Cell>' +
                             '<Cell ss:StyleID="NBN"><Data ss:Type="String"></Data></Cell>' +
