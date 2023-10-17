@@ -96,6 +96,11 @@ define([
                     label: "AVAILABLE",
                     type: serverWidget.FieldType.TEXT,
                 });
+                sublist.addField({
+                    id: "custpage_sublist_itemprtefered",
+                    label: "ITEM PREFERED",
+                    type: serverWidget.FieldType.TEXT,
+                });
             var allData = []
             var searchItem =  search.create({
                 type: "inventorybalance",
@@ -140,6 +145,11 @@ define([
                         name: "formulanumeric",
                         formula: "{me}",
                         label: "Formula (Numeric)"
+                    }),
+                    search.createColumn({
+                        name: "preferredstocklevel",
+                        join: "item",
+                        label: "Preferred Stock Level"
                     })
                 ]
             });
@@ -196,7 +206,12 @@ define([
                 var vendor = row.getText({
                     name: "othervendor",
                     join: "item",
-                })
+                });
+                
+                var itemPrefered = row.getValue({
+                    name: "preferredstocklevel",
+                    join: "item",
+                });
                 var firstWordOfVendor = vendor.split(' ')[0];
                 vendor = firstWordOfVendor
                 sublist.setSublistValue({
@@ -247,6 +262,15 @@ define([
                     value: available,
                     line: i,
                 });
+                if(itemPrefered){
+                    sublist.setSublistValue({
+                        sublistId: "custpage_sublist_item_list",
+                        id: "custpage_sublist_itemprtefered",
+                        value: itemPrefered,
+                        line: i,
+                    })
+                }
+                ;
                 allData.push({
                     item : item,
                     itemText : itemText,
@@ -259,12 +283,12 @@ define([
                     statusText : statusText,
                     onhand : onhand,
                     available : available,
-                    vendor : vendor
+                    vendor : vendor,
+                    itemPrefered : itemPrefered
                 })
                 i++;
                 return true;
             });
-            log.debug('allData', allData);
             var allDataString = JSON.stringify(allData);
             var listData = form.addField({
                 id: "custpage_list_data",
@@ -284,180 +308,45 @@ define([
         }else if (context.request.method === 'POST'){
             try{
                 var postData = JSON.parse(context.request.parameters.custpage_list_data);
+                log.debug('postData', postData);
+                var csvStr = "INTERNAL ID,VENDOR,DATE,CURRENCY,LOCATIONS,ITEMS,QTY,RATE,TAXCODE\n";
 
-                var xmlStr =
-                        '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>';
-                    xmlStr +=
-                        '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ';
-                    xmlStr += 'xmlns:o="urn:schemas-microsoft-com:office:office" ';
-                    xmlStr += 'xmlns:x="urn:schemas-microsoft-com:office:excel" ';
-                    xmlStr += 'xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" ';
-                    xmlStr += 'xmlns:html="http://www.w3.org/TR/REC-html40">';
-
-                    // Styles
-                    xmlStr += "<Styles>";
-                    xmlStr += "<Style ss:ID='BC'>";
-                    xmlStr += "<Alignment ss:Horizontal='Center' ss:Vertical='Center' />";
-                    xmlStr += "<Borders>";
-                    xmlStr +=
-                        "<Border ss:Position='Left' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Top' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Right' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Bottom' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr += "</Borders>";
-                    xmlStr +=
-                        "<Font ss:Bold='1' ss:Color='#FFFFFF' ss:FontName='Calibri' ss:Size='12' />";
-                    xmlStr += "<Interior ss:Color='#317A8A' ss:Pattern='Solid' />";
-                    xmlStr += "</Style>";
-
-                    xmlStr += "<Style ss:ID='Subtotal'>";
-                    xmlStr += "<Alignment />";
-                    xmlStr += "<Font ss:FontName='Calibri' ss:Size='12' />";
-                    xmlStr += "<Interior ss:Color='#FFFF00' ss:Pattern='Solid' />";
-                    xmlStr += "<NumberFormat ss:Format='Standard' />";
-                    xmlStr += "</Style>";
-                    xmlStr += "<Style ss:ID='ColAB'>";
-                    xmlStr += "<Alignment />";
-                    xmlStr += "<Font ss:FontName='Calibri' ss:Size='12' />";
-                    xmlStr += "<Interior ss:Color='#f79925' ss:Pattern='Solid' />";
-                    xmlStr += "<NumberFormat ss:Format='Standard' />";
-                    xmlStr += "</Style>";
-                    xmlStr += "<Style ss:ID='BNC'>";
-                    xmlStr += "<Alignment />";
-                    xmlStr += "<Borders>";
-                    xmlStr +=
-                        "<Border ss:Position='Left' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Top' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Right' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Bottom' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr += "</Borders>";
-                    xmlStr +=
-                        "<Font ss:Bold='1' ss:Color='#FFFFFF' ss:FontName='Calibri' ss:Size='12' />";
-                    xmlStr += "<Interior ss:Color='#11AACC' ss:Pattern='Solid' />";
-                    xmlStr += "</Style>";
-                    xmlStr += "<Style ss:ID='BNCN'>";
-                    xmlStr += "<NumberFormat ss:Format='Standard' />";
-                    xmlStr += "<Alignment />";
-                    xmlStr += "<Borders>";
-                    xmlStr +=
-                        "<Border ss:Position='Left' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Top' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Right' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Bottom' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr += "</Borders>";
-                    xmlStr +=
-                        "<Font ss:Bold='1' ss:Color='#FFFFFF' ss:FontName='Calibri' ss:Size='12' />";
-                    xmlStr += "<Interior ss:Color='#11AACC' ss:Pattern='Solid' />";
-                    xmlStr += "</Style>";
-                    xmlStr += "<Style ss:ID='NB'>";
-                    xmlStr += "<Alignment />";
-                    xmlStr += "<Borders>";
-                    xmlStr +=
-                        "<Border ss:Position='Left' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Top' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Right' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Bottom' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr += "</Borders>";
-                    xmlStr += "<Font ss:FontName='Calibri' ss:Size='12' />";
-                    xmlStr += "</Style>";
-                    xmlStr += "<Style ss:ID='NBN'>";
-                    xmlStr += "<NumberFormat ss:Format='Standard' />";
-                    xmlStr += "<Alignment />";
-                    xmlStr += "<Borders>";
-                    xmlStr +=
-                        "<Border ss:Position='Left' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Top' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Right' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr +=
-                        "<Border ss:Position='Bottom' ss:Color='#000000' ss:LineStyle='Continuous' ss:Weight='1' />";
-                    xmlStr += "</Borders>";
-                    xmlStr += "<Font ss:FontName='Calibri' ss:Size='12' />";
-                    xmlStr += "</Style>";
-                    xmlStr += "</Styles>";
-                    //   End Styles
-
-                    // Sheet Name
-                    xmlStr += '<Worksheet ss:Name="Sheet1">';
-                    // End Sheet Name
-                    // Kolom Excel Header
-                    xmlStr +=
-                    "<Table>" +
-                    "<Column ss:Index='1' ss:AutoFitWidth='0' ss:Width='180' />" +
-                    "<Column ss:Index='2' ss:AutoFitWidth='0' ss:Width='130' />" +
-                    "<Column ss:Index='3' ss:AutoFitWidth='0' ss:Width='100' />" +
-                    "<Column ss:Index='4' ss:AutoFitWidth='0' ss:Width='125' />" +
-                    "<Column ss:Index='5' ss:AutoFitWidth='0' ss:Width='120' />" +
-                    "<Column ss:Index='6' ss:AutoFitWidth='0' ss:Width='100' />" +
-                    "<Column ss:Index='7' ss:AutoFitWidth='0' ss:Width='150' />" +
-                    "<Column ss:Index='8' ss:AutoFitWidth='0' ss:Width='150' />" +
-                    "<Column ss:Index='9' ss:AutoFitWidth='0' ss:Width='70' />" +
-                    "<Row ss:Index='1' ss:Height='20'>" +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">INTERNAL ID</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">VENDOR</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">DATE</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">CURRENCY</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">LOCATIONS</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">ITEMS</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">QTY</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">RATE</Data></Cell>' +
-                    '<Cell ss:StyleID="BC"><Data ss:Type="String">TAXCODE</Data></Cell>' +
-                    "</Row>";
-
-                postData.forEach((data)=>{
-                    var itemText = data.itemText;
-                    var upcCode = data.upcCode;
-                    log.debug('upcCode', upcCode);
-                    var binNumber = data.binNumber;
+                postData.forEach((data) => {
+                    var vendor = data.vendor;
                     var locationText = data.locationText;
-                    var inventorynumber = data.invNumber;
-                    var statusText = data.statusText;
-                    var onhand = data.onhand;
-                    var available = data.available;
-                    var vendor = data.vendor
+                    var itemText = data.itemText;
+                    var itemPrefered = data.itemPrefered;
+                    var onhand = data.onhand
+                    var qty;
+                    log.debug('itemPrefered', itemPrefered)
+                    if(itemPrefered){
+                        qty = itemPrefered - onhand
+                    }
+                    log.debug('qty', qty);
+                    // Add data to the CSV string
+                    csvStr += ',';
+                    csvStr += '"' + vendor + '",';
+                    csvStr += ',';
+                    csvStr += 'IDR,';
+                    csvStr += '"' + locationText + '",';
+                    csvStr += '"' + itemText + '",';
+                    if(qty){
+                        csvStr += '"' + qty + '",';
+                    }else{
+                        csvStr += ',';
+                    }
+                    csvStr += ',';
+                    csvStr += 'PPN_ID:S-ID\n';
+                });
 
-                    xmlStr +=
-                            "<Row>" +
-                            '<Cell ss:StyleID="NB"><Data ss:Type="String"></Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">'+vendor+'</Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String"></Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">IDR</Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">'+locationText+'</Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">'+ itemText +'</Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String"></Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String"></Data></Cell>' +
-                            '<Cell ss:StyleID="NBN"><Data ss:Type="String">PPN_ID:S-ID</Data></Cell>' +
-                            "</Row>";
+                var objCsvFile = file.create({
+                    name: "template_list_vendor_center.csv",
+                    fileType: file.Type.CSV,
+                    contents: csvStr,
+                });
 
-                });
-                xmlStr += "</Table></Worksheet></Workbook>";
-                var strXmlEncoded = encode.convert({
-                    string: xmlStr,
-                    inputEncoding: encode.Encoding.UTF_8,
-                    outputEncoding: encode.Encoding.BASE_64,
-                });
-        
-                var objXlsFile = file.create({
-                    name: "template_list_vendor_center.xls",
-                    fileType: file.Type.EXCEL,
-                    contents: strXmlEncoded,
-                });
-        
                 context.response.writeFile({
-                    file: objXlsFile,
+                    file: objCsvFile,
                 });
             }catch(e){
                 log.debug('error',e)
