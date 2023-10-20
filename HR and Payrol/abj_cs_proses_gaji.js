@@ -6,27 +6,26 @@
 function(error,dialog,url,record,currentRecord,log) {
 var records = currentRecord.get();
     function pageInit(context) {
-        console.log("test in");
+        console.log("masuk client");
     }
     
-    function printPDF() {
+    function prosesGaji(allIdSlip) {
+        console.log('allIdSLip', allIdSlip);
     console.log("test in function");
-    var id = records.id;
     var createPDFURL = url.resolveScript({
-        scriptId: 'customscript_abj_sl_print_slip',
-        deploymentId: 'customdeploy_abj_sl_print_slip',
+        scriptId: 'customscript_abj_sl_method_transfer',
+        deploymentId: 'customdeploy_abj_sl_method_transfer',
         returnExternalUrl: false
     })
-    console.log("id",id);
     console.log("urlpdf", createPDFURL);
-    createPDFURL += '&id=' +  id;
+    createPDFURL;
         if (createPDFURL) {
-            newWindow = window.open(createPDFURL);
+            newWindow = window.open(createPDFURL + '&allIdSlip=' + encodeURIComponent(JSON.stringify(allIdSlip)));
         }
     } 
     return {
         pageInit: pageInit,
-        printPDF : printPDF,
+        prosesGaji : prosesGaji,
     };
 }); 
  
