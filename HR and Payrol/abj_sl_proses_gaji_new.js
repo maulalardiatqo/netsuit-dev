@@ -61,9 +61,7 @@ define(['N/ui/serverWidget', 'N/search', 'N/record'], function (serverWidget, se
                     var customrecord_msa_slip_gajiSearchObj = search.create({
                         type: "customrecord_msa_slip_gaji",
                         filters:
-                        [
-                            ["custrecord_abj_msa_status_gaji","anyof","2"], 
-                            "AND", 
+                        [ 
                             ["custrecord_abj_msa_slipgaji_id","anyof",slipGaji], 
                             "AND", 
                             ["custrecord_abj_msa_period_gaji","is",periodName]
