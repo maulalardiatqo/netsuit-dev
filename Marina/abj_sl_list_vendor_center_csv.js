@@ -212,8 +212,8 @@ define([
                     name: "preferredstocklevel",
                     join: "item",
                 });
-                var firstWordOfVendor = vendor.split(' ')[0];
-                vendor = firstWordOfVendor
+                // var firstWordOfVendor = vendor.split(' ')[0];
+                // vendor = firstWordOfVendor
                 sublist.setSublistValue({
                     sublistId: "custpage_sublist_item_list",
                     id: "custpage_sublist_item",
