@@ -2,7 +2,6 @@
  * @NApiVersion 2.1
  * @NScriptType Suitelet
  */
-// This sample shows how to render search results into a PDF file.
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
     function(render, search, record, log, file, http, config, format, email, runtime) {
         function removeDecimalFormat(number) {

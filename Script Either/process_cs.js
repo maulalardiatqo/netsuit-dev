@@ -6,7 +6,6 @@
 
 define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message"], function (runtime, log, url, currentRecord, currency, record, search, message) {
   var records = currentRecord.get();
-
   function pageInit(context) {
     console.log('masuk')
   }
@@ -15,7 +14,13 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     var vrecord = context.currentRecord;
     var sublistFieldName = context.fieldId;
     var sublistName = context.sublistId;
-
+    if(context.fieldId == 'custrecord184'){
+      console.log('subsidiary change');
+      var subsiDiaryVal = vrecord.getValue({
+        fieldId: 'custrecord184',
+      });
+      console.log('subsidiarVal', subsiDiaryVal)
+    }
     let totalRate = 0;
     if (sublistName == "recmachcustrecord194") {
       if (sublistFieldName == "custrecord197") {
@@ -47,14 +52,90 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         });
       }
     }
+
     if (sublistName == "recmachcustrecord188") {
-      if (sublistFieldName == "custrecord216") {
+      var subsiDiaryVal = vrecord.getValue({
+        fieldId: 'custrecord184',
+      });
+      if(subsiDiaryVal == '16'){
+        if(sublistFieldName == "custrecord189"){
+          console.log('itemchange');
+          let lineTotal = records.getLineCount({
+            sublistId: "recmachcustrecord188",
+          });
+          console.log('linetotal', lineTotal);
+            for (let i = 0; i < lineTotal || i === 0; i++) {
+              console.log('line', i);
+              let item = records.getCurrentSublistValue({
+                sublistId: "recmachcustrecord188",
+                fieldId: "custrecord189",
+                line: i,
+              });
+              console.log('item', item);
+              var inventorydetailSearchObj = search.create({
+                type: "inventorynumber",
+                filters: [
+                    ["internalid", "is", item],
+                ],
+                columns: [
+                    "quantityavailable", "location"
+                ],
+            });
+
+            var searchInventorydetailSet = inventorydetailSearchObj.run();
+            var inventorydetailSearchResult = searchInventorydetailSet.getRange({
+                start: 0,
+                end: 1,
+            });
+            if (inventorydetailSearchResult.length > 0) {
+              var locationInProcess = records.getCurrentSublistValue({
+                  sublistId: "recmachcustrecord188",
+                  fieldId: "custrecord203",
+                  line: i,
+              })
+              var recInv = inventorydetailSearchResult[0];
+              var qtyAvailable = recInv.getValue({
+                  name: 'quantityavailable',
+              });
+              console.log('qtyAvailability', qtyAvailable);
+              var location = recInv.getValue({
+                name : 'location'
+              });
+              var locationText = recInv.getText({
+                name:'location'
+              })
+              // if(locationInProcess != location){
+              //   console.log('location diff')
+              //   alert("the location you selected is not suitable, the lot number is at " + locationText );
+              //     records.setCurrentSublistValue({
+              //         sublistId: "recmachcustrecord188",
+              //         fieldId: "custrecord203",
+              //         line: i,
+              //         value: location,
+              //     });
+                
+              // }
+              // console.log('location', location);
+              // records.setCurrentSublistValue({
+              //     sublistId: "recmachcustrecord188",
+              //     fieldId: "custrecord218",
+              //     line: i,
+              //     value: qtyAvailable,
+              // });
+            }
+
+          }
+          
+        }
+      }else{
+        if (sublistFieldName == "custrecord216") {
           let lineTotal = records.getLineCount({
               sublistId: "recmachcustrecord188",
           });
           console.log('linetotal', lineTotal);
             for (let i = 0; i < lineTotal || i === 0; i++) {
               console.log('line', i);
+
                 let serialLot = records.getCurrentSublistValue({
                     sublistId: "recmachcustrecord188",
                     fieldId: "custrecord216",
@@ -127,6 +208,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
           }
           
       }
+      }
+      
+      
 
       if (sublistFieldName == "custrecord191") {
         console.log('change');
