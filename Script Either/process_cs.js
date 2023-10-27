@@ -58,6 +58,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         fieldId: 'custrecord184',
       });
       if(subsiDiaryVal == '16'){
+        
         if(sublistFieldName == "custrecord189"){
           console.log('itemchange');
           let lineTotal = records.getLineCount({
@@ -66,20 +67,43 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
           console.log('linetotal', lineTotal);
             for (let i = 0; i < lineTotal || i === 0; i++) {
               console.log('line', i);
+              // var serialLotNum = records.getSublistField({
+              //   sublistId: "recmachcustrecord188",
+              //   fieldId : 'custrecord216',
+              //   line: i,
+              // });
+              // serialLotNum.isDisabled = true;
               let item = records.getCurrentSublistValue({
                 sublistId: "recmachcustrecord188",
                 fieldId: "custrecord189",
                 line: i,
               });
+
               console.log('item', item);
               var inventorydetailSearchObj = search.create({
-                type: "inventorynumber",
-                filters: [
-                    ["internalid", "is", item],
+                type: "inventorydetail",
+                filters:
+                [
+                   ["item","anyof",item]
                 ],
-                columns: [
-                    "quantityavailable", "location"
-                ],
+                columns:
+                [
+                   search.createColumn({
+                      name: "inventorynumber",
+                      sort: search.Sort.ASC,
+                      label: " Number"
+                   }),
+                   search.createColumn({
+                    name: "quantityonhand",
+                    join: "item",
+                    label: "On Hand"
+                 }),
+                   search.createColumn({
+                    name: "inventorylocation",
+                    join: "item",
+                    label: "Inventory Location"
+                 })
+                ]
             });
 
             var searchInventorydetailSet = inventorydetailSearchObj.run();
@@ -95,33 +119,36 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
               })
               var recInv = inventorydetailSearchResult[0];
               var qtyAvailable = recInv.getValue({
-                  name: 'quantityavailable',
+                  name: "quantityonhand",
+                  join: "item",
               });
               console.log('qtyAvailability', qtyAvailable);
               var location = recInv.getValue({
-                name : 'location'
+                  name: "inventorylocation",
+                  join: "item",
               });
               var locationText = recInv.getText({
-                name:'location'
+                  name: "inventorylocation",
+                  join: "item",
               })
-              // if(locationInProcess != location){
-              //   console.log('location diff')
-              //   alert("the location you selected is not suitable, the lot number is at " + locationText );
-              //     records.setCurrentSublistValue({
-              //         sublistId: "recmachcustrecord188",
-              //         fieldId: "custrecord203",
-              //         line: i,
-              //         value: location,
-              //     });
+              if(locationInProcess != location){
+                console.log('location diff')
+                alert("the location you selected is not suitable, the lot number is at " + locationText );
+                  records.setCurrentSublistValue({
+                      sublistId: "recmachcustrecord188",
+                      fieldId: "custrecord203",
+                      line: i,
+                      value: location,
+                  });
                 
-              // }
-              // console.log('location', location);
-              // records.setCurrentSublistValue({
-              //     sublistId: "recmachcustrecord188",
-              //     fieldId: "custrecord218",
-              //     line: i,
-              //     value: qtyAvailable,
-              // });
+              }
+              console.log('location', location);
+              records.setCurrentSublistValue({
+                  sublistId: "recmachcustrecord188",
+                  fieldId: "custrecord218",
+                  line: i,
+                  value: qtyAvailable,
+              });
             }
 
           }
