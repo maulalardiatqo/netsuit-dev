@@ -49,11 +49,17 @@ function afterSubmit(context) {
                 textSub = 'VEND'
             }else if(TransType == 'custcred'){
                 textSub = 'CM'
+            }else if(TransType == 'vendbill'){
+                textSub = 'VEND'
+            }else if( TransType == 'salesord'){
+                textSub = 'SO'
+            }else if(TransType == 'itemrcpt'){
+                textSub = 'IR'
             }
             var formatRunning = textSub + lastTwoDigits + monthFormatted
 
             var searchRunNumb =  search.create({
-                type: 'customrecord_po_numbering',
+                type: 'customrecord__po_numbering',
                 columns: ['internalid', 'custrecord_msa_pon_transactiontype', 'custrecord_msa_pon_prefix', 'custrecord_msa_pon_minimum_digit', 'custrecord_msa_pon_initial_number', 'custrecord_msa_pon_suffix', 'custrecord_msa_pon_last_run', 'custrecord_msa_pon_start_date', 'custrecord_msa_pon_end_date', 'custrecord_mas_pon_sample_format'],
                 filters: [{
                     name: 'custrecord_msa_pon_transactiontype',
@@ -117,7 +123,7 @@ function afterSubmit(context) {
                 }
                 log.debug('runningNumber', runningNumber);
                 var recordBP = record.load({
-                    type : 'customrecord_po_numbering',
+                    type : 'customrecord__po_numbering',
                     id : internalid,
                     isDynamic : true
                 });
@@ -143,7 +149,7 @@ function afterSubmit(context) {
                 log.debug('saveRecordTrans', saveRecordTrans);
             }else{
                 var createRecord = record.create({
-                    type: 'customrecord_po_numbering',
+                    type: 'customrecord__po_numbering',
                     isDynamic: true
                 });
                 createRecord.setValue({
