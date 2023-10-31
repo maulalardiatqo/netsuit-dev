@@ -61,7 +61,7 @@ define([
     
                 var searchRemu = search.create({
                     type : 'customrecord_remunasi',
-                    filters : [],
+                    filters : ["custrecord_abj_msa_status_karyawan","anyof","2"],
                     columns : ['custrecord3', 'custrecord_abj_msa_noid']
                 });
                 var searchRemuSet = searchRemu.runPaged().count;
