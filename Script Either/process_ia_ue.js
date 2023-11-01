@@ -73,11 +73,11 @@ define(["N/record", "N/search", "N/format"], function (record, search, format) {
                   fieldId: "custrecord193",
                   line: i,
                 });
-                // let lotNumber = rec.getSublistValue({
-                //   sublistId : "recmachcustrecord188",
-                //   fieldId : "custrecord216",
-                //   line : i
-                // });
+                let lotNumber = rec.getSublistValue({
+                  sublistId : "recmachcustrecord188",
+                  fieldId : "custrecord216",
+                  line : i
+                });
                 // log.debug('logNumber', lotNumber);
                 
                 // convert tominus
@@ -114,7 +114,13 @@ define(["N/record", "N/search", "N/format"], function (record, search, format) {
                 });
                 if(itemCode){
                     // search lotNumber
-                      var internalIDLot = itemCode
+                    var internalIDLot
+                    if(lotNumber){
+                      internalIDLot = lotNumber
+                    }else{
+                      internalIDLot = itemCode
+                    }
+                      
                       log.debug('internalIDlot', internalIDLot);
                       var inventorydetailSearchObj = search.create({
                         type: "inventorydetail",

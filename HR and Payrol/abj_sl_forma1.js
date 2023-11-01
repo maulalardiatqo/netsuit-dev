@@ -28,10 +28,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
 
                 var legalName = recSubsidiary.getValue('legalname');
-                log.debug('legalName', legalName);
-                log.debug('tahun', tahun);
-                log.debug('employeId', employeId);
-                log.debug('urlLogo', urlLogo);
+                // log.debug('legalName', legalName);
+                // log.debug('tahun', tahun);
+                // log.debug('employeId', employeId);
+                // log.debug('urlLogo', urlLogo);
 
                 var npwp1 = '00';
                 var npwp2 = '000';
@@ -43,12 +43,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var alamat2 = '';
 
                 var ptkpK;
+                var jumlahPtkp = 0;
                 var ptkpTK;
-
+                var statusKaryawan = '';
                 var searchRemu = search.create({
                     type : 'customrecord_remunasi',
                     filters : [["custrecord3","is",employeId]],
-                    columns : ['custrecord_no_npwp', 'custrecord_abj_msa_noid', 'custrecord3', 'custrecord_abj_msa_alamat', 'custrecord_abj_msa_jenis_kelasmin', 'custrecord_status_wajib_pajak']
+                    columns : ['custrecord_no_npwp', 'custrecord_abj_msa_noid', 'custrecord3', 'custrecord_abj_msa_alamat', 'custrecord_abj_msa_jenis_kelasmin', 'custrecord_status_wajib_pajak', 'custrecord_abj_msa_status_karyawan']
                 });
                 var searchRemuSet = searchRemu.run();
                 var searchRemuResult = searchRemuSet.getRange({
@@ -75,15 +76,21 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var ptkp = recRemu.getText({
                         name : 'custrecord_status_wajib_pajak'
                     });
-                    log.debug('ptkp', ptkp);
+                    var ptkpId = recRemu.getValue({
+                        name : 'custrecord_status_wajib_pajak'
+                    });
+                    var karyawanStat = recRemu.getValue({
+                        name : 'custrecord_abj_msa_status_karyawan'
+                    });
+                    if(karyawanStat){
+                        statusKaryawan = karyawanStat
+                    }
                     var ptkpMatch = ptkp.match(/K\/(.+)|TK\/(.+)/);
-                    log.debug('ptkpMatch', ptkpMatch)
+                    log.debug('alamat', alamat)
                     var jumlahKarakter = alamat.length;
                     log.debug('jumlahKarakter', jumlahKarakter);
                     if (jumlahKarakter > 41) {
-                        log.debug('masukifjumlah')
                         var indexPemisah = 41;
-                        log.debug('indexPemisah', indexPemisah);
                         while (alamat.charAt(indexPemisah) !== ' ' && indexPemisah > 0) {
                             indexPemisah--;
                         }
@@ -96,15 +103,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var bagianKedua = alamat.substring(indexPemisah + 1);
                         alamat1 = bagianPertama;
                         alamat2 = bagianKedua;
-                        log.debug('bagian1', bagianPertama);
-                        log.debug('bagian2', bagianKedua);
+                    }else{
+                        alamat1 = alamat
                     }
                     if (ptkpMatch) {
                         ptkpK = ptkpMatch[1] || '';
                         ptkpTK = ptkpMatch[2] || '';
                     }
                     if(noNpWp){
-                        log.debug('noNpwp', noNpWp);
                         npwp1 = noNpWp.substring(0, 2);
                         npwp2 = noNpWp.substring(2, 5);
                         npwp3 = noNpWp.substring(5, 8);
@@ -112,11 +118,42 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         npwp5 = noNpWp.substring(9, 12);
                         npwp6 = noNpWp.substring(12, 15);
                     }
+                    log.debug('ptkp', ptkp)
+                    if(ptkp){
+                        var searchPtkp = search.create({
+                            type: "customrecord_ptpk",
+                            filters:
+                            [
+                                ["internalid","anyof",ptkpId]
+                            ],
+                            columns:
+                            [
+                                search.createColumn({
+                                    name: "name",
+                                    sort: search.Sort.ASC,
+                                    label: "Name"
+                                }),
+                                search.createColumn({name: "custrecord_jumlah_ptpk", label: "Jumlah PTPK"})
+                            ]
+                        });
+                        var searchPtkpSet = searchPtkp.run();
+                        var searchPtkpResult = searchPtkpSet.getRange({
+                            start: 0,
+                            end: 1,
+                        });
+                        if(searchPtkpResult.length > 0){
+                            var recPtkp = searchPtkpResult[0]
+                            var jumPtkp = recPtkp.getValue({
+                                name: "custrecord_jumlah_ptpk"
+                            })
+                            jumlahPtkp = jumPtkp
+                            
+                        }
+                    }
                 }
-                log.debug('ptkpK', ptkpK);
-                log.debug('ptkpTk', ptkpTK)
+                
                 var Gabung1 = npwp1 + "." + npwp2 + "." + npwp3 + "." + npwp4;
-                log.debug('gabung1', Gabung1);
+                // log.debug('statusKaryawan', statusKaryawan);
                 var jobEmp = '';
                 var searchEmp = search.create({
                     type: search.Type.EMPLOYEE,
@@ -179,10 +216,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     ]
                 });
                 var searchResultCount = customrecord_msa_remunerasiSearchObj.runPaged().count;
-                log.debug("customrecord_msa_remunerasiSearchObj result count",searchResultCount);
+                var gajiPokokSetahun = 0;
+                var tunjanganLainya = 0;
+                var honorarium = 0;
+                var natura = 0;
+                var thr = 0;
+                var tantiem = 0;
+                var iuranPenjsiunJHT = 0;
                 var pendapatan = [];
                 var potongan = [];
                 customrecord_msa_remunerasiSearchObj.run().each(function(result){
+                    var gajiPokok = 0;
                     var komponenPendapatan = result.getValue({
                         name: "custrecord_id_pendapatan",
                         join: "CUSTRECORD_REMUNERASI",
@@ -199,18 +243,266 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         name: "custrecord_msa_jumlah_potongan",
                         join: "CUSTRECORD_MSA_POTONGAN_REMUNERASI",
                     })
-                    pendapatan.push([{
-                        komponenPendapatan : komponenPendapatan,
-                        jumlahPendapatan : jumlahPendapatan
-                    }])
-                    potongan.push([{
-                        komponenPotongan : komponenPotongan,
-                        jumlahPotongan : jumlahPotongan
-                    }])
+                    if (komponenPendapatan){
+                        var searchType = search.create({
+                            type: "customrecord_msa_komponen_pendapatan",
+                            filters:
+                            [
+                                ["id","equalto",komponenPendapatan]
+                            ],
+                            columns:
+                            [
+                                search.createColumn({
+                                    name: "name",
+                                    sort: search.Sort.ASC,
+                                    label: "Name"
+                                }),
+                                search.createColumn({name: "custrecord_msa_type_salary", label: "Type"}),
+                                search.createColumn({name: "custrecord_msa_pend_is_pph", label: "Is PPh 21"}),
+                                search.createColumn({name: "custrecord_msa_pend_typea1", label: "Type A1"})
+                            ]
+                        });
+                        var searchResultSet = searchType.run();
+                        searchType = searchResultSet.getRange({
+                            start : 0,
+                            end : 1
+                        });
+                        if(searchType.length > 0){
+                            var rectype = searchType[0]
+                            var typeKomponen = rectype.getValue({
+                                name : 'custrecord_msa_type_salary'
+                            });
+                            // log.debug('typeKomponen', typeKomponen);
+                            if(typeKomponen == '1'){
+                                gajiPokok = jumlahPendapatan
+                            }
+                            if(typeKomponen == '2'){
+                                thr += Number(jumlahPendapatan)
+                            }
+                            var typeA1 = rectype.getValue({
+                                name: "custrecord_msa_pend_typea1"
+                            });
+                            var typeA1Text = rectype.getText({
+                                name: "custrecord_msa_pend_typea1"
+                            });
+                            // log.debug('typeA1', {typeA1 : typeA1, typeA1Text : typeA1Text});
+
+                            if(typeA1 =='5'){
+                                tunjanganLainya += Number(jumlahPendapatan)
+                            }
+                            if(typeA1 == '1'){
+                                honorarium += Number(jumlahPendapatan);
+                            }
+                            if(typeA1 == '2'){
+                                natura += Number(jumlahPendapatan);
+                            }
+                            if(typeA1 == '4' && typeKomponen != '2'){
+                                tantiem += Number(jumlahPendapatan)
+                            }
+                        }
+                    }
+                    log.debug('tunjanganLainya', tunjanganLainya);
+                    
+                    
+                    if(gajiPokok != 0){
+                        gajiPokokSetahun = Number(gajiPokok) * 12
+                    }
+                    
+                    // pendapatan.push([{
+                    //     komponenPendapatan : komponenPendapatan,
+                    //     jumlahPendapatan : jumlahPendapatan
+                    // }])
+                    // potongan.push([{
+                    //     komponenPotongan : komponenPotongan,
+                    //     jumlahPotongan : jumlahPotongan
+                    // }])
                     return true;
                 });
-                log.debug('pendapatan', pendapatan);
-                log.debug('potongan', potongan);
+                var tunjanganTahun = Number(tunjanganLainya) * 12
+                var honorariumTahun = Number(honorarium) * 12
+                var naturaTahun = Number(natura) * 12
+                var countTantiem = Number(tantiem) * 12
+                var tantiemThr = Number(countTantiem) + Number(thr)
+                var jumlahPenghasilanBruto = Number(tunjanganTahun) + Number(gajiPokokSetahun) + Number(honorariumTahun) + Number(naturaTahun) + Number(tantiemThr)
+                var iuranPensiunTahun = Number(iuranPenjsiunJHT);
+                var BiayaJabatan = 5 / 100 * Number(jumlahPenghasilanBruto)
+                if(BiayaJabatan > 6000000){
+                    BiayaJabatan = 6000000
+                }
+
+                var jumlahPengurangan = Number(BiayaJabatan) + Number(iuranPensiunTahun)
+                var jumlahPenghasilanNeto = Number(jumlahPenghasilanBruto) - Number(jumlahPengurangan);
+
+                log.debug('jumlahPtkp', jumlahPtkp)
+                var pkp = Number(jumlahPenghasilanNeto) - Number(jumlahPtkp)
+                log.debug('pkp', pkp);
+                var pkpSet = 0;
+                if(pkp >= 0){
+                    pkpSet = pkp
+                }
+                log.debug('pkpSet', pkpSet)
+                if(gajiPokokSetahun){
+                    gajiPokokSetahun = format.format({
+                        value: gajiPokokSetahun,
+                        type: format.Type.CURRENCY
+                    });
+                }
+                if(tunjanganTahun){
+                    tunjanganTahun = format.format({
+                        value: tunjanganTahun,
+                        type: format.Type.CURRENCY
+                    });
+                }
+                if(honorariumTahun){
+                    honorariumTahun = format.format({
+                        value: honorariumTahun,
+                        type: format.Type.CURRENCY
+                    });
+                }
+
+                if(naturaTahun){
+                    naturaTahun = format.format({
+                        value: naturaTahun,
+                        type: format.Type.CURRENCY
+                    });
+                }
+
+                if(tantiemThr){
+                    tantiemThr = format.format({
+                        value: tantiemThr,
+                        type: format.Type.CURRENCY
+                    });
+                }
+                if(jumlahPenghasilanBruto){
+                    jumlahPenghasilanBruto = format.format({
+                        value: jumlahPenghasilanBruto,
+                        type: format.Type.CURRENCY
+                    });
+                }
+                if(BiayaJabatan){
+                    BiayaJabatan = format.format({
+                        value: BiayaJabatan,
+                        type: format.Type.CURRENCY
+                    });
+                }
+                if(jumlahPengurangan){
+                    jumlahPengurangan = format.format({
+                        value: jumlahPengurangan,
+                        type: format.Type.CURRENCY
+                    });
+                }
+                if(jumlahPenghasilanNeto){
+                    jumlahPenghasilanNeto = format.format({
+                        value: jumlahPenghasilanNeto,
+                        type: format.Type.CURRENCY
+                    });
+                }
+                if(jumlahPtkp){
+                    jumlahPtkp = format.format({
+                        value: jumlahPtkp,
+                        type: format.Type.CURRENCY
+                    });
+                }
+                if(jumlahPtkp){
+                    jumlahPtkp = format.format({
+                        value: jumlahPtkp,
+                        type: format.Type.CURRENCY
+                    });
+                }
+                if(pkpSet){
+                    pkpSet = format.format({
+                        value: pkpSet,
+                        type: format.Type.CURRENCY
+                    });
+                }
+                var npwpPer1 = '00'
+                var npwpPer2 = '000'
+                var npwpPer3 = '000'
+                var npwpPer4 = '0'
+                var npwpPer5 = '000'
+                var npwpPer6 = '000'
+
+                var npwpPim1 = '00'
+                var npwpPim2 = '000'
+                var npwpPim3 = '000'
+                var npwpPim4 = '0'
+                var npwpPim5 = '000'
+                var npwpPim6 = '000'
+
+                var namaPimpinan = '';
+                var searchPPh = search.create({
+                    type: "customrecord58",
+                    filters:
+                    [
+                        ["id","equalto","1"]
+                    ],
+                    columns:
+                    [
+                        search.createColumn({
+                            name: "id",
+                            sort: search.Sort.ASC,
+                            label: "ID"
+                        }),
+                        search.createColumn({name: "custrecord_abj_msa_is_pph21", label: "Apakah perusahaan Anda menerapkan perhitungan Pajak PPh 21/26?"}),
+                        search.createColumn({name: "custrecord_abj_msa_npwp_perusahaan", label: "NPWP Perusahaan"}),
+                        search.createColumn({name: "custrecord_abj_msa_nama_pimpinan", label: "Nama Pimpinan Perusahaan/Kuasa"}),
+                        search.createColumn({name: "custrecord_abj_msa_npwp_pimpinan", label: "NPWP Pimpinan Perusahaan/Kuasa"}),
+                        search.createColumn({name: "custrecord_abj_msa_ktp", label: "Karyawan Tetap Percobaan"}),
+                        search.createColumn({name: "custrecordabj_msa_ktp_permanen", label: "Karyawan Tetap Permanen"}),
+                        search.createColumn({name: "custrecord_abj_msa_pkwt", label: "Karyawan PKWT"}),
+                        search.createColumn({name: "custrecord_abj_msa_karyawan_lepas", label: "Karyawan Lepas"}),
+                        search.createColumn({name: "custrecord_abj_msa_tenaga_ahli", label: "Karyawan Tenaga Ahli"}),
+                        search.createColumn({name: "custrecord_abj_msa_karyawan_magang", label: "Karyawan Magang"}),
+                        search.createColumn({name: "custrecord_abj_msa_ptkp_wajib", label: "Nilai PTKP Diri Wajib Pajak Orang Pribadi"}),
+                        search.createColumn({name: "custrecord_abj_msa_ptkp_istri", label: "PTKP istri/masing-masing tanggungan"})
+                    ]
+                });
+                var searchPPhSet = searchPPh.run();
+                searchPPh = searchPPhSet.getRange({
+                    start : 0,
+                    end : 1
+                });
+                if(searchPPh.length > 0){
+                    var recPPh = searchPPh[0];
+                    var npwpPerusahaan = recPPh.getValue({
+                        name: "custrecord_abj_msa_npwp_perusahaan"
+                    });
+                    var npwpPimpinan = recPPh.getValue({
+                        name: "custrecord_abj_msa_npwp_pimpinan"
+                    });
+                    namaPimpinan = recPPh.getValue({
+                        name: "custrecord_abj_msa_nama_pimpinan"
+                    })
+                    var karyawanTetap = recPPh.getValue({
+                        name: "custrecordabj_msa_ktp_permanen"
+                    });
+                    // log.debug('karyawanTetap', karyawanTetap);
+                    if(npwpPimpinan){
+                        npwpPim1 = npwpPimpinan.substring(0, 2);
+                        npwpPim2 = npwpPimpinan.substring(2, 5);
+                        npwpPim3 = npwpPimpinan.substring(5, 8);
+                        npwpPim4 = npwpPimpinan.substring(8, 9);
+                        npwpPim5 = npwpPimpinan.substring(9, 12);
+                        npwpPim6 = npwpPimpinan.substring(12, 15);
+                    }
+                    if(npwpPerusahaan){
+                        npwpPer1 = npwpPerusahaan.substring(0, 2);
+                        npwpPer2 = npwpPerusahaan.substring(2, 5);
+                        npwpPer3 = npwpPerusahaan.substring(5, 8);
+                        npwpPer4 = npwpPerusahaan.substring(8, 9);
+                        npwpPer5 = npwpPerusahaan.substring(9, 12);
+                        npwpPer6 = npwpPerusahaan.substring(12, 15);
+                    }
+                }
+                // log.debug('gajiPokokSetahun', gajiPokokSetahun);
+
+                var today = new Date();
+                var day = today.getUTCDate();
+                var bulan = today.getUTCMonth() + 1; 
+                var year = today.getUTCFullYear();
+
+                var npwpPerGab = npwpPer1 + "." + npwpPer2 + "." + npwpPer3 + "." + npwpPer4
+                var npwpPimGab = npwpPim1 + "." + npwpPim2 + "." + npwpPim3 + "." + npwpPim4
                 var response = context.response;
                 var xml = "";
                 var header = "";
@@ -375,7 +667,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 // four table
                 // third tables
-                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 10px 0 8px; padding: 0; font-size:11px;\">";
+                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 15px 0 15px; padding: 0; font-size:11px;\">";
                 body += "<tbody>";
 
                 body += "<tr>"
@@ -408,11 +700,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='font-size: 9px; border-left: 1px solid black'>PEMOTONG</td>"
                 body += "<td style='vertical-align: top;'>:</td>"
                 body += "<td style='align:center; vertical-align: top;'><span style='font-size:7px; color: gray;'>H.03</span></td>"
-                body += "<td style='border-bottom: 1px solid black; align:center'>60.922.677.4</td>"
+                body += "<td style='border-bottom: 1px solid black; align:center'>"+npwpPerGab+"</td>"
                 body += "<td style='align:center '>-</td>"
-                body += "<td style='align:center; border-bottom: 1px solid black;'>022</td>"
+                body += "<td style='align:center; border-bottom: 1px solid black;'>"+npwpPer5+"</td>"
                 body += "<td style='align:center'>-</td>"
-                body += "<td style='align:center; border-bottom: 1px solid black;'>000</td>"
+                body += "<td style='align:center; border-bottom: 1px solid black;'>"+npwpPer6+"</td>"
                 body += "<td></td>"
                 body += "<td style='border-right: 1px solid black'></td>"
                 body += "</tr>"
@@ -446,7 +738,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</table>";
 
                 // five tables
-                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 10px 0 8px; padding: 0; font-size:10px; font-weight:bold;\">";
+                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 15px 0 15px; padding: 0; font-size:10px; font-weight:bold;\">";
                 body += "<tbody>";
                 body += "<tr>"
                 body += "<td>A. IDENTITAS PENERIMA PENGHASILAN YANG DIPOTONG</td>"
@@ -455,7 +747,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</table>";
 
                 // identitas karyawan 21td
-                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 10px 0 8px; padding: 0; font-size:8px; font-weight:bold;\">";
+                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 15px 0 15px; padding: 0; font-size:8px; font-weight:bold;\">";
                 body += "<tbody>";
                 body += "<tr>"
                 body += "<td style='width:1%'></td>"
@@ -587,7 +879,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style='border-left: 1px solid black;'>4.</td>"
                 body += "<td colspan='2'>JENIS KELAMIN</td>"
-                log.debug('jenisKelasmin', jenisKelamin);
                 body += "<td>: <span style='color: gray; font-size: 7px;'>A.05</span></td>"
                 if(jenisKelamin == '1'){
                     body += "<td style='font-size: 11px;'><span style='margin-right:5px;'>X</span>LAKI-LAKI</td>"
@@ -609,7 +900,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</table>";
 
                 // five tables
-                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 10px 0 8px; padding: 0; font-size:10px; font-weight:bold;\">";
+                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 15px 0 15px; padding: 0; font-size:10px; font-weight:bold;\">";
                 body += "<tbody>";
                 body += "<tr>"
                 body += "<td>B. RINCIAN  PENGHASILAN DAN PENGHITUNGAN PPh PASAL 21</td>"
@@ -618,7 +909,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</table>";
 
                  // five tables
-                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 10px 0 8px; padding: 0; font-size:9px; font-weight:bold;\">";
+                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 15px 0 15px; padding: 0; font-size:9px; font-weight:bold;\">";
                 body += "<tbody>";
                 body += "<tr>"
                 body += "<td style='width:3%'></td>"
@@ -660,7 +951,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>1.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'> GAJI/PENSIUN ATAU THT/JHT</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+gajiPokokSetahun+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
@@ -672,13 +963,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>3.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'> TUNJANGAN LAINNYA, UANG LEMBUR DAN SEBAGAINYA</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+tunjanganTahun+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>4.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'>  HONORARIUM DAN IMBALAN LAIN SEJENISNYA</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+honorariumTahun+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
@@ -690,19 +981,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>6.</td>"
                 body += "<td style='border-top :1px solid black; font-size:7px;' colspan='7'> PENERIMAAN DALAM BENTUK NATURA DAN KENIKMATAN LAINNYA YANG DIKENAKAN PEMOTONGAN PPh PASAL 21</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+naturaTahun+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>7.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'>  TANTIEM, BONUS, GRATIFIKASI, JASA PRODUKSI DAN THR</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+tantiemThr+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>8.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'> JUMLAH PENGHASILAN BRUTO (1 S.D.7)</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+jumlahPenghasilanBruto+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
@@ -713,19 +1004,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>9.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'>BIAYA JABATAN/ BIAYA PENSIUN</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+BiayaJabatan+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>10.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'> IURAN PENSIUN ATAU IURAN THT/JHT</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+iuranPensiunTahun+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>11.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'> JUMLAH PENGURANGAN (9 S.D 10)</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+jumlahPengurangan+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
@@ -736,7 +1027,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>12.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'>JUMLAH PENGHASILAN NETO (8-11)</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+jumlahPenghasilanNeto+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
@@ -748,19 +1039,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>14.</td>"
                 body += "<td style='border-top :1px solid black; font-size:7px' colspan='7'> JUMLAH PENGHASILAN NETO UNTUK PENGHITUNGAN PPh PASAL 21 (SETAHUN/DISETAHUNKAN)</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+jumlahPenghasilanNeto+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>15.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'>PENGHASILAN TIDAK KENA PAJAK (PTKP)</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+jumlahPtkp+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>16.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'> PENGHASILAN KENA PAJAK SETAHUN/DISETAHUNKAN (14 - 15)</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+pkpSet+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
@@ -791,7 +1082,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</table>";
 
                 // five tables
-                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 10px 0 8px; padding: 0; font-size:10px; font-weight:bold;\">";
+                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 15px 0 15px; padding: 0; font-size:10px; font-weight:bold;\">";
                 body += "<tbody>";
                 body += "<tr>"
                 body += "<td>C. IDENTITAS PEMOTONG</td>"
@@ -799,7 +1090,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tbody>";
                 body += "</table>";
 
-                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 10px 0 8px; padding: 0; font-size:10px; font-weight:bold;\">";
+                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 15px 0 15px; padding: 0; font-size:10px; font-weight:bold;\">";
                 body += "<tbody>";
                 body += "<tr>"
                 body += "<td style='width:3%'></td>"
@@ -832,11 +1123,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td>NPWP</td>"
                 body += "<td>:</td>"
                 body += "<td style='color: gray; font-size: 7px;'>C.01</td>"
-                body += "<td style='border-bottom:1px solid black;'></td>"
+                body += "<td style='border-bottom:1px solid black; font-size:11px; align : center;'>"+ npwpPimGab+"</td>"
                 body += "<td>-</td>"
-                body += "<td style='border-bottom:1px solid black;'></td>"
+                body += "<td style='border-bottom:1px solid black; font-size:11px; align : center;'>"+npwpPim5+"</td>"
                 body += "<td>.</td>"
-                body += "<td style='border-bottom:1px solid black;'></td>"
+                body += "<td style='border-bottom:1px solid black; font-size:11px; align : center;'>"+npwpPim6+"</td>"
                 body += "<td></td>"
                 body += "<td>3.</td>"
                 body += "<td colspan='5'>TANGGAL & TANDA TANGAN</td>"
@@ -850,13 +1141,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td>NAMA</td>"
                 body += "<td>:</td>"
                 body += "<td style='color: gray; font-size: 7px;'>C.02</td>"
-                body += "<td style='border-bottom:1px solid black;' colspan='5'></td>"
+                body += "<td style='border-bottom:1px solid black; font-size:11px;' colspan='5'>" +namaPimpinan +"</td>"
                 body += "<td style='color: gray; font-size: 7px;'>C.03</td>"
-                body += "<td style='border-bottom:1px solid black; font-size:11px;' colspan='2'>12</td>"
+                body += "<td style='border-bottom:1px solid black; font-size:11px; align:center;' colspan='2'>"+day+"</td>"
                 body += "<td>-</td>"
-                body += "<td style='border-bottom:1px solid black; font-size:11px;'>10</td>"
+                body += "<td style='border-bottom:1px solid black; font-size:11px; align:center;'>"+bulan+"</td>"
                 body += "<td>-</td>"
-                body += "<td style='border-bottom:1px solid black; font-size:11px;'>"+tahun+"</td>"
+                body += "<td style='border-bottom:1px solid black; font-size:11px; align:center;'>"+year+"</td>"
                 body += "<td></td>"
                 body += "<td style='border-right:1px solid black;'></td>"
                 body += "</tr>"
