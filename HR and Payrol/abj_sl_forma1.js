@@ -78,6 +78,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                     var ptkpId = recRemu.getValue({
                         name : 'custrecord_status_wajib_pajak'
+
                     });
                     var karyawanStat = recRemu.getValue({
                         name : 'custrecord_abj_msa_status_karyawan'
@@ -86,9 +87,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         statusKaryawan = karyawanStat
                     }
                     var ptkpMatch = ptkp.match(/K\/(.+)|TK\/(.+)/);
-                    log.debug('alamat', alamat)
+                    // log.debug('alamat', alamat)
                     var jumlahKarakter = alamat.length;
-                    log.debug('jumlahKarakter', jumlahKarakter);
+                    // log.debug('jumlahKarakter', jumlahKarakter);
                     if (jumlahKarakter > 41) {
                         var indexPemisah = 41;
                         while (alamat.charAt(indexPemisah) !== ' ' && indexPemisah > 0) {
@@ -217,6 +218,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
                 var searchResultCount = customrecord_msa_remunerasiSearchObj.runPaged().count;
                 var gajiPokokSetahun = 0;
+                var gajiPokok = 0;
                 var tunjanganLainya = 0;
                 var honorarium = 0;
                 var natura = 0;
@@ -225,8 +227,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var iuranPenjsiunJHT = 0;
                 var pendapatan = [];
                 var potongan = [];
+                var tunjangan = 0;
+                var premi = 0;
                 customrecord_msa_remunerasiSearchObj.run().each(function(result){
-                    var gajiPokok = 0;
+                    var gajiPokokCount = 0;
                     var komponenPendapatan = result.getValue({
                         name: "custrecord_id_pendapatan",
                         join: "CUSTRECORD_REMUNERASI",
@@ -274,10 +278,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             });
                             // log.debug('typeKomponen', typeKomponen);
                             if(typeKomponen == '1'){
-                                gajiPokok = jumlahPendapatan
+                                gajiPokokCount = jumlahPendapatan
                             }
                             if(typeKomponen == '2'){
                                 thr += Number(jumlahPendapatan)
+                            }
+                            if(typeKomponen == '7'){
+                                tunjangan = jumlahPendapatan
                             }
                             var typeA1 = rectype.getValue({
                                 name: "custrecord_msa_pend_typea1"
@@ -299,13 +306,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             if(typeA1 == '4' && typeKomponen != '2'){
                                 tantiem += Number(jumlahPendapatan)
                             }
+                            if(typeA1 == '3'){
+                                premi += Number(jumlahPendBPJS)
+                            }
                         }
                     }
-                    log.debug('tunjanganLainya', tunjanganLainya);
+                    // log.debug('tunjanganLainya', tunjanganLainya);
                     
                     
-                    if(gajiPokok != 0){
-                        gajiPokokSetahun = Number(gajiPokok) * 12
+                    if(gajiPokokCount != 0){
+                        gajiPokokSetahun = Number(gajiPokokCount) * 12
+                        gajiPokok = gajiPokokCount
                     }
                     
                     // pendapatan.push([{
@@ -318,13 +329,405 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     // }])
                     return true;
                 });
+                // searchBpjs
+                 // search BPJS
+                var customrecord_sbj_msa_bpjsSearchObj = search.create({
+                    type: "customrecord_sbj_msa_bpjs",
+                    filters:
+                    [
+                    ],
+                    columns:
+                    [
+                        search.createColumn({
+                            name: "id",
+                            sort: search.Sort.ASC,
+                            label: "ID"
+                        }),
+                        search.createColumn({name: "custrecord_abj_msa_ump", label: "Upah Minimum Provinsi (UMP) yang berlaku di perusahaan Anda"}),
+                        search.createColumn({name: "custrecord_abj_msa_is_bpj_kes", label: "Apakah Perusahaan Apakah perusahaan Anda menerapkan BPJS Kesehatan?"}),
+                        search.createColumn({name: "custrecord_abj_msa_kode_badan_usaha", label: "Kode Badan Usaha"}),
+                        search.createColumn({name: "custrecord_abj_msa_prosentase_personalia", label: "Persentase Tanggungan Personalia"}),
+                        search.createColumn({name: "custrecord_abj_msa_jks_basis_penggali", label: "Basis Pengali"}),
+                        search.createColumn({name: "custrecord_abj_msa_nilai_mkas_jks", label: "Nilai Maksimal Pengali BPJS Kesehatan"}),
+                        search.createColumn({name: "custrecord_abj_msa_is_bpjs_ketenagakerja", label: "Apakah Perusahaan Menerapkan BPJS Ketenaga Kerjaan"}),
+                        search.createColumn({name: "custrecord_abj_msa_npp", label: "NPP"}),
+                        search.createColumn({name: "custrecord_abj_msa_basis_penggali", label: "Basis Penggali"}),
+                        search.createColumn({name: "custrecord_abj_msa_jkk", label: "Jaminan Kecelakaan Kerja"}),
+                        search.createColumn({name: "custrecord_abj_msa_jkm", label: "Jaminan Kematian 0.30 %"}),
+                        search.createColumn({name: "custrecord_abj_msa_jht", label: "Jaminan Hari Tua Di Tanggung Perusahaan"}),
+                        search.createColumn({name: "custrecord_abj_msa_jht_personalia", label: "Jaminan Hari Tua Ditanggun Personalia"}),
+                        search.createColumn({name: "custrecord_abj_msa_is_jht_pph21", label: "Apakah JHT Ditanggung perusahaan dihitung PPh 21?"}),
+                        search.createColumn({name: "custrecord_abj_msa_is_jp", label: "Apakah perusahaan memakai JP atau tidak?"}),
+                        search.createColumn({name: "custrecord_abj_msa_is_jp_pph21", label: "Apakah JP Ditanggung perusahaan dihitung PPh 21?"}),
+                        search.createColumn({name: "custrecord_abj_msa_jp_perusahaan", label: "Jaminan Pensiun (JP) (Ditanggung Perusahaan)"}),
+                        search.createColumn({name: "custrecord_abj_msa_jp_personalia", label: "Jaminan Pensiun (JP) (Ditanggung Personalia)"}),
+                        search.createColumn({name: "custrecord_abj_msa_nilai_maksimaljp", label: "Nilai Maksimal Pengali JP"}),
+                        search.createColumn({name: "custrecord_abj_msa_is_wna_jp", label: "Apakah untuk personalia berkewarganegaraan asing dihitung JP atau tidak ?"}),
+                        search.createColumn({name: "custrecord_abj_msa_is_usia_jp", label: "Apakah untuk personalia dengan usia &gt; 58 tahun dihitung JP atau tidak?"})
+                    ]
+                    });
+                    var searchResultCount = customrecord_sbj_msa_bpjsSearchObj.runPaged().count;
+                    var sumjumlahBPJS = 0;
+                    var bpjsComp = [];
+                    var komponenPendBPJSText = [];
+                    var jumlahPendBPJS = [];
+                    var komponenPotBPJSText = [];
+                    var jumlahPotBPJS = [];
+                    customrecord_sbj_msa_bpjsSearchObj.run().each(function(result){
+                    // bpjsKesehatan
+                        var isBPJKesehatan = result.getValue({
+                        name : 'custrecord_abj_msa_is_bpj_kes'
+                        });
+                        var bpjsKesehatanPerson = result.getValue({
+                        name : 'custrecord_abj_msa_prosentase_personalia'
+                        });
+                        var nilaiMaksimalBPJS = result.getValue({
+                        name : 'custrecord_abj_msa_nilai_mkas_jks'
+                        });
+                        var basisPenggali = result.getValue({
+                        name : 'custrecord_abj_msa_jks_basis_penggali'
+                        });
+                        var ump = result.getValue({
+                        name : 'custrecord_abj_msa_ump'
+                        });
+                        
+                        if(isBPJKesehatan == true){
+                        if(bpjsKesehatanPerson == '0'){
+                            var komponenBPJSKes = 'Tunjangan Premi BPJS Kesehatan(5% Perusahaan)'
+                            var komponenPotBPJSKes = 'Premi BPJS Kesehatan(5% Perusahaan)'
+                            var jumlahBpjsKes;
+                            if(basisPenggali == '1'){
+                                if(gajiPokok > nilaiMaksimalBPJS){
+                                jumlahBpjsKes = nilaiMaksimalBPJS * 5 / 100
+                                }else{
+                                jumlahBpjsKes = gajiPokok * 5 / 100
+                                }
+                            }else if(basisPenggali == '2'){
+                                var hitunganBas = gajiPokok + tunjangan
+                                if(hitunganBas > nilaiMaksimalBPJS){
+                                jumlahBpjsKes = nilaiMaksimalBPJS * 5 / 100
+                                }else{
+                                jumlahBpjsKes = hitunganBas * 5 /100
+                                }
+                            }else if(basisPenggali == '3'){
+                                jumlahBpjsKes = ump * 5 /100
+                            }
+                            bpjsComp.push(jumlahBpjsKes)
+                            komponenPendBPJSText.push(komponenBPJSKes)
+                            jumlahPendBPJS.push(jumlahBpjsKes)
+                            komponenPotBPJSText.push(komponenPotBPJSKes);
+                            jumlahPotBPJS.push(jumlahBpjsKes);
+                            // log.debug('jumlahPotBPJS kesehatan', jumlahPotBPJS)
+                        }else{
+                            var komponenBPJSKes = 'Tunjangan Premi BPJS Kesehatan(4% Perusahaan)'
+                            var komponenPotBPJSKes = 'Premi BPJS Kesehatan (4% Karyawan)'
+                            var komponenPot2BPJSKes = 'Premi BPJS Kesehatan (1% Karyawan)'
+                            var jumlahPendBpjsKes;
+                            var jumlahPotBpjsKes;
+                            if(basisPenggali == '1'){
+                            if(gajiPokok > nilaiMaksimalBPJS){
+                                jumlahPendBpjsKes = nilaiMaksimalBPJS * 4 / 100
+                                jumlahPotBpjsKes = nilaiMaksimalBPJS * 1 / 100
+                            }else{
+                                jumlahPendBpjsKes = gajiPokok * 4 / 100
+                                jumlahPotBpjsKes = gajiPokok * 1 / 100
+                            }
+                            }else if(basisPenggali == '2'){
+                            var hitunganBas = Number(gajiPokok) + Number(tunjangan)
+                            if(hitunganBas > nilaiMaksimalBPJS){
+                                jumlahPendBpjsKes = nilaiMaksimalBPJS * 4 / 100
+                                jumlahPotBpjsKes = nilaiMaksimalBPJS * 1 / 100
+                            }else{
+                                jumlahPendBpjsKes = hitunganBas * 4 /100
+                                jumlahPotBpjsKes = hitunganBas * 1 / 100
+                            }
+                            }else if(basisPenggali == '3'){
+                            jumlahPendBpjsKes = ump * 4 /100
+                            jumlahPotBpjsKes = ump * 1 / 100
+                            }
+                            komponenPendBPJSText.push(komponenBPJSKes);
+                            jumlahPendBPJS.push(jumlahPendBpjsKes);
+                            komponenPotBPJSText.push(komponenPotBPJSKes, komponenPot2BPJSKes);
+                            jumlahPotBPJS.push(jumlahPendBpjsKes, jumlahPotBpjsKes);
+                            bpjsComp.push(jumlahBpjsKes)
+                        }
+                        // BPJS Ketenaga Kerjaan
+                        var isBPJSKetenagaKerjaan = result.getValue({
+                            name : 'custrecord_abj_msa_is_bpjs_ketenagakerja'
+                        });
+                        if(isBPJSKetenagaKerjaan == true){
+                            var basisPenggalBPJSKet = result.getValue({
+                            name : 'custrecord_abj_msa_basis_penggali'
+                            });
+                            var jkk = result.getValue({
+                            name : 'custrecord_abj_msa_jkk'
+                            });
+                            var isjkm30 = result.getValue({
+                            name : 'custrecord_abj_msa_jkm'
+                            });
+                            var jhtPerusahaan = result.getValue({
+                            name : 'custrecord_abj_msa_jht'
+                            });
+                            var jhtPerson = result.getValue({
+                            name : 'custrecord_abj_msa_jht_personalia'
+                            });
+                            var isJHTPPh21 = result.getValue({
+                            name : 'custrecord_abj_msa_is_jht_pph21'
+                            });
+                            var isJP = result.getValue({
+                            name : 'custrecord_abj_msa_is_jp'
+                            });
+                            var isJpPPh21 = result.getValue({
+                            name : 'custrecord_abj_msa_is_jp_pph21'
+                            });
+                            var jpPerusahaan = result.getValue({
+                            name : 'custrecord_abj_msa_jp_perusahaan'
+                            });
+                            var jpPerson = result.getValue({
+                            name : 'custrecord_abj_msa_jp_personalia'
+                            });
+                            var nilaiMaxPenggaliJP = result.getValue({
+                            name : 'custrecord_abj_msa_nilai_maksimaljp'
+                            });
+                            var isUsia58Jp = result.getValue({
+                            name : 'custrecord_abj_msa_is_usia_jp'
+                            });
+                            var penggali = 0;
+                            if(basisPenggalBPJSKet == '1'){
+                            penggali = gajiPokok
+                            }else if(basisPenggalBPJSKet == '2'){
+                            penggali = Number(gajiPokok) + Number(tunjangan)
+                            }else if(basisPenggalBPJSKet == '3'){
+                            penggali = ump
+                            }
+                            if(jkk){
+                            var komponenPendJkk;
+                            var komponenPotJKK;
+                            var jumlahJKK;
+                            if(jkk == '1'){
+                                komponenPendJkk = 'Tunjangan Premi JKK BPJS Ketenaga Kerjaan (0.24% Perusahaan)';
+                                komponenPotJKK = 'Premi JKK BPJS Ketenaga Kerjaan (0.24 % Perusahaan)';
+                                jumlahJKK = penggali * 0.24 / 100
+                            }else if(jkk == '2'){
+                                komponenPendJkk = 'Tunjangan Premi JKK BPJS Ketenaga Kerjaan (0.54% Perusahaan)';
+                                komponenPotJKK = 'Premi JKK BPJS Ketenaga Kerjaan (0.54 % Perusahaan)';
+                                jumlahJKK = penggali * 0.54 / 100
+                            }else if(jkk == '3'){
+                                komponenPendJkk = 'Tunjangan Premi JKK BPJS Ketenaga Kerjaan (0.89% Perusahaan)';
+                                komponenPotJKK = 'Premi JKK BPJS Ketenaga Kerjaan (0.89 % Perusahaan)';
+                                jumlahJKK = penggali * 0.89 / 100
+                            }else if(jkk == '4'){
+                                komponenPendJkk = 'Tunjangan Premi JKK BPJS Ketenaga Kerjaan (1.27% Perusahaan)';
+                                komponenPotJKK = 'Premi JKK BPJS Ketenaga Kerjaan (1.27 % Perusahaan)';
+                                jumlahJKK = penggali * 1.27 / 100
+                            }else if(jkk == '5'){
+                                komponenPendJkk = 'Tunjangan Premi JKK BPJS Ketenaga Kerjaan (1.74% Perusahaan)';
+                                komponenPotJKK = 'Premi JKK BPJS Ketenaga Kerjaan (1.74% Perusahaan)';
+                                jumlahJKK = penggali * 1.74 / 100
+                                
+                            }
+                            komponenPendBPJSText.push(komponenPendJkk);
+                            jumlahPendBPJS.push(jumlahJKK);
+                            komponenPotBPJSText.push(komponenPotJKK);
+                            jumlahPotBPJS.push(jumlahJKK);
+                            bpjsComp.push(jumlahJKK)
+                            }
+
+                            if(isjkm30){
+                            var komponenJKM = 'Tunjangan Premi JKM BPJS Ketenaga Kerjaan (0.3% Perusahaan)'
+                            var komponenPotJKM = 'Premi JKM BPJS Ketenaga Kerjaan (0.3% Perusahaan)'
+                            var jumlahJKM = penggali * 0.3 / 100
+
+                            komponenPendBPJSText.push(komponenJKM);
+                            komponenPotBPJSText.push(komponenPotJKM)
+                            jumlahPendBPJS.push(jumlahJKM);
+                            jumlahPotBPJS.push(jumlahJKM);
+                            }
+                            if(jhtPerusahaan){
+                            var komponenPendJHTPerusahaan;
+                            var komponenPotJHTPerusahaan;
+                            var jumlahJHT;
+                            var komponenPotJHTPerson;
+                            var jumlahJHTPerson;
+                            if(jhtPerusahaan == 1){
+                                komponenPendJHTPerusahaan = 'Tunjangan Premi JHT BPJS Ketenaga Kerjaan (3.7% Perusahaan)';
+                                komponenPotJHTPerusahaan = 'Premi JHT BPJS Ketenaga Kerjaan (3.7% Perusahaan)';
+                                komponenPotJHTPerson = 'Premi JHT BPJS Ketenaga Kerjaan (2% karyawan)';
+                                jumlahJHT = penggali * 3.7 / 100
+                                jumlahJHTPerson = penggali * 2 / 100
+                                komponenPotBPJSText.push(komponenPotJHTPerson);
+                                jumlahPotBPJS.push(jumlahJHTPerson);
+                            }else{
+                                komponenPendJHTPerusahaan = 'Tunjangan Premi JHT BPJS Ketenaga Kerjaan (5.7% Perusahaan)';
+                                komponenPotJHTPerusahaan = 'Premi JHT BPJS Ketenaga Kerjaan (5.7% Perusahaan)';
+                                jumlahJHT = penggali * 5.7 / 100
+                            } 
+                            if(isJHTPPh21 == true){
+                                sumjumlahBPJS += jumlahJHT
+                            }
+                            komponenPendBPJSText.push(komponenPendJHTPerusahaan)
+                            komponenPotBPJSText.push(komponenPotJHTPerusahaan);
+                            jumlahPendBPJS.push(jumlahJHT);
+                            jumlahPotBPJS.push(jumlahJHT);
+                            }
+                            if(isJP == true){
+                            var komponenPendJp;
+                            var komponenPotJp;
+                            var komponenPotJPperson;
+                            var jumlahJp;
+                            var jumlahJpPerson;
+                            if(penggali > nilaiMaxPenggaliJP){
+                                if(jpPerusahaan == '1'){
+                                komponenPendJp = 'Tunjangan Premi JP BPJS Ketenaga Kerjaan (2% Perusahaan)';
+                                komponenPotJp = 'Premi JP BPJS Ketenaga Kerjaan (2% Perusahaan)';
+                                komponenPotJPperson = 'Premi JP BPJS Ketenaga Kerjaan (1% Karyawan)';
+                                jumlahJp = nilaiMaxPenggaliJP * 2 / 100
+                                jumlahJpPerson = nilaiMaxPenggaliJP * 1 / 100
+                                komponenPotBPJSText.push(komponenPotJPperson);
+                                jumlahPotBPJS.push(jumlahJpPerson)
+                                }else{
+                                komponenPendJp = 'Tunjangan Premi JP BPJS Ketenaga Kerjaan (3% Perusahaan)';
+                                komponenPotJp = 'Premi JP BPJS Ketenaga Kerjaan (3% Perusahaan)';
+                                jumlahJp = nilaiMaxPenggaliJP * 3 / 100
+                                }
+                            }else{
+                                if(jpPerusahaan == '1'){
+                                komponenPendJp = 'Tunjangan Premi JP BPJS Ketenaga Kerjaan (2% Perusahaan)';
+                                komponenPotJp = 'Premi JP BPJS Ketenaga Kerjaan (2% Perusahaan)';
+                                komponenPotJPperson = 'Premi JP BPJS Ketenaga Kerjaan (1% Karyawan)';
+                                jumlahJp = penggali * 2 / 100
+                                jumlahJpPerson = penggali * 1 / 100
+                                komponenPotBPJSText.push(komponenPotJPperson);
+                                jumlahPotBPJS.push(jumlahJpPerson)
+                                }else{
+                                komponenPendJp = 'Tunjangan Premi JP BPJS Ketenaga Kerjaan (3% Perusahaan)';
+                                komponenPotJp = 'Premi JP BPJS Ketenaga Kerjaan (3% Perusahaan)';
+                                jumlahJp = penggali * 3 / 100
+                                }
+                            }
+                            if(isJpPPh21 == true){
+                                sumjumlahBPJS += jumlahJp
+                            }
+                            komponenPendBPJSText.push(komponenPendJp)   ;
+                            komponenPotBPJSText.push(komponenPotJp)
+                            jumlahPendBPJS.push(jumlahJp);
+                            jumlahPotBPJS.push(jumlahJp);                                 
+                            }
+                        }
+                        
+                        }
+
+                        
+                    return true;
+                });
+
+                var metodePajak = ''
+                var npwpPer1 = '00'
+                var npwpPer2 = '000'
+                var npwpPer3 = '000'
+                var npwpPer4 = '0'
+                var npwpPer5 = '000'
+                var npwpPer6 = '000'
+
+                var npwpPim1 = '00'
+                var npwpPim2 = '000'
+                var npwpPim3 = '000'
+                var npwpPim4 = '0'
+                var npwpPim5 = '000'
+                var npwpPim6 = '000'
+
+                var namaPimpinan = '';
+                var searchPPh = search.create({
+                    type: "customrecord58",
+                    filters:
+                    [
+                        ["id","equalto","1"]
+                    ],
+                    columns:
+                    [
+                        search.createColumn({
+                            name: "id",
+                            sort: search.Sort.ASC,
+                            label: "ID"
+                        }),
+                        search.createColumn({name: "custrecord_abj_msa_is_pph21", label: "Apakah perusahaan Anda menerapkan perhitungan Pajak PPh 21/26?"}),
+                        search.createColumn({name: "custrecord_abj_msa_npwp_perusahaan", label: "NPWP Perusahaan"}),
+                        search.createColumn({name: "custrecord_abj_msa_nama_pimpinan", label: "Nama Pimpinan Perusahaan/Kuasa"}),
+                        search.createColumn({name: "custrecord_abj_msa_npwp_pimpinan", label: "NPWP Pimpinan Perusahaan/Kuasa"}),
+                        search.createColumn({name: "custrecord_abj_msa_ktp", label: "Karyawan Tetap Percobaan"}),
+                        search.createColumn({name: "custrecordabj_msa_ktp_permanen", label: "Karyawan Tetap Permanen"}),
+                        search.createColumn({name: "custrecord_abj_msa_pkwt", label: "Karyawan PKWT"}),
+                        search.createColumn({name: "custrecord_abj_msa_karyawan_lepas", label: "Karyawan Lepas"}),
+                        search.createColumn({name: "custrecord_abj_msa_tenaga_ahli", label: "Karyawan Tenaga Ahli"}),
+                        search.createColumn({name: "custrecord_abj_msa_karyawan_magang", label: "Karyawan Magang"}),
+                        search.createColumn({name: "custrecord_abj_msa_ptkp_wajib", label: "Nilai PTKP Diri Wajib Pajak Orang Pribadi"}),
+                        search.createColumn({name: "custrecord_abj_msa_ptkp_istri", label: "PTKP istri/masing-masing tanggungan"})
+                    ]
+                });
+                var searchPPhSet = searchPPh.run();
+                searchPPh = searchPPhSet.getRange({
+                    start : 0,
+                    end : 1
+                });
+                if(searchPPh.length > 0){
+                    var recPPh = searchPPh[0];
+                    var npwpPerusahaan = recPPh.getValue({
+                        name: "custrecord_abj_msa_npwp_perusahaan"
+                    });
+                    var npwpPimpinan = recPPh.getValue({
+                        name: "custrecord_abj_msa_npwp_pimpinan"
+                    });
+                    namaPimpinan = recPPh.getValue({
+                        name: "custrecord_abj_msa_nama_pimpinan"
+                    })
+                    var karyawanTetap = recPPh.getValue({
+                        name: "custrecordabj_msa_ktp_permanen"
+                    });
+                    if(karyawanTetap){
+                        metodePajak = karyawanTetap
+                    }
+                    // log.debug('karyawanTetap', karyawanTetap);
+                    if(npwpPimpinan){
+                        npwpPim1 = npwpPimpinan.substring(0, 2);
+                        npwpPim2 = npwpPimpinan.substring(2, 5);
+                        npwpPim3 = npwpPimpinan.substring(5, 8);
+                        npwpPim4 = npwpPimpinan.substring(8, 9);
+                        npwpPim5 = npwpPimpinan.substring(9, 12);
+                        npwpPim6 = npwpPimpinan.substring(12, 15);
+                    }
+                    if(npwpPerusahaan){
+                        npwpPer1 = npwpPerusahaan.substring(0, 2);
+                        npwpPer2 = npwpPerusahaan.substring(2, 5);
+                        npwpPer3 = npwpPerusahaan.substring(5, 8);
+                        npwpPer4 = npwpPerusahaan.substring(8, 9);
+                        npwpPer5 = npwpPerusahaan.substring(9, 12);
+                        npwpPer6 = npwpPerusahaan.substring(12, 15);
+                    }
+                }
+                // log.debug('pendapatanBPJS', jumlahPendBPJS);
+                // log.debug('potonganBPjs', jumlahPotBPJS);
+                var totalJumlahPendBPJS = jumlahPendBPJS.reduce((total, currentValue) => total + currentValue, 0);
+                var totalJumlahPotBPJS = jumlahPotBPJS.reduce((total, currentValue) => total + currentValue, 0);
+                // log.debug('totalJumlahPendBPJS', totalJumlahPotBPJS);
+                var jumlahBPJSTahun = 0;
+                if(totalJumlahPendBPJS){
+                    jumlahBPJSTahun = Number(totalJumlahPendBPJS) * 12
+                }
+                var jumlahPotBPJStahun = 0;
+                if(totalJumlahPotBPJS){
+                    jumlahPotBPJStahun = Number(totalJumlahPotBPJS) * 12
+                }
+                var premiTahun = Number(premi) * 12
+                var premiAsuransiTahun = Number(premiTahun) + Number(jumlahBPJSTahun)
                 var tunjanganTahun = Number(tunjanganLainya) * 12
                 var honorariumTahun = Number(honorarium) * 12
                 var naturaTahun = Number(natura) * 12
                 var countTantiem = Number(tantiem) * 12
                 var tantiemThr = Number(countTantiem) + Number(thr)
-                var jumlahPenghasilanBruto = Number(tunjanganTahun) + Number(gajiPokokSetahun) + Number(honorariumTahun) + Number(naturaTahun) + Number(tantiemThr)
-                var iuranPensiunTahun = Number(iuranPenjsiunJHT);
+                var tunjanagnPph21 = 0;
+                
+                var jumlahPenghasilanBruto = Number(tunjanganTahun) + Number(gajiPokokSetahun) + Number(honorariumTahun) + Number(naturaTahun) + Number(tantiemThr) + Number(premiAsuransiTahun) + Number(tunjanagnPph21);
+                var iuranPensiunTahun = Number(iuranPenjsiunJHT) + Number(jumlahPotBPJStahun);
                 var BiayaJabatan = 5 / 100 * Number(jumlahPenghasilanBruto)
                 if(BiayaJabatan > 6000000){
                     BiayaJabatan = 6000000
@@ -341,6 +744,70 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     pkpSet = pkp
                 }
                 log.debug('pkpSet', pkpSet)
+
+                // perhitungan pph
+                var pajak = 0
+                if(metodePajak == '1' || metodePajak == '2'){
+                    if(pkp >= jumlahPtkp){
+                        if(pkp != 0){
+                            if (pkp <= 60000000) {
+                                pajak = pkp * 0.05;
+                            } else if (pkp <= 250000000) {
+                                pajak = 60000000 * 0.05 + (pkp - 60000000) * 0.15;
+                            } else if (pkp <= 500000000) {
+                                pajak = 60000000 * 0.05 + 190000000 * 0.15 + (pkp - 250000000) * 0.25;
+                            } else if (pkp <= 5000000000) {
+                                pajak = 60000000 * 0.05 + 190000000 * 0.15 + 250000000 * 0.25 + (pkp - 500000000) * 0.30;
+                            } else {
+                                pajak = 60000000 * 0.05 + 190000000 * 0.15 + 250000000 * 0.25 + 4500000000 * 0.30 + (pkp - 5000000000) * 0.35;
+                            }
+    
+                            pajakperBulan = pajak / 12
+                            log.debug('pajakPerbulan', pajakperBulan)
+                        }
+                    }
+                }
+                if(metodePajak == '3'){
+                    var pajakPertahun = 0;
+                    if (pkp <= 47500000) {
+                        pajakPertahun = (pkp - 0) * (5 / 95) + 0;
+                        
+                    } else if (pkp <= 217500000) {
+                        pajakPertahun = (pkp - 47500000) * (15 / 85) + 2500000;
+                        
+                    } else if (pkp <= 405000000) {
+                        pajakPertahun = (pkp - 217500000) * (25 / 75) + 32500000;
+                        
+                    } else {
+                        pajakPertahun = (pkp - 405000000) * (30 / 70) + 95000000;
+                        
+                    }
+                    pajak = pajakPertahun;
+                    tunjanagnPph21 = pajak;
+                
+                    // Perhitungan ulang untuk jumlahPenghasilanBruto dan seterusnya
+                    jumlahPenghasilanBruto = Number(tunjanganTahun) + Number(gajiPokokSetahun) + Number(honorariumTahun) + Number(naturaTahun) + Number(tantiemThr) + Number(premiAsuransiTahun) + Number(tunjanagnPph21);
+                    iuranPensiunTahun = Number(iuranPenjsiunJHT) + Number(jumlahPotBPJStahun);
+                    BiayaJabatan = 5 / 100 * Number(jumlahPenghasilanBruto);
+                    if(BiayaJabatan > 6000000){
+                        BiayaJabatan = 6000000;
+                    }
+                
+                    jumlahPengurangan = Number(BiayaJabatan) + Number(iuranPensiunTahun);
+                    jumlahPenghasilanNeto = Number(jumlahPenghasilanBruto) - Number(jumlahPengurangan);
+                
+                    log.debug('jumlahPtkp', jumlahPtkp);
+                    pkp = Number(jumlahPenghasilanNeto) - Number(jumlahPtkp);
+                    log.debug('pkp', pkp);
+                    pkpSet = 0;
+                    if(pkp >= 0){
+                        pkpSet = pkp;
+                    }
+                    log.debug('pkpSet', pkpSet);
+                }
+                
+                
+                log.debug('pajak', pajak)
                 if(gajiPokokSetahun){
                     gajiPokokSetahun = format.format({
                         value: gajiPokokSetahun,
@@ -415,85 +882,31 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type: format.Type.CURRENCY
                     });
                 }
-                var npwpPer1 = '00'
-                var npwpPer2 = '000'
-                var npwpPer3 = '000'
-                var npwpPer4 = '0'
-                var npwpPer5 = '000'
-                var npwpPer6 = '000'
-
-                var npwpPim1 = '00'
-                var npwpPim2 = '000'
-                var npwpPim3 = '000'
-                var npwpPim4 = '0'
-                var npwpPim5 = '000'
-                var npwpPim6 = '000'
-
-                var namaPimpinan = '';
-                var searchPPh = search.create({
-                    type: "customrecord58",
-                    filters:
-                    [
-                        ["id","equalto","1"]
-                    ],
-                    columns:
-                    [
-                        search.createColumn({
-                            name: "id",
-                            sort: search.Sort.ASC,
-                            label: "ID"
-                        }),
-                        search.createColumn({name: "custrecord_abj_msa_is_pph21", label: "Apakah perusahaan Anda menerapkan perhitungan Pajak PPh 21/26?"}),
-                        search.createColumn({name: "custrecord_abj_msa_npwp_perusahaan", label: "NPWP Perusahaan"}),
-                        search.createColumn({name: "custrecord_abj_msa_nama_pimpinan", label: "Nama Pimpinan Perusahaan/Kuasa"}),
-                        search.createColumn({name: "custrecord_abj_msa_npwp_pimpinan", label: "NPWP Pimpinan Perusahaan/Kuasa"}),
-                        search.createColumn({name: "custrecord_abj_msa_ktp", label: "Karyawan Tetap Percobaan"}),
-                        search.createColumn({name: "custrecordabj_msa_ktp_permanen", label: "Karyawan Tetap Permanen"}),
-                        search.createColumn({name: "custrecord_abj_msa_pkwt", label: "Karyawan PKWT"}),
-                        search.createColumn({name: "custrecord_abj_msa_karyawan_lepas", label: "Karyawan Lepas"}),
-                        search.createColumn({name: "custrecord_abj_msa_tenaga_ahli", label: "Karyawan Tenaga Ahli"}),
-                        search.createColumn({name: "custrecord_abj_msa_karyawan_magang", label: "Karyawan Magang"}),
-                        search.createColumn({name: "custrecord_abj_msa_ptkp_wajib", label: "Nilai PTKP Diri Wajib Pajak Orang Pribadi"}),
-                        search.createColumn({name: "custrecord_abj_msa_ptkp_istri", label: "PTKP istri/masing-masing tanggungan"})
-                    ]
-                });
-                var searchPPhSet = searchPPh.run();
-                searchPPh = searchPPhSet.getRange({
-                    start : 0,
-                    end : 1
-                });
-                if(searchPPh.length > 0){
-                    var recPPh = searchPPh[0];
-                    var npwpPerusahaan = recPPh.getValue({
-                        name: "custrecord_abj_msa_npwp_perusahaan"
+                if(premiAsuransiTahun){
+                    premiAsuransiTahun = format.format({
+                        value: premiAsuransiTahun,
+                        type: format.Type.CURRENCY
                     });
-                    var npwpPimpinan = recPPh.getValue({
-                        name: "custrecord_abj_msa_npwp_pimpinan"
-                    });
-                    namaPimpinan = recPPh.getValue({
-                        name: "custrecord_abj_msa_nama_pimpinan"
-                    })
-                    var karyawanTetap = recPPh.getValue({
-                        name: "custrecordabj_msa_ktp_permanen"
-                    });
-                    // log.debug('karyawanTetap', karyawanTetap);
-                    if(npwpPimpinan){
-                        npwpPim1 = npwpPimpinan.substring(0, 2);
-                        npwpPim2 = npwpPimpinan.substring(2, 5);
-                        npwpPim3 = npwpPimpinan.substring(5, 8);
-                        npwpPim4 = npwpPimpinan.substring(8, 9);
-                        npwpPim5 = npwpPimpinan.substring(9, 12);
-                        npwpPim6 = npwpPimpinan.substring(12, 15);
-                    }
-                    if(npwpPerusahaan){
-                        npwpPer1 = npwpPerusahaan.substring(0, 2);
-                        npwpPer2 = npwpPerusahaan.substring(2, 5);
-                        npwpPer3 = npwpPerusahaan.substring(5, 8);
-                        npwpPer4 = npwpPerusahaan.substring(8, 9);
-                        npwpPer5 = npwpPerusahaan.substring(9, 12);
-                        npwpPer6 = npwpPerusahaan.substring(12, 15);
-                    }
                 }
+                if(iuranPensiunTahun){
+                    iuranPensiunTahun = format.format({
+                        value: iuranPensiunTahun,
+                        type: format.Type.CURRENCY
+                    });
+                }
+                if(pajak){
+                    pajak = format.format({
+                        value: pajak,
+                        type: format.Type.CURRENCY
+                    });
+                }
+                if(tunjanagnPph21){
+                    tunjanagnPph21 = format.format({
+                        value: tunjanagnPph21,
+                        type: format.Type.CURRENCY
+                    });
+                }
+               
                 // log.debug('gajiPokokSetahun', gajiPokokSetahun);
 
                 var today = new Date();
@@ -738,7 +1151,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</table>";
 
                 // five tables
-                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 15px 0 15px; padding: 0; font-size:10px; font-weight:bold;\">";
+                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 10px 15px 0 15px; padding: 0; font-size:10px; font-weight:bold;\">";
                 body += "<tbody>";
                 body += "<tr>"
                 body += "<td>A. IDENTITAS PENERIMA PENGHASILAN YANG DIPOTONG</td>"
@@ -900,7 +1313,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</table>";
 
                 // five tables
-                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 15px 0 15px; padding: 0; font-size:10px; font-weight:bold;\">";
+                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 10px 15px 0 15px; padding: 0; font-size:10px; font-weight:bold;\">";
                 body += "<tbody>";
                 body += "<tr>"
                 body += "<td>B. RINCIAN  PENGHASILAN DAN PENGHITUNGAN PPh PASAL 21</td>"
@@ -957,7 +1370,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>2.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'> TUNJANGAN PPh</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+tunjanagnPph21+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
@@ -975,7 +1388,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>5.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'>  PREMI ASURANSI YANG DIBAYAR PEMBERI KERJA</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+premiAsuransiTahun+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
@@ -1057,7 +1470,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>17.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'> PPh PASAL 21 ATAS PENGHASILAN KENA PAJAK SETAHUN/DISETAHUNKAN</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+pajak+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
@@ -1069,20 +1482,20 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style='border:1px solid black; border-bottom:none;'>19.</td>"
                 body += "<td style='border-top :1px solid black;' colspan='7'>PPh PASAL 21 TERUTANG</td>"
-                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; border-bottom:none; align:right; font-size:11px;'>"+pajak+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
                 body += "<td style='border:1px solid black;'>20.</td>"
                 body += "<td style='border-top :1px solid black; border-bottom: 1px solid black;' colspan='7'>PPh PASAL 21 DAN PPh PASAL 26 YANG TELAH DIPOTONG DAN DILUNASI</td>"
-                body += "<td style='border:1px solid black; align:right; font-size:11px;'>0</td>"
+                body += "<td style='border:1px solid black; align:right; font-size:11px;'>"+pajak+"</td>"
                 body += "</tr>"
 
                 body += "</tbody>";
                 body += "</table>";
 
                 // five tables
-                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 0 15px 0 15px; padding: 0; font-size:10px; font-weight:bold;\">";
+                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 10px 15px 0 15px; padding: 0; font-size:10px; font-weight:bold;\">";
                 body += "<tbody>";
                 body += "<tr>"
                 body += "<td>C. IDENTITAS PEMOTONG</td>"
@@ -1163,6 +1576,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='border:1px solid black; border-top:none;' colspan='19'></td>"
                 body += "</tr>"
 
+                body += "</tbody>";
+                body += "</table>";
+
+                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; margin: 20px 15px 0 15px; padding: 0; font-size:10px; font-weight:bold;\">";
+                body += "<tbody>";
+                body += "<tr>"
+                body += "<td style='align: left;'><div style='width: 30px; height: 10px; background-color: black; align: right;margin-left: 10px;'></div></td>"
+                body += "<td style=''></td>"
+                body += "<td style='align: right;'><div style='width: 30px; height: 10px; background-color: black; align: right; margin-right: 10px;'></div></td>"
+                body += "</tr>"
                 body += "</tbody>";
                 body += "</table>";
 
