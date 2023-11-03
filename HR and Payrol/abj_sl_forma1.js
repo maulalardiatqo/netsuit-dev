@@ -769,41 +769,44 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 if(metodePajak == '3'){
                     var pajakPertahun = 0;
-                    if (pkp <= 47500000) {
-                        pajakPertahun = (pkp - 0) * (5 / 95) + 0;
-                        
-                    } else if (pkp <= 217500000) {
-                        pajakPertahun = (pkp - 47500000) * (15 / 85) + 2500000;
-                        
-                    } else if (pkp <= 405000000) {
-                        pajakPertahun = (pkp - 217500000) * (25 / 75) + 32500000;
-                        
-                    } else {
-                        pajakPertahun = (pkp - 405000000) * (30 / 70) + 95000000;
-                        
+                    if(pkp >= jumlahPtkp){
+                        if (pkp <= 47500000) {
+                            pajakPertahun = (pkp - 0) * (5 / 95) + 0;
+                            
+                        } else if (pkp <= 217500000) {
+                            pajakPertahun = (pkp - 47500000) * (15 / 85) + 2500000;
+                            
+                        } else if (pkp <= 405000000) {
+                            pajakPertahun = (pkp - 217500000) * (25 / 75) + 32500000;
+                            
+                        } else {
+                            pajakPertahun = (pkp - 405000000) * (30 / 70) + 95000000;
+                            
+                        }
+                        pajak = pajakPertahun;
+                        tunjanagnPph21 = pajak;
+                    
+                        // Perhitungan ulang untuk jumlahPenghasilanBruto dan seterusnya
+                        jumlahPenghasilanBruto = Number(tunjanganTahun) + Number(gajiPokokSetahun) + Number(honorariumTahun) + Number(naturaTahun) + Number(tantiemThr) + Number(premiAsuransiTahun) + Number(tunjanagnPph21);
+                        iuranPensiunTahun = Number(iuranPenjsiunJHT) + Number(jumlahPotBPJStahun);
+                        BiayaJabatan = 5 / 100 * Number(jumlahPenghasilanBruto);
+                        if(BiayaJabatan > 6000000){
+                            BiayaJabatan = 6000000;
+                        }
+                    
+                        jumlahPengurangan = Number(BiayaJabatan) + Number(iuranPensiunTahun);
+                        jumlahPenghasilanNeto = Number(jumlahPenghasilanBruto) - Number(jumlahPengurangan);
+                    
+                        log.debug('jumlahPtkp', jumlahPtkp);
+                        pkp = Number(jumlahPenghasilanNeto) - Number(jumlahPtkp);
+                        log.debug('pkp', pkp);
+                        pkpSet = 0;
+                        if(pkp >= 0){
+                            pkpSet = pkp;
+                        }
+                        log.debug('pkpSet', pkpSet);
                     }
-                    pajak = pajakPertahun;
-                    tunjanagnPph21 = pajak;
-                
-                    // Perhitungan ulang untuk jumlahPenghasilanBruto dan seterusnya
-                    jumlahPenghasilanBruto = Number(tunjanganTahun) + Number(gajiPokokSetahun) + Number(honorariumTahun) + Number(naturaTahun) + Number(tantiemThr) + Number(premiAsuransiTahun) + Number(tunjanagnPph21);
-                    iuranPensiunTahun = Number(iuranPenjsiunJHT) + Number(jumlahPotBPJStahun);
-                    BiayaJabatan = 5 / 100 * Number(jumlahPenghasilanBruto);
-                    if(BiayaJabatan > 6000000){
-                        BiayaJabatan = 6000000;
-                    }
-                
-                    jumlahPengurangan = Number(BiayaJabatan) + Number(iuranPensiunTahun);
-                    jumlahPenghasilanNeto = Number(jumlahPenghasilanBruto) - Number(jumlahPengurangan);
-                
-                    log.debug('jumlahPtkp', jumlahPtkp);
-                    pkp = Number(jumlahPenghasilanNeto) - Number(jumlahPtkp);
-                    log.debug('pkp', pkp);
-                    pkpSet = 0;
-                    if(pkp >= 0){
-                        pkpSet = pkp;
-                    }
-                    log.debug('pkpSet', pkpSet);
+                    
                 }
                 
                 
