@@ -10,7 +10,7 @@ search,
 ) {
 function afterSubmit(context) {
     try {
-        if (context.type == context.UserEventType.CREATE) {
+        if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT) {
 
             var rec = context.newRecord;
 
@@ -55,6 +55,20 @@ function afterSubmit(context) {
                 textSub = 'SO'
             }else if(TransType == 'itemrcpt'){
                 textSub = 'IR'
+            }else if(TransType == 'estimate'){
+                textSub = 'EST'
+            }else if(TransType == 'opprtnty'){
+                textSub = 'OPP'
+            }else if(TransType == 'cashsale'){
+                textSub ='CS'
+            }else if(TransType == 'check'){
+                textSub ='CHK'
+            }else if(TransType == 'deposit'){
+                textSub = 'DEP'
+            }else if(TransType == 'itemship'){
+                textSub = 'IF'
+            }else if(TransType == 'trnfrord'){
+                textSub = 'TO'
             }
             var formatRunning = textSub + lastTwoDigits + monthFormatted
 
@@ -111,13 +125,16 @@ function afterSubmit(context) {
                 var runningNumber = ''
                 if(lastRun === 0){
                     var newLastRun = lastRun + 1;
+                    log.debug('newLastRun', newLastRun);
                     var newDigitPart = '0'.repeat(minimumDigit) + newLastRun.toString();
     
                     runningNumber = formatRunning + newDigitPart
                     log.debug('runningNumber', runningNumber);
                 }else{
                     var lastRunNumber = parseInt(lastRun.substring(formatRunning.length), 10);
+                    log.debug('lastRunnumber', lastRunNumber);
                     var newLastRun = lastRunNumber + 1;
+                    log.debug('newLastRun', newLastRun);
                     var newDigitPart = '0'.repeat(minimumDigit - newLastRun.toString().length) + newLastRun.toString();
                     runningNumber = formatRunning + newDigitPart;
                 }

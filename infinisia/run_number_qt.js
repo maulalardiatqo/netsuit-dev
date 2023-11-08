@@ -15,8 +15,8 @@ define(["N/record", "N/search"], function(
                 var rec = context.newRecord;
     
                 var recordTRans = record.load({
-                type: rec.type,
-                id: rec.id,
+                    type: rec.type,
+                    id: rec.id,
                 });
                 var dateTrans = recordTRans.getValue('trandate');
                 log.debug('dateBill', dateTrans);
@@ -25,7 +25,8 @@ define(["N/record", "N/search"], function(
                 var day = date.getDate();
                 var month = date.getMonth() + 1;
                 var year = date.getFullYear();
-    
+                log.debug('month', month);
+                log.debug('Year', year);
                 var dayFormatted = day < 10 ? "0" + day : day;
                 var monthFormatted = month < 10 ? "0" + month : month;
     
@@ -49,27 +50,37 @@ define(["N/record", "N/search"], function(
                     textSub = 'VEND'
                 }else if(TransType == 'custcred'){
                     textSub = 'CM'
-                }else if(TransType == 'itemrcpt'){
-                    textSub = 'IR'
-                }else if(TransType == 'deposit'){
-                    textSub = 'DEP'
+                }else if(TransType == 'vendbill'){
+                    textSub = 'VEND'
                 }else if( TransType == 'salesord'){
                     textSub = 'SO'
+                }else if(TransType == 'itemrcpt'){
+                    textSub = 'IR'
+                }else if(TransType == 'estimate'){
+                    textSub = 'QT'
+                }else if(TransType == 'opprtnty'){
+                    textSub = 'OPP'
+                }else if(TransType == 'cashsale'){
+                    textSub ='CS'
+                }else if(TransType == 'check'){
+                    textSub ='CHK'
+                }else if(TransType == 'deposit'){
+                    textSub = 'DEP'
                 }else if(TransType == 'itemship'){
                     textSub = 'IF'
                 }else if(TransType == 'trnfrord'){
                     textSub = 'TO'
-                }else if(TransType == 'estimate'){
-                    textSub = 'EST'
-                }else if(TransType == 'custdep'){
-                    textSub = 'CD'
-                }else if(TransType == 'check'){
-                    textSub ='CHK'
                 }
-                var formatRunning = textSub + lastTwoDigits + monthFormatted
+                var formatRunning = '';
+                if(TransType == 'estimate'){
+                    formatRunning = '/ISS-BD/' + year + '-' + month + '/' + textSub
+                }else{
+                    formatRunning = textSub + lastTwoDigits + monthFormatted
+                }
+                
     
                 var searchRunNumb =  search.create({
-                    type: 'customrecord_po_numbering',
+                    type: 'customrecord__po_numbering',
                     columns: ['internalid', 'custrecord_msa_pon_transactiontype', 'custrecord_msa_pon_prefix', 'custrecord_msa_pon_minimum_digit', 'custrecord_msa_pon_initial_number', 'custrecord_msa_pon_suffix', 'custrecord_msa_pon_last_run', 'custrecord_msa_pon_start_date', 'custrecord_msa_pon_end_date', 'custrecord_mas_pon_sample_format'],
                     filters: [{
                         name: 'custrecord_msa_pon_transactiontype',
@@ -117,9 +128,15 @@ define(["N/record", "N/search"], function(
                     });
                     log.debug('lastRun', lastRun);
                     log.debug('transactionType', transactionType);
-    
                     var runningNumber = ''
-                    if(lastRun){
+                    if(transactionType == 'estimate'){
+                        var lastRunNumber = parseInt(lastRun.split('/')[0], 10);
+                        log.debug('lastRunNumber', lastRunNumber)
+                        var newLastRun = lastRunNumber + 1;
+                        var newDigitPart = '0'.repeat(minimumDigit - newLastRun.toString().length) + newLastRun.toString();
+                        runningNumber = newDigitPart + formatRunning;
+                        log.debug('runningNumber', runningNumber);
+                    }else{
                         if(lastRun === 0){
                             var newLastRun = lastRun + 1;
                             var newDigitPart = '0'.repeat(minimumDigit) + newLastRun.toString();
@@ -132,21 +149,11 @@ define(["N/record", "N/search"], function(
                             var newDigitPart = '0'.repeat(minimumDigit - newLastRun.toString().length) + newLastRun.toString();
                             runningNumber = formatRunning + newDigitPart;
                         }
-                    }else{
-                        var formattedRunningNumber = formatRunning + '0001';
-                        var currentDigitCount = formattedRunningNumber.length;
-                        var digitsToAdd = minimumDigit - currentDigitCount;
-                        for (var i = 0; i < digitsToAdd; i++) {
-                            formattedRunningNumber = '0' + formattedRunningNumber;
-                        }
-                        log.debug('formattedRunningNumber', formattedRunningNumber);
-                        runningNumber = formattedRunningNumber;
-                        log.debug('runningNumber', runningNumber)
                     }
+    
                     
-                    log.debug('runningNumber', runningNumber);
                     var recordBP = record.load({
-                        type : 'customrecord_po_numbering',
+                        type : 'customrecord__po_numbering',
                         id : internalid,
                         isDynamic : true
                     });
@@ -159,8 +166,7 @@ define(["N/record", "N/search"], function(
                         enableSourcing: false,
                         ignoreMandatoryFields: true
                     });
-                    
-                    log.debug('runBefSet', runningNumber);
+        
                     recordTRans.setValue({
                         fieldId : 'tranid',
                         value : runningNumber,
@@ -173,12 +179,12 @@ define(["N/record", "N/search"], function(
                     log.debug('saveRecordTrans', saveRecordTrans);
                 }else{
                     var createRecord = record.create({
-                        type: 'customrecord_po_numbering',
+                        type: 'customrecord__po_numbering',
                         isDynamic: true
                     });
                     createRecord.setValue({
                         fieldId: 'custrecord_msa_pon_last_run',
-                        value: formatRunning + '0001', 
+                        value: '001' + formatRunning, 
                         ignoreFieldChange: true
                     });
                     createRecord.setValue({
@@ -207,9 +213,16 @@ define(["N/record", "N/search"], function(
                     });
                     if(saveRun){
                         log.debug('masukSave');
+                        log.debug('tranid', formatRunning);
+                        var setRunning = '';
+                        if(TransType == 'estimate'){
+                            setRunning = '001' + formatRunning
+                        }else{
+                            setRunning = formatRunning + '0001'
+                        }
                         recordTRans.setValue({
                             fieldId : 'tranid',
-                            value : formatRunning + '0001',
+                            value : setRunning,
                             ignoreFieldChange: true
                         });
                         var savetrans = recordTRans.save({
@@ -218,7 +231,6 @@ define(["N/record", "N/search"], function(
                         });
                         log.debug('saveTrans', savetrans);
                     }
-    
                 }
             }
     
