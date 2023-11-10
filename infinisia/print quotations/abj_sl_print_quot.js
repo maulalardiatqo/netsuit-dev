@@ -235,7 +235,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tr>";
                 body+= "<td class='tg-head_body' style='width:30%; border: 1px solid black; border-right:none;'> DESCRIPTION </td>"
                 body+= "<td class='tg-head_body' style='width:10%; border: 1px solid black; border-right:none;'> PRINCIPLE </td>"
-                body+= "<td class='tg-head_body' style='width:25%; border: 1px solid black; border-right:none;'> UNITPRICE </td>"
+                body+= "<td class='tg-head_body' style='width:25%; border: 1px solid black; border-right:none;'> UNIT PRICE </td>"
                 body+= "<td class='tg-head_body' style='width:20%; border: 1px solid black; border-right:none;'> MOQ* </td>"
                 body+= "<td class='tg-head_body' style='width:14%; border: 1px solid black;'> STATUS </td>"
                 body+= "</tr>";
@@ -267,7 +267,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<td style='align: center; font-weight:bold;'>APPROVED BY</td>"
                 body+= "</tr>";
 
-                body+= "<tr style='height:30px'>"
+                body+= "<tr style='height:40px'>"
                 body+= "<td></td>"
                 body+= "<td style='align: center; font-weight:bold;'></td>"
                 body+= "<td style='align: center; font-weight:bold;'></td>"
