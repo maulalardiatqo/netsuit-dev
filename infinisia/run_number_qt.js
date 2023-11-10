@@ -56,8 +56,6 @@ define(["N/record", "N/search"], function(
                     textSub = 'SO'
                 }else if(TransType == 'itemrcpt'){
                     textSub = 'IR'
-                }else if(TransType == 'estimate'){
-                    textSub = 'QT'
                 }else if(TransType == 'opprtnty'){
                     textSub = 'OPP'
                 }else if(TransType == 'cashsale'){
@@ -70,6 +68,8 @@ define(["N/record", "N/search"], function(
                     textSub = 'IF'
                 }else if(TransType == 'trnfrord'){
                     textSub = 'TO'
+                }else if(TransType == 'estimate'){
+                    textSub = 'QT'
                 }
                 var formatRunning = '';
                 if(TransType == 'estimate'){
@@ -216,6 +216,7 @@ define(["N/record", "N/search"], function(
                         log.debug('tranid', formatRunning);
                         var setRunning = '';
                         if(TransType == 'estimate'){
+                            log.debug('transaction adalah quotation')
                             setRunning = '001' + formatRunning
                         }else{
                             setRunning = formatRunning + '0001'
