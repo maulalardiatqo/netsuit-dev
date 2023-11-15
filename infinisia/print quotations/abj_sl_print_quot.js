@@ -34,7 +34,30 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var transDate = quotRec.getValue("trandate");
                 var expireDate = quotRec.getValue("duedate");
                 var transactionNumber = quotRec.getValue("tranid");
-                var prepared = quotRec.getText("custbody_fcn_sales_employee");
+                var prepared = '';
+                var empId = quotRec.getValue("custbody_fcn_sales_employee");
+                if(empId){
+                    var empRec = record.load({
+                        type : 'employee',
+                        id : empId,
+                        isDynamic : false,
+                    });
+                    var firstName = empRec.getValue('firstname') || '';
+                    var middName = empRec.getValue('middlename') || '';
+                    var lastnameemp = empRec.getValue('lastname') || '';
+                    prepared = firstName + ' ' + middName + ' ' + lastnameemp
+                    var idImg = empRec.getValue('custentity_abj_inf_signature');
+                    var signatureUrl = '';
+                    var fileSignature;
+                    if(idImg){
+                        fileSignature = file.load({
+                            id: idImg
+                        });
+                        //get url
+                        signatureUrl = fileSignature.url.replace(/&/g, "&amp;");
+                    }
+                    log.debug('signatureUrl', signatureUrl)
+                }
                 var companyInfo = config.load({
                     type: config.Type.COMPANY_INFORMATION
                 });
@@ -51,8 +74,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             //get url
                             urlLogo = filelogo.url.replace(/&/g, "&amp;");
                         }
+                        log.debug('urlLogo', urlLogo);
                 var addres = companyInfo.getValue("mainaddress_text");
                 var customerid = quotRec.getValue("entity");
+                var contactName = [];
                 if(customerid){
                     var customerRecord = record.load({
                         type: "customer",
@@ -88,8 +113,22 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     var custEmail = customerRecord.getValue('email');
                     var taxRegNo = customerRecord.getValue('vatregnumber');
-    
                     
+                    var lineContact = customerRecord.getLineCount({
+                        sublistId: 'contactroles'
+                    });
+                    if(lineContact>0){
+                        for(var index = 0; index < lineContact; index++){
+                            var cName = customerRecord.getSublistValue({
+                                sublistId: 'contactroles',
+                                fieldId: 'contactname',
+                                line: index
+                            });
+                            if(cName){
+                                contactName.push(cName);
+                            }
+                        }
+                    }
                 }
                 if(transDate){
                     function sysDate() {
@@ -123,6 +162,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
                 style += ".tg .tg-img-logo{width:200px; height:70px; object-vit:cover;}";
+                style += ".tg .tg-img-logo-a{width:150px; height:70px; object-vit:cover;}";
                 style += ".tg .tg-headerrow{align: right;font-size:12px;}";
                 style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
                 style += ".tg .tg-headerrow_Total{align: right;font-size:16px;word-break:break-all; font-weight: bold;}";
@@ -203,7 +243,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tr>";
                 body+= "<td style='font-size:13px; font-weight:bold'>"+custName+"</td>"
                 body+= "<td></td>"
-                body+= "<td style='align:right; font-weight:bold;'> prepared by:</td>"
+                body+= "<td style='align:right; font-weight:bold;'> Prepared by:</td>"
                 body+= "<td style='align:left; font-weight:bold;'>"+prepared+"</td>"
                 body+="</tr>";
 
@@ -212,6 +252,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<td></td>"
                 body+="</tr>";
 
+                body+= "</tbody>";
+                body+= "</table>";
+
+                body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+                body+= "<tbody>";
+                body+= "<tr>";
+                body+= "<td style='font-weight:bold;'>Attn : "+contactName+"</td>"
+                body+= "</tr>";
                 body+= "</tbody>";
                 body+= "</table>";
 
@@ -233,13 +281,23 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                body+= "<td class='tg-head_body' style='width:30%; border: 1px solid black; border-right:none;'> DESCRIPTION </td>"
-                body+= "<td class='tg-head_body' style='width:10%; border: 1px solid black; border-right:none;'> PRINCIPLE </td>"
-                body+= "<td class='tg-head_body' style='width:25%; border: 1px solid black; border-right:none;'> UNIT PRICE </td>"
-                body+= "<td class='tg-head_body' style='width:20%; border: 1px solid black; border-right:none;'> MOQ* </td>"
-                body+= "<td class='tg-head_body' style='width:14%; border: 1px solid black;'> STATUS </td>"
+                body+= "<td class='tg-head_body' style='width:20%; border: 1px solid black; border-right:none;'> DESCRIPTION </td>"
+                body+= "<td class='tg-head_body' style='width:15%; border: 1px solid black; border-right:none;'> PRINCIPLE </td>"
+                body+= "<td class='tg-head_body' style='width:10%; border: 1px solid black; border-right:none;'> UNIT PRICE </td>"
+                body+= "<td class='tg-head_body' style='width:15%; border: 1px solid black; border-right:none;'> MOQ* </td>"
+                body+= "<td class='tg-head_body' style='width:15%; border: 1px solid black; border-right:none;'> STATUS </td>"
+                body+= "<td class='tg-head_body' style='width:15%; border: 1px solid black; border-right:none;'> Lead Time </td>"
+                body+= "<td class='tg-head_body' style='width:15%; border: 1px solid black;'> Payment Term </td>"
                 body+= "</tr>";
                 body += getPOItem(context, quotRec);
+                body+= "</tbody>";
+                body+= "</table>";
+
+                body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+                body+= "<tbody>";
+                body+= "<tr>";
+                body+= "<td style=''>Kurs : TT Counter Sell BCA</td>"
+                body+= "</tr>";
                 body+= "</tbody>";
                 body+= "</table>";
 
@@ -269,7 +327,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body+= "<tr style='height:40px'>"
                 body+= "<td></td>"
-                body+= "<td style='align: center; font-weight:bold;'></td>"
+                if(signatureUrl){
+                    body+= "<td style='align: center; font-weight:bold;'><img class='tg-img-logo' src= '" + signatureUrl + "' ></img></td>"
+                }else{
+                    body+= "<td style='align: center; font-weight:bold;'></td>"
+                }
                 body+= "<td style='align: center; font-weight:bold;'></td>"
                 body+= "<td style='align: center; font-weight:bold;'></td>"
                 body+= "</tr>";
@@ -355,7 +417,28 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId: 'amount',
                             line: index
                         });
-                        var status = 'READY'
+                        var moq = quotRec.getSublistValue({
+                            sublistId : 'item',
+                            fieldId : 'custcol1',
+                            line : index
+                        })
+
+                        var status = quotRec.getSublistText({
+                            sublistId : 'item',
+                            fieldId : 'custcol2',
+                            line : index
+                        })
+                        var leadTime = quotRec.getSublistText({
+                            sublistId : 'item',
+                            fieldId : 'custcol3',
+                            line : index
+                        })
+                        var paymentTerms = quotRec.getSublistText({
+                            sublistId : 'item',
+                            fieldId : 'custcol4',
+                            line : index
+                        })
+
                         if(unitPrice){
                             unitPrice = pembulatan(unitPrice);
                             unitPrice = format.format({
@@ -376,8 +459,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+description+"</td>";
                         body += "<td style='align:center; font-size:10px; border: 1px solid black; border-right:none;'>"+principal+"</td>";
                         body += "<td style='align:center; font-size:10px; border: 1px solid black; border-right:none;'>"+unitPrice+"</td>";
-                        body += "<td style='align:center; font-size:10px; border: 1px solid black; border-right:none;'>"+amount+"</td>";
-                        body += "<td style='align:center; font-size:10px; border: 1px solid black;'>"+status+"</td>";
+                        body += "<td style='align:center; font-size:10px; border: 1px solid black; border-right:none;'>"+moq+"</td>";
+                        body += "<td style='align:center; font-size:10px; border: 1px solid black; border-right:none;'>"+status+"</td>";
+                        body += "<td style='align:center; font-size:10px; border: 1px solid black; border-right:none;'>"+leadTime+"</td>";
+                        body += "<td style='align:center; font-size:10px; border: 1px solid black;'>"+paymentTerms+"</td>";
                         body += "</tr>";
                         
                     }

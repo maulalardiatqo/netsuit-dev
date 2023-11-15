@@ -26,23 +26,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             function onRequest(context) {
                 var recid = context.request.parameters.id;
                 log.debug('recid', recid);
-                var itemRcpt = record.load({
-                    type: "itemreceipt",
+                var poRec = record.load({
+                    type: "salesorder",
                     id: recid,
                     isDynamic: false,
                 });
 
-                var poDate = itemRcpt.getValue("trandate");
-                var poid = itemRcpt.getValue('createdfrom')
-                if(poid){
-                    var poRec = record.load({
-                        type: "purchaseorder",
-                        id: poid,
-                        isDynamic: false,
-                    });
+                var poDate = poRec.getValue("trandate");
 
                     var tranid = poRec.getValue("tranid");
-                var employeId = poRec.getValue("employee");
+                var employeId = poRec.getValue("custbody_fcn_sales_employee");
 
                 var subTotal = poRec.getValue("subtotal");
                 var taxTotal = poRec.getValue("taxtotal");
@@ -64,7 +57,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var vendorAddress = '';
                 if(vendorId){
                     var vendRec = record.load({
-                        type: "vendor",
+                        type: "customer",
                         id: vendorId,
                         isDynamic: false,
                     });
@@ -398,7 +391,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     xmlString: xml
                 });
 
-                }
+                
                 
             }
             function getPOItem(context, poRec){
