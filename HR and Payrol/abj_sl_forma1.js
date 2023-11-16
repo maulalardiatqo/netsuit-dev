@@ -727,6 +727,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var tunjanagnPph21 = 0;
                 
                 var jumlahPenghasilanBruto = Number(tunjanganTahun) + Number(gajiPokokSetahun) + Number(honorariumTahun) + Number(naturaTahun) + Number(tantiemThr) + Number(premiAsuransiTahun) + Number(tunjanagnPph21);
+                log.debug('penghasilanBruto', {jumlahPenghasilanBruto : jumlahPenghasilanBruto, tunjanganTahun : tunjanganTahun, gajiPokokSetahun : gajiPokokSetahun,
+                    honorariumTahun : honorariumTahun, naturaTahun : naturaTahun, tantiemThr : tantiemThr, premiAsuransiTahun: premiAsuransiTahun, tunjanagnPph21 : tunjanagnPph21});
                 var iuranPensiunTahun = Number(iuranPenjsiunJHT) + Number(jumlahPotBPJStahun);
                 var BiayaJabatan = 5 / 100 * Number(jumlahPenghasilanBruto)
                 if(BiayaJabatan > 6000000){
@@ -734,9 +736,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
 
                 var jumlahPengurangan = Number(BiayaJabatan) + Number(iuranPensiunTahun)
+                log.debug('jumlahPengurangan', jumlahPengurangan);
                 var jumlahPenghasilanNeto = Number(jumlahPenghasilanBruto) - Number(jumlahPengurangan);
 
                 log.debug('jumlahPtkp', jumlahPtkp)
+                log.debug('jumlah penghasilan netto', jumlahPenghasilanNeto);
                 var pkp = Number(jumlahPenghasilanNeto) - Number(jumlahPtkp)
                 log.debug('pkp', pkp);
                 var pkpSet = 0;
@@ -769,6 +773,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 if(metodePajak == '3'){
                     var pajakPertahun = 0;
+                    log.debug('pkp', pkp);
                     if(pkp >= jumlahPtkp){
                         if (pkp <= 47500000) {
                             pajakPertahun = (pkp - 0) * (5 / 95) + 0;

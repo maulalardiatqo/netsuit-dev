@@ -17,9 +17,11 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                 id: recId,
             });
             var employeeId = recordRem.getValue('custrecord_remunerasi_employee');
+            var empName = recordRem.getText('custrecord_remunerasi_employee')
             var tanggalEfektif = '';
             var tanggalAkhir = '';
             var periodAkhir = '';
+            var ptkp;
             if(employeeId){
                 var searchKarir = search.create({
                     type: "customrecord_remunasi",
@@ -64,6 +66,9 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                     periodAkhir = result.getText({
                         name : "custrecord_abj_msa_period_akhir"
                     });
+                    ptkp = result.getValue({
+                        name : "custrecord_status_wajib_pajak"
+                    })
                     return true;
                 });
             }
@@ -241,6 +246,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                         return data.slipId === slipId;
                     });
 
+                    var iuranPenjsiunJHT = 0;
                     var sumJumlahKomponenPendapatan = 0;
                     var sumJumlahKomponenPotongan = 0;
                     var sumKompPendapatan = 0;
@@ -248,6 +254,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                     var tunjangan = 0;
                     var tanggalAwalPeriod;
                     var lamaPeriod;
+                    var thr = 0;
                     dataForSlipId.forEach(function(data) {
                         var idSlip = data.slipId
                         var searchSlip = search.create({
@@ -320,6 +327,8 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                                             }
                                             if(typeSalary == '7'){
                                                 tunjangan = JumlahPendapatan
+                                            }if(typeSalary == '2'){
+                                                thr += Number(jumlahPendapatan)
                                             }
                                             recCreate.selectNewLine({
                                                 sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
@@ -360,6 +369,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                                         sumJumlahKomponenPotongan += Number(jumlahPotongan)
                                     }
                                 }
+                                
 
                             })
                             
@@ -652,6 +662,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                             return true;
                         });
 
+                        
                         log.debug('komponenPendBPJSText', komponenPendBPJSText);
                         var combineBPJSpend = []
                         for (var h = 0; h < komponenPendBPJSText.length; h++) {
@@ -719,7 +730,14 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                                 sumJumlahPotBPJS += Number(jumlahPotBPJS)
                             }
                         }
-                        log.debug('combineBPJSpot', combineBPJSpot);
+                        var jumlahBPJSTahun = 0;
+                        if(sumjumlahPendBPJS){
+                            jumlahBPJSTahun = Number(sumjumlahPendBPJS) * 12
+                        }
+                        var jumlahPotBPJStahun = 0;
+                        if(sumJumlahPotBPJS){
+                            jumlahPotBPJStahun = Number(sumJumlahPotBPJS) * 12
+                        }
                         
                         if(tanggalAwalPeriod){
                             var dayOfMonth = tanggalAwalPeriod;
@@ -751,13 +769,28 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                             var dateStringAkhir = endDay + ' ' + endMonthIndo + ' ' + endYearIndo;
                             var dateRangeString = dateStringawal + ' - ' + dateStringAkhir
                             log.debug('dateRangeString', dateRangeString);
+                            var toSetName = empName + ' ' + dateRangeString
                             recCreate.setValue({
                                 fieldId : 'name',
+                                value : toSetName
+                            });
+                            recCreate.setValue({
+                                fieldId : 'custrecord_abj_msa_period_gaji',
                                 value : dateRangeString
+                            })
+                            var periodSearch = search.create({
+                                type : 'customrecord_monthly_period_gaji',
+                                columns : ['internalid', 'name'],
+                                filters: [{
+                                    name: 'name',
+                                    operator: 'is',
+                                    values: dateRangeString
+                                }]
                             });
                         }
-
-                        var totalIncome = sumjumlahBPJS + sumKompPendapatan
+                        log.debug('sumKompPendapatan', sumKompPendapatan);
+                        log.debug('sumjumlahPendBPJS', sumjumlahPendBPJS)
+                        var totalIncome = sumjumlahPendBPJS + sumKompPendapatan
                         log.debug('totalIncome', totalIncome);
                         var tipePTKP;
                         var statusKaryawan;
@@ -792,8 +825,8 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                         });
                         //search pph setting
                         var metodePajak;
-                        var ptkp;
-                        var ptkpIstri;
+                        // var ptkp;
+                        // var ptkpIstri;
                         var customrecord58SearchObj = search.create({
                             type: "customrecord58",
                             filters:
@@ -850,25 +883,67 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                             }else if(statusKaryawan == '6'){
                                 metodePajak = karyawanMagang
                             }
-                            ptkp = result.getValue({
-                                name: "custrecord_abj_msa_ptkp_wajib"
-                            });
-                            ptkpIstri = result.getValue({
-                                name: "custrecord_abj_msa_ptkp_istri"
-                            });
+                            // ptkp = result.getValue({
+                            //     name: "custrecord_abj_msa_ptkp_wajib"
+                            // });
+                            // ptkpIstri = result.getValue({
+                            //     name: "custrecord_abj_msa_ptkp_istri"
+                            // });
                             return true;
                         });
+                        log.debug('ptkp', ptkp);
+                        var jumlahPtkp = 0;
+                        if(ptkp){
+                            var searchPtkp = search.create({
+                                type: "customrecord_ptpk",
+                                filters:
+                                [
+                                    ["internalid","anyof",ptkp]
+                                ],
+                                columns:
+                                [
+                                    search.createColumn({
+                                        name: "name",
+                                        sort: search.Sort.ASC,
+                                        label: "Name"
+                                    }),
+                                    search.createColumn({name: "custrecord_jumlah_ptpk", label: "Jumlah PTPK"})
+                                ]
+                            });
+                            var searchPtkpSet = searchPtkp.run();
+                            var searchPtkpResult = searchPtkpSet.getRange({
+                                start: 0,
+                                end: 1,
+                            });
+                            if(searchPtkpResult.length > 0){
+                                var recPtkp = searchPtkpResult[0]
+                                var jumPtkp = recPtkp.getValue({
+                                    name: "custrecord_jumlah_ptpk"
+                                })
+                                jumlahPtkp = jumPtkp
+                                
+                            }
+                        }
+
+                        var iuranPensiunTahun = Number(iuranPenjsiunJHT) + Number(jumlahPotBPJStahun);
+
                         var BiayaJabatan = 5 / 100 * totalIncome
                         if(BiayaJabatan > 500000){
                             BiayaJabatan = 500000
                         }
+                        
+
                         var totalBiayaJabatan = BiayaJabatan * 12
-                        var penghasilanBruto = totalIncome * 12
-                        var penghasilanNetto = penghasilanBruto - totalBiayaJabatan
-                        var pkp = penghasilanNetto - Number(tipePTKP)
-                        log.debug('pkp', pkp);
+                        var jumlahPengurangan = Number(totalBiayaJabatan) + Number(iuranPensiunTahun)
+                        var totalincomeTahun = totalIncome * 12
+                        var penghasilanBruto = Number(totalincomeTahun) + Number(thr)
+                        log.debug('jumlahPengurangan', jumlahPengurangan);
+                        log.debug('penghasilanBruto', penghasilanBruto);
+                        var penghasilanNetto = penghasilanBruto - Number(jumlahPengurangan);
+                        log.debug('penghasilan netto', penghasilanNetto);
+                        var pkp = penghasilanNetto - Number(jumlahPtkp)
                         var pajakperBulan = 0;
-                        if(pkp >= ptkp){
+                        if(pkp >= jumlahPtkp){
                             if(pkp != 0){
                                 var pajak = 0;
                                 if (pkp <= 60000000) {
@@ -891,47 +966,10 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                         if(pajakperBulan !== 0){
                             log.debug('masuk if')
                             if(metodePajak == '1'){
-                                sumJumlahKomponenPendapatan += pajakperBulan
-                                sumJumlahKomponenPotongan += pajakperBulan
                                 recCreate.setValue({
                                     fieldId : 'custrecord_abj_msa_pph21perusahaan',
                                     value : pajakperBulan
                                 });
-                                recCreate.setValue({
-                                    fieldId : 'custrecord_abj_msa_pph21karyawan',
-                                    value : pajakperBulan
-                                });
-
-                                recCreate.selectNewLine({
-                                    sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
-                                });
-                                recCreate.setCurrentSublistValue({
-                                    sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
-                                    fieldId: "custrecord_abj_msa_slip_rem_pendapatan",
-                                    value: 'Tunjangan PPh21',
-                                });
-                                recCreate.setCurrentSublistValue({
-                                    sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
-                                    fieldId: "custrecord_abj_msa_slip_pendapatan",
-                                    value: jumlahPendBPJS,
-                                });
-                                recCreate.commitLine("recmachcustrecord_abj_msa_slip_slip_gaji");
-
-                                // set Komponen Potongan Pajak
-                                recCreate.selectNewLine({
-                                    sublistId: "recmachcustrecord_abj_msa_slip_potongan",
-                                });
-                                recCreate.setCurrentSublistValue({
-                                    sublistId: "recmachcustrecord_abj_msa_slip_potongan",
-                                    fieldId: "custrecord_abj_msa_slip_slip_potongan",
-                                    value: 'PPh21',
-                                });
-                                recCreate.setCurrentSublistValue({
-                                    sublistId: "recmachcustrecord_abj_msa_slip_potongan",
-                                    fieldId: "custrecord_abj_msa_slip_slip_jumlah",
-                                    value: pajakperBulan,
-                                });
-                                recCreate.commitLine("recmachcustrecord_abj_msa_slip_potongan");
                             }else if(metodePajak == '2'){
                                 sumJumlahKomponenPotongan += pajakperBulan
 
@@ -957,30 +995,37 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                                 });
                             }else{
                                 var pajakPertahun = 0;
-                                if (pkp <= 47500000) {
-                                    pajakPertahun = (pkp - 0) * (5 / 95) + 0;
-                                    
-                                } else if (pkp <= 217500000) {
-                                    pajakPertahun = (pkp - 47500000) * (15 / 85) + 2500000;
-                                    
-                                } else if (pkp <= 405000000) {
-                                    pajakPertahun = (pkp - 217500000) * (25 / 75) + 32500000;
-                                    
-                                } else {
-                                    pajakPertahun = (pkp - 405000000) * (30 / 70) + 95000000;
-                                    
+                                log.debug('pkp', pkp);
+                                log.debug('ptkp', jumlahPtkp);
+                                if(pkp >= jumlahPtkp){
+                                    if (pkp <= 47500000) {
+                                        pajakPertahun = (pkp - 0) * (5 / 95) + 0;
+                                        
+                                    } else if (pkp <= 217500000) {
+                                        pajakPertahun = (pkp - 47500000) * (15 / 85) + 2500000;
+                                        
+                                    } else if (pkp <= 405000000) {
+                                        pajakPertahun = (pkp - 217500000) * (25 / 75) + 32500000;
+                                        
+                                    } else {
+                                        pajakPertahun = (pkp - 405000000) * (30 / 70) + 95000000;
+                                        
+                                    }
                                 }
-                            
-                                var pajakperBulan = pajakPertahun / 12;
-                                sumJumlahKomponenPendapatan += pajakperBulan
-                                sumJumlahKomponenPotongan += pajakperBulan
+                                
+                                log.debug('pajakPertahun', pajakPertahun);
+                                var pajakperBulanGrossUp = pajakPertahun / 12;
+                                sumJumlahKomponenPendapatan += pajakperBulanGrossUp
+
+
+                                sumJumlahKomponenPotongan += pajakperBulanGrossUp
                                 recCreate.setValue({
                                     fieldId : 'custrecord_abj_msa_pph21perusahaan',
-                                    value : pajakperBulan
+                                    value : pajakperBulanGrossUp
                                 });
                                 recCreate.setValue({
                                     fieldId : 'custrecord_abj_msa_pph21karyawan',
-                                    value : pajakperBulan
+                                    value : pajakperBulanGrossUp
                                 });
 
                                 recCreate.selectNewLine({
@@ -994,7 +1039,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                                 recCreate.setCurrentSublistValue({
                                     sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
                                     fieldId: "custrecord_abj_msa_slip_pendapatan",
-                                    value: jumlahPendBPJS,
+                                    value: pajakperBulanGrossUp,
                                 });
                                 recCreate.commitLine("recmachcustrecord_abj_msa_slip_slip_gaji");
 
@@ -1010,35 +1055,36 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                                 recCreate.setCurrentSublistValue({
                                     sublistId: "recmachcustrecord_abj_msa_slip_potongan",
                                     fieldId: "custrecord_abj_msa_slip_slip_jumlah",
-                                    value: pajakperBulan,
+                                    value: pajakperBulanGrossUp,
                                 });
                                 recCreate.commitLine("recmachcustrecord_abj_msa_slip_potongan");
                             }
                         }
+                        var pendapatanToCount = Number(sumJumlahKomponenPendapatan) + Number(sumjumlahPendBPJS);
+                        var potonganToCount = Number(sumJumlahKomponenPotongan) + Number(sumJumlahPotBPJS);
+                        log.debug('perhitungan',{pendapatanToCount : pendapatanToCount, potonganToCount : potonganToCount})
+                        var takeHomePay = pendapatanToCount - potonganToCount
+                        recCreate.setValue({
+                            fieldId : 'custrecord_abj_msa_bruto',
+                            value : pendapatanToCount
+                        })
+                        if(takeHomePay){
+                        recCreate.setValue({
+                            fieldId : 'custrecord_abj_msa_thp',
+                            value : takeHomePay
+                        });
+                        }
+                        recCreate.setValue({
+                            fieldId : 'custrecord_abj_msa_status_gaji',
+                            value : 1
+                        })
+                        // var recId = recCreate.save({
+                        //     enableSourcing: true,
+                        //     ignoreMandatoryFields: true,
+                        // });
+                        // log.debug('recid', recId); 
+                    
                     }
-                    var pendapatanToCount = Number(sumJumlahKomponenPendapatan) + Number(sumjumlahPendBPJS);
-                    var potonganToCount = Number(sumJumlahKomponenPotongan) + Number(sumJumlahPotBPJS);
-                    log.debug('perhitungan',{pendapatanToCount : pendapatanToCount, potonganToCount : potonganToCount})
-                    var takeHomePay = pendapatanToCount - potonganToCount
-                    recCreate.setValue({
-                        fieldId : 'custrecord_abj_msa_bruto',
-                        value : pendapatanToCount
-                    })
-                    if(takeHomePay){
-                    recCreate.setValue({
-                        fieldId : 'custrecord_abj_msa_thp',
-                        value : takeHomePay
-                    });
-                    }
-                    recCreate.setValue({
-                        fieldId : 'custrecord_abj_msa_status_gaji',
-                        value : 1
-                    })
-                    var recId = recCreate.save({
-                        enableSourcing: true,
-                        ignoreMandatoryFields: true,
-                    });
-                    log.debug('recid', recId); 
                     
                     
                 }
