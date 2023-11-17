@@ -137,7 +137,8 @@ define(["N/record", "N/search"], function(
                         runningNumber = newDigitPart + formatRunning;
                         log.debug('runningNumber', runningNumber);
                     }else{
-                        if(lastRun === 0){
+                        if(lastRun === ''){
+                            log.debug('lastrun empty')
                             var newLastRun = lastRun + 1;
                             var newDigitPart = '0'.repeat(minimumDigit) + newLastRun.toString();
             
@@ -182,11 +183,20 @@ define(["N/record", "N/search"], function(
                         type: 'customrecord__po_numbering',
                         isDynamic: true
                     });
-                    createRecord.setValue({
-                        fieldId: 'custrecord_msa_pon_last_run',
-                        value: '001' + formatRunning, 
-                        ignoreFieldChange: true
-                    });
+                    if(TransType == 'estimate'){
+                        createRecord.setValue({
+                            fieldId: 'custrecord_msa_pon_last_run',
+                            value: '001' + formatRunning, 
+                            ignoreFieldChange: true
+                        });
+                    }else{
+                        createRecord.setValue({
+                            fieldId: 'custrecord_msa_pon_last_run',
+                            value: formatRunning + '001', 
+                            ignoreFieldChange: true
+                        });
+                    }
+                    
                     createRecord.setValue({
                         fieldId: 'custrecord_msa_pon_transactiontype',
                         value: TransType, 
@@ -219,6 +229,7 @@ define(["N/record", "N/search"], function(
                             log.debug('transaction adalah quotation')
                             setRunning = '001' + formatRunning
                         }else{
+                            log.debug('else quot')
                             setRunning = formatRunning + '0001'
                         }
                         recordTRans.setValue({

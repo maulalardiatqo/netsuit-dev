@@ -32,15 +32,28 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             });
             var subsidiari = vencredRecord.getValue('subsidiary');
             var billForm = vencredRecord.getValue('createdfrom');
-
+            var billFormText = vencredRecord.getText('createdfrom');
+            
+            log.debug('billForm', billForm);
             var refno = '';
             if(billForm){
-                billRec = record.load({
-                    type: "vendorbill",
-                    id: billForm,
-                    isDynamic: false, 
-                });
-                refno = billRec.getValue('tranid');
+                if (billFormText.includes('Vendor Return Authorization')) {
+                    billRec = record.load({
+                        type: "vendorreturnauthorization",
+                        id: billForm,
+                        isDynamic: false, 
+                    });
+                    refno = billRec.getValue('tranid');
+                }else{
+                    billRec = record.load({
+                        type: "vendorbill",
+                        id: billForm,
+                        isDynamic: false, 
+                    });
+                    refno = billRec.getValue('tranid');
+                }
+                
+                
                 log.debug('refno', refno)
             }
             // load subsidiarie
@@ -542,7 +555,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     if(description.includes('\\')){
                         description = description.replace(/\\/g, '<br/>');
                     }
-                    var unit = vencredRecord.getSublistValue({
+                    var unit = vencredRecord.getSublistText({
                         sublistId: 'item',
                         fieldId: 'units',
                         line: index
@@ -587,7 +600,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     
                     body += "<tr>";
-                    body += "<td class='tg-b_body'>"+qty+" - "+unit+ "Pcs</td>";
+                    body += "<td class='tg-b_body'>"+qty+" - "+unit+ "</td>";
                     body += "<td class='tg-b_body'>"+description+"</td>";
                     body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(rate)+"</td>";
                     body += "<td class='tg-b_body' style='align:right'>X</td>";
