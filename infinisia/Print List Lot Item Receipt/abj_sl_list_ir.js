@@ -195,6 +195,11 @@ define([
                     label: "Print SPPB",
                     functionName: "printSPPB()"
                 });
+                form.addButton({
+                    id: 'custpage_button_po',
+                    label: "Print Checklist Barang Masuk",
+                    functionName: "printChecklist()"
+                });
                 form.clientScriptModulePath = "SuiteScripts/abj_cs_print_lot_ir.js";
 
                 context.response.writePage(form);

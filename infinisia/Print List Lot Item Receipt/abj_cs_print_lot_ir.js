@@ -59,10 +59,30 @@ function(error,dialog,url,record,currentRecord,log) {
         }
         
     } 
+    function printChecklist() {
+        console.log('allIdIr', allIdIr);
+        console.log("test in function");
+        var createPDFURL = url.resolveScript({
+            scriptId: 'customscript_abj_sl_print_checklist',
+            deploymentId: 'customdeploy_abj_sl_print_checklist',
+            returnExternalUrl: false
+        })
+        console.log("urlpdf", createPDFURL);
+        createPDFURL;
+        if(allIdIr.length > 0){
+            if (createPDFURL) {
+                newWindow = window.open(createPDFURL + '&allIdIr=' + encodeURIComponent(JSON.stringify(allIdIr)));
+            }
+        }else{
+            alert('PLeas Select By CheckBox')
+        }
+        
+    } 
     return {
         pageInit: pageInit,
         printSPPB : printSPPB,
-        fieldChanged : fieldChanged
+        fieldChanged : fieldChanged,
+        printChecklist : printChecklist
     };
 }); 
  
