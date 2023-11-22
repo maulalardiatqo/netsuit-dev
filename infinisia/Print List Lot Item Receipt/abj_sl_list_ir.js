@@ -103,8 +103,6 @@ define([
                         ["type","anyof","ItemRcpt"], 
                         "AND", 
                         ["mainline","is","T"], 
-                        "AND", 
-                        ["location","anyof",location],
                     ],
                     columns:
                     [
@@ -118,20 +116,63 @@ define([
                         search.createColumn({name: "internalid",})
                     ]
                 });
-                itemreceiptSearchObj.filters.push(
-                    search.createFilter({
-                        name: "trandate",
-                        operator: search.Operator.ONORAFTER,
-                        values: startDate
-                    })
-                )
-                itemreceiptSearchObj.filters.push(
-                    search.createFilter({
-                        name: "trandate",
-                        operator: search.Operator.ONORBEFORE,
-                        values: endDate
-                    })
-                )
+                if(startDate && endDate == ''){
+                    itemreceiptSearchObj.filters.push(
+                        search.createFilter({
+                            name: "trandate",
+                            operator: search.Operator.ONORAFTER,
+                            values: startDate
+                        })
+                    )
+                    itemreceiptSearchObj.filters.push(
+                        search.createFilter({
+                            name: "trandate",
+                            operator: search.Operator.ONORBEFORE,
+                            values: startDate
+                        })
+                    )
+                }
+                if(endDate && startDate == ''){
+                    itemreceiptSearchObj.filters.push(
+                        search.createFilter({
+                            name: "trandate",
+                            operator: search.Operator.ONORAFTER,
+                            values: endDate
+                        })
+                    )
+                    itemreceiptSearchObj.filters.push(
+                        search.createFilter({
+                            name: "trandate",
+                            operator: search.Operator.ONORBEFORE,
+                            values: endDate
+                        })
+                    )
+                }
+                if(startDate && endDate){
+                    itemreceiptSearchObj.filters.push(
+                        search.createFilter({
+                            name: "trandate",
+                            operator: search.Operator.ONORAFTER,
+                            values: startDate
+                        })
+                    )
+                    itemreceiptSearchObj.filters.push(
+                        search.createFilter({
+                            name: "trandate",
+                            operator: search.Operator.ONORBEFORE,
+                            values: endDate
+                        })
+                    )
+                }
+                if(location){
+                    itemreceiptSearchObj.filters.push(
+                        search.createFilter({
+                            name: "location",
+                            operator: search.Operator.ANYOF,
+                            values: location
+                        })
+                    )
+                }
                 var searchResultCount = itemreceiptSearchObj.runPaged().count;
                 log.debug("itemreceiptSearchObj result count",searchResultCount);
                 var allIdIr = [];

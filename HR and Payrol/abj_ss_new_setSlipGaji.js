@@ -966,10 +966,12 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                         if(pajakperBulan !== 0){
                             log.debug('masuk if')
                             if(metodePajak == '1'){
+                                log.debug('method pajak1')
                                 recCreate.setValue({
                                     fieldId : 'custrecord_abj_msa_pph21perusahaan',
                                     value : pajakperBulan
                                 });
+                                
                             }else if(metodePajak == '2'){
                                 sumJumlahKomponenPotongan += pajakperBulan
 
@@ -1078,11 +1080,11 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                             fieldId : 'custrecord_abj_msa_status_gaji',
                             value : 1
                         })
-                        // var recId = recCreate.save({
-                        //     enableSourcing: true,
-                        //     ignoreMandatoryFields: true,
-                        // });
-                        // log.debug('recid', recId); 
+                        var recId = recCreate.save({
+                            enableSourcing: true,
+                            ignoreMandatoryFields: true,
+                        });
+                        log.debug('recid', recId); 
                     
                     }
                     

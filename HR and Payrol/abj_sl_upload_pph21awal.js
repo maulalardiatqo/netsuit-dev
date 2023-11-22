@@ -97,11 +97,11 @@ define([
                         var pph21bef = rowData["PPh21 Yang Telah Dipotong Masa Sebelumnya"];
                         
                         log.debug('idEmp', idEmp);
-                        log.debug('allData', {no:no, tahun:tahun, idPersonalia:idPersonalia, nama:nama, hireDate:hireDate, fromMonth : fromMonth, toMonth:toMonth,idEmp:idEmp})
+                        
                         var searchPPh = search.create({
                             type : 'customrecord_abj_msa_pph21awal',
                             filters : ["custrecord_abj_msa_id_personalia","is",idEmp],
-                            columns : ["custrecord_abj_msa_id_personalia"]
+                            columns : ["internalid","custrecord_abj_msa_id_personalia"]
                         });
                         var searchPPhSet = searchPPh.run()
                         var searchPPhResult = searchPPhSet.getRange({
@@ -109,6 +109,10 @@ define([
                             end: 1
                         });
                         if(searchPPhResult.length > 0){
+                            var dataRemu = searchPPhResult[0];
+                            var internalidpph = dataRemu.getValue({
+                                name : "internalid"
+                            })
                             log.debug('ada data')
                             var recpphawal = record.load({
                                 type: 'customrecord_abj_msa_pph21awal',
@@ -117,12 +121,12 @@ define([
                             })
                             recpphawal.setValue({
                                 fieldId: 'custrecord_abj_msa_from_month',
-                                value: from,
+                                value: fromMonth,
                                 ignoreFieldChange: true
                             });
                             recpphawal.setValue({
                                 fieldId: 'custrecord_abj_msa_ke_bulan',
-                                value: to,
+                                value: toMonth,
                                 ignoreFieldChange: true
                             });
                             recpphawal.setValue({
@@ -167,7 +171,7 @@ define([
                             });
                             recpphawal.setValue({
                                 fieldId: 'custrecord_abj_msa_pph_terbayar',
-                                value: pphterbayar,
+                                value: pph21terbayar,
                                 ignoreFieldChange: true
                             });
                             recpphawal.setValue({
@@ -177,13 +181,113 @@ define([
                             });
                             recpphawal.setValue({
                                 fieldId: 'custrecord_abj_msa_pph21_bef',
-                                value: pphbef,
+                                value: pph21bef,
                                 ignoreFieldChange: true
                             });
                             var updtSave = recpphawal.save({
                                 enableSourcing: false,
                                 ignoreMandatoryFields: true
                             });
+                            if(updtSave){
+                                log.debug('updtSave', updtSave);
+                            }
+                        }else{
+                            var createNew = record.create({
+                                type : 'customrecord_abj_msa_pph21awal'
+                            })
+                            log.debug('allData', {no:no, tahun:tahun, idPersonalia:idPersonalia, nama:nama, hireDate:hireDate, fromMonth : fromMonth, toMonth:toMonth,idEmp:idEmp})
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_tahun',
+                                value: tahun,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_id_personalia',
+                                value: idEmp,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_nama_personalia',
+                                value: nama,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_tgl_mulai_kerja',
+                                value: hireDate,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_from_month',
+                                value: fromMonth,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_ke_bulan',
+                                value: toMonth,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_gaji_pen',
+                                value: gaji,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_tunjangan_pph',
+                                value: tunjangan,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_tunjanganlainya',
+                                value: lainya,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecordabj_msa_honorarium',
+                                value: honor,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecordabj_msa_premi_asuransi',
+                                value: premi,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_natura',
+                                value: natura,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_tantiem',
+                                value: tantiem,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_iuran_pensiun',
+                                value: iuran,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_pph_terbayar',
+                                value: pph21terbayar,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_neto_bef',
+                                value: netobef,
+                                ignoreFieldChange: true
+                            });
+                            createNew.setValue({
+                                fieldId: 'custrecord_abj_msa_pph21_bef',
+                                value: pph21bef,
+                                ignoreFieldChange: true
+                            });
+                            var createIdNew = createNew.save({
+                                enableSourcing: false,
+                                ignoreMandatoryFields: true
+                            });
+                            if(createIdNew){
+                                log.debug('createIdNew', createIdNew);
+                            }
                         }
                     }
                     
