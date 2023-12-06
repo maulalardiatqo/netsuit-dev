@@ -34,7 +34,7 @@ define(["N/ui/serverWidget", "N/config", "N/search", "N/record", "N/ui/message",
                     displayType: serverWidget.FieldDisplayType.HIDDEN,
                 });;
                 sublist_in.addField({
-                    id: "custpage_sublist_idkarir",
+                    id: "custpage_sublist_emp",
                     label: "Personalia",
                     type: serverWidget.FieldType.TEXT,
                 });
@@ -78,12 +78,13 @@ define(["N/ui/serverWidget", "N/config", "N/search", "N/record", "N/ui/message",
                 log.debug("customrecord_remunasiSearchObj result count",searchResultCount);
                 var i = 0;
                 customrecord_remunasiSearchObj.run().each(function(result){
-                    var internalid = result.getText({
-                        name : "internalid"
+                    var internalid = result.getValue({
+                        name : "custrecord3"
                     });
                     var empName = result.getText({
                         name : "custrecord3"
                     });
+                    log.debug('empName', empName);
                     var noId = result.getValue({
                         name : "custrecord_abj_msa_noid"
                     });

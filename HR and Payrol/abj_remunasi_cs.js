@@ -176,18 +176,43 @@ define([
                       fieldId : 'custrecord_msa_slipgaji_pendapatan',
                       line : index,
                   });
-
+                  console.log('pendapatanid', pendapatanid);
                   console.log('pendapatanText', pendapatantext);
                   var fieldNamePend = 'custpage_' + pendapatantext.replace(/ /g, '_').replace(/[()]/g, '').toLowerCase()+'_'+internalIDSlip+'_pendapatan_'+pendapatanid
                     console.log('fieldName', fieldNamePend);
                     var fieldPendapatan = vrecord.getField({
                       fieldId : fieldNamePend
                     });
-                  if(chekBoxValue == true){
-                    fieldPendapatan.isDisabled = false
-                  }else{
-                    fieldPendapatan.isDisabled = true
-                  }
+                    var recPendapatan = record.load({
+                      type : "customrecord_msa_komponen_pendapatan",
+                      id : pendapatanid
+                    });
+                    var typePendapatan = recPendapatan.getValue('custrecord_msa_type_salary');
+                    if(typePendapatan == '4'){
+                      console.log('ini lembur');
+                      var formulaLembur = recPendapatan.getValue("custrecord_list_overtime");
+                      var formulaLemburText = recPendapatan.getText("custrecord_list_overtime");
+                      console.log('formulaLembur', formulaLembur);
+                      if(formulaLembur == '3'){
+                        var jumlahRupiah = recPendapatan.getValue("custrecord_jumlah_rupiah")
+                        vrecord.setValue({
+                          fieldId : fieldNamePend,
+                          value : jumlahRupiah,
+                        })
+                      }else{
+                        vrecord.setValue({
+                          fieldId : fieldNamePend,
+                          value : formulaLemburText,
+                        })
+                      }
+                      fieldPendapatan.isDisabled = true
+                    }else{
+                      if(chekBoxValue == true){
+                        fieldPendapatan.isDisabled = false
+                      }else{
+                        fieldPendapatan.isDisabled = true
+                      }
+                    }
                 }
                 
             }

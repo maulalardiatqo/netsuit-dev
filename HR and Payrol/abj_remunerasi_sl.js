@@ -92,13 +92,39 @@ define([
                                 fieldId : 'custrecord_msa_slipgaji_pendapatan',
                                 line : index,
                             });
-                            
-                            var pendapatan = form.addField({
-                                id: 'custpage_' + pendapatantext.replace(/ /g, '_').replace(/[()]/g, '').toLowerCase()+'_'+internalIDSlip+'_pendapatan_'+pendapatanid,
-                                label: pendapatantext,
-                                type: serverWidget.FieldType.CURRENCY,
-                                container: idGroup,
+                            var recPendapatan = record.load({
+                                type : "customrecord_msa_komponen_pendapatan",
+                                id : pendapatanid
                             });
+                            var typePendapatan = recPendapatan.getValue('custrecord_msa_type_salary');
+                            if(typePendapatan == '4'){
+                                log.debug('ini lembur');
+                                var formulaLembur = recPendapatan.getValue("custrecord_list_overtime");
+                                log.debug('formulaLembur', formulaLembur);
+                                if(formulaLembur == '3'){
+                                    var pendapatan = form.addField({
+                                        id: 'custpage_' + pendapatantext.replace(/ /g, '_').replace(/[()]/g, '').toLowerCase()+'_'+internalIDSlip+'_pendapatan_'+pendapatanid,
+                                        label: pendapatantext,
+                                        type: serverWidget.FieldType.CURRENCY,
+                                        container: idGroup,
+                                    });
+                                }else{
+                                    var pendapatan = form.addField({
+                                        id: 'custpage_' + pendapatantext.replace(/ /g, '_').replace(/[()]/g, '').toLowerCase()+'_'+internalIDSlip+'_pendapatan_'+pendapatanid,
+                                        label: pendapatantext,
+                                        type: serverWidget.FieldType.TEXT,
+                                        container: idGroup,
+                                    });
+                                }
+                            }else{
+                                var pendapatan = form.addField({
+                                    id: 'custpage_' + pendapatantext.replace(/ /g, '_').replace(/[()]/g, '').toLowerCase()+'_'+internalIDSlip+'_pendapatan_'+pendapatanid,
+                                    label: pendapatantext,
+                                    type: serverWidget.FieldType.CURRENCY,
+                                    container: idGroup,
+                                });
+                            }
+                            
                             
                         }
                     }
@@ -173,13 +199,13 @@ define([
                                 var internalid_slip = parseInt(match[0], 10);
                                 log.debug('internalid slip', internalid_slip);
                             }
-
                             var matchForKomponen = key.match(/\d+$/);
                             if (matchForKomponen) {
                                 var internalId_komponen = parseInt(matchForKomponen[matchForKomponen.length - 1]);
                                 log.debug('internalId_komponen', internalId_komponen);
                             }
                             if(internalid_slip && internalId_komponen){
+                                
                                 recordRemunerasi.selectNewLine({
                                     sublistId: 'recmachcustrecord_remunerasi'
                                 });
@@ -198,11 +224,36 @@ define([
                                 //     fieldId: 'custrecord_remunerasi',
                                 //     value: saveRemu
                                 // });
-                                recordRemunerasi.setCurrentSublistValue({
-                                    sublistId: 'recmachcustrecord_remunerasi',
-                                    fieldId: 'custrecord_jumlah_pendapatan',
-                                    value: value
+                                var recPendapatan = record.load({
+                                    type : "customrecord_msa_komponen_pendapatan",
+                                    id : internalId_komponen
                                 });
+                                var typePendapatan = recPendapatan.getValue('custrecord_msa_type_salary');
+                                if(typePendapatan == '4'){
+                                    log.debug('ini lembur');
+                                    var formulaLembur = recPendapatan.getValue("custrecord_list_overtime");
+                                    log.debug('formulaLembur', formulaLembur);
+                                    if(formulaLembur == '3'){
+                                        var jumlahRupiah = recPendapatan.getValue("custrecord_jumlah_rupiah")
+                                        recordRemunerasi.setCurrentSublistValue({
+                                            sublistId: 'recmachcustrecord_remunerasi',
+                                            fieldId: 'custrecord_jumlah_pendapatan',
+                                            value: jumlahRupiah
+                                        });
+                                    }
+                                    recordRemunerasi.setCurrentSublistValue({
+                                        sublistId: 'recmachcustrecord_remunerasi',
+                                        fieldId: 'custrecord_jumlah_pendapatan',
+                                        value: 0
+                                    });
+                                }else{
+                                    recordRemunerasi.setCurrentSublistValue({
+                                        sublistId: 'recmachcustrecord_remunerasi',
+                                        fieldId: 'custrecord_jumlah_pendapatan',
+                                        value: value
+                                    });
+                                }
+                                
                                 recordRemunerasi.commitLine({
                                     sublistId: 'recmachcustrecord_remunerasi'
                                 });

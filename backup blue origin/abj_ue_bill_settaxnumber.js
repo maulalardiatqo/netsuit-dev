@@ -11,7 +11,6 @@ define(["N/runtime", "N/log", "N/ui/serverWidget", "N/ui/message", "N/record"], 
             var tranPrefixField = context.form.getField({
                 id: 'custbody_fcn_vb_npwp_penandatangan'
             });
-
             tranPrefixField.updateDisplayType({
                 displayType: serverWidget.FieldDisplayType.HIDDEN
             });
@@ -24,7 +23,7 @@ function beforeSubmit(context) {
         fieldId: 'customform'
     });
     log.debug('customForm', customForm)
-    if(customForm == '157' || customForm == '158'){
+    if(customForm == '134' || customForm == '135'){
         try{
             var subsidiriId = currentRecord.getValue({
                 fieldId: 'subsidiary'
@@ -36,7 +35,7 @@ function beforeSubmit(context) {
                         id: subsidiriId
                     });
     
-                    var taxSubsidiary = recSubsidiary.getValue('custrecordtax_registration_number');
+                    var taxSubsidiary = recSubsidiary.getValue('custrecord_fcn_npwppgrs');
                     log.debug('taxSUbsidiary', taxSubsidiary);
     
                     if(taxSubsidiary){
@@ -53,7 +52,6 @@ function beforeSubmit(context) {
         
     }
     
-   
 }
 
 return {

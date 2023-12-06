@@ -245,7 +245,6 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                     var dataForSlipId = allData.filter(function(data) {
                         return data.slipId === slipId;
                     });
-
                     var iuranPenjsiunJHT = 0;
                     var sumJumlahKomponenPendapatan = 0;
                     var sumJumlahKomponenPotongan = 0;
@@ -286,6 +285,8 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                                         var kompPendapatan = data.kompPendapatan;
                                         var kompPendapatanText = data.kompPendapatanText;
                                         var JumlahPendapatan = data.JumlahPendapatan
+                                        var listFormula;
+                                        var jumlahLembur;
 
                                         var customrecord_msa_komponen_pendapatanSearchObj = search.create({
                                             type: "customrecord_msa_komponen_pendapatan",
@@ -306,7 +307,9 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                                                 }),
                                                 search.createColumn({name: "custrecord_msa_type_salary", label: "Type"}),
                                                 search.createColumn({name: "custrecord_msa_pend_is_pph", label: "Is PPh 21"}),
-                                                search.createColumn({name: "custrecord_msa_pend_typea1", label: "Type A1"})
+                                                search.createColumn({name: "custrecord_msa_pend_typea1", label: "Type A1"}),
+                                                search.createColumn({name: "custrecord_list_overtime"}),
+                                                search.createColumn({name: "custrecord_jumlah_rupiah"}),
                                                 ]
                                             });
                                             var searchResultCount = customrecord_msa_komponen_pendapatanSearchObj.runPaged().count;
@@ -316,7 +319,11 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                                                 });
                                                 typeSalary = result.getValue({
                                                     name: "custrecord_msa_type_salary"
-                                                })
+                                                });
+                                                listFormula = result.getValue({
+                                                    name : "custrecord_list_overtime"
+                                                });
+                                                
                                                 return true;
                                             });
                                             if (isPPh21 == true) {
@@ -330,21 +337,25 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                                             }if(typeSalary == '2'){
                                                 thr += Number(jumlahPendapatan)
                                             }
-                                            recCreate.selectNewLine({
-                                                sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
-                                            });
-                                            recCreate.setCurrentSublistValue({
-                                                sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
-                                                fieldId: "custrecord_abj_msa_slip_rem_pendapatan",
-                                                value: kompPendapatanText,
-                                            });
-                                            recCreate.setCurrentSublistValue({
-                                                sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
-                                                fieldId: "custrecord_abj_msa_slip_pendapatan",
-                                                value: JumlahPendapatan,
-                                            });
-                                            recCreate.commitLine("recmachcustrecord_abj_msa_slip_slip_gaji");
-                                            sumJumlahKomponenPendapatan += Number(JumlahPendapatan)
+                                            if(typeSalary != '4' && typeSalary != '3'){
+                                                recCreate.selectNewLine({
+                                                    sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
+                                                });
+                                                recCreate.setCurrentSublistValue({
+                                                    sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
+                                                    fieldId: "custrecord_abj_msa_slip_rem_pendapatan",
+                                                    value: kompPendapatanText,
+                                                });
+                                                recCreate.setCurrentSublistValue({
+                                                    sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
+                                                    fieldId: "custrecord_abj_msa_slip_pendapatan",
+                                                    value: JumlahPendapatan,
+                                                });
+                                                recCreate.commitLine("recmachcustrecord_abj_msa_slip_slip_gaji");
+                                                sumJumlahKomponenPendapatan += Number(JumlahPendapatan)
+
+                                            }
+                                            
                                     } else if (data.jenis === 'potongan') {
                                         var idSlipPot = data.slipGajiPotongan;
                                         var idPotongan = data.idPotongan

@@ -14,7 +14,7 @@ define(["N/runtime", "N/log", "N/ui/serverWidget", "N/ui/message"], function (ru
       log.debug('countryValue', countryValue);
 
       var tranPrefixField = context.form.getField({
-        id: 'custrecordtax_registration_number'
+        id: 'custrecord_fcn_npwppgrs'
       });
 
       if (countryValue !== 'ID') {
@@ -38,7 +38,7 @@ define(["N/runtime", "N/log", "N/ui/serverWidget", "N/ui/message"], function (ru
     
     if(countryValue === 'ID'){
       var taxRegistrationNumber = currentRecord.getValue({
-        fieldId: 'custrecordtax_registration_number'
+        fieldId: 'custrecord_fcn_npwppgrs'
       });
       if (!taxRegistrationNumber) {
         log.debug('masuk tax')

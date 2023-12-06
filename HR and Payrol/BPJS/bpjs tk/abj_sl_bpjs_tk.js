@@ -242,6 +242,7 @@ define([
                 });
                 log.debug('allIdEmp', allIdEmp);
                 var linkFormDownloadTk = 'https://9342705.app.netsuite.com/app/site/hosting/scriptlet.nl?script=700&deploy=1'
+                var linkBPJSUpah = 'https://9342705.app.netsuite.com/app/site/hosting/scriptlet.nl?script=703&deploy=1'
                 var sublist_in = form.addSublist({
                     id: "custpage_sublist_data",
                     type: serverWidget.SublistType.LIST,
@@ -294,7 +295,7 @@ define([
                     sublist_in.setSublistValue({
                         sublistId: "custpage_sublist_data",
                         id: "custpage_sublist_aksi",
-                        value: "Link",
+                        value: "<a href='" + linkBPJSUpah + "&allid=" + allIdEmp + "' target='_blank'>Aksi</a>",
                         line: 2,
                     });
     
