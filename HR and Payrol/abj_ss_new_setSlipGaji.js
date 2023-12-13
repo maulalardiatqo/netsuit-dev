@@ -343,6 +343,11 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                                                 });
                                                 recCreate.setCurrentSublistValue({
                                                     sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
+                                                    fieldId: "custrecord_id_komponen",
+                                                    value: kompPendapatan,
+                                                });
+                                                recCreate.setCurrentSublistValue({
+                                                    sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
                                                     fieldId: "custrecord_abj_msa_slip_rem_pendapatan",
                                                     value: kompPendapatanText,
                                                 });
@@ -695,6 +700,11 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                                 });
                                 recCreate.setCurrentSublistValue({
                                     sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
+                                    fieldId: "custrecord_id_komponen",
+                                    value: 0,
+                                });
+                                recCreate.setCurrentSublistValue({
+                                    sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
                                     fieldId: "custrecord_abj_msa_slip_rem_pendapatan",
                                     value: komponenPendBPJS,
                                 });
@@ -1043,6 +1053,11 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
 
                                 recCreate.selectNewLine({
                                     sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
+                                });
+                                recCreate.setCurrentSublistValue({
+                                    sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
+                                    fieldId: "custrecord_id_komponen",
+                                    value: 0,
                                 });
                                 recCreate.setCurrentSublistValue({
                                     sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",

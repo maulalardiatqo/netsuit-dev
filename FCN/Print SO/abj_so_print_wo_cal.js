@@ -90,7 +90,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       var custAddres = custAddres.replace(new RegExp("\r?\n", "g"), "<br />");
       var custAddres = custAddres.substring(custAddres.indexOf("<br />") + 6);
       var custEmail = customerRecord.getValue("email");
-      var taxRegNo = customerRecord.getValue("vatregnumber");
+      var taxRegNo = customerRecord.getValue("custentity1");
 
       // var spaceCust = custName.indexOf(" ");
       // var custName= custName.substring(spaceCust + 1);
@@ -527,7 +527,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         var amount =
           soRecord.getSublistValue({
             sublistId: "item",
-            fieldId: "amount",
+            fieldId: "rate",
+            line: index,
+          }) || 0;
+          var rate =
+          soRecord.getSublistValue({
+            sublistId: "item",
+            fieldId: "rate",
             line: index,
           }) || 0;
         var taxAmt = soRecord.getSublistValue({
@@ -536,7 +542,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
           line: index,
         });
         amount = Math.round(amount);
-        var amountTotal = parseFloat(qty) * parseFloat(amount);
+        var amountTotal = parseFloat(qty) * parseFloat(rate);
         amountTotal = Math.ceil(amountTotal);
         if (amount) {
           amount = format.format({

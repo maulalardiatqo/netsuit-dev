@@ -113,7 +113,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     custAddres = customerRecord.getValue('defaultaddress');
                 }
                 var custEmail = customerRecord.getValue('email');
-                var taxRegNo = customerRecord.getValue('vatregnumber');
+                var taxRegNo = customerRecord.getValue('custentity1');
                 var count = customerRecord.getLineCount({
                     sublistId: 'submachine'
                 });

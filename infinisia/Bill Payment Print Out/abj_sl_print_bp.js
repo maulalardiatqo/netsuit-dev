@@ -7,58 +7,113 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
   function(render, search, record, log, file, http, config, format, email, runtime) {
         function onRequest(context) {
             var recid = context.request.parameters.id;
-            log.debug('recid', recid);
-            log.debug('masuk');
 
             var vendPayment = record.load({
-                type: "customerpayment",
+                type: "vendorpayment",
                 id: recid,
-                isDynamic: false,
-              });
-              var subsidiari = vendPayment.getValue('subsidiary');
-            log.debug('subsidiary', subsidiari);
-            if (subsidiari) {
-                var subsidiariRec = record.load({
-                  type: "subsidiary",
-                  id: subsidiari,
-                  isDynamic: false,
-                });
-                var legalName = subsidiariRec.getValue('legalname');
-                var addresSubsidiaries = subsidiariRec.getValue('mainaddress_text');
-                var retEmailAddres = subsidiariRec.getValue('email');
+                isDynamic: true,
+            });
 
-                var logo = subsidiariRec.getValue('logo');
-                var filelogo;
-                var urlLogo = '';
-                if (logo) {
-                    filelogo = file.load({
-                        id: logo
-                    });
-                    urlLogo = filelogo.url.replace(/&/g, "&amp;");
-                }
-            }
+            var companyInfo = config.load({
+                type: config.Type.COMPANY_INFORMATION
+            });
+            var legalName = companyInfo.getValue("legalname");
+
+            log.debug('legalName', legalName);
+            var logo = companyInfo.getValue('formlogo');
+                    var filelogo;
+                    var urlLogo = '';
+                    if (logo) {
+                        filelogo = file.load({
+                            id: logo
+                        });
+                        //get url
+                        urlLogo = filelogo.url.replace(/&/g, "&amp;");
+                    }
+            var addres = companyInfo.getValue("mainaddress_text");
+            var retEmailAddres = companyInfo.getValue("email");
 
             var noPayment = vendPayment.getValue('tranid');
-            var paidTOid = vendPayment.getValue("customer");
+            log.debug('noPayment', noPayment);
+            var paidToText = vendPayment.getText('entity');
+            log.debug('paintoText', paidToText);
+            var paidTOid = vendPayment.getValue('entity');
+            
             if(paidTOid){
-                var paidTO
-                var venRec = record.load({
-                    type: "customer",
-                    id: paidTOid,
-                    isDynamic: false,
-                  });
-                  var isPerson = venRec.getValue("isperson");
-                  log.debug('isperson', isPerson)
-                  if(isPerson == 'T'){
-                    var firstName = venRec.getValue("firstname");
-                    var lastName = venRec.getValue("lastname");
-                    paidTO = firstName + ' ' + lastName
-                  }else{
-                    paidTO = venRec.getValue('companyname');
-                  }
-                  
-                  log.debug('paidTO', paidTO);
+                var paidTO;
+                if(paidToText.startsWith('VEND')){
+                    var vendorSearch = search.create({
+                        type: "vendor",
+                        filters:
+                        [
+                            ["internalid","anyof",paidTOid]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({name: "firstname", label: "First Name"}),
+                            search.createColumn({name: "middlename", label: "Middle Name"}),
+                            search.createColumn({name: "lastname", label: "Last Name"}),
+                            search.createColumn({name: "isperson", label: "Is Individual"}),
+                            search.createColumn({name: "internalid", label: "Internal ID"}),
+                            search.createColumn({name: "companyname",})
+                        ]
+                    });
+                    var vendorResult = vendorSearch.run();
+                    vendorSearch = vendorResult.getRange({
+                        start: 0,
+                        end: 1,
+                    });
+                    if(vendorSearch.length > 0){
+                        var venRec = vendorSearch[0];
+                        var isPerson = venRec.getValue('isperson');
+                        log.debug('iseperson', isPerson);
+                        if(isPerson === "T"){
+                            log.debug('masuk isperson');
+                            var first = venRec.getValue('firstname') || '';
+                            var middle = venRec.getValue('middlename') || '';
+                            var last = venRec.getValue('lastname') || '';
+                            log.debug('name person', {first, middle, last});
+                            paidTO = first + ' ' + middle + ' ' + last
+                        }else{
+                            var company = venRec.getValue('companyname');
+                            log.debug('companyname', company);
+                            paidTO = company
+                            var isChecklist = venRec.getValue('isautogeneratedrepresentingentity')
+                            log.debug('ischeklist', isChecklist);
+                            if(isChecklist === true){
+                                paidTO = venRec.getValue('comments')
+                            }
+                        }
+                    }
+                }else{
+                    log.debug('ini employee');
+                    var employeeName = search.create({
+                        type : 'employee',
+                        columns : ['internalid', 'firstname', 'middlename', 'lastname'],
+                        filters : [{
+                            name : 'internalid',
+                            operator : 'is',
+                            values : paidTOid
+                        }]
+                    });
+                    var employeeResultSet = employeeName.run();
+                    employeeName = employeeResultSet.getRange({
+                        start: 0,
+                        end: 1,
+                    });
+                    if(employeeName.length > 0){
+                        var employeeRecord = employeeName[0];
+                        var firstName = employeeRecord.getValue('firstname') || '';
+                        var middleName = employeeRecord.getValue('middlename') || '';
+                        var lastName = employeeRecord.getValue('lastname') || '';
+        
+                        log.debug('employeename', {firstName, middleName, lastName});
+                        paidTO = firstName +' ' +  middleName + ' ' + lastName
+                    }
+                }
+                
             }
+            log.debug('paidTO ', paidTO)
             var dateNet = vendPayment.getValue('trandate');
             
             function sysDate() {
@@ -67,16 +122,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var month = date.getUTCMonth() + 1; // jan = 0
                 var year = date.getUTCFullYear();
                 return tdate + '/' + month + '/' + year;
-              }
-              dateNet = sysDate();
-              log.debug('date', dateNet);
-              function ubahFormatTanggal(tanggal) {
+            }
+            dateNet = sysDate();
+            function ubahFormatTanggal(tanggal) {
                 const tanggalArr = tanggal.split('/');
                 const hari = tanggalArr[0];
                 const bulan = tanggalArr[1];
                 const tahun = tanggalArr[2];
-              
-                // Daftar nama bulan dalam Bahasa Indonesia
                 const daftarBulan = [
                     'January',
                     'February',
@@ -91,138 +143,119 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     'November',
                     'December'
                 ];
-              
                 const namaBulan = daftarBulan[parseInt(bulan) - 1];
-              
                 const tanggalFormatted = (hari < 10 ? '0' : '') + hari;
-              
                 const tanggalFinal = tanggalFormatted + ' ' + namaBulan + ' ' + tahun;
-              
                 return tanggalFinal;
-              }
-              
-              const tanggalAwal = dateNet;
-              const tanggalAkhir = ubahFormatTanggal(tanggalAwal);
-              log.debug('dateFormat', tanggalAkhir)
-              
-
-            var amount = vendPayment.getValue("applied");
-
-            log.debug('amount', amount);
+            }
+            const tanggalAwal = dateNet;
+            const tanggalAkhir = ubahFormatTanggal(tanggalAwal);
+            var amount = vendPayment.getValue("total");
 
             function convertToEnglish(amount) {
                 var numberNames = {
-                  0: 'ZERO',
-                  1: 'ONE',
-                  2: 'TWO',
-                  3: 'THREE',
-                  4: 'FOUR',
-                  5: 'FIVE',
-                  6: 'SIX',
-                  7: 'SEVEN',
-                  8: 'EIGHT',
-                  9: 'NINE',
-                  10: 'TEN',
-                  11: 'ELEVEN',
-                  12: 'TWELVE',
-                  13: 'THIRTEEN',
-                  14: 'FOURTEEN',
-                  15: 'FIFTEEN',
-                  16: 'SIXTEEN',
-                  17: 'SEVENTEEN',
-                  18: 'EIGHTEEN',
-                  19: 'NINETEEN',
-                  20: 'TWENTY',
-                  30: 'THIRTY',
-                  40: 'FORTY',
-                  50: 'FIFTY',
-                  60: 'SIXTY',
-                  70: 'SEVENTY',
-                  80: 'EIGHTY',
-                  90: 'NINETY',
-                  100: 'HUNDRED',
-                  1000: 'THOUSAND',
-                  1000000: 'MILLION',
-                  1000000000: 'BILLION'
+                    0: 'ZERO',
+                    1: 'ONE',
+                    2: 'TWO',
+                    3: 'THREE',
+                    4: 'FOUR',
+                    5: 'FIVE',
+                    6: 'SIX',
+                    7: 'SEVEN',
+                    8: 'EIGHT',
+                    9: 'NINE',
+                    10: 'TEN',
+                    11: 'ELEVEN',
+                    12: 'TWELVE',
+                    13: 'THIRTEEN',
+                    14: 'FOURTEEN',
+                    15: 'FIFTEEN',
+                    16: 'SIXTEEN',
+                    17: 'SEVENTEEN',
+                    18: 'EIGHTEEN',
+                    19: 'NINETEEN',
+                    20: 'TWENTY',
+                    30: 'THIRTY',
+                    40: 'FORTY',
+                    50: 'FIFTY',
+                    60: 'SIXTY',
+                    70: 'SEVENTY',
+                    80: 'EIGHTY',
+                    90: 'NINETY',
+                    100: 'HUNDRED',
+                    1000: 'THOUSAND',
+                    1000000: 'MILLION',
+                    1000000000: 'BILLION'
                 };
-              
                 function convertThreeDigit(num) {
-                  var result = '';
-                  if (num >= 100) {
-                    result += numberNames[Math.floor(num / 100)] + ' HUNDRED ';
-                    num %= 100;
-                  }
-                  if (num >= 20) {
-                    result += numberNames[Math.floor(num / 10) * 10] + ' ';
-                    num %= 10;
-                  }
-                  if (num > 0) {
-                    result += numberNames[num] + ' ';
-                  }
-                  return result.trim();
+                    var result = '';
+                    if (num >= 100) {
+                        result += numberNames[Math.floor(num / 100)] + ' HUNDRED ';
+                        num %= 100;
+                    }
+                    if (num >= 20) {
+                        result += numberNames[Math.floor(num / 10) * 10] + ' ';
+                        num %= 10;
+                    }
+                    if (num > 0) {
+                        result += numberNames[num] + ' ';
+                    }
+                    return result.trim();
                 }
-              
                 function convertDecimal(num) {
-                  var result = '';
-                  if (num >= 20) {
-                    result += numberNames[Math.floor(num / 10) * 10] + ' ';
-                    num %= 10;
-                  }
-                  if (num > 0) {
-                    result += numberNames[num];
-                  }
-                  return result.trim();
+                    var result = '';
+                    if (num >= 20) {
+                        result += numberNames[Math.floor(num / 10) * 10] + ' ';
+                        num %= 10;
+                    }
+                    if (num > 0) {
+                        result += numberNames[num];
+                    }
+                    return result.trim();
                 }
-              
                 var result = '';
                 var hasDecimal = false;
-              
                 if (amount === 0) {
-                  result = numberNames[0];
+                    result = numberNames[0];
                 } else {
-                  var billions = Math.floor(amount / 1000000000);
-                  var millions = Math.floor((amount % 1000000000) / 1000000);
-                  var thousands = Math.floor((amount % 1000000) / 1000);
-                  var remaining = Math.floor(amount % 1000);
-              
-                  if (billions > 0) {
-                    result += convertThreeDigit(billions) + ' BILLION ';
-                  }
-                  if (millions > 0) {
-                    result += convertThreeDigit(millions) + ' MILLION ';
-                  }
-                  if (thousands > 0) {
-                    result += convertThreeDigit(thousands) + ' THOUSAND ';
-                  }
-                  if (remaining > 0) {
-                    result += convertThreeDigit(remaining);
-                  }
-              
-                  // Handling decimal part
-                  var decimalPart = Math.round((amount % 1) * 100);
-                  if (decimalPart > 0) {
-                    result += 'POINT ' + convertDecimal(decimalPart);
-                    hasDecimal = true;
-                  }
+                    var billions = Math.floor(amount / 1000000000);
+                    var millions = Math.floor((amount % 1000000000) / 1000000);
+                    var thousands = Math.floor((amount % 1000000) / 1000);
+                    var remaining = Math.floor(amount % 1000);
+                
+                    if (billions > 0) {
+                        result += convertThreeDigit(billions) + ' BILLION ';
+                    }
+                    if (millions > 0) {
+                        result += convertThreeDigit(millions) + ' MILLION ';
+                    }
+                    if (thousands > 0) {
+                        result += convertThreeDigit(thousands) + ' THOUSAND ';
+                    }
+                    if (remaining > 0) {
+                        result += convertThreeDigit(remaining);
+                    }
+                
+                    // Handling decimal part
+                    var decimalPart = Math.round((amount % 1) * 100);
+                    if (decimalPart > 0) {
+                        result += ' POINT ' + convertDecimal(decimalPart);
+                        hasDecimal = true;
+                    }
                 }
-              
                 if (!hasDecimal) {
-                  result += ' RUPIAH';
+                    result += ' RUPIAH';
                 }
                 return result.trim();
-              }
-              
-              var cashAmount = convertToEnglish(amount);
-              log.debug('cashAmount', cashAmount);
+            }
+            var cashAmount = convertToEnglish(amount);
 
-              if(amount){
+            if(amount){
                 amount = format.format({
                     value: amount,
                     type: format.Type.CURRENCY
                 })
-              }
-              log.debug('amount CUrr', amount);
-              
+            }
             var response = context.response;
             var xml = "";
             var header = "";
@@ -235,11 +268,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             style += "<style type='text/css'>";
             style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
             style += ".tg .tg-headerlogo{align:left; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
-            if(subsidiari == 1){
-              style += ".tg .tg-img-logo{width:150px; height:111px; object-vit:cover;}";
-            }else{
-                style += ".tg .tg-img-logo{width:195px; height:90px; object-vit:cover;}";
-            }
+
+            style += ".tg .tg-img-logo{width:195px; height:80px; object-vit:cover;}";
             style += ".tg .tg-headerrow{align:left;font-size:12px;}";
             style += ".tg .tg-headerrow_legalName{align:left;font-size:15px;word-break:break-all; font-weight: bold;}";
             style += ".tg .tg-head_body{align: left;font-size:12px;font-weight: bold; border-top: 3px solid black; border-bottom: 3px solid black;}";
@@ -259,8 +289,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<tr>";
             body += "<td>";
             body += "<p class='tg-headerrow_legalName' style='margin-top: 10px; margin-bottom: 10px;'>" + legalName + "</p>";
-            body += "<p class='tg-headerrow' style='margin-top: 1px; margin-bottom: 1px; font-size:14px'>" + addresSubsidiaries + "<br/>";
-            body += "e-mail : " + retEmailAddres + "</p>"
+            body += "<p class='tg-headerrow' style='margin-top: 1px; margin-bottom: 1px; font-size:14px'>" + addres + "<br/> </p>";
+            // body += "e-mail : " + retEmailAddres + "</p>"
             body += "</td>";
             if (urlLogo) {
                 body += "<td class='tg-headerlogo' style='width:50%; vertical-align:center; align:right;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img> </td>";
@@ -268,21 +298,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "</tr>";
             
             body += "<tr style='height:30px'>"
-            body += "<td style='align: center; font-size: 14px; border-top: solid black 2px; border-bottom: solid black 2px; font-weight: bold; vertical-align: middle;' colspan='2'>CASH RECEIPT</td>"
+            body += "<td style='align: center; font-size: 14px; border-top: solid black 2px; border-bottom: solid black 2px; font-weight: bold; vertical-align: middle;' colspan='2'>REMITTANCE ADVICE</td>"
             body += "</tr>"
             body += "<tr style='height:10px'></tr>"
             body += "<tr>"
             body += "<td style='align:center; font-size:14px;' colspan='2'>No. : "+ noPayment +"</td>"
             body += "</tr>"
-            body += "<tr style='height:10px'></tr>"
             body += "</tbody>";
             body += "</table>";
 
             body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
             body += "<thead>"
             body += "<tr>"
-            body += "<td style='width:4%'></td>"
-            body += "<td style='width:26%'></td>"
+            body += "<td style='width:30%'></td>"
             body += "<td style='width:3%'></td>"
             body += "<td style='width:50%'></td>"
             body += "<td style='width:18%'></td>"
@@ -290,15 +318,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "</thead>"
             body += "<tbody>"
             body += "<tr>"
-            body += "<td></td>"
-            body += "<td>Received From</td>"
+            body += "<td>Paid To</td>"
             body += "<td>:</td>"
             body += "<td>"+ paidTO +"</td>"
             body += "<td></td>"
             body += "</tr>";
             body += "<tr style='height:10px'></tr>"
             body += "<tr>"
-            body += "<td></td>"
             body += "<td>Cash Amount</td>"
             body += "<td>:</td>"
             body += "<td>"+ cashAmount +"</td>"
@@ -331,10 +357,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td style='align:center'>"+tanggalAkhir+"</td>"
             body += "</tr>"
             body += "<tr style='height: 45px'>"
-            body += "<td style='align: center; font-size:14px; font-weight: bold; border-top-width: 1px; border-bottom-width: 1px; vertical-align: middle;'>Amount</td>"
-            body += "<td style='align:center; font-size:14px; font-weight:bold; background-color:#d69506; border-top-width: 1px; border-bottom-width: 1px; vertical-align: middle;'>Rp. " + amount + "</td>";
+            body += "<td style='align: center; font-size:12px; font-weight: bold; border-top: solid black 0,5px; border-bottom: solid black 0,5px; vertical-align: middle;'>Amount</td>"
+            body += "<td style='align:center; font-size:12px; font-weight:bold; background-color:#ffbf00; border-top: solid black 0,5px; border-bottom: solid black 0,5px; vertical-align: middle;'>Rp. " + amount + "</td>";
             body += "<td></td>"
-            body += "<td style='align:center;'>"+legalName+"</td>"
+            body += "<td style='align:center; font-weight: bold;'>"+legalName+"</td>"
             body += "</tr>"
             body += "<tr style='height:20px'></tr>"
             body += "</tbody>";
@@ -350,7 +376,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "</tr>"
             body += "</thead>"
             body += "<tbody>"
-            body += "<tr style='height:20px'></tr>"
             body += "<tr>"
             body += "<td></td>"
             body += "<td>(</td>"
@@ -369,7 +394,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             footer += "<table class='tg' style='table-layout: fixed;'>";
             footer += "<tbody>";
             footer += "<tr class='tg-foot'>";
-            footer += "<td style='align:left'>Receive Payment #"+ noPayment +"</td>"
+            footer += "<td style='align:left'>Purchase Payment #"+ noPayment +"</td>"
             footer += "<td style='align:right'></td>"
             footer += "</tr>";
             footer += "</tbody>";
@@ -401,11 +426,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var body = "";
             var applyCount = vendPayment.getLineCount({
                 sublistId: 'apply'
-              });
-
-            log.debug('applycount', applyCount);
+            });
             if(applyCount > 0){
-                
                 var refnums = [];
                 for (var index = 0; index < applyCount; index++) {
                     var isApply = vendPayment.getSublistValue({
@@ -413,26 +435,23 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fieldId : 'apply',
                         line : index
                     });
-                    log.debug('isApply', isApply);
                     if(isApply === true){
                         var refnum = vendPayment.getSublistValue({
-                            sublistId: 'apply',
-                            fieldId: 'refnum',
-                            line: index
-                        });
-                        refnums.push("Sales Invoice #" + refnum);
+                            sublistId : 'apply',
+                            fieldId : 'refnum',
+                            line : index
+                        })
+                        refnums.push("Purchase Invoice #" + refnum);
+                        
                     }
                     
                 }
-
                 var body = "<tr>";
-                body += "<td></td>"
                 body += "<td>Payment For</td>";
                 body += "<td>:</td>";
                 body += "<td>" + refnums.join(", ") + "</td>";
                 body += "<td></td>";
                 body += "</tr>";
-
                 return body;
             }
             

@@ -70,6 +70,8 @@ define(["N/record", "N/search"], function(
                     textSub = 'TO'
                 }else if(TransType == 'estimate'){
                     textSub = 'QT'
+                }else if(TransType == 'custpymt'){
+                    textSub = 'PYMT'
                 }
                 var formatRunning = '';
                 if(TransType == 'estimate'){
@@ -139,6 +141,7 @@ define(["N/record", "N/search"], function(
                     }else{
                         if(lastRun === ''){
                             log.debug('lastrun empty')
+                            log.debug('formatRunning', formatRunning);
                             var newLastRun = lastRun + 1;
                             var newDigitPart = '0'.repeat(minimumDigit) + newLastRun.toString();
             

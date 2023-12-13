@@ -61,7 +61,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
         var custAddres = custAddres.replace(new RegExp('\r?\n', 'g'), '<br />');
         var custAddres = custAddres.substring(custAddres.indexOf('<br />') + 6);
         var custEmail = customerRecord.getValue('email');
-        var taxRegNo = customerRecord.getValue('vatregnumber');
+        var taxRegNo = customerRecord.getValue('custentity1');
         var count = customerRecord.getLineCount({
           sublistId: 'submachine'
         });
