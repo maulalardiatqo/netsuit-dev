@@ -326,18 +326,19 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                                                 
                                                 return true;
                                             });
-                                            if (isPPh21 == true) {
-                                                sumKompPendapatan += Number(JumlahPendapatan);
-                                            }
-                                            if(typeSalary == '1'){
-                                                gajiPokok = JumlahPendapatan
-                                            }
-                                            if(typeSalary == '7'){
-                                                tunjangan = JumlahPendapatan
-                                            }if(typeSalary == '2'){
-                                                thr += Number(jumlahPendapatan)
-                                            }
                                             if(typeSalary != '4' && typeSalary != '3'){
+                                                if (isPPh21 == true) {
+                                                    sumKompPendapatan += Number(JumlahPendapatan);
+                                                }
+                                                if(typeSalary == '1'){
+                                                    gajiPokok = JumlahPendapatan
+                                                }
+                                                if(typeSalary == '7'){
+                                                    tunjangan = JumlahPendapatan
+                                                }if(typeSalary == '2'){
+                                                    thr += Number(jumlahPendapatan)
+                                                }
+                                            
                                                 recCreate.selectNewLine({
                                                     sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
                                                 });
@@ -953,7 +954,6 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime'],
                             BiayaJabatan = 500000
                         }
                         
-
                         var totalBiayaJabatan = BiayaJabatan * 12
                         var jumlahPengurangan = Number(totalBiayaJabatan) + Number(iuranPensiunTahun)
                         var totalincomeTahun = totalIncome * 12

@@ -26,6 +26,8 @@ define(["N/runtime", "N/log", "N/ui/serverWidget", "N/ui/message"], function (ru
       if (countryValue === 'ID') {
         log.debug('indonesia')
         tranPrefixField.isMandatory = true;
+      }else{
+        // tranPrefixField.isDisplay = false;
       }
     }
   }
