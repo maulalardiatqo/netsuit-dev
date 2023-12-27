@@ -61,7 +61,32 @@ define(['N/url', 'N/record', 'N/search', 'N/ui/message'], function(url, record, 
                     fieldId : 'item',
                     line : index
                 });
-                
+                var bins = 0;
+                // search master items
+                var itemSearchObj = search.create({
+                    type: "item",
+                    filters:
+                    [
+                        ["internalid","anyof",item]
+                    ],
+                    columns:
+                    [
+                        search.createColumn({name: "binnumber", label: "Bin Number"}),
+                        search.createColumn({name: "usebins", label: "Use Bins"})
+                    ]
+                });
+                var searchResultCount = itemSearchObj.runPaged().count;
+                log.debug("itemSearchObj result count",searchResultCount);
+                itemSearchObj.run().each(function(result){
+                    var binNumber = result.getValue({
+                        name : 'binnumber'
+                    });
+                    if(binNumber){
+                        bins = binNumber
+                    }
+                    return true;
+                });
+                // end search master item
                 var unit = recItem.getSublistValue({
                     sublistId : 'item',
                     fieldId : 'units',
@@ -72,129 +97,130 @@ define(['N/url', 'N/record', 'N/search', 'N/ui/message'], function(url, record, 
                     fieldId : 'quantity',
                     line : index
                 })
-                
-                recCreateBin.selectNewLine({
-                    sublistId: "inventory",
-                });
-                
-                console.log('commited')
-                recCreateBin.setCurrentSublistValue({
-                    sublistId : 'inventory',
-                    fieldId: 'item',
-                    value: item,
-                });
-                console.log('rec1');
-                
-                recCreateBin.setCurrentSublistValue({
-                    sublistId : 'inventory',
-                    fieldId: 'units',
-                    value: unit, 
-                });
-                recCreateBin.setCurrentSublistValue({
-                    sublistId : 'inventory',
-                    fieldId: 'quantity',
-                    value: qty, 
-                });
-
-                var idInv = recItem.getSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'inventorydetail',
-                    line: index
-                });
-                var inventorydetailSearchObj = search.create({
-                    type: "inventorydetail",
-                    filters:
-                    [
-                        ["internalid","anyof",idInv]
-                    ],
-                    columns:
-                    [
-                        search.createColumn({
-                            name: "inventorynumber",
-                            sort: search.Sort.ASC,
-                            label: " Number"
-                        }),
-                        search.createColumn({name: "binnumber", label: "Bin Number"}),
-                        search.createColumn({name: "status", label: "Status"}),
-                        search.createColumn({name: "quantity", label: "Quantity"}),
-                        search.createColumn({name: "itemcount", label: "Item Count"}),
-                        search.createColumn({name: "expirationdate", label: "Expiration Date"}),
-                        search.createColumn({name: "item", label: "Item"}),
-                    ]
-                });
-                var searchResultCount = inventorydetailSearchObj.runPaged().count;
-                log.debug("inventorydetailSearchObj result count",searchResultCount);
-                inventorydetailSearchObj.run().each(function(result){
-                    var subrecInvtrDetailAdjst = recCreateBin.getCurrentSublistSubrecord({
+                console.log('bins', bins);
+                if(bins != 0){
+                    recCreateBin.selectNewLine({
                         sublistId: "inventory",
-                        fieldId: "inventorydetail",
                     });
-                    subrecInvtrDetailAdjst.selectNewLine({
-                        sublistId: "inventoryassignment",
-                    });
-                    var lotNumber = result.getValue({
-                        name : 'inventorynumber'
-                    })
-                    subrecInvtrDetailAdjst.setCurrentSublistValue({
-                        sublistId : 'inventoryassignment',
-                        fieldId: 'issueinventorynumber',
-                        value: lotNumber, 
-                    });
-                    var itemBin = result.getValue({
-                        name : 'item'
-                    });
-                    var tobins = "1"
-                    console.log('itemBin', itemBin);
-                    subrecInvtrDetailAdjst.setCurrentSublistValue({
-                        sublistId : 'inventoryassignment',
+                    recCreateBin.setCurrentSublistValue({
+                        sublistId : 'inventory',
                         fieldId: 'item',
-                        value: itemBin, 
+                        value: item,
                     });
-                    var binNumber = result.getValue({
-                        name : 'binnumber'
-                    });
-                    console.log('binnumber', binNumber);
-                    subrecInvtrDetailAdjst.setCurrentSublistValue({
-                        sublistId : 'inventoryassignment',
-                        fieldId: 'binnumber',
-                        value: binNumber, 
-                    });
+                    console.log('rec1');
                     
-                    subrecInvtrDetailAdjst.setCurrentSublistValue({
-                        sublistId : 'inventoryassignment',
-                        fieldId: 'tobinnumber',
-                        value: tobins, 
-                    });                    
-                    console.log('tobins', tobins);
-                    var qtyBins = result.getValue({
-                        name : 'quantity'
+                    recCreateBin.setCurrentSublistValue({
+                        sublistId : 'inventory',
+                        fieldId: 'units',
+                        value: unit, 
                     });
-                    subrecInvtrDetailAdjst.setCurrentSublistValue({
-                        sublistId : 'inventoryassignment',
+                    recCreateBin.setCurrentSublistValue({
+                        sublistId : 'inventory',
                         fieldId: 'quantity',
-                        value: qtyBins, 
+                        value: qty, 
                     });
-                    console.log('qtyBins', qtyBins)
-                    var statusInv = result.getValue({
-                        name: "status"
-                    })
-                    subrecInvtrDetailAdjst.setCurrentSublistValue({
-                        sublistId : 'inventoryassignment',
-                        fieldId: 'inventorystatus',
-                        value: statusInv, 
+    
+                    var idInv = recItem.getSublistValue({
+                        sublistId : 'item',
+                        fieldId   : 'inventorydetail',
+                        line: index
                     });
-                    console.log('statusInv', statusInv)
-                    subrecInvtrDetailAdjst.setCurrentSublistValue({
-                        sublistId : 'inventoryassignment',
-                        fieldId: 'toinventorystatus',
-                        value: 1, 
+                    var inventorydetailSearchObj = search.create({
+                        type: "inventorydetail",
+                        filters:
+                        [
+                            ["internalid","anyof",idInv]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({
+                                name: "inventorynumber",
+                                sort: search.Sort.ASC,
+                                label: " Number"
+                            }),
+                            search.createColumn({name: "binnumber", label: "Bin Number"}),
+                            search.createColumn({name: "status", label: "Status"}),
+                            search.createColumn({name: "quantity", label: "Quantity"}),
+                            search.createColumn({name: "itemcount", label: "Item Count"}),
+                            search.createColumn({name: "expirationdate", label: "Expiration Date"}),
+                            search.createColumn({name: "item", label: "Item"}),
+                        ]
                     });
-                    subrecInvtrDetailAdjst.commitLine({
-                        sublistId: "inventoryassignment",
+                    var searchResultCount = inventorydetailSearchObj.runPaged().count;
+                    log.debug("inventorydetailSearchObj result count",searchResultCount);
+                    inventorydetailSearchObj.run().each(function(result){
+                        var subrecInvtrDetailAdjst = recCreateBin.getCurrentSublistSubrecord({
+                            sublistId: "inventory",
+                            fieldId: "inventorydetail",
+                        });
+                        subrecInvtrDetailAdjst.selectNewLine({
+                            sublistId: "inventoryassignment",
+                        });
+                        var lotNumber = result.getValue({
+                            name : 'inventorynumber'
+                        })
+                        subrecInvtrDetailAdjst.setCurrentSublistValue({
+                            sublistId : 'inventoryassignment',
+                            fieldId: 'issueinventorynumber',
+                            value: lotNumber, 
+                        });
+                        var itemBin = result.getValue({
+                            name : 'item'
+                        });
+                        var tobins = "1"
+                        console.log('itemBin', itemBin);
+                        subrecInvtrDetailAdjst.setCurrentSublistValue({
+                            sublistId : 'inventoryassignment',
+                            fieldId: 'item',
+                            value: itemBin, 
+                        });
+                        var binNumber = result.getValue({
+                            name : 'binnumber'
+                        });
+                        console.log('binnumber', binNumber);
+                        subrecInvtrDetailAdjst.setCurrentSublistValue({
+                            sublistId : 'inventoryassignment',
+                            fieldId: 'binnumber',
+                            value: binNumber, 
+                        });
+                        
+                        subrecInvtrDetailAdjst.setCurrentSublistValue({
+                            sublistId : 'inventoryassignment',
+                            fieldId: 'tobinnumber',
+                            value: tobins, 
+                        });                    
+                        console.log('tobins', tobins);
+                        var qtyBins = result.getValue({
+                            name : 'quantity'
+                        });
+                        subrecInvtrDetailAdjst.setCurrentSublistValue({
+                            sublistId : 'inventoryassignment',
+                            fieldId: 'quantity',
+                            value: qtyBins, 
+                        });
+                        console.log('qtyBins', qtyBins)
+                        var statusInv = result.getValue({
+                            name: "status"
+                        })
+                        subrecInvtrDetailAdjst.setCurrentSublistValue({
+                            sublistId : 'inventoryassignment',
+                            fieldId: 'inventorystatus',
+                            value: statusInv, 
+                        });
+                        console.log('statusInv', statusInv)
+                        subrecInvtrDetailAdjst.setCurrentSublistValue({
+                            sublistId : 'inventoryassignment',
+                            fieldId: 'toinventorystatus',
+                            value: 1, 
+                        });
+                        subrecInvtrDetailAdjst.commitLine({
+                            sublistId: "inventoryassignment",
+                        });
+                        return true;
                     });
-                    return true;
-                });
-                recCreateBin.commitLine("inventory")
+                    recCreateBin.commitLine("inventory")
+                }
+                
             }
         }
         var saveBins = recCreateBin.save({
