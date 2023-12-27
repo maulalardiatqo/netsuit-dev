@@ -113,7 +113,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     if (custAddres === '') {
                         
                         custAddres = customerRecord.getValue('defaultaddress');
+                        
                     }
+                    log.debug('custAdress', custAddres);
+                        if(custAddres.includes('&')){
+                            custAddres = custAddres.replace(/&/g, 'dan');
+                        }
+                        log.debug('custAdress after', custAddres);
                     var custEmail = customerRecord.getValue('email');
                     var taxRegNo = customerRecord.getValue('vatregnumber');
                     var count = customerRecord.getLineCount({
@@ -587,7 +593,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             line: index
                         });
                         if (description.includes('\\')) {
-                            // log.debug('ada tanda');
+                            log.debug('ada tanda');
                             description = description.replace(/\\/g, '<br/>');
                         }
                         if(description.includes('$') && description.includes('$$')){

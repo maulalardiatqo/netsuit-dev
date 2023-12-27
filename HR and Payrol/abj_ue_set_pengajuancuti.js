@@ -71,10 +71,10 @@ define(['N/record', 'N/log', 'N/search'], function(record, log, search) {
                             fieldId: 'custrecord_pengambilan_hari', 
                             value: daysDiff
                         });
-                        newRecord.setValue({
-                            fieldId: 'custrecord_status_pengajuan_cuti', 
-                            value: 'Pengajuan'
-                        });
+                        // newRecord.setValue({
+                        //     fieldId: 'custrecord_status_pengajuan_cuti', 
+                        //     value: 'Pengajuan'
+                        // });
                     }
                     
                     

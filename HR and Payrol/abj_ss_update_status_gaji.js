@@ -146,16 +146,16 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime', 'N/format'],
                             })
                             if(pendapatanText.includes("JP")){
                                 var isJPpph21 = recBPJS.getValue("custrecord_abj_msa_is_jp_pph21");
-                                log.debug("isJPpph21", isJPpph21)
-                                log.debug('jumlahPendapatan', jumlahPendapatan)
+                                // log.debug("isJPpph21", isJPpph21)
+                                // log.debug('jumlahPendapatan', jumlahPendapatan)
                                 if(isJPpph21 == true){
                                     jumlahPPh21 += Number(jumlahPendapatan);
                                 }
                             }
                             if(pendapatanText.includes("JHT")){
                                 var isJHTPPh21 = recBPJS.getValue("custrecord_abj_msa_is_jht_pph21");
-                                log.debug("isJPpph21", isJPpph21)
-                                log.debug('jumlahPendapatan', jumlahPendapatan)
+                                // log.debug("isJPpph21", isJPpph21)
+                                // log.debug('jumlahPendapatan', jumlahPendapatan)
                                 if(isJHTPPh21 == true){
                                     jumlahPPh21 += Number(jumlahPendapatan);
                                 }
@@ -196,7 +196,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime', 'N/format'],
                     var potonganSlipCOunt = recSlipGaji.getLineCount({
                         sublistId : "recmachcustrecord_abj_msa_slip_potongan"
                     })
-                    log.debug('potonganSlipCOunt', potonganSlipCOunt)
+                    // log.debug('potonganSlipCOunt', potonganSlipCOunt)
                     if(potonganSlipCOunt > 0){
                         for(var j = 0; j < potonganSlipCOunt; j++ ){
                             var kompPotongan = recSlipGaji.getSublistValue({
@@ -204,13 +204,13 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime', 'N/format'],
                                 fieldId : "custrecord_abj_msa_slip_slip_potongan",
                                 line : j
                             });
-                            log.debug("kompPotongan", kompPotongan);
+                            // log.debug("kompPotongan", kompPotongan);
                             var jumlahPotongan = recSlipGaji.getSublistValue({
                                 sublistId : "recmachcustrecord_abj_msa_slip_potongan",
                                 fieldId : "custrecord_abj_msa_slip_slip_jumlah",
                                 line : j
                             });
-                            log.debug("jumlahPotongan", jumlahPotongan)
+                            // log.debug("jumlahPotongan", jumlahPotongan)
                             if(kompPotongan.includes("PPh21")){
                                 lineNumberPotongan = j
                             }else{
@@ -220,7 +220,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime', 'N/format'],
                         
                         
                     }
-                    log.debug('jumlahPPh21 cek 1', jumlahPPh21);
+                    // log.debug('jumlahPPh21 cek 1', jumlahPPh21);
                     var slipGajiId = data.slipGajiId
                     var idEmp = data.idEmp
 
@@ -248,7 +248,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime', 'N/format'],
                         ]
                     });
                     var searchResultCount = customrecord_attendance_overtimeSearchObj.runPaged().count;
-                    log.debug("customrecord_attendance_overtimeSearchObj result count",searchResultCount);
+                    // log.debug("customrecord_attendance_overtimeSearchObj result count",searchResultCount);
                     customrecord_attendance_overtimeSearchObj.run().each(function(result){
                         var internalidOv = result.getValue({
                             name : "internalid"
@@ -268,7 +268,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime', 'N/format'],
                                 ]
                             });
                             var searchResultCount = customrecord418SearchObj.runPaged().count;
-                            log.debug("customrecord418SearchObj result count",searchResultCount);
+                            // log.debug("customrecord418SearchObj result count",searchResultCount);
                             customrecord418SearchObj.run().each(function(result){
                                 var hoursOvt = result.getValue({
                                     name : "custrecord_aos_total_hours"
@@ -281,6 +281,55 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime', 'N/format'],
                         }
                         return true;
                     });
+                     // search cuti
+                    
+                    var startDateFormat = new Date(formatTanggal(formattedStartDate));
+                    var endDateFormat = new Date(formatTanggal(formattedEndDate));
+                    log.debug('startDateFormat', startDateFormat);
+                    log.debug('endDateFormat', endDateFormat)
+                    var startMonth = formattedStartDate.split('/')[1];
+                    var startMonthFormat = '-' + startMonth + '-'
+                    var endMonth = formattedEndDate.split('/')[1];
+                    var endMonthFormat = '-' + endMonth + '-';
+                    log.debug('startMonthFormat', startMonthFormat)
+                    log.debug('endMonthFormat', endMonthFormat)
+                    var customrecord_pengajuan_cutiSearchObj = search.create({
+                        type: "customrecord_pengajuan_cuti",
+                        filters:
+                        [
+                            ["custrecord_msa_tgl_cuti","contains",startMonthFormat], 
+                            "OR", 
+                            ["custrecord_msa_tgl_cuti","contains",endMonthFormat],
+                            "AND",
+                            ["custrecord_status_pengajuan_cuti","anyof","2"], 
+                            "AND", 
+                            ["custrecord_employee_pengajuan","anyof",idEmp]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({name: "custrecord_msa_tgl_cuti"}),
+                        ]
+                    });
+                    var searchResultCount = customrecord_pengajuan_cutiSearchObj.runPaged().count;
+                    log.debug("customrecord_pengajuan_cutiSearchObj result count",searchResultCount);
+                    var countTglCutiBetween = 0;
+                    customrecord_pengajuan_cutiSearchObj.run().each(function(result){
+                        var tglCuti = result.getValue({
+                            name : "custrecord_msa_tgl_cuti"
+                        });
+                        var arrayTglCuti = tglCuti.split(', ');
+                        arrayTglCuti.forEach((tgl)=>{
+                            var tanggal = new Date(tgl);
+                            log.debug('tanggal', tanggal)
+                            if(tanggal >= startDateFormat && tanggal <= endDateFormat){
+                                countTglCutiBetween++
+                                log.debug('countTglCutiBetween', countTglCutiBetween)
+                            }
+                        })
+                        log.debug('tglCuti', tglCuti);
+                        return true;
+                    });
+                    log.debug('countTglCutiBetween', countTglCutiBetween)
                     var gajiTunjangan = [];
                     var thr = 0;
                     var customrecord_msa_remunerasiSearchObj = search.create({
@@ -529,7 +578,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime', 'N/format'],
                             var pendTex = data.pendapatanText
                             var jumlah = data.jumlahPend
                             var isPPh = data.isPPh
-                            var totalTunjangan = Number(jumlah) * Number(totalCount)
+                            var totalTunjangan = Number(jumlah) * (Number(totalCount) + Number(countTglCutiBetween)) 
                             if(isPPh == true){
                                 jumlahPPh21 += Number(totalTunjangan);
                             }
@@ -630,6 +679,7 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime', 'N/format'],
                     log.debug('totalIncomeToahun', totalIncometahun);
                     log.debug('jumlahPtkp', jumlahPtkp);
                     var pkp = Number(penghasilanNetto) - jumlahPtkp
+                    var pajakperBulan = 0
                     log.debug('pkp', pkp);
                     if(pkp >= jumlahPtkp){
                         if(pkp != 0){
@@ -651,85 +701,121 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime', 'N/format'],
                         }
                     }
                     log.debug('pajakPerbulan', pajakperBulan);
-                    if(metodePajak == '1'){
-                        recSlipGaji.setValue({
-                            fieldId: 'custrecord_abj_msa_pph21perusahaan',
-                            value : pajakperBulan
-                        })
-                    }else if(metodePajak == '2'){
-                        recSlipGaji.selectLine({
-                            sublistId : "recmachcustrecord_abj_msa_slip_potongan",
-                            line : lineNumberPotongan
-                        })
-                        recSlipGaji.setCurrentSublistValue({
-                            sublistId: "recmachcustrecord_abj_msa_slip_potongan",
-                            fieldId: "custrecord_abj_msa_slip_slip_jumlah",
-                            line : lineNumberPotongan,
-                            value: pajakperBulan,
-                        });
-                        recSlipGaji.commitLine("recmachcustrecord_abj_msa_slip_potongan");
-
-                        recSlipGaji.setValue({
-                            fieldId : 'custrecord_abj_msa_pph21karyawan',
-                            value : pajakperBulan
-                        });
-                    }else{
-                        var pajakPertahun = 0;
-                        log.debug('pkp', pkp);
-                        log.debug('ptkp', jumlahPtkp);
-                        if(pkp >= jumlahPtkp){
-                            if (pkp <= 47500000) {
-                                pajakPertahun = (pkp - 0) * (5 / 95) + 0;
-                                
-                            } else if (pkp <= 217500000) {
-                                pajakPertahun = (pkp - 47500000) * (15 / 85) + 2500000;
-                                
-                            } else if (pkp <= 405000000) {
-                                pajakPertahun = (pkp - 217500000) * (25 / 75) + 32500000;
-                                
-                            } else {
-                                pajakPertahun = (pkp - 405000000) * (30 / 70) + 95000000;
-                                
+                    if(pajakperBulan != 0){
+                        if(metodePajak == '1'){
+                            recSlipGaji.setValue({
+                                fieldId: 'custrecord_abj_msa_pph21perusahaan',
+                                value : pajakperBulan
+                            })
+                        }else if(metodePajak == '2'){
+                            if(lineNumberPotongan){
+                                recSlipGaji.selectLine({
+                                    sublistId : "recmachcustrecord_abj_msa_slip_potongan",
+                                    line : lineNumberPotongan
+                                })
+                                recSlipGaji.setCurrentSublistValue({
+                                    sublistId: "recmachcustrecord_abj_msa_slip_potongan",
+                                    fieldId: "custrecord_abj_msa_slip_slip_jumlah",
+                                    line : lineNumberPotongan,
+                                    value: pajakperBulan,
+                                });
+                                recSlipGaji.commitLine("recmachcustrecord_abj_msa_slip_potongan");
+                            }else{
+                                recSlipGaji.selectNewLine({
+                                    sublistId : "recmachcustrecord_abj_msa_slip_potongan",
+                                })
+                                recSlipGaji.setCurrentSublistValue({
+                                    sublistId: "recmachcustrecord_abj_msa_slip_potongan",
+                                    fieldId: "custrecord_abj_msa_slip_slip_jumlah",
+                                    value: pajakperBulan,
+                                });
+                                recSlipGaji.commitLine("recmachcustrecord_abj_msa_slip_potongan");
                             }
+                            recSlipGaji.setValue({
+                                fieldId : 'custrecord_abj_msa_pph21karyawan',
+                                value : pajakperBulan
+                            });
+                        }else{
+                            var pajakPertahun = 0;
+                            log.debug('pkp', pkp);
+                            log.debug('ptkp', jumlahPtkp);
+                            if(pkp >= jumlahPtkp){
+                                if (pkp <= 47500000) {
+                                    pajakPertahun = (pkp - 0) * (5 / 95) + 0;
+                                    
+                                } else if (pkp <= 217500000) {
+                                    pajakPertahun = (pkp - 47500000) * (15 / 85) + 2500000;
+                                    
+                                } else if (pkp <= 405000000) {
+                                    pajakPertahun = (pkp - 217500000) * (25 / 75) + 32500000;
+                                    
+                                } else {
+                                    pajakPertahun = (pkp - 405000000) * (30 / 70) + 95000000;
+                                    
+                                }
+                            }
+                            
+                            log.debug('pajakPertahun', pajakPertahun);
+                            var pajakperBulanGrossUp = pajakPertahun / 12;
+                            log.debug("pajakperBulanGrossUp", pajakperBulanGrossUp)
+                            recSlipGaji.setValue({
+                                fieldId : 'custrecord_abj_msa_pph21perusahaan',
+                                value : pajakperBulanGrossUp
+                            });
+                            recSlipGaji.setValue({
+                                fieldId : 'custrecord_abj_msa_pph21karyawan',
+                                value : pajakperBulanGrossUp
+                            });
+                            if(lineNumber){
+                                recSlipGaji.selectLine({
+                                    sublistId : "recmachcustrecord_abj_msa_slip_slip_gaji",
+                                    line : lineNumber
+                                })
+                                recSlipGaji.setCurrentSublistValue({
+                                    sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
+                                    fieldId: "custrecord_abj_msa_slip_pendapatan",
+                                    line : lineNumber,
+                                    value: pajakperBulanGrossUp,
+                                });
+                                recSlipGaji.commitLine("recmachcustrecord_abj_msa_slip_slip_gaji");
+        
+                                recSlipGaji.selectLine({
+                                    sublistId : "recmachcustrecord_abj_msa_slip_potongan",
+                                    line : lineNumberPotongan
+                                })
+                                recSlipGaji.setCurrentSublistValue({
+                                    sublistId: "recmachcustrecord_abj_msa_slip_potongan",
+                                    fieldId: "custrecord_abj_msa_slip_slip_jumlah",
+                                    line : lineNumberPotongan,
+                                    value: pajakperBulanGrossUp,
+                                });
+                                recSlipGaji.commitLine("recmachcustrecord_abj_msa_slip_potongan");
+                            }else{
+                                recSlipGaji.selectNewLine({
+                                    sublistId : "recmachcustrecord_abj_msa_slip_slip_gaji",
+                                });
+                                recSlipGaji.setCurrentSublistValue({
+                                    sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
+                                    fieldId: "custrecord_abj_msa_slip_pendapatan",
+                                    value: pajakperBulanGrossUp,
+                                });
+                                recSlipGaji.commitLine("recmachcustrecord_abj_msa_slip_slip_gaji");
+
+                                recSlipGaji.selectNewLine({
+                                    sublistId : "recmachcustrecord_abj_msa_slip_potongan",
+                                });
+                                recSlipGaji.setCurrentSublistValue({
+                                    sublistId: "recmachcustrecord_abj_msa_slip_potongan",
+                                    fieldId: "custrecord_abj_msa_slip_slip_jumlah",
+                                    value: pajakperBulanGrossUp,
+                                });
+                                recSlipGaji.commitLine("recmachcustrecord_abj_msa_slip_potongan");
+                            }
+                            
+    
                         }
-                        
-                        log.debug('pajakPertahun', pajakPertahun);
-                        var pajakperBulanGrossUp = pajakPertahun / 12;
-                        log.debug("pajakperBulanGrossUp", pajakperBulanGrossUp)
-                        recSlipGaji.setValue({
-                            fieldId : 'custrecord_abj_msa_pph21perusahaan',
-                            value : pajakperBulanGrossUp
-                        });
-                        recSlipGaji.setValue({
-                            fieldId : 'custrecord_abj_msa_pph21karyawan',
-                            value : pajakperBulanGrossUp
-                        });
-
-                        recSlipGaji.selectLine({
-                            sublistId : "recmachcustrecord_abj_msa_slip_slip_gaji",
-                            line : lineNumber
-                        })
-                        recSlipGaji.setCurrentSublistValue({
-                            sublistId: "recmachcustrecord_abj_msa_slip_slip_gaji",
-                            fieldId: "custrecord_abj_msa_slip_pendapatan",
-                            line : lineNumber,
-                            value: pajakperBulanGrossUp,
-                        });
-                        recSlipGaji.commitLine("recmachcustrecord_abj_msa_slip_slip_gaji");
-
-                        recSlipGaji.selectLine({
-                            sublistId : "recmachcustrecord_abj_msa_slip_potongan",
-                            line : lineNumberPotongan
-                        })
-                        recSlipGaji.setCurrentSublistValue({
-                            sublistId: "recmachcustrecord_abj_msa_slip_potongan",
-                            fieldId: "custrecord_abj_msa_slip_slip_jumlah",
-                            line : lineNumberPotongan,
-                            value: pajakperBulanGrossUp,
-                        });
-                        recSlipGaji.commitLine("recmachcustrecord_abj_msa_slip_potongan");
-
                     }
+                    
                     var thptoSet = Number(thp) + Number(totalBayarLembur) + Number(totalTunjangantoCount);
                     recSlipGaji.setValue({
                         fieldId: 'custrecord_abj_msa_bruto',
@@ -761,6 +847,12 @@ define(['N/search', 'N/record', 'N/email', 'N/runtime', 'N/format'],
                 'September', 'Oktober', 'November', 'Desember'
             ];
             return monthNames[monthIndex];
+        }
+        function formatTanggal(inputDate) {
+            var parts = inputDate.split('/');
+            var formattedDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+        
+            return formattedDate;
         }
         function formatDate(dateString) {
             var parts = dateString.split(" ");

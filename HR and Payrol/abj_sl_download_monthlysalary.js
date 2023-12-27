@@ -351,7 +351,7 @@ define(["N/ui/serverWidget", "N/config", "N/search", "N/record", "N/ui/message",
                             //   End Styles
 
                              // Sheet Name
-                             xmlStr += '<Worksheet ss:Name="+ namePeriod +">';
+                            xmlStr += '<Worksheet ss:Name="+ namePeriod +">';
                              // End Sheet Name
                              // Kolom Excel Header
                             xmlStr +=

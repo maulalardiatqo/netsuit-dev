@@ -166,7 +166,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var countItem = poRecord.getLineCount({
                 sublistId: 'item'
             });
-            var taxRateList = [];
+            
             if(countItem > 0){
                 var taxpphList = [];
                 for (var i = 0; i < countItem; i++) {
@@ -195,11 +195,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fieldId : 'taxrate1',
                         line : i
                     });
-                    
-                    if(taxtRate !== 0){
-                        log.debug('taxtRate', taxtRate);
-                        taxRateList.push(parseFloat(taxtRate));
-                    }
                     var whTaxCodeI = poRecord.getSublistValue({
                         sublistId : 'item',
                         fieldId : 'custcol_4601_witaxcode',
@@ -281,9 +276,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fieldId: 'taxrate1',
                         line: i
                     });
-                    if(taxtRate != 0){
-                        taxRateList.push(taxtRate);
-                    }
                     var qtyExp = poRecord.getSublistValue({
                         sublistId: 'expense',
                         fieldId: 'quantity',
@@ -469,16 +461,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td class='tg-f_body' colspan='2'>SUBTOTAL</td>"
             body += "<td class='tg-f_body'>"+removeDecimalFormat(subTotal)+"</td>"
             body += "</tr>"
-            log.debug('taxRateList', taxRateList)
-            if(taxRateList != ''){
-                body += "<tr>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-f_body'></td>"
-                body += "<td class='tg-f_body'>VAT "+taxtRate+" %</td>"
-                body += "<td class='tg-f_body'>"+removeDecimalFormat(taxtotal)+"</td>"
-                body += "</tr>"
-            }
+            body += "<tr>"
+            body += "<td class='tg-headerrow_left'></td>"
+            body += "<td class='tg-headerrow_left'></td>"
+            body += "<td class='tg-f_body'></td>"
+            body += "<td class='tg-f_body'>VAT "+taxtRate+" %</td>"
+            body += "<td class='tg-f_body'>"+removeDecimalFormat(taxtotal)+"</td>"
+            body += "</tr>"
             body += "<tr>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"

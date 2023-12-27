@@ -40,7 +40,12 @@ define(["N/ui/serverWidget", "N/config", "N/search", "N/record", "N/ui/message",
                     });
                     context.response.writePage(form_result);
                 }else{
-                    
+                    var subsidiariRec = record.load({
+                        type: "subsidiary",
+                        id: 1,
+                        isDynamic: false,
+                    });
+                    var norekCompany = subsidiariRec.getValue("custrecord_msa_sub_account_number");
                     var currentDate = new Date();
                     log.debug('currdate',currentDate);
         
@@ -49,8 +54,10 @@ define(["N/ui/serverWidget", "N/config", "N/search", "N/record", "N/ui/message",
         
                     var jumlahSlip = allIdSlip.length
                     log.debug('jumlahSlip', jumlahSlip);
+                    var totalThp = 0
 
-                    var csvStr = "P,"+formattedDate+",1180012978465,"+jumlahSlip+",5745300\n";
+                    
+                    var allData = [];
         
                     allIdSlip.forEach((data)=>{
                         var idSlip = data.internlId
@@ -77,6 +84,7 @@ define(["N/ui/serverWidget", "N/config", "N/search", "N/record", "N/ui/message",
                             var thp = searchSlipRecord.getValue({
                                 name : 'custrecord_abj_msa_thp'
                             })
+                            totalThp += Number(thp);
                             log.debug('employeeId', employeeId);
                             var searchRemu = search.create({
                                 type: "customrecord_remunasi",
@@ -134,29 +142,50 @@ define(["N/ui/serverWidget", "N/config", "N/search", "N/record", "N/ui/message",
                                 })
                                 var nameEmploye = firstName + ' ' +lastName 
                             }
-                            csvStr += '"' + noRek + '",';
-                            csvStr += '"' + nameEmploye + '",';
-                            csvStr += ',';
-                            csvStr += ',';
-                            csvStr += ',';
-                            csvStr += 'IDR,';
-                            csvStr += '"' + thp + '",';
-                            csvStr += 'Pembayaran Gaji,';
-                            csvStr += '"' + empID + '",';
-                            csvStr += 'IBU,';
-                            csvStr += ',';
-                            csvStr += '"' + bankName + '",';
-                            csvStr += '"' + kanCab + '",';
-                            csvStr += ',';
-                            csvStr += ',';
-                            csvStr += ',';
-                            csvStr += 'Y,';
-                            csvStr += '"' + email + '",';
-                            csvStr += 'OUR,';
-                            csvStr += '1,';
-                            csvStr += 'E\n';
+                            allData.push({
+                                noRek : noRek,
+                                nameEmploye : nameEmploye,
+                                thp : thp,
+                                empID : empID,
+                                bankName : bankName,
+                                kanCab : kanCab,
+                                email : email
+                            })
                             
                         }
+                        
+                    })
+                    var csvStr = "P,"+formattedDate+","+norekCompany+","+jumlahSlip+","+totalThp+"\n";
+                    
+                    allData.forEach((data)=>{
+                        var noRek = data.noRek
+                        var nameEmploye = data.nameEmploye
+                        var thp = data.thp
+                        var empID = data.empID
+                        var kanCab = data.kanCab
+                        var bankName = data.bankName
+                        var email = data.email
+                        csvStr += '"' + noRek + '",';
+                        csvStr += '"' + nameEmploye + '",';
+                        csvStr += ',';
+                        csvStr += ',';
+                        csvStr += ',';
+                        csvStr += 'IDR,';
+                        csvStr += '"' + thp + '",';
+                        csvStr += 'Pembayaran Gaji,';
+                        csvStr += '"' + empID + '",';
+                        csvStr += 'IBU,';
+                        csvStr += ',';
+                        csvStr += '"' + bankName + '",';
+                        csvStr += '"' + kanCab + '",';
+                        csvStr += ',';
+                        csvStr += ',';
+                        csvStr += ',';
+                        csvStr += 'Y,';
+                        csvStr += '"' + email + '",';
+                        csvStr += 'OUR,';
+                        csvStr += '1,';
+                        csvStr += 'E\n';
                     })
                     
                     var bank;

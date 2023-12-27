@@ -226,6 +226,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 fieldId : 'taxrate1',
                                 line : i
                             });
+                            log.debug('taxRate', taxRate)
                             var whTaxCodeI = poRecord.getSublistValue({
                                 sublistId : 'item',
                                 fieldId : 'custcol_4601_witaxcode',
@@ -268,6 +269,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             });
             if(countExpense > 0){
                 var taxpphList = [];
+                var taxrateList = [];
                 for (var i = 0; i < countExpense; i++) {
                     var account = poRecord.getSublistValue({
                         sublistId : 'expense',
@@ -303,6 +305,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId : 'taxrate1',
                             line : i
                         });
+                        if(taxRate != 0){
+                            taxrateList.push(parseFloat(taxRate));
+                        }
+                        log.debug('taxRate', taxRate)
                         var whTaxCode = poRecord.getSublistValue({
                             sublistId: 'expense',
                             fieldId: 'custcol_4601_witaxcode_exp',
@@ -331,6 +337,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     
                 }
             }
+            
             if (taxpphList.length > 0) {
                 var taxpphToPrint = taxpphList.join(' & ');
             }
@@ -483,12 +490,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td class='tg-f_body' colspan='2'>SUBTOTAL</td>"
             body += "<td class='tg-f_body'>"+removeDecimalFormat(subTotal)+"</td>"
             body += "</tr>"
-            if(taxRate != 0){
+            log.debug('taxrateList', taxrateList)
+            if(taxrateList){
                 body += "<tr>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-f_body'></td>"
-                body += "<td class='tg-f_body'>VAT "+ taxRate +" %</td>"
+                body += "<td class='tg-f_body'>VAT "+ taxrateList +" %</td>"
                 body += "<td class='tg-f_body'>"+removeDecimalFormat(taxtotal)+"</td>"
                 body += "</tr>"
             }
