@@ -196,7 +196,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         line : i
                     });
                     
-                    if(taxtRate !== 0){
+                    if(taxtRate !== 0 && taxRateList.indexOf(taxtRate) === -1){
                         log.debug('taxtRate', taxtRate);
                         taxRateList.push(parseFloat(taxtRate));
                     }
@@ -281,7 +281,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fieldId: 'taxrate1',
                         line: i
                     });
-                    if(taxtRate != 0){
+                    if(taxtRate != 0 && taxRateList.indexOf(taxtRate) === -1){
                         taxRateList.push(taxtRate);
                     }
                     var qtyExp = poRecord.getSublistValue({

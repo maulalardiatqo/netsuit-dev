@@ -2,48 +2,63 @@
  *@NApiVersion 2.1
  *@NScriptType ScheduledScript
  */
-define(["N/search", "N/record", "N/runtime", "N/format"], function(
-  search,
-  record,
-  runtime,
-  format,
-) {
+ define(["N/search", "N/record", "N/runtime", "N/format"], function (search, record, runtime, format) {
   function execute(context) {
-    // var searchId = "customsearchdnd_run_no_gen";
-    var ReportAsofDate = runtime.getCurrentScript().getParameter("custscript_rpt_as_of_date");
     var SrcStartRange = runtime.getCurrentScript().getParameter("custscript_start_range_data");
     var SrcEndRange = runtime.getCurrentScript().getParameter("custscript_end_data_range");
 
     function formatDate(inputDate) {
-      //var datearray = inputDate.toString().split("/");
-      //var newdate =
-      //	datearray[1] + "/" + datearray[0] + "/" + datearray[2];
-      return inputDate ? format.parse({
-        value: inputDate,
-        type: format.Type.DATE
-      }) : false; //newdate;
-      //return newdate;
+      return inputDate
+        ? format.parse({
+            value: inputDate,
+            type: format.Type.DATE,
+          })
+        : false;
     }
 
-    ReportAsofDate = formatDate(ReportAsofDate);
-    //log.debug("ReportAsofDate1", ReportAsofDate);
+    function toDateFormat(date) {
+      let dateSplit = date.split("/");
+      return `${dateSplit[2]}-${dateSplit[1]}-${dateSplit[0]}`;
+    }
+
+    function isSameYear(date1, date2) {
+      return new Date(date1).getFullYear() == new Date(date2).getFullYear();
+    }
+
+    function getFormattedDate(dateString) {
+      var date = new Date(dateString);
+      date.setHours(0, 0, 0); // Set hours, minutes and seconds
+      return date;
+    }
+
+    function getUTCMidnight(dateObjP) {
+      let dateObj = new Date(dateObjP);
+      let date = `${dateObj.getUTCDate()}`.padStart(2, "0");
+      let month = `${dateObj.getUTCMonth() + 1}`.padStart(2, "0");
+      let year = dateObj.getUTCFullYear();
+      return new Date(`${year}-${month}-${date}T00:00:00Z`);
+    }
+
+    function getCurrentUTCMidnight() {
+      return getUTCMidnight(new Date());
+    }
+
     function format_date_for_save_search(vDate) {
       var vDate = new Date(vDate);
-      var hari = vDate.getDate();
-      var bulan = vDate.getMonth() + 1;
-      var tahun = vDate.getFullYear();
+      var hari = `${vDate.getUTCDate()}`.padStart(2, "0");
+      var bulan = `${vDate.getUTCMonth() + 1}`.padStart(2, "0");
+      var tahun = vDate.getUTCFullYear();
       var vDate = hari + "/" + bulan + "/" + tahun;
       return vDate;
     }
 
     function days(date_1, date_2) {
       function format_date_for_gettime(vDate) {
-        var vDate = new Date(vDate);
-        var hari = vDate.getDate();
-        var bulan = vDate.getMonth() + 1;
-        var tahun = vDate.getFullYear();
-        var vDate = bulan + "/" + hari + "/" + tahun;
-        return new Date(vDate);
+        let dateObj = new Date(vDate);
+        let date = `${dateObj.getUTCDate()}`.padStart(2, "0");
+        let month = `${dateObj.getUTCMonth() + 1}`.padStart(2, "0");
+        let year = dateObj.getUTCFullYear();
+        return new Date(`${year}-${month}-${date}T00:00:00Z`);
       }
       date_1 = format_date_for_gettime(date_1);
       //log.debug("date_1", date_1);
@@ -58,13 +73,13 @@ define(["N/search", "N/record", "N/runtime", "N/format"], function(
     var data_invst_1_all = search.load({
       id: "customsearch_sol_invst_fd_to_calculate",
     });
-    data_invst_1_all.filters.push(
-      search.createFilter({
-        name: "isinactive",
-        operator: search.Operator.IS,
-        values: 'F',
-      })
-    );
+    // data_invst_1_all.filters.push(
+    //   search.createFilter({
+    //     name: "isinactive",
+    //     operator: search.Operator.IS,
+    //     values: 'F',
+    //   })
+    // );
 
     var data_invst_1_all_set = data_invst_1_all.run();
     data_invst_1_all = data_invst_1_all_set.getRange(0, 1000);
@@ -74,17 +89,21 @@ define(["N/search", "N/record", "N/runtime", "N/format"], function(
     var data_invst_1 = search.load({
       id: "customsearch_sol_invst_fd_to_calculate",
     });
+    // data_invst_1.filters.push(
+    //   search.createFilter({
+    //     name: "isinactive",
+    //     operator: search.Operator.IS,
+    //     values: 'F',
+    //   })
+    // );
+
     data_invst_1.filters.push(
       search.createFilter({
-        name: "isinactive",
-        operator: search.Operator.IS,
-        values: 'F',
+        name: "internalid",
+        operator: search.Operator.ANYOF,
+        values: [2546],
       })
     );
-
-    // data_invst_1.filters.push(search.createFilter(
-    // 	{name: 'internalid',operator: search.Operator.IS,values: 1291},
-    // ));
 
     var data_invst_1_set = data_invst_1.run();
     data_invst_1 = data_invst_1_set.getRange(SrcStartRange, SrcEndRange);
@@ -93,8 +112,8 @@ define(["N/search", "N/record", "N/runtime", "N/format"], function(
     // loop for get total
     var grand_total_invest_amount = 0;
     var total_invest_amount_arr = [];
-    data_invst_1_all.forEach(function(result) {
-      var fsearch_14 =
+    data_invst_1_all.forEach(function (result) {
+      var investment_amount_current_fy =
         result.getValue({
           name: data_invst_1_all_set.columns[8],
         }) || 0;
@@ -106,9 +125,9 @@ define(["N/search", "N/record", "N/runtime", "N/format"], function(
       var maturity_date_row = new Date(maturity_date);
       var maturity_date_month = maturity_date_row.getMonth() + 1;
       var maturity_date_year = maturity_date_row.getFullYear();
-      grand_total_invest_amount += parseFloat(fsearch_14);
+      grand_total_invest_amount += parseFloat(investment_amount_current_fy);
       total_invest_amount_arr.push({
-        amount: parseFloat(fsearch_14),
+        amount: parseFloat(investment_amount_current_fy),
         date: maturity_date,
         month: maturity_date_month,
         year: maturity_date_year,
@@ -118,7 +137,7 @@ define(["N/search", "N/record", "N/runtime", "N/format"], function(
 
     // group by month and year and sum amount
     var amount_group = Object.values(
-      total_invest_amount_arr.reduce(function(r, e) {
+      total_invest_amount_arr.reduce(function (r, e) {
         var key = e.month + "|" + e.year;
         if (!r[key]) r[key] = e;
         else {
@@ -129,33 +148,24 @@ define(["N/search", "N/record", "N/runtime", "N/format"], function(
     );
     // end group by month and year and sum amount
 
-    // log.debug("Total Invst Amount", amount_group);
-    // log.debug("Grand Total Invst Amount", grand_total_invest_amount);
-    // log.debug("ReportAsofDate", ReportAsofDate);
+    var todayDateYear = getCurrentUTCMidnight();
+    log.debug("todayDateYear", todayDateYear);
+    var FirstDateInYear = new Date(todayDateYear.getFullYear(), 0, 1);
+    var YesterdayFirstDateInYear = new Date(FirstDateInYear.setDate(FirstDateInYear.getDate() - 1));
 
-    var accured = ReportAsofDate; //new Date("12/31/2021");
-    var upon_maturity = ReportAsofDate; //new Date("12/31/2021");
+    // var todayDateYear = new Date(todayDateYear.setDate(todayDateYear.getDate() + 1));
+    var FirstDateInYear = new Date(FirstDateInYear.setDate(FirstDateInYear.getDate() + 1));
+    var todayFormatCheck = format_date_for_save_search(todayDateYear);
+    var firstDateFormatCheck = format_date_for_save_search(FirstDateInYear);
 
-    // var last_year = new Date(ReportAsofDate).setFullYear(new Date(ReportAsofDate).getFullYear() - 1);
-    var yearLast = new Date(ReportAsofDate);
-    var dateHari = yearLast.getDate();
-    var dateBulan = yearLast.getMonth()+1;
-    var dateTahun = yearLast.getFullYear()-1;
-    var last_year = dateHari + '/' + dateBulan + '/' + dateTahun
-    log.debug('last year', last_year);
-    log.debug('Year', yearLast);
-    // var last_year1 = new Date("12/31/2020");
-    // log.debug('last year1', last_year1);
-    var z7 = ReportAsofDate; //new Date("12/31/2021");
-    var FirstDateInYear = new Date(ReportAsofDate.getFullYear(), 0, 1);
+    log.debug("date", {
+      todayDateYear: todayDateYear,
+      FirstDateInYear: FirstDateInYear,
+      YesterdayFirstDateInYear: YesterdayFirstDateInYear,
+    });
 
-    var z6 = FirstDateInYear; //new Date("1/1/2021");
-    log.debug("z7", z7);
-    log.debug("z6", z6);
-    var z14 = days(z7, z6);
-    var calc_z14 = parseInt(z14) + 1;
     var total_execute = 0;
-    data_invst_1.forEach(function(result) {
+    data_invst_1.forEach(function (result) {
       try {
         var internal_id = result.getValue({
           name: data_invst_1_set.columns[0],
@@ -167,228 +177,411 @@ define(["N/search", "N/record", "N/runtime", "N/format"], function(
           isDynamic: true,
         });
 
-        var j_14 = format_date_for_save_search(
-          investrecord.getValue("custrecord_sol_invtr_fd_start_date")
-        );
-        var k_14 = format_date_for_save_search(
-          investrecord.getValue(
-            "custrecord_sol_invtr_fd_maturity_date"
-          )
-        );
-        var j_14_formated = formatDate(j_14);
-        var k_14_formated = formatDate(k_14);
+        var fdStartDate = format_date_for_save_search(investrecord.getValue("custrecord_sol_invtr_fd_start_date"));
+        var fdStartDate = toDateFormat(fdStartDate);
+        var fdMaturityDate = format_date_for_save_search(investrecord.getValue("custrecord_sol_invtr_fd_maturity_date"));
+        var fdMaturityDate = toDateFormat(fdMaturityDate);
+        log.debug("Start Date & Maturity", {
+          start_date: fdStartDate,
+          maturity: fdMaturityDate,
+        });
+        var fdStartDateFormatted = getUTCMidnight(fdStartDate);
+        var fdMaturityDateFormatted = getUTCMidnight(fdMaturityDate);
 
         // get total amount monthly
         var invest_amount_monthly = 0;
-        var k14_row = new Date(k_14_formated);
-        var k14_month = k14_row.getMonth() + 1;
-        var k14_year = k14_row.getFullYear();
+        var fdMaturityDate_row = new Date(fdMaturityDateFormatted);
+        var fdMaturityDate_month = fdMaturityDate_row.getMonth() + 1;
+        var fdMaturityDate_year = fdMaturityDate_row.getFullYear();
         for (var idx_c in amount_group) {
           var invest_amount = amount_group[idx_c];
           var invest_amount_month_to_check = invest_amount.month;
           var invest_amount_year_to_check = invest_amount.year;
-          if (
-            invest_amount_month_to_check == k14_month ||
-            invest_amount_year_to_check == k14_year
-          ) {
+          if (invest_amount_month_to_check == fdMaturityDate_month || invest_amount_year_to_check == fdMaturityDate_year) {
             invest_amount_monthly = invest_amount.amount;
           }
         }
         // end get total amount monthly
 
-        var calc_x14 = days(accured, new Date(j_14_formated));
-        var calc_v14 = calc_x14 < calc_z14 ? calc_x14 : calc_z14;
-        var f_14 =
-          investrecord.getValue(
-            "custrecord_sol_invtr_fd_invst_amt_thisyr"
-          ) || 0;
-        var h_14 =
-          investrecord.getValue(
-            "custrecord_sol_invst_fd_int_profit_rate"
-          ) || 0;
-        var n_14 =
-          investrecord.getValue(
-            "custrecord_sol_invtr_fd_intal_invst_amt_"
-          ) || 0;
-        var calc_g14 =
-          (parseFloat(f_14) / parseFloat(invest_amount_monthly)) *
-          parseFloat(h_14);
-        var calc_i14 =
-          (parseFloat(f_14) / grand_total_invest_amount) *
-          parseFloat(h_14);
-        var calc_p14 =
-          (parseFloat(f_14) * (parseFloat(h_14) / 100) * calc_v14) /
-          365;
-        var calc_q14 =
-          (parseFloat(f_14) * (parseFloat(h_14) / 100) * calc_x14) /
-          365;
-        var calc_w14 = days(new Date(k_14_formated), upon_maturity);
-        var calc_r14 =
-          (parseFloat(f_14) * (parseFloat(h_14) / 100) * calc_w14) /
-          365;
-        var calc_s14 = parseFloat(calc_q14) + parseFloat(calc_r14);
-        var l_14 =
-          investrecord.getValue(
-            "custrecord_sol_invtr_fd_intst_prfit_fy"
-          ) || 0;
-        var t_14 =
-          investrecord.getValue(
-            "custrecord_sol_invtr_fd_proft_last_yr"
-          ) || 0;
-        var days_t4_j14 = days(last_year, new Date(j_14_formated));
-        log.debug('days_t4_j', days_t4_j14);
-        if (days_t4_j14 < 0) days_t4_j14 = 0;
-        // log.debug("days_t4_j14", days_t4_j14);
-        // log.debug("n_14", n_14);
-        // log.debug("h_14", h_14);
-        // var calc_l14 = 
-        var calc_t14 =
-          (parseFloat(h_14) / 365) *
-          (parseFloat(days_t4_j14) / 100) *
-          parseFloat(n_14);
-        // log.debug("calc_t14", calc_t14);
+        var accuredCurrent = days(todayDateYear, fdStartDateFormatted);
+        var accuredCurrent = parseFloat(accuredCurrent);
 
-        // var lt_14 = parseFloat(l_14) - parseFloat(calc_t14);
-        var qt_14 = parseFloat(calc_q14) - parseFloat(calc_t14);
-        // var calc_u14 = lt_14 < qt_14 ? qt_14 : lt_14;
-        // var calc_u14 = lt_14;
-        var calc_y14 = days(
-          new Date(k_14_formated),
-          new Date(j_14_formated)
-        );
-        var interest_profit_daily =
-          ((parseFloat(h_14) / 365) * calc_y14) / 100;
+        var fdStartDate_row = new Date(fdStartDateFormatted);
+        var fdStartDate_year = fdStartDate_row.getFullYear();
+        var todayYear = todayDateYear.getFullYear();
 
-        var calc_l14 = parseFloat(n_14) * interest_profit_daily;
-        // var calc_l14 = (maturity_date - start);
-        var lt_14 = parseFloat(calc_l14) - parseFloat(calc_t14);
-        var calc_u14 = lt_14;
-        // investrecord.setValue({
-        // 	fieldId: "custrecord_sol_invtr_fd_weghted_avg_rate",
-        // 	value: calc_g14.toFixed(2),
-        // 	ignoreFieldChange: true,
-        // });
-        var interestRate = investrecord.getValue('custrecord_sol_invst_fd_int_profit_rate');
-
-        var accuredInteres = investrecord.getValue('custrecord_sol_invtr_fd_acrued_inst_fy');
-        
-        
-        var startDate =  investrecord.getValue('custrecord_sol_invtr_fd_start_date');
-        var h = startDate.getDate();
-        var b = startDate.getMonth()+1;
-        var t = startDate.getFullYear();
-        var startFormat = h + '/' + b + '/' + t
-
-
-        var maturityDate = investrecord.getValue('custrecord_sol_invtr_fd_maturity_date');
-        var dd = String(maturityDate.getDate()).padStart(2, '0');
-        var mm = String(maturityDate.getMonth()+1).padStart(2, '0');
-        var yyyy = maturityDate.getFullYear();
-        var maturityFormat = yyyy + '/' + mm + '/' + dd
-
-        var today = new Date()
-        var day = String(today.getDate()).padStart(2, '0');
-        var month = String(today.getMonth()+1).padStart(2, '0');
-        var year = today.getFullYear();
-        var todayFormat = year + '/' + month + '/' + day
-
-        var date1 = new Date(formatDate(startDate));
-        var date2 = new Date(formatDate(maturityDate))
-        const diffTime = date2.getTime() - date1.getTime();
-        const diffDays = diffTime / (1000 * 3600 * 24);
-        log.debug('Diff Day', Math.floor(diffDays));
-       
-        var calc_mat = Math.floor(diffDays)/365* interestRate * f_14;
-          log.debug('Maturity Date', maturityFormat);
-          log.debug('Today', todayFormat);
-        if(maturityFormat === todayFormat){
-          log.debug('Masuk', maturityDate);
-            investrecord.setValue({
-              fieldId: "custrecord_sol_invtr_fd_invst_amt_lastyr",
-              value: f_14,
-              ignoreFieldChange: true,
-            });
-            investrecord.setValue({
-              fieldId: "custrecord_sol_invtr_fd_invst_amt_thisyr",
-              value: 0,
-              ignoreFieldChange: true,
-            });  
+        if (fdStartDate_year < todayYear) {
+          var fromDate = YesterdayFirstDateInYear;
+        } else {
+          var fromDate = fdStartDateFormatted;
         }
-        investrecord.setValue({
-          fieldId: "custrecord_sol_invtr_fd_weghted_avg_rate",
-          value: calc_i14.toFixed(2),
-          ignoreFieldChange: true,
+        log.debug("Total Days Up", {
+          todayDateYear: todayDateYear,
+          fromDate: fromDate,
+          YesterdayFirstDateInYear: YesterdayFirstDateInYear,
+          fdStartDateFormatted: fdStartDateFormatted,
         });
-        log.debug('Isian', accuredInteres);
+
+        var totalDays = days(todayDateYear, fromDate);
+        var getOriInvestAmountThisYear = investrecord.getValue("custrecord_sol_invtr_fd_invst_amt_thisyr") || 0;
+        var getOriInvestAmountPvYear = investrecord.getValue("custrecord_sol_invtr_fd_invst_amt_lastyr") || 0;
+
+        var yearOfMaturityDateArr = fdMaturityDate.split("-");
+        var yearOfStartDateArr = fdStartDate.split("-");
+        var yearOfMaturityDate = yearOfMaturityDateArr[0];
+        var yearOfStartDate = yearOfStartDateArr[0];
+        log.debug("year check", {
+          yearOfMaturityDate: yearOfMaturityDate,
+          yearOfStartDate: yearOfStartDate,
+        });
+        if (parseInt(yearOfStartDate) < parseInt(yearOfMaturityDate)) {
+          getOriInvestAmountThisYear = getOriInvestAmountPvYear;
+        }
+
+        var getInterestProfitRate = investrecord.getValue("custrecord_sol_invst_fd_int_profit_rate") || 0;
+        var getInvestmentAmountPreviousYear = investrecord.getValue("custrecord_sol_invtr_fd_intal_invst_amt_") || 0;
+        var weightedAverageRate = (parseFloat(getOriInvestAmountThisYear) / grand_total_invest_amount) * parseFloat(getInterestProfitRate);
+        var accuredInteres = investrecord.getValue("custrecord_sol_invtr_fd_acrued_inst_fy");
+
+        if (todayFormatCheck == firstDateFormatCheck) {
+          var accuredInterestCurrent = 0;
+        } else {
+          var accuredInterestCurrent = parseFloat(getOriInvestAmountThisYear) * (parseFloat(getInterestProfitRate) / 100) * (parseFloat(totalDays) / 365);
+        }
+
+        var accuredInterest = (parseFloat(getOriInvestAmountThisYear) * (parseFloat(getInterestProfitRate) / 100) * accuredCurrent) / 365;
+        var uponMaturity = days(new Date(fdMaturityDateFormatted), todayDateYear);
+        var balanceInterestOnMaturity = (parseFloat(getOriInvestAmountThisYear) * (parseFloat(getInterestProfitRate) / 100) * uponMaturity) / 365;
+        var totalInterestOnMaturity = parseFloat(accuredInterest) + parseFloat(balanceInterestOnMaturity);
+        var interestProfitEarnedCurrent = investrecord.getValue("custrecord_sol_invtr_fd_intst_prfit_fy") || 0;
+        var accuredInterestProfitLastFy = investrecord.getValue("custrecord_sol_invtr_fd_proft_last_yr") || 0;
+
+        if (todayFormatCheck == firstDateFormatCheck) {
+          log.debug("today is end date", true);
+          var calcAccuredInterestProfitLastFy = accuredInteres;
+        } else {
+          var calcAccuredInterestProfitLastFy = accuredInterestProfitLastFy;
+        }
+
+        var calcAccured = parseFloat(accuredInterest) - parseFloat(calcAccuredInterestProfitLastFy);
+        var calcTotalDays = days(new Date(fdMaturityDateFormatted), new Date(fdStartDateFormatted));
+        var interest_profit_daily = ((parseFloat(getInterestProfitRate) / 365) * parseFloat(calcTotalDays)) / 100;
+
+        log.debug("Tes", {
+          maturity_date: fdMaturityDate,
+          todayFormatCheck: todayFormatCheck,
+          firstDateFormatCheck: firstDateFormatCheck,
+        });
+        log.debug("INTEREST/ PROFIT EARNED CURRENT FY CALC", {
+          maturity_date: fdMaturityDate,
+          current_date: toDateFormat(todayFormatCheck),
+        });
+        log.debug("fdMaturityDate", fdMaturityDate);
+        log.debug("todayFormatCheck", toDateFormat(todayFormatCheck));
+
+        // Dont calculate if today past the maturity date
+        if (fdMaturityDate <= toDateFormat(todayFormatCheck)) {
+          var calcInterestProfitEarnedCurrent = (parseFloat(calcTotalDays) / 365) * (parseFloat(getInterestProfitRate) / 100) * parseFloat(getOriInvestAmountThisYear);
+        } else {
+          var calcInterestProfitEarnedCurrent = interestProfitEarnedCurrent;
+        }
+
+        var calcInterest = parseFloat(calcInterestProfitEarnedCurrent) - parseFloat(calcAccuredInterestProfitLastFy);
+        var netInterestProfitCurrent = calcInterest < calcAccured ? calcAccured : calcInterest;
+
+        log.debug("Date Debug", {
+          start_date: fdStartDateFormatted,
+          maturity_date: fdMaturityDateFormatted,
+          today_date: todayDateYear,
+          total_days_up: totalDays,
+          upon_maturity: uponMaturity,
+          accured_current: accuredCurrent,
+          total_days: calcTotalDays,
+        });
+        log.debug("move investment amount", {
+          fdMaturityDate: fdMaturityDate,
+          today: toDateFormat(todayFormatCheck),
+          startDate: fdStartDate,
+        });
+
+        /*if (yearOfMaturityDate != yearOfStartDate && fdMaturityDate == toDateFormat(todayFormatCheck)) {
+          log.debug("movee", true);
+          investrecord.setValue({
+            fieldId: "custrecord_sol_invtr_fd_invst_amt_lastyr",
+            value: getOriInvestAmountThisYear,
+            ignoreFieldChange: true,
+          });
+          investrecord.setValue({
+            fieldId: "custrecord_sol_invtr_fd_invst_amt_thisyr",
+            value: 0,
+            ignoreFieldChange: true,
+          });
+        }*/
+
+        // dont calculate after maturity
+        if (toDateFormat(todayFormatCheck) <= fdMaturityDate) {
+          investrecord.setValue({
+            fieldId: "custrecord_sol_invtr_fd_weghted_avg_rate",
+            value: weightedAverageRate,
+            ignoreFieldChange: true,
+          });
+          investrecord.setValue({
+            fieldId: "custrecord_sol_invtr_fd_acrued_inst_fy",
+            value: accuredInterestCurrent.toFixed(2),
+            ignoreFieldChange: true,
+          });
+          investrecord.setValue({
+            fieldId: "custrecord_sol_invtr_fd_accured_interest",
+            value: accuredInterest.toFixed(2),
+            ignoreFieldChange: true,
+          });
+          investrecord.setValue({
+            fieldId: "custrecord_sol_invtr_fd_intst_maturty_dt",
+            value: balanceInterestOnMaturity.toFixed(2),
+            ignoreFieldChange: true,
+          });
+          investrecord.setValue({
+            fieldId: "custrecord_sol_invtr_fd_proft_maturty_dt",
+            value: totalInterestOnMaturity.toFixed(2),
+            ignoreFieldChange: true,
+          });
+        }
+
+        // end dont calculate after maturity
         investrecord.setValue({
           fieldId: "custrecord_sol_invtr_fd_proft_last_yr",
-          value: accuredInteres,
+          value: calcAccuredInterestProfitLastFy.toFixed(2),
           ignoreFieldChange: true,
         });
 
-        investrecord.setValue({
-          fieldId: "custrecord_sol_invtr_fd_intst_prfit_fy",
-          value: calc_mat.toFixed(2),
-          ignoreFieldChange: true,
-        });
-        // investrecord.setValue({
-        //   fieldId: "custrecord_sol_invtr_fd_acrued_inst_fy",
-        //   value: calc_p14.toFixed(2),
-        //   ignoreFieldChange: true,
-        // });
-        investrecord.setValue({
-          fieldId: "custrecord_sol_invtr_fd_acrued_inst_fy",
-          value: 0,
-          ignoreFieldChange: true,
-        });
-        investrecord.setValue({
-          fieldId: "custrecord_sol_invtr_fd_accured_interest",
-          value: calc_q14.toFixed(2),
-          ignoreFieldChange: true,
-        });
-        investrecord.setValue({
-          fieldId: "custrecord_sol_invtr_fd_intst_maturty_dt",
-          value: calc_r14.toFixed(2),
-          ignoreFieldChange: true,
-        });
-        investrecord.setValue({
-          fieldId: "custrecord_sol_invtr_fd_proft_maturty_dt",
-          value: calc_s14.toFixed(2),
-          ignoreFieldChange: true,
-        });
+        if (fdMaturityDate <= toDateFormat(todayFormatCheck)) {
+          investrecord.setValue({
+            fieldId: "custrecord_sol_invtr_fd_intst_prfit_fy",
+            value: calcInterestProfitEarnedCurrent.toFixed(2),
+            ignoreFieldChange: true,
+          });
+        }
 
         investrecord.setValue({
           fieldId: "custrecord_sol_invtr_fd_net_int_thisfy",
-          value: calc_u14.toFixed(2),
+          value: netInterestProfitCurrent.toFixed(2),
           ignoreFieldChange: true,
         });
         investrecord.setValue({
           fieldId: "custrecord_sol_invtr_fd_total_days_up",
-          value: calc_v14,
+          value: totalDays,
           ignoreFieldChange: true,
         });
         investrecord.setValue({
           fieldId: "custrecord_sol_invtr_fd_upon_maturity",
-          value: calc_w14,
+          value: uponMaturity,
           ignoreFieldChange: true,
         });
         investrecord.setValue({
           fieldId: "custrecord_sol_invtr_fd_accured_thisfy",
-          value: calc_x14,
+          value: accuredCurrent,
           ignoreFieldChange: true,
         });
         investrecord.setValue({
           fieldId: "custrecord_sol_invtr_fd_total_days",
-          value: calc_y14,
+          value: calcTotalDays,
           ignoreFieldChange: true,
         });
         var process_date = new Date();
-        investrecord.setValue({
+        log.debug("Process Date", {
+          process_date: process_date,
+          todayDate: todayDateYear,
+        });
+        var prDate = investrecord.setValue({
           fieldId: "custrecord_sol_invtr_fd_process_date",
           value: process_date,
           ignoreFieldChange: true,
         });
+        log.debug("pr date", prDate);
 
+        // update record
+        log.debug('fdStartDateFormatted', fdStartDateFormatted);
+        log.debug('fdMaturityDateFormatted', fdMaturityDateFormatted);
+        var startdateYear = fdStartDateFormatted.getUTCFullYear();
+        var endDateYear = fdMaturityDateFormatted.getUTCFullYear();
+        var prevEndDateYear = endDateYear - 1
+        var todayFormat = toDateFormat(todayFormatCheck)
+        log.debug('prevEndDateYear', prevEndDateYear);
+        if(prevEndDateYear == startdateYear){
+          log.debug('todayFormat', todayFormat);
+          log.debug('fdMaturityDate', fdMaturityDate);
+          if(todayFormat == fdMaturityDate){
+            log.debug('today is fdMaturity')
+            var depoStatus = investrecord.getValue("custrecord_sol_fd_app_sts");
+            log.debug("depoStatus", depoStatus);
+            var journalApproved = investrecord.getValue("custrecord_sol_fd_journal_approved");
+            log.debug("journalApproved", journalApproved);
+            var invstBank = investrecord.getValue("custrecord_sol_invtr_fd_bank_fin_insti");
+            var invest_amount_py = investrecord.getValue("custrecord_sol_invtr_fd_invst_amt_lastyr");
+            log.debug("invstBank", invstBank);
+            var recBank = record.load({
+              type: "customrecord_sol_invst_bank_master_data",
+              id: invstBank,
+              isDynamic: true,
+            });
+            var bankGl = recBank.getValue("custrecord_sol_bank_master_bankgl");
+            var bankName = recBank.getValue("custrecord_sol_invst_bmd_name");
+            var bankFD = recBank.getValue("custrecord_sol_bank_master_fd");
+            var accruedpreviousFY = calcAccuredInterestProfitLastFy.toFixed(2);
+            var netInterest = netInterestProfitCurrent.toFixed(2);
+            var countDebit = Number(calcAccuredInterestProfitLastFy) + Number(netInterestProfitCurrent) + Number(invest_amount_py);
+            log.debug('countDebit', countDebit)
+            var CA1101002	= 3122;
+            var RV1004001 = 2128;
+            // create new journal
+            var rec_JE = record.create({
+              type: "customtransaction_sol_investment_journal",
+              isDynamic: true,
+            });
+            rec_JE.setValue({
+              fieldId: "custbody_sol_fixed_deposit",
+              value: internal_id,
+            });
+  
+            if (depoStatus == 2) {
+              rec_JE.setValue({
+                fieldId: "transtatus",
+                value: "A",
+              });
+              investrecord.setValue({
+                fieldId: "custrecord_sol_fd_journal_approved",
+                value: true,
+              });
+            } else {
+              rec_JE.setValue({
+                fieldId: "transtatus",
+                value: "B",
+              });
+            }
+            // credit
+            // 1
+            rec_JE.selectNewLine({
+              sublistId: "line",
+            });
+            rec_JE.setCurrentSublistValue({
+              sublistId: "line",
+              fieldId: "account",
+              value: bankGl,
+              ignoreFieldChange: true,
+            });
+  
+            rec_JE.setCurrentSublistValue({
+              sublistId: "line",
+              fieldId: "credit",
+              value: invest_amount_py,
+              ignoreFieldChange: true,
+            });
+            rec_JE.setCurrentSublistValue({
+              sublistId: "line",
+              fieldId: "department",
+              value: 811,
+              ignoreFieldChange: true,
+            });
+            rec_JE.commitLine({
+              sublistId: "line",
+            });
+
+            // 2
+            rec_JE.selectNewLine({
+              sublistId: "line",
+            });
+            rec_JE.setCurrentSublistValue({
+              sublistId: "line",
+              fieldId: "account",
+              value: CA1101002,
+              ignoreFieldChange: true,
+            });
+  
+            rec_JE.setCurrentSublistValue({
+              sublistId: "line",
+              fieldId: "credit",
+              value: accruedpreviousFY,
+              ignoreFieldChange: true,
+            });
+            rec_JE.setCurrentSublistValue({
+              sublistId: "line",
+              fieldId: "department",
+              value: 811,
+              ignoreFieldChange: true,
+            });
+            rec_JE.commitLine({
+              sublistId: "line",
+            });
+
+            // 3
+            rec_JE.selectNewLine({
+              sublistId: "line",
+            });
+            rec_JE.setCurrentSublistValue({
+              sublistId: "line",
+              fieldId: "account",
+              value: RV1004001,
+              ignoreFieldChange: true,
+            });
+  
+            rec_JE.setCurrentSublistValue({
+              sublistId: "line",
+              fieldId: "credit",
+              value: netInterest,
+              ignoreFieldChange: true,
+            });
+            rec_JE.setCurrentSublistValue({
+              sublistId: "line",
+              fieldId: "department",
+              value: 811,
+              ignoreFieldChange: true,
+            });
+            rec_JE.commitLine({
+              sublistId: "line",
+            });
+            // end credit
+
+            // debit
+            rec_JE.selectNewLine({
+              sublistId: "line",
+            });
+            rec_JE.setCurrentSublistValue({
+              sublistId: "line",
+              fieldId: "account",
+              value: bankFD,
+              ignoreFieldChange: true,
+            });
+            rec_JE.setCurrentSublistValue({
+              sublistId: "line",
+              fieldId: "debit",
+              value: countDebit,
+              ignoreFieldChange: true,
+            });
+            rec_JE.setCurrentSublistValue({
+              sublistId: "line",
+              fieldId: "department",
+              value: 811,
+              ignoreFieldChange: true,
+            });
+            rec_JE.commitLine({
+              sublistId: "line",
+            });
+            // endDebit
+            var jeID = rec_JE.save({
+              enableSourcing: true,
+              ignoreMandatoryFields: true,
+            });
+            log.debug('jeId', jeID);
+            if (jeID) {
+              investrecord.setValue({
+                fieldId: "custrecord_sol_invtr_fd_journal_link",
+                value: jeID,
+              });
+              log.debug("jeID", jeID);
+            }
+  
+          }
+        }
         var investrecord_id = investrecord.save({
           enableSourcing: false,
           ignoreMandatoryFields: true,
@@ -402,13 +595,13 @@ define(["N/search", "N/record", "N/runtime", "N/format"], function(
     });
     // total execute
     log.debug("Total Execute :", total_execute);
-
     // cek usage
     var scriptObj = runtime.getCurrentScript();
     log.debug({
       title: "Remaining usage units: ",
       details: scriptObj.getRemainingUsage(),
     });
+
   }
   return {
     execute: execute,

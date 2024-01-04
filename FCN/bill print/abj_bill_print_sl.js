@@ -152,6 +152,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var countItem = poRecord.getLineCount({
                 sublistId: 'item'
             });
+            var taxrateList = [];
             if(countItem > 0){
                 
                 var taxpphList = [];
@@ -226,6 +227,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 fieldId : 'taxrate1',
                                 line : i
                             });
+                            if(taxRate != 0 && taxrateList.indexOf(taxRate) === -1){
+                                taxrateList.push(parseFloat(taxRate));
+                            }
                             log.debug('taxRate', taxRate)
                             var whTaxCodeI = poRecord.getSublistValue({
                                 sublistId : 'item',
@@ -258,10 +262,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 taxpphList.push(taxpph);
                             }
                         }
-
-                 
                     }
-                       
                 }
             }
             var countExpense = poRecord.getLineCount({
@@ -269,7 +270,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             });
             if(countExpense > 0){
                 var taxpphList = [];
-                var taxrateList = [];
+                
                 for (var i = 0; i < countExpense; i++) {
                     var account = poRecord.getSublistValue({
                         sublistId : 'expense',
@@ -294,7 +295,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId: 'custcol_4601_witaxamt_exp',
                             line: i
                         });
-
                         var amountExp =  poRecord.getSublistValue({
                             sublistId: 'expense',
                             fieldId: 'amount',
@@ -305,7 +305,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId : 'taxrate1',
                             line : i
                         });
-                        if(taxRate != 0){
+                        if(taxRate != 0 && taxrateList.indexOf(taxRate) === -1){
                             taxrateList.push(parseFloat(taxRate));
                         }
                         log.debug('taxRate', taxRate)
@@ -329,12 +329,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var tamountExp = whtaxammountExp
                         whtaxammountExp = Math.abs(tamountExp);
                         totalWhTaxamountExp += whtaxammountExp
-    
                         if (taxpph && taxpphList.indexOf(taxpph) === -1) {
                             taxpphList.push(taxpph);
                         }
                     }
-                    
                 }
             }
             
