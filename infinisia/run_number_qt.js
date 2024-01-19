@@ -10,7 +10,7 @@ define(["N/record", "N/search"], function(
     ) {
     function afterSubmit(context) {
         try {
-            if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT) {
+            if (context.type == context.UserEventType.CREATE) {
     
                 var rec = context.newRecord;
     
@@ -72,6 +72,8 @@ define(["N/record", "N/search"], function(
                     textSub = 'QT'
                 }else if(TransType == 'custpymt'){
                     textSub = 'PYMT'
+                }else if(TransType == 'vprep'){
+                    textSub = 'VPP'
                 }
                 var formatRunning = '';
                 if(TransType == 'estimate'){

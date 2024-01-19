@@ -235,7 +235,7 @@
                 yearOfStartDate: yearOfStartDate,
             });
             if (parseInt(yearOfStartDate) < parseInt(yearOfMaturityDate)) {
-                getOriInvestAmountThisYear = getOriInvestAmountPvYear;
+                getOriInvestAmountThisYear = getOriInvestAmountPvYear;z
             }
     
             var getInterestProfitRate = investrecord.getValue("custrecord_sol_invst_fd_int_profit_rate") || 0;

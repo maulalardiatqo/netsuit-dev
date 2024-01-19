@@ -1,0 +1,7 @@
+Transaction,TransactionNumber,TransactionDate,Created At,Account Number,InternalIDAccHeader,Account,Accunt Line,InternalIdAccountline,Description,Debit,Credit,Credit New,Error
+Bank Deposit,10212,1/3/2022,created on 02/03/2022 20:01:25,1-10099,319,Petty Cash x,1-10453,979,"Prepayment - Trade - Purchase Payment #10257, Purchase Payment #10258",520669194.80,0,,Amount More than 20
+Bank Deposit,10261,15/03/2022,created on 06/04/2022 11:21:43,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20400,1084,Other Current Liabilities - KELEBIHAN SETORAN refund ke husnia tgl 06 APRIL 2022,230958,0,,Internal Id line 
+Bank Deposit,10268,22/03/2022,created on 07/04/2022 17:21:58,1-10102,1115,Bank BCA IDR 2 - Operational,2-20400,1084,Other Current Liabilities - RINA OKTAVIANA - TRANSFER TIDAK DIKETAHUI,1963000,0,,Internal Id line 
+Bank Deposit,REQUEST 4025.,19/04/2022,created on 22/04/2022 14:43:25,1-10102,1115,Bank BCA IDR 2 - Operational,1-10421.1,#N/A,Cash Advance - REFUND REQUEST 4025,700000,0,,Internal Id line #N/A
+Bank Deposit,10328,20/04/2022,created on 09/05/2022 21:05:51,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),1-10452,987,Prepayment - Salah transfer refund POI2112-49 (RR2204-41),2602600,0,,Internal Id line 
+Bank Deposit,SAL/13-V/22/2760..,23/05/2022,created on 28/05/2022 11:33:35,1-10102,1115,Bank BCA IDR 2 - Operational,1-10452,987,Prepayment - Refund Pembelian Mobil Grandmax L8985AB untuk Gudang Sedati,88500000,0,,Internal Id line 

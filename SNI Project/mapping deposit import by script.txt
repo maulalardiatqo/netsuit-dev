@@ -1,0 +1,7 @@
+transaction number -> deposit#
+transaction date -> date
+subsidiary -> PT swadaya
+internal id acc header -> account
+internal id account line -> other deposit -> account
+description -> memo header & memo line
+debit -> other deposit -> amount

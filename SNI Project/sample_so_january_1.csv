@@ -1,0 +1,13 @@
+Date,Transaction Type,Transaction Number,Display Name,Customer ID,Status By Today,Warehouse,Location ID,Reference Number,Product Name,Product Code,Item Discount Header,Rate Header,Description,Quantity,Unit,Unit Price,Total Line,Discount Line %,Discount Rate,Tax Rate,Tax Rate ID,Total per line,Discount Amount,Tax Amount,Taxable Amount per Line,Discount %,Company Name,Rate,Gross Amount,Gross Amt New
+3/1/2022,Sales Order,SNI20220103-1,Toko Amanah,51885,Closed,Sedati,14,SNI-567,**Pop Ice Thunder Choco Malt 25g,POP-0052,,,,2,Pack,41703.63636,83407.27273,0.02,2,10,5,81739.12727,0,8173.912727,81739.12727,0,,40869.56364,89913.04,91748
+3/1/2022,Sales Order,SNI20220103-1,Toko Amanah,51885,Closed,Sedati,14,SNI-567,**Pop Ice Thunder Choco Malt 25g,Promotion Discount,,,,,,-2%,0,0.02,2,10,5,,,,,,,,,0
+3/1/2022,Sales Order,SNI20220103-1,Toko Amanah,51885,Closed,Sedati,14,SNI-567,**Pop Ice Chocolate 25g,POP-0051,,,,6,Pack,41703.63636,250221.8182,0.02,2,10,5,245217.3818,0,24521.73818,245217.3818,0,,40869.56364,269739.12,275244
+3/1/2022,Sales Order,SNI20220103-1,Toko Amanah,51885,Closed,Sedati,14,SNI-567,**Pop Ice Chocolate 25g,Promotion Discount,,,,,,-2%,0,0.02,2,10,5,,,,,,,,,0
+3/1/2022,Sales Order,SNI20220103-1,Toko Amanah,51885,Closed,Sedati,14,SNI-567,**Pop Ice Vanilla Latte 25g,POP-0071,,,,1,Pack,41703.63636,41703.63636,0.02,2,10,5,40869.56364,0,4086.956364,40869.56364,0,,40869.56364,44956.52,45874
+3/1/2022,Sales Order,SNI20220103-1,Toko Amanah,51885,Closed,Sedati,14,SNI-567,**Pop Ice Vanilla Latte 25g,Promotion Discount,,,,,,-2%,0,0.02,2,10,5,,,,,,,,,0
+3/1/2022,Sales Order,SNI20220103-1,Toko Amanah,51885,Closed,Sedati,14,SNI-567,**Pop Ice Vanilla Blue 25g,POP-0061,,,,1,Pack,41703.63636,41703.63636,0.02,2,10,5,40869.56364,0,4086.956364,40869.56364,0,,40869.56364,44956.52,45874
+3/1/2022,Sales Order,SNI20220103-1,Toko Amanah,51885,Closed,Sedati,14,SNI-567,**Pop Ice Vanilla Blue 25g,Promotion Discount,,,,,,-2%,0,0.02,2,10,5,,,,,,,,,0
+3/1/2022,Sales Order,SNI20220103-1,Toko Amanah,51885,Closed,Sedati,14,SNI-567,**Anget Sari Susu Jahe 25g,ASR-0001,,,,1,Pack,38963.63636,38963.63636,0.02,2,10,5,38184.36364,0,3818.436364,38184.36364,0,,38184.36364,42002.8,42860
+3/1/2022,Sales Order,SNI20220103-1,Toko Amanah,51885,Closed,Sedati,14,SNI-567,**Anget Sari Susu Jahe 25g,Promotion Discount,,,,,,-2%,0,0.02,2,10,5,,,,,,,,,0
+3/1/2022,Sales Order,SNI20220103-1,Toko Amanah,51885,Closed,Sedati,14,SNI-567,**Anget Sari Wedang Jahe 24g,ASR-0002,,,,1,Pack,15595.45455,15595.45455,0.02,2,10,5,15283.54545,0,1528.354545,15283.54545,0,,15283.54545,16811.9,17155.00001
+3/1/2022,Sales Order,SNI20220103-1,Toko Amanah,51885,Closed,Sedati,14,SNI-567,**Anget Sari Wedang Jahe 24g,Promotion Discount,,,,,,-2%,0,0.02,2,10,5,,,,,,,,,0

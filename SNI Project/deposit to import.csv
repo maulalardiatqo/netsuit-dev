@@ -1,0 +1,223 @@
+Transaction,TransactionNumber,TransactionDate,Created At,Account Number,InternalIDAccHeader,Account,Accunt Line,InternalIdAccountline ,Description,Debit,Credit
+Bank Deposit,10146,19/01/2022,created on 27/01/2022 10:19:28,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,4.27,0
+Bank Deposit,10151,19/01/2022,created on 28/01/2022 10:12:56,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,128,0
+Bank Deposit,10142,20/01/2022,created on 22/01/2022 13:22:20,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20200,1103,Deposits from Customer - PEMBAYARAN CONSIGNMENT SNI,500000000,0
+Bank Deposit,10147,20/01/2022,created on 27/01/2022 10:34:30,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,98.14,0
+Bank Deposit,10148,20/01/2022,created on 27/01/2022 10:37:38,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.07,0
+Bank Deposit,10152,20/01/2022,created on 28/01/2022 10:25:54,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,86,0
+Bank Deposit,10179,20/01/2022,created on 09/02/2022 19:17:19,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.56,0
+Bank Deposit,10149,21/01/2022,created on 27/01/2022 10:48:24,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,5.98,0
+Bank Deposit,10153,21/01/2022,created on 28/01/2022 10:30:02,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,71,0
+Bank Deposit,10175,24/01/2022,created on 04/02/2022 10:41:05,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20200,1103,Deposits from Customer - PEMBAYARAN CONSIGNMENT SNI,500000000,0
+Bank Deposit,10155,25/01/2022,created on 01/02/2022 13:04:10,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,64,0
+Bank Deposit,10165,25/01/2022,created on 02/02/2022 14:58:50,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,36,0
+Bank Deposit,10170,25/01/2022,created on 02/02/2022 17:02:58,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,34,0
+Bank Deposit,10173,25/01/2022,created on 04/02/2022 10:38:40,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20200,1103,Deposits from Customer - PEMBAYARAN CONSIGNMENT SNI,1358528195,0
+Bank Deposit,10174,25/01/2022,created on 04/02/2022 10:40:05,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20200,1103,Deposits from Customer - PEMBAYARAN CONSIGNMENT SNI,50281592.02,0
+Bank Deposit,10169,26/01/2022,created on 02/02/2022 17:00:42,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,11,0
+Bank Deposit,10154,27/01/2022,created on 31/01/2022 16:54:35,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss - ROUNDING,1,0
+Bank Deposit,10156,27/01/2022,created on 01/02/2022 13:35:14,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,263.2,0
+Bank Deposit,10168,27/01/2022,created on 02/02/2022 16:59:31,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,12,0
+Bank Deposit,10157,28/01/2022,created on 01/02/2022 13:40:49,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,98.22,0
+Bank Deposit,10176,28/01/2022,created on 04/02/2022 10:44:19,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20200,1103,Deposits from Customer - PEMBAYARAN CONSIGNMENT SNI,10000000,0
+Bank Deposit,10177,28/01/2022,created on 04/02/2022 10:44:50,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20200,1103,Deposits from Customer - PEMBAYARAN CONSIGNMENT SNI,90000000,0
+Bank Deposit,10158,31/01/2022,created on 01/02/2022 13:52:12,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,34.86,0
+Bank Deposit,10159,31/01/2022,created on 01/02/2022 13:53:16,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,40.04,0
+Bank Deposit,10166,31/01/2022,created on 02/02/2022 16:55:38,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,10,0
+Bank Deposit,10167,31/01/2022,created on 02/02/2022 16:58:20,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,70,0
+Bank Deposit,10172,31/01/2022,created on 04/02/2022 10:16:08,1-10102,1115,Bank BCA IDR 2 - Operational,6-60001,234,Salaries - KR OTOMATIS TOLAKAN KU (MH18 NAMA DAN REK BEDA BIAYA 0000000,3732821,0
+Bank Deposit,10178,31/01/2022,created on 09/02/2022 16:30:11,1-10102,1115,Bank BCA IDR 2 - Operational,8-80001,625,Interest Income - BUNGA,5865.57,0
+Bank Deposit,10180,3/2/2022,created on 19/02/2022 08:59:36,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,89.43,0
+Bank Deposit,10181,3/2/2022,created on 19/02/2022 09:05:39,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,7,0
+Bank Deposit,10209,4/2/2022,created on 02/03/2022 19:36:31,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,4.76,0
+Bank Deposit,10182,8/2/2022,created on 19/02/2022 09:19:34,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,67.59,0
+Bank Deposit,10186,9/2/2022,created on 21/02/2022 11:36:14,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,61,0
+Bank Deposit,10183,10/2/2022,created on 21/02/2022 10:08:34,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,45.77,0
+Bank Deposit,10184,11/2/2022,created on 21/02/2022 10:18:47,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,82.34,0
+Bank Deposit,10185,11/2/2022,created on 21/02/2022 10:23:02,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.04,0
+Bank Deposit,10187,11/2/2022,created on 21/02/2022 11:37:27,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,88,0
+Bank Deposit,10188,15/02/2022,created on 21/02/2022 11:38:15,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,56,0
+Bank Deposit,10189,15/02/2022,created on 21/02/2022 11:39:13,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,20.1,0
+Bank Deposit,10190,15/02/2022,created on 22/02/2022 10:47:46,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss - rounding,1,0
+Bank Deposit,10191,15/02/2022,created on 22/02/2022 10:48:03,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss - rounding,1.5,0
+Bank Deposit,10210,15/02/2022,created on 02/03/2022 19:50:17,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,20,0
+Bank Deposit,10193,16/02/2022,created on 23/02/2022 12:01:44,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,91.23,0
+Bank Deposit,10194,16/02/2022,created on 23/02/2022 12:06:57,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,8.44,0
+Bank Deposit,10196,17/02/2022,created on 23/02/2022 14:00:45,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,50,0
+Bank Deposit,10197,18/02/2022,created on 23/02/2022 14:01:40,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,23,0
+Bank Deposit,10199,18/02/2022,created on 24/02/2022 09:14:00,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,48.62,0
+Bank Deposit,10203,18/02/2022,created on 01/03/2022 10:45:11,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20200,1103,Deposits from Customer - PEMBAYARAN CONSIGNMENT SNI,50000000,0
+Bank Deposit,10195,21/02/2022,created on 23/02/2022 13:45:37,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,51.76,0
+Bank Deposit,10198,21/02/2022,created on 23/02/2022 14:02:38,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,32,0
+Bank Deposit,10200,22/02/2022,created on 01/03/2022 10:16:52,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,30.25,0
+Bank Deposit,10211,22/02/2022,created on 02/03/2022 19:55:29,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),5-50100,838,Purchase Discounts - CASHBACK PT ESPAY DE,198000,0
+Bank Deposit,10201,24/02/2022,created on 01/03/2022 10:21:27,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.7,0
+Bank Deposit,10202,24/02/2022,created on 01/03/2022 10:26:35,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,52,0
+Bank Deposit,10205,24/02/2022,created on 01/03/2022 12:18:54,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,60.47,0
+Bank Deposit,10207,24/02/2022,created on 02/03/2022 18:32:02,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20200,1103,Deposits from Customer - PINJAMAN DARI KKA,400000000,0
+Bank Deposit,10208,24/02/2022,created on 02/03/2022 19:30:28,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,2.44,0
+Bank Deposit,10206,25/02/2022,created on 02/03/2022 10:21:50,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,8,0
+Bank Deposit,10263,25/02/2022,created on 06/04/2022 11:44:29,1-10106,1148,   Bank OCBC Giro Smart,8-80001,625,Interest Income - Bunga Rekening,631849,0
+Bank Deposit,10204,28/02/2022,created on 01/03/2022 10:56:30,1-10102,1115,Bank BCA IDR 2 - Operational,8-80001,625,Interest Income - PENDAPATAN BUNGA FEBRUARI 2022,8157.55,0
+Bank Deposit,10212,1/3/2022,created on 02/03/2022 20:01:25,1-10099,319,Petty Cash x,1-10453,979,"Prepayment - Trade - Purchase Payment #10257, Purchase Payment #10258",520669194.8,0
+Bank Deposit,10213,1/3/2022,created on 20/03/2022 15:28:10,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss - Rounding,1,0
+Bank Deposit,10214,1/3/2022,created on 20/03/2022 15:39:03,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss - Rounding,1,0
+Bank Deposit,10216,2/3/2022,created on 25/03/2022 11:38:20,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,51.93,0
+Bank Deposit,10217,4/3/2022,created on 31/03/2022 10:03:34,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,76.63,0
+Bank Deposit,10218,4/3/2022,created on 31/03/2022 12:04:41,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.35,0
+Bank Deposit,10219,4/3/2022,created on 31/03/2022 17:11:43,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,39,0
+Bank Deposit,10260,4/3/2022,created on 03/04/2022 22:14:25,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,300000000,0
+Bank Deposit,10233,7/3/2022,created on 02/04/2022 14:45:55,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,11,0
+Bank Deposit,10234,7/3/2022,created on 02/04/2022 14:58:00,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,585.2,0
+Bank Deposit,10235,8/3/2022,created on 02/04/2022 15:01:45,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.95,0
+Bank Deposit,10220,9/3/2022,created on 31/03/2022 18:23:23,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,17.52,0
+Bank Deposit,10221,9/3/2022,created on 31/03/2022 18:25:19,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,10.35,0
+Bank Deposit,10259,9/3/2022,created on 03/04/2022 22:13:52,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,750000000,0
+Bank Deposit,10270,9/3/2022,created on 26/04/2022 10:53:28,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss - ROUNDING,0.5,0
+Bank Deposit,10236,10/3/2022,created on 02/04/2022 15:03:52,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.91,0
+Bank Deposit,10237,10/3/2022,created on 02/04/2022 15:04:32,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,2.16,0
+Bank Deposit,10222,11/3/2022,created on 31/03/2022 18:33:48,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,37.84,0
+Bank Deposit,10238,11/3/2022,created on 02/04/2022 15:06:33,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.25,0
+Bank Deposit,10240,14/03/2022,created on 02/04/2022 18:41:27,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.2,0
+Bank Deposit,10266,14/03/2022,created on 06/04/2022 11:46:18,1-10106,1148,   Bank OCBC Giro Smart,8-80001,625,Interest Income - Pembayaran bunga deposito : DR 40382006926-4 KE 40380000197-2,5477260,0
+Bank Deposit,10224,15/03/2022,created on 31/03/2022 19:18:30,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,21.6,0
+Bank Deposit,10241,15/03/2022,created on 02/04/2022 19:02:49,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,20,0
+Bank Deposit,10261,15/03/2022,created on 06/04/2022 11:21:43,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20400,1084,Other Current Liabilities - KELEBIHAN SETORAN refund ke husnia tgl 06 APRIL 2022,230958,0
+Bank Deposit,10262,15/03/2022,created on 06/04/2022 11:21:56,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.45,0
+Bank Deposit,10223,16/03/2022,created on 31/03/2022 19:17:26,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,74.85,0
+Bank Deposit,10225,17/03/2022,created on 31/03/2022 19:19:36,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,51.3,0
+Bank Deposit,10226,17/03/2022,created on 31/03/2022 19:20:31,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.7,0
+Bank Deposit,10242,17/03/2022,created on 02/04/2022 19:22:21,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,55.44,0
+Bank Deposit,10265,17/03/2022,created on 06/04/2022 11:46:04,1-10106,1148,   Bank OCBC Giro Smart,8-80099,626,Other Income. - Pemindahbukuan : SMART BENEFIT CASHBACK FEB 2022,30000,0
+Bank Deposit,10244,18/03/2022,created on 02/04/2022 19:40:27,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.35,0
+Bank Deposit,10267,18/03/2022,created on 06/04/2022 18:44:00,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - Pembulatan,0.92,0
+Bank Deposit,10227,21/03/2022,created on 02/04/2022 09:25:39,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,76.01,0
+Bank Deposit,10228,21/03/2022,created on 02/04/2022 09:30:43,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.42,0
+Bank Deposit,10253,21/03/2022,created on 03/04/2022 16:37:50,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,4,0
+Bank Deposit,10229,22/03/2022,created on 02/04/2022 09:58:52,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,73.94,0
+Bank Deposit,10268,22/03/2022,created on 07/04/2022 17:21:58,1-10102,1115,Bank BCA IDR 2 - Operational,2-20400,1084,Other Current Liabilities - RINA OKTAVIANA - TRANSFER TIDAK DIKETAHUI,1963000,0
+Bank Deposit,10232,23/03/2022,created on 02/04/2022 13:11:50,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,28.14,0
+Bank Deposit,10239,23/03/2022,created on 02/04/2022 18:26:22,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,418.52,0
+Bank Deposit,10243,23/03/2022,created on 02/04/2022 19:33:54,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.35,0
+Bank Deposit,10251,23/03/2022,created on 02/04/2022 22:44:31,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,63,0
+Bank Deposit,10231,25/03/2022,created on 02/04/2022 12:55:36,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,55.62,0
+Bank Deposit,10250,25/03/2022,created on 02/04/2022 22:39:56,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,20,0
+Bank Deposit,10264,25/03/2022,created on 06/04/2022 11:45:31,1-10106,1148,   Bank OCBC Giro Smart,8-80001,625,Interest Income - Bunga Rekening,142201,0
+Bank Deposit,10248,28/03/2022,created on 02/04/2022 22:36:07,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.27,0
+Bank Deposit,10249,28/03/2022,created on 02/04/2022 22:37:59,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,86.42,0
+Bank Deposit,10255,28/03/2022,created on 03/04/2022 17:05:16,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,19.03,0
+Bank Deposit,10257,28/03/2022,created on 03/04/2022 22:11:42,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,350000000,0
+Bank Deposit,10254,29/03/2022,created on 03/04/2022 17:03:07,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,270.53,0
+Bank Deposit,10258,29/03/2022,created on 03/04/2022 22:12:02,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,100000000,0
+Bank Deposit,10246,30/03/2022,created on 02/04/2022 21:44:23,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.73,0
+Bank Deposit,10247,30/03/2022,created on 02/04/2022 21:46:57,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,36.72,0
+Bank Deposit,10252,30/03/2022,created on 03/04/2022 16:31:45,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.35,0
+Bank Deposit,10230,31/03/2022,created on 02/04/2022 12:27:06,1-10102,1115,Bank BCA IDR 2 - Operational,8-80001,625,Interest Income - PENDAPATAN BUNGA BANK MARET 2022,9453.46,0
+Bank Deposit,10245,31/03/2022,created on 02/04/2022 21:41:37,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,1.9,0
+Bank Deposit,10256,31/03/2022,created on 03/04/2022 17:11:15,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.51,0
+Bank Deposit,10280,1/4/2022,created on 29/04/2022 18:57:10,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,38.72,0
+Bank Deposit,10299,1/4/2022,created on 30/04/2022 23:36:07,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,3,0
+Bank Deposit,10324,1/4/2022,created on 09/05/2022 17:25:48,1-10102,1115,Bank BCA IDR 2 - Operational,2-20127,212,Corporate Withholding Tax (PPh 23) - Kesalahan Tarif PO GA/31-III/22/2431,1750,0
+Bank Deposit,10281,4/4/2022,created on 29/04/2022 19:07:17,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,35.47,0
+Bank Deposit,10315,4/4/2022,created on 01/05/2022 17:41:54,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20200,1103,Deposits from Customer - KELEBIHAN TRF CUSTOMER INV SNI20220401-16,49999.53,0
+Bank Deposit,10282,5/4/2022,created on 29/04/2022 19:12:15,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,64.93,0
+Bank Deposit,10297,6/4/2022,created on 30/04/2022 23:31:15,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.21,0
+Bank Deposit,10298,6/4/2022,created on 30/04/2022 23:32:17,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,76,0
+Bank Deposit,10313,6/4/2022,created on 01/05/2022 17:38:52,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20200,1103,Deposits from Customer - KELEBIHAN TRANSFER CUSTOMER INV SNI20220406-77,435551,0
+Bank Deposit,10314,6/4/2022,created on 01/05/2022 17:39:03,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.9,0
+Bank Deposit,10283,7/4/2022,created on 30/04/2022 08:45:30,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,51.04,0
+Bank Deposit,10295,7/4/2022,created on 30/04/2022 23:23:40,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.62,0
+Bank Deposit,10296,7/4/2022,created on 30/04/2022 23:27:27,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,10,0
+Bank Deposit,10284,8/4/2022,created on 30/04/2022 08:50:51,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,1.31,0
+Bank Deposit,10294,8/4/2022,created on 30/04/2022 23:23:00,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,571.75,0
+Bank Deposit,10300,8/4/2022,created on 01/05/2022 08:33:02,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,197.08,0
+Bank Deposit,10279,11/4/2022,created on 29/04/2022 17:03:44,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,700000000,0
+Bank Deposit,10301,11/4/2022,created on 01/05/2022 08:33:42,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,366.23,0
+Bank Deposit,10278,12/4/2022,created on 29/04/2022 17:01:23,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,16,0
+Bank Deposit,10285,12/4/2022,created on 30/04/2022 09:07:45,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,39.92,0
+Bank Deposit,10326,12/4/2022,created on 09/05/2022 20:55:02,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - Pembulatan,20,0
+Bank Deposit,10310,13/04/2022,created on 01/05/2022 17:17:20,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,22.18,0
+Bank Deposit,10334,13/04/2022,created on 11/05/2022 13:54:48,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),5-50100,838,Purchase Discounts - Cashback dari PT Enseval,125000,0
+Bank Deposit,10277,14/04/2022,created on 29/04/2022 17:00:25,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,500000000,0
+Bank Deposit,10292,14/04/2022,created on 30/04/2022 10:53:18,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,60.32,0
+Bank Deposit,10339,14/04/2022,created on 12/05/2022 18:13:13,1-10106,1148,   Bank OCBC Giro Smart,8-80001,625,Interest Income - Pembayaran bunga deposito : DR 40382006926-4 KE 40380000197-2,6064110,0
+Bank Deposit,10275,18/04/2022,created on 29/04/2022 16:58:16,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,50000000,0
+Bank Deposit,10288,18/04/2022,created on 30/04/2022 10:17:01,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20200,1103,Deposits from Customer - TOLAKAN NUTRIJEL PUDING BELGIAN 1 PCS SNI20220413-230,7500.62,0
+Bank Deposit,10289,18/04/2022,created on 30/04/2022 10:17:23,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,16.17,0
+Bank Deposit,10318,18/04/2022,created on 01/05/2022 17:44:30,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20200,1103,Deposits from Customer - KELEBIHAN TRF CUSTOMER INV SNI20220414-309,402853,0
+Bank Deposit,10319,18/04/2022,created on 01/05/2022 17:44:43,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.22,0
+Bank Deposit,10323,18/04/2022,created on 09/05/2022 17:23:00,1-10102,1115,Bank BCA IDR 2 - Operational,2-20127,212,Corporate Withholding Tax (PPh 23) - Kesalahan Tarif PO GA/18-IV/22/2427,3200,0
+Bank Deposit,10330,18/04/2022,created on 10/05/2022 13:53:33,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - Pembulatan,20,0
+Bank Deposit,10331,18/04/2022,created on 11/05/2022 12:56:40,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,2.42,0
+Bank Deposit,10338,18/04/2022,created on 12/05/2022 18:11:56,1-10106,1148,   Bank OCBC Giro Smart,8-80099,626,Other Income. - Pemindahbukuan : SMART BENEFIT CASHBACK MAR 2022,30000,0
+Bank Deposit,REQUEST 4025.,19/04/2022,created on 22/04/2022 14:43:25,1-10102,1115,Bank BCA IDR 2 - Operational,1-10421.1,#N/A,Cash Advance - REFUND REQUEST 4025,700000,0
+Bank Deposit,10269,19/04/2022,created on 25/04/2022 12:19:52,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss - ROUNDING,1.2,0
+Bank Deposit,10290,19/04/2022,created on 30/04/2022 10:48:20,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,9.39,0
+Bank Deposit,10309,19/04/2022,created on 01/05/2022 17:10:53,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,43.77,0
+Bank Deposit,10347,19/04/2022,created on 19/05/2022 16:12:54,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss,1.91,0
+Bank Deposit,10291,20/04/2022,created on 30/04/2022 10:51:06,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,947.35,0
+Bank Deposit,10328,20/04/2022,created on 09/05/2022 21:05:51,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),1-10452,987,Prepayment - Salah transfer refund POI2112-49 (RR2204-41),2602600,0
+Bank Deposit,10274,21/04/2022,created on 29/04/2022 16:50:52,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,500000000,0
+Bank Deposit,10332,21/04/2022,created on 11/05/2022 12:57:19,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,2.31,0
+Bank Deposit,10303,22/04/2022,created on 01/05/2022 08:57:51,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,32.74,0
+Bank Deposit,10322,22/04/2022,created on 06/05/2022 08:41:04,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss - ROUNDING,0.37,0
+Bank Deposit,10327,22/04/2022,created on 09/05/2022 20:59:50,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - Pembulatan,75,0
+Bank Deposit,10329,22/04/2022,created on 10/05/2022 11:53:34,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss - rounding,0.08,0
+Bank Deposit,10273,25/04/2022,created on 29/04/2022 16:49:17,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,700000000,0
+Bank Deposit,10337,25/04/2022,created on 12/05/2022 18:11:17,1-10106,1148,   Bank OCBC Giro Smart,8-80001,625,Interest Income - Bunga Rekening,149394,0
+Bank Deposit,10304,26/04/2022,created on 01/05/2022 08:58:51,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,1000,0
+Bank Deposit,10305,26/04/2022,created on 01/05/2022 16:29:08,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,19.11,0
+Bank Deposit,10306,26/04/2022,created on 01/05/2022 16:30:16,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.28,0
+Bank Deposit,10311,26/04/2022,created on 01/05/2022 17:28:22,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,35.63,0
+Bank Deposit,10312,26/04/2022,created on 01/05/2022 17:31:02,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.88,0
+Bank Deposit,10321,26/04/2022,created on 06/05/2022 08:18:08,1-10102,1115,Bank BCA IDR 2 - Operational,2-20402,1086,Other Current Liabilities - KKA,100000000,0
+Bank Deposit,10302,27/04/2022,created on 01/05/2022 08:35:52,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,43.21,0
+Bank Deposit,10308,27/04/2022,created on 01/05/2022 16:52:28,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,23.9,0
+Bank Deposit,10271,28/04/2022,created on 29/04/2022 16:34:17,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,50000000,0
+Bank Deposit,10272,28/04/2022,created on 29/04/2022 16:47:51,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,600000000,0
+Bank Deposit,10293,28/04/2022,created on 30/04/2022 23:21:46,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,31.11,0
+Bank Deposit,10307,28/04/2022,created on 01/05/2022 16:41:58,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,42.52,0
+Bank Deposit,10333,28/04/2022,created on 11/05/2022 13:00:09,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.5,0
+Bank Deposit,10320,29/04/2022,created on 06/05/2022 08:16:37,1-10102,1115,Bank BCA IDR 2 - Operational,8-80001,625,Interest Income - PENDAPATAN BUNGA BANK APRIL 2022,2081.78,0
+Bank Deposit,10370,9/5/2022,created on 07/06/2022 16:38:05,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,40,0
+Bank Deposit,10340,10/5/2022,created on 18/05/2022 12:54:14,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.71,0
+Bank Deposit,10344,10/5/2022,created on 18/05/2022 13:33:29,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,23.76,0
+Bank Deposit,10348,10/5/2022,created on 28/05/2022 10:20:39,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss - Rounding,0.05,0
+Bank Deposit,10341,11/5/2022,created on 18/05/2022 13:27:13,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,82.25,0
+Bank Deposit,10342,11/5/2022,created on 18/05/2022 13:28:59,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.89,0
+Bank Deposit,10343,11/5/2022,created on 18/05/2022 13:29:35,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,968.53,0
+Bank Deposit,10369,11/5/2022,created on 07/06/2022 16:33:26,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,750000000,0
+Bank Deposit,10371,11/5/2022,created on 07/06/2022 17:39:38,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.13,0
+Bank Deposit,10345,12/5/2022,created on 18/05/2022 13:34:10,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.1,0
+Bank Deposit,10346,13/05/2022,created on 19/05/2022 11:00:58,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,4.9,0
+Bank Deposit,10381,14/05/2022,created on 21/06/2022 13:43:03,1-10106,1148,   Bank OCBC Giro Smart,8-80001,625,Interest Income - Pembayaran bunga deposito : DR 40382006926-4 KE 40380000197-2,5753425,0
+Bank Deposit,10350,16/05/2022,created on 03/06/2022 09:14:25,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,23.42,0
+Bank Deposit,10349,17/05/2022,created on 28/05/2022 11:17:20,1-10102,1115,Bank BCA IDR 2 - Operational,2-20402,1086,Other Current Liabilities - KKA,100000000,0
+Bank Deposit,10351,17/05/2022,created on 03/06/2022 09:22:28,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,87.01,0
+Bank Deposit,10368,17/05/2022,created on 07/06/2022 16:31:25,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,600000000,0
+Bank Deposit,10372,17/05/2022,created on 07/06/2022 17:40:41,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,2.32,0
+Bank Deposit,10353,18/05/2022,created on 03/06/2022 10:16:07,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,49.53,0
+Bank Deposit,10367,18/05/2022,created on 07/06/2022 16:30:44,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,300000000,0
+Bank Deposit,10373,18/05/2022,created on 07/06/2022 17:43:05,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,2.13,0
+Bank Deposit,10354,19/05/2022,created on 03/06/2022 10:20:43,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20200,1103,Deposits from Customer - KELEBIHAN TRF CUSTOMER NO. INV SNI20220518-596,19999.09,0
+Bank Deposit,10352,20/05/2022,created on 03/06/2022 09:34:47,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,236.95,0
+Bank Deposit,SAL/13-V/22/2760..,23/05/2022,created on 28/05/2022 11:33:35,1-10102,1115,Bank BCA IDR 2 - Operational,1-10452,987,Prepayment - Refund Pembelian Mobil Grandmax L8985AB untuk Gudang Sedati,88500000,0
+Bank Deposit,10360,23/05/2022,created on 03/06/2022 15:44:11,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,19.51,0
+Bank Deposit,10380,23/05/2022,created on 21/06/2022 13:40:36,1-10106,1148,   Bank OCBC Giro Smart,8-80099,626,Other Income. - Pemindahbukuan : SMART BENEFIT CASHBACK APR 2022,30000,0
+Bank Deposit,10366,24/05/2022,created on 07/06/2022 16:29:54,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,100000000,0
+Bank Deposit,10376,24/05/2022,created on 09/06/2022 19:39:11,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.21,0
+Bank Deposit,10377,24/05/2022,created on 09/06/2022 19:46:19,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.83,0
+Bank Deposit,10378,24/05/2022,created on 09/06/2022 19:59:22,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.65,0
+Bank Deposit,10359,25/05/2022,created on 03/06/2022 15:22:50,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,44.98,0
+Bank Deposit,10364,25/05/2022,created on 07/06/2022 16:28:42,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,40,0
+Bank Deposit,10374,25/05/2022,created on 07/06/2022 17:45:26,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,2.04,0
+Bank Deposit,10375,25/05/2022,created on 09/06/2022 19:38:41,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.32,0
+Bank Deposit,10379,25/05/2022,created on 21/06/2022 13:39:41,1-10106,1148,   Bank OCBC Giro Smart,8-80001,625,Interest Income - Bunga Rekening,149606,0
+Bank Deposit,10355,27/05/2022,created on 03/06/2022 14:29:31,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,16.43,0
+Bank Deposit,10363,27/05/2022,created on 06/06/2022 18:04:14,1-10102,1115,Bank BCA IDR 2 - Operational,2-20402,1086,Other Current Liabilities - KKA - TRSF E-BANKING CR 2705/FTSCY/WS95051 125000000.00 KRAKATAU KARYA ABA,125000000,0
+Bank Deposit,10356,30/05/2022,created on 03/06/2022 14:52:40,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.65,0
+Bank Deposit,10357,30/05/2022,created on 03/06/2022 14:54:51,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,0.61,0
+Bank Deposit,10358,30/05/2022,created on 03/06/2022 15:14:00,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,72.97,0
+Bank Deposit,10365,30/05/2022,created on 07/06/2022 16:29:19,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),2-20402,1086,Other Current Liabilities - KKA - PINJAMAN DARI KKA,1100000000,0
+Bank Deposit,10361,31/05/2022,created on 03/06/2022 17:00:03,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,29.11,0
+Bank Deposit,10362,31/05/2022,created on 06/06/2022 17:59:46,1-10102,1115,Bank BCA IDR 2 - Operational,8-80001,625,Interest Income - PENDAPATAN BUNGA BANK MEI 2022,3934.97,0

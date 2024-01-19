@@ -1,0 +1,6 @@
+Transaction,TransactionNumber,TransactionDate,Created At,Account Number,InternalIDAccHeader,Account,Accunt Line,InternalIdAccountline,Description,Debit,Credit,Credit New
+Bank Deposit,10269,19/04/2022,created on 25/04/2022 12:19:52,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss - ROUNDING,1.2,0,
+Bank Deposit,10290,19/04/2022,created on 30/04/2022 10:48:20,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,9.39,0,
+Bank Deposit,10309,19/04/2022,created on 01/05/2022 17:10:53,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,43.77,0,
+Bank Deposit,10347,19/04/2022,created on 19/05/2022 16:12:54,1-10102,1115,Bank BCA IDR 2 - Operational,9-90006,636,Rounding Gain/Loss,1.91,0,
+Bank Deposit,10291,20/04/2022,created on 30/04/2022 10:51:06,1-10101,1114,Bank BCA IDR 1 - Purchase (8887),9-90006,636,Rounding Gain/Loss - PEMBULATAN,947.35,0,

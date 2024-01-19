@@ -568,21 +568,22 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         line: index
                     });
                     var rate;
-                    var rateBef = poRecord.getSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'amount',
-                        line: index
-                    });
+                    // var rateBef = poRecord.getSublistValue({
+                    //     sublistId: 'item',
+                    //     fieldId: 'amount',
+                    //     line: index
+                    // });
                     var ammount = poRecord.getSublistValue({
                         sublistId: 'item',
                         fieldId: 'amount',
                         line: index
                     });
-                    if(rateBef){
-                        rate = rateBef
-                    }else{
-                        rate = Number(ammount) / Number(qty)
-                    }
+                    // if(rateBef){
+                    //     rate = rateBef
+                    // }else{
+                    //     rate = Number(ammount) / Number(qty)
+                    // }
+                    rate = Number(ammount) / Number(qty)
                     if(rate){
                         rate = pembulatan(rate)
                         rate = format.format({
