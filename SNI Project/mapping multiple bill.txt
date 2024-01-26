@@ -1,0 +1,20 @@
+mappingan :
+date -> date
+transaction number -> trnasaction number & reference no
+internal id vendor -> vendor
+memo -> memo
+due date -> due date
+type purchase -> stop
+subsydiari -> SNI
+location id -> location
+
+line purchase order ambil dari internal id po (1 bill bisa beberapa PO)
+line item
+produc code -> item
+qty -> qty
+units-> units
+unit price -> price / unit
+rate -> rate
+discount line -> discount line / %
+amount -> qty x rate
+gross amount -> gross amount

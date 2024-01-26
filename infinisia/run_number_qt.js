@@ -74,6 +74,8 @@ define(["N/record", "N/search"], function(
                     textSub = 'PYMT'
                 }else if(TransType == 'vprep'){
                     textSub = 'VPP'
+                }else if(TransType == 'exprept'){
+                    textSub = 'EXP'
                 }
                 var formatRunning = '';
                 if(TransType == 'estimate'){
@@ -184,6 +186,7 @@ define(["N/record", "N/search"], function(
                     });
                     log.debug('saveRecordTrans', saveRecordTrans);
                 }else{
+                    log.debug('masuk else', formatRunning);
                     var createRecord = record.create({
                         type: 'customrecord__po_numbering',
                         isDynamic: true
