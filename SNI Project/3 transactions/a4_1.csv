@@ -1,0 +1,7 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+4/3/2022,10108,6642854,,10,POP-0074,,Karton,200000,0.00%,5,1,0,220000,2
+5/3/2022,10110,6642905,,10,POP-0051,,Karton,199545.4545,0.00%,5,1,0,219500,2
+5/3/2022,10111,6642949,,10,POP-0051,,Karton,199545.4545,0.00%,5,1,0,219500,2
+5/3/2022,10112,6642960,,10,POP-0061,,Karton,200000,0.00%,5,1,0,220000,2
+9/3/2022,10115,6643236,,10,POP-0051,,Karton,199545.4545,0.00%,5,1,0,219500,2
+9/3/2022,10118,6643202,,10,POP-0071,,Karton,8181.818182,0.00%,5,1,0,9000,2

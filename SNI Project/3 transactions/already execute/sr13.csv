@@ -1,0 +1,19 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,POP-0053,,Karton,41327.92793,0.03,6,3,0,137622.00,1
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,POP-0078,,Karton,41327.92793,0.03,6,3,0,137622.00,1
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,POP-0056,,Karton,41327.92793,0.03,6,3,0,137622.00,1
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,POP-0066,,Karton,41327.92793,0.03,6,3,0,137622.00,1
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,POP-0055,,Karton,41327.92793,0.03,6,2,0,91748.00,1
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,POP-0062,,Karton,41327.92793,0.03,6,1,0,45874.00,1
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,POP-0071,,Karton,41327.92793,0.03,6,1,0,45874.00,1
+5/4/2022,SNI20220404-34,6669440,Cust merasa tidak order,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+6/4/2022,SNI20220405-43,6669284,Cust order yang varian rasa coklat,14,POP-0076,,Karton,41327.92793,0.01,6,1,409.15,45874.00,1
+6/4/2022,SNI20220405-43,6669284,Cust order yang varian rasa coklat,14,Promotion Discount,,,-1.00%,0.01,6,,,0.00,1
+8/4/2022,SNI20220407-102,6669408,Cancel atas permintaan sales ,14,POP-0066,,Karton,41703.6036,0.02,6,2,0,92582.00,1
+8/4/2022,SNI20220407-102,6669408,Cancel atas permintaan sales ,14,Promotion Discount,,,-2.00%,0.02,6,,,0.00,1

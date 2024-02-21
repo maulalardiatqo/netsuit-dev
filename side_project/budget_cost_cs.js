@@ -24,9 +24,25 @@
              newWindow = window.open(createPDFURL);
          }
      } 
+     function printPDFPC() {
+        console.log("test in function");
+        var id = records.id;
+        var createPDFURL = url.resolveScript({
+            scriptId: 'customscript_printout_project_cost',
+            deploymentId: 'customdeploy_printout_project_cost',
+            returnExternalUrl: false
+        })
+        console.log("id",id);
+        console.log("urlpdf", createPDFURL);
+        createPDFURL += '&id=' +  id;
+            if (createPDFURL) {
+                newWindow = window.open(createPDFURL);
+            }
+        } 
      return {
          pageInit: pageInit,
          printPDF : printPDF,
+         printPDFPC : printPDFPC
      };
  }); 
  

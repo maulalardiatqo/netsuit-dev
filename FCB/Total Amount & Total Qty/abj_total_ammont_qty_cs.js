@@ -11,16 +11,16 @@ define(['N/currentRecord'], function(currentRecord) {
     var totalAmount = 0;
     var totalQuantity = 0;
     for (var i = 0; i < itemCount; i++) {
-    var amount = currentRecordObj.getCurrentSublistValue({ sublistId: 'item', fieldId: 'amount', line: i });
-    var quantity = currentRecordObj.getCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', line: i });
-    console.log('quantity', quantity);
-    console.log('amount', amount);
-    if (!isNaN(amount)) {
-        totalAmount += amount;
-    }
-    if (!isNaN(quantity)) {
-        totalQuantity += quantity;
-    }
+        var amount = currentRecordObj.getCurrentSublistValue({ sublistId: 'item', fieldId: 'amount', line: i });
+        var quantity = currentRecordObj.getCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', line: i });
+        console.log('quantity', quantity);
+        console.log('amount', amount);
+        if (!isNaN(amount)) {
+            totalAmount += amount;
+        }
+        if (!isNaN(quantity)) {
+            totalQuantity += quantity;
+        }
     
 
     }

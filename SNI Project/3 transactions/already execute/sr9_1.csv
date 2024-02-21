@@ -1,0 +1,15 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+16/03/2022,SNI20220315-339,6668589,,14,POP-0057,,Karton,41703.63636,0.02,5,1,0,45874,1
+16/03/2022,SNI20220315-339,6668589,,14,Promotion Discount,,,-2.00%,0.02,5,,,0,1
+18/03/2022,SNI20220317-407,6666531,Permintaan Cancel oleh Sales,14,NJL-0027,,Karton,509372.7273,0.03,5,20,296454.93,11206200,1
+18/03/2022,SNI20220317-407,6666531,Permintaan Cancel oleh Sales,14,Promotion Discount,,,-3.00%,0.03,5,,,0,1
+18/03/2022,SNI20220317-407,6666531,Permintaan Cancel oleh Sales,14,NJL-0048,,Karton,509372.7273,0.03,5,10,296454.93,5603100,1
+18/03/2022,SNI20220317-407,6666531,Permintaan Cancel oleh Sales,14,Promotion Discount,,,-3.00%,0.03,5,,,0,1
+18/03/2022,SNI20220317-404,6666522,Cust tidak merasa pesan,14,NJL-0035,,Karton,16185.45455,0.005,5,1,0,17804,1
+18/03/2022,SNI20220317-404,6666522,Cust tidak merasa pesan,14,Promotion Discount,,,-0.50%,0.005,5,,,0,1
+18/03/2022,SNI20220317-404,6666522,Cust tidak merasa pesan,14,NJL-0040,,Karton,16185.45455,0.005,5,1,0,17804,1
+18/03/2022,SNI20220317-404,6666522,Cust tidak merasa pesan,14,Promotion Discount,,,-0.50%,0.005,5,,,0,1
+18/03/2022,SNI20220317-404,6666522,Cust tidak merasa pesan,14,NJL-0030,,Karton,42448.18182,0.005,5,1,0,46693,1
+18/03/2022,SNI20220317-404,6666522,Cust tidak merasa pesan,14,Promotion Discount,,,-0.50%,0.005,5,,,0,1
+18/03/2022,SNI20220317-404,6666522,Cust tidak merasa pesan,14,NJL-0031,,Karton,42448.18182,0.005,5,1,0,46693,1
+18/03/2022,SNI20220317-404,6666522,Cust tidak merasa pesan,14,Promotion Discount,,,-0.50%,0.005,5,,,0,1

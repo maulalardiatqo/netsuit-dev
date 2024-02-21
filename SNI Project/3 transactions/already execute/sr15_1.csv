@@ -1,0 +1,11 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+22/04/2022,SNI20220421-603,6669739,Cust tidak pesan satuan karton,14,NJL-0022,,Karton,231817.1171,0.03,6,5,47221.15,1286585,1
+22/04/2022,SNI20220421-603,6669739,Cust tidak pesan satuan karton,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+22/04/2022,SNI20220421-603,6669739,Cust tidak pesan satuan karton,14,NJL-0021,,Karton,231817.1171,0.03,6,2,47221.15,514634,1
+22/04/2022,SNI20220421-603,6669739,Cust tidak pesan satuan karton,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+22/04/2022,SNI20220421-585,6669738,,14,NJL-0031,,Karton,42447.74775,0.01,6,2,840.47,94234,1
+22/04/2022,SNI20220421-585,6669738,,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1
+23/04/2022,SNI20220422-657,6669529,,14,NJL-0018,,Karton,6439.63964,0.01,6,3,191.26,21444,1
+23/04/2022,SNI20220422-657,6669529,,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1
+23/04/2022,SNI20220422-662,6669534,,14,NJL-0028,,Karton,42447.74775,0.01,6,5,2101.16,235585,1
+23/04/2022,SNI20220422-662,6669534,,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1

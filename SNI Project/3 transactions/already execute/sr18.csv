@@ -1,0 +1,19 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,NJL-0024,,Karton,42065.76577,0.02,6,1,0,46693,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,NJL-0025,,Karton,42065.76577,0.02,6,1,0,46693,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,NJL-0029,,Karton,42065.76577,0.02,6,1,0,46693,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,NJL-0048,,Karton,42065.76577,0.02,6,1,0,46693,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,NJL-0027,,Karton,42065.76577,0.02,6,1,0,46693,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,NJL-0028,,Karton,42065.76577,0.02,6,1,0,46693,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,NJL-0026,,Karton,42065.76577,0.02,6,1,0,46693,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,NJL-0031,,Karton,42065.76577,0.02,6,2,0,93386,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,NJL-0013,,Karton,6901.801802,0.02,6,10,0,76610,1
+5/4/2022,SNI20220404-36,6669292,Cust salah order. order yang varian ekonomis,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1

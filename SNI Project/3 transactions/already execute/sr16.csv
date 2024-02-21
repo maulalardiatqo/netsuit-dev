@@ -1,0 +1,45 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+25/04/2022,SNI20220423-727,6669718,Cust cuma pesan 1 pack,14,POP-0063,,Karton,41703.6036,0.02,6,1,204.35,46291.00,1
+25/04/2022,SNI20220423-727,6669718,Cust cuma pesan 1 pack,14,Promotion Discount,,,-2.00%,0.02,6,,,0.00,1
+26/04/2022,SNI20220425-828,6669513,Stock cust masih ada,14,NJL-0048,,Karton,42447.74775,0.02,6,5,0,235585.00,1
+26/04/2022,SNI20220425-828,6669513,Stock cust masih ada,14,Promotion Discount,,,-2.00%,0.02,6,,,0.00,1
+26/04/2022,SNI20220425-816,6669708,Cust minta yang kemasa ekonomis,14,NJL-0030,,Karton,42447.74775,0.01,6,1,840.47,47117.00,1
+26/04/2022,SNI20220425-816,6669708,Cust minta yang kemasa ekonomis,14,Promotion Discount,,,-1.00%,0.01,6,,,0.00,1
+26/04/2022,SNI20220425-816,6669708,Cust minta yang kemasa ekonomis,14,NJL-0024,,Karton,42447.74775,0.01,6,1,840.47,47117.00,1
+26/04/2022,SNI20220425-816,6669708,Cust minta yang kemasa ekonomis,14,Promotion Discount,,,-1.00%,0.01,6,,,0.00,1
+26/04/2022,SNI20220425-808,6669716,Cust tidak merasa pesan (pesan NR coklat),14,POP-0051,,Karton,208518.018,0.02,6,1,1021.74,231455.00,1
+26/04/2022,SNI20220425-808,6669716,Cust tidak merasa pesan (pesan NR coklat),14,Promotion Discount,,,-2.00%,0.02,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0078,,Karton,46291,0.03,6,3,0,154149.03,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0055,,Karton,46291,0.03,6,3,0,154149.03,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0076,,Karton,46291,0.03,6,2,0,102766.02,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0060,,Karton,46291,0.03,6,1,0,51383.01,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0059,,Karton,46291,0.03,6,3,0,154149.03,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0069,,Karton,46291,0.03,6,2,0,102766.02,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0062,,Karton,46291,0.03,6,2,0,102766.02,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0067,,Karton,46291,0.03,6,1,0,51383.01,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0072,,Karton,46291,0.03,6,1,0,51383.01,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0073,,Karton,46291,0.03,6,1,0,51383.01,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0056,,Karton,46291,0.03,6,3,0,154149.03,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0063,,Karton,46291,0.03,6,3,0,154149.03,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0074,,Karton,46291,0.03,6,1,0,51383.01,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0058,,Karton,46291,0.03,6,2,0,102766.02,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0053,,Karton,46291,0.03,6,2,0,102766.02,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0052,,Karton,46291,0.03,6,2,0,102766.02,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,POP-0061,,Karton,46291,0.03,6,2,0,102766.02,1
+9/5/2022,SNI20220428-1116,6669982,Sales salah upload satuan (harusnya pack),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1

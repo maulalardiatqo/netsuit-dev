@@ -1,0 +1,4 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+13/01/2022,SNI20220111-132,6667355,,14,NJL-0032,,Karton,16185.45455,6,32370.90909,2,0,35608.00,
+13/01/2022,SNI20220111-132,6667355,,14,NJL-0007,,Karton,23593.63636,6,47187.27273,2,0,51906.00,
+13/01/2022,SNI20220111-132,6667355,,14,NJL-0035,,Karton,16185.45455,6,16185.45455,1,0,17804.00,

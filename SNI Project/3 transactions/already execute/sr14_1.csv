@@ -1,0 +1,35 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+13/04/2022,SNI20220412-201,6667030,Cust tidak pesan yang ekonomis. tapi yang reguler,14,NJL-0037,,Karton,16185.58559,0.01,6,1,320.47,17966,1
+13/04/2022,SNI20220412-201,6667030,Cust tidak pesan yang ekonomis. tapi yang reguler,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1
+13/04/2022,SNI20220412-201,6667030,Cust tidak pesan yang ekonomis. tapi yang reguler,14,NJL-0033,,Karton,16185.58559,0.01,6,1,320.47,17966,1
+13/04/2022,SNI20220412-201,6667030,Cust tidak pesan yang ekonomis. tapi yang reguler,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1
+14/04/2022,SNI20220413-217,6669204,Stock cust masih ada,14,NJL-0049,,Karton,16185.58559,0.01,6,1,160.24,17966,1
+14/04/2022,SNI20220413-217,6669204,Stock cust masih ada,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1
+14/04/2022,SNI20220413-219,6667019,Cust pesan PI Coklat dan Cappucino,14,POP-0059,,Karton,41703.6036,0.01,6,2,825.73,92582,1
+14/04/2022,SNI20220413-219,6667019,Cust pesan PI Coklat dan Cappucino,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,POP-0052,,Karton,208518.018,0.03,6,3,121357.49,694365,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,POP-0070,,Karton,208518.018,0.03,6,1,121357.49,231455,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,POP-0060,,Karton,208518.018,0.03,6,2,121357.49,462910,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,POP-0062,,Karton,208518.018,0.03,6,1,121357.49,231455,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,POP-0073,,Karton,208518.018,0.03,6,1,121357.49,231455,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,POP-0063,,Karton,208518.018,0.03,6,2,121357.49,462910,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,POP-0061,,Karton,208518.018,0.03,6,1,121357.49,231455,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,POP-0071,,Karton,208518.018,0.03,6,1,121357.49,231455,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,POP-0055,,Karton,208518.018,0.03,6,2,121357.49,462910,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,POP-0059,,Karton,208518.018,0.03,6,2,121357.49,462910,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,POP-0066,,Karton,208518.018,0.03,6,2,121357.49,462910,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,POP-0067,,Karton,208518.018,0.03,6,1,121357.49,231455,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,POP-0074,,Karton,208518.018,0.03,6,1,121357.49,231455,1
+14/04/2022, SNI20220413-210,6669205,Cust tidak mau menerima karena tidak ada PI coklat,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1

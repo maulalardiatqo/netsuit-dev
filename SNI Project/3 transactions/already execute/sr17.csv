@@ -1,0 +1,25 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+11/5/2022,SNI20220510-105,6669977,Cust hanya pesan 1 box,14,NJL-0031,,Karton,42447.74775,0.01,6,3,0,141351.00,1
+11/5/2022,SNI20220510-105,6669977,Cust hanya pesan 1 box,14,Promotion Discount,,,-1.00%,0.01,6,,,0.00,1
+17/05/2022,SNI20220514-459,6669928,Stock cust masih ada,14,POP-0070,,Karton,41703.6036,0.02,6,1,408.7,46291.00,1
+17/05/2022,SNI20220514-459,6669928,Stock cust masih ada,14,Promotion Discount,,,-2.00%,0.02,6,,,0.00,1
+20/05/2022,SNI20220519-628,6675577,Cust hanya pesan NE Coklat 1 box,14,NJL-0007,,Karton,23593.69369,0.02,6,11,0,288079.00,1
+20/05/2022,SNI20220519-628,6675577,Cust hanya pesan NE Coklat 1 box,14,Promotion Discount,,,-2.00%,0.02,6,,,0.00,1
+21/05/2022, SNI20220520-710,6675470,Stock cust masih ada,14,NJL-0048,,Karton,42447.74775,0.03,6,2,0,94234.00,1
+21/05/2022, SNI20220520-710,6675470,Stock cust masih ada,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+23/05/2022,SNI20220519-620,6675576,Cust tidak mau menerima karena pop ice coklatnya hanya ada 1 pack,14,POP-0051,,Karton,208518.018,0.03,6,0.2,0,46291.00,1
+23/05/2022,SNI20220519-620,6675576,Cust tidak mau menerima karena pop ice coklatnya hanya ada 1 pack,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+23/05/2022,SNI20220519-620,6675576,Cust tidak mau menerima karena pop ice coklatnya hanya ada 1 pack,14,POP-0052,,Karton,41703.6036,0.03,6,1,0,46291.00,1
+23/05/2022,SNI20220519-620,6675576,Cust tidak mau menerima karena pop ice coklatnya hanya ada 1 pack,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+23/05/2022,SNI20220519-620,6675576,Cust tidak mau menerima karena pop ice coklatnya hanya ada 1 pack,14,POP-0056,,Karton,41703.6036,0.03,6,1,0,46291.00,1
+23/05/2022,SNI20220519-620,6675576,Cust tidak mau menerima karena pop ice coklatnya hanya ada 1 pack,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+23/05/2022,SNI20220519-620,6675576,Cust tidak mau menerima karena pop ice coklatnya hanya ada 1 pack,14,POP-0059,,Karton,41703.6036,0.03,6,1,0,46291.00,1
+23/05/2022,SNI20220519-620,6675576,Cust tidak mau menerima karena pop ice coklatnya hanya ada 1 pack,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+23/05/2022,SNI20220519-620,6675576,Cust tidak mau menerima karena pop ice coklatnya hanya ada 1 pack,14,POP-0076,,Karton,41703.6036,0.03,6,1,0,46291.00,1
+23/05/2022,SNI20220519-620,6675576,Cust tidak mau menerima karena pop ice coklatnya hanya ada 1 pack,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+23/05/2022,SNI20220519-620,6675576,Cust tidak mau menerima karena pop ice coklatnya hanya ada 1 pack,14,ASR-0001,,Karton,38963.96396,0.03,6,1,0,43250.00,1
+23/05/2022,SNI20220519-620,6675576,Cust tidak mau menerima karena pop ice coklatnya hanya ada 1 pack,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+27/05/2022,SNI20220517-541,6669917,Cancel by sales (nunggu orderan full stocknya),14,POP-0053,,Karton,208518.018,0.03,6,40,242714.97,9258200.00,1
+27/05/2022,SNI20220517-541,6669917,Cancel by sales (nunggu orderan full stocknya),14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1
+30/05/2022,SNI20220528-1260,6675513,Stock Cust Masih ada,14,POP-0054,,Karton,208518.018,0.03,6,1,6067.87,231455.00,1
+30/05/2022,SNI20220528-1260,6675513,Stock Cust Masih ada,14,Promotion Discount,,,-3.00%,0.03,6,,,0.00,1

@@ -1,0 +1,21 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+14/04/2022,SNI20220413-230,6669602,Kemasan rusak (bocor),14,NJL-0045,,Karton,6964.864865,0.02,6,1,68.26,7731,1
+14/04/2022,SNI20220413-230,6669602,Kemasan rusak (bocor),14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+16/04/2022,SNI20220413-222,6667014,Toko mau libur lama,14,POP-0052,,Karton,41703.6036,0.01,6,2,1651.46,92582,1
+16/04/2022,SNI20220413-222,6667014,Toko mau libur lama,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1
+16/04/2022,SNI20220413-222,6667014,Toko mau libur lama,14,POP-0062,,Karton,41703.6036,0.01,6,1,1651.46,46291,1
+16/04/2022,SNI20220413-222,6667014,Toko mau libur lama,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1
+16/04/2022,SNI20220413-222,6667014,Toko mau libur lama,14,POP-0067,,Karton,41703.6036,0.01,6,1,1651.46,46291,1
+16/04/2022,SNI20220413-222,6667014,Toko mau libur lama,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1
+18/04/2022,SNI20220416-365,6669774,Cust tidak merasa pesan,14,NJL-0045,,Karton,6964.864865,0.01,6,12,827.43,92772,1
+18/04/2022,SNI20220416-365,6669774,Cust tidak merasa pesan,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1
+18/04/2022,SNI20220414-285,6669785,Yang dipesan cust PI mangga buka Nutrijell Ekonomis Mangga,14,NJL-0037,,Karton,194225.2252,0.03,6,11,62171.49,2371490,1
+18/04/2022,SNI20220414-285,6669785,Yang dipesan cust PI mangga buka Nutrijell Ekonomis Mangga,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+18/04/2022,10153,6669242,Cust pesen yang ekonomis,14,NJL-0048,,Karton,509372.0721,0.03,6,1,14822.73,565403,1
+18/04/2022,10153,6669242,Cust pesen yang ekonomis,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+19/04/2022,SNI20220418-457,6669568,,14,POP-0059,,Karton,208518.018,0.01,6,1,2064.33,231455,1
+19/04/2022,SNI20220418-457,6669568,,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1
+20/04/2022,SNI20220419-515,6669756,Kemasan rusak,14,POP-0055,,Karton,208518.018,0.03,6,0.2,1213.57,46291,1
+20/04/2022,SNI20220419-515,6669756,Kemasan rusak,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+22/04/2022,SNI20220421-581,6669736,Cust pesan yang ekonomis,14,NJL-0026,,Karton,42447.74775,0.02,6,1,0,47117,1
+22/04/2022,SNI20220421-581,6669736,Cust pesan yang ekonomis,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1

@@ -1,0 +1,15 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,POP-0055,,Karton,208518.1818,0.03,5,10,212375.77,2293700,1
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,Promotion Discount,,,-3.00%,0.03,5,,,0,1
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,POP-0060,,Karton,208518.1818,0.03,5,10,212375.77,2293700,1
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,Promotion Discount,,,-3.00%,0.03,5,,,0,1
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,POP-0065,,Karton,208518.1818,0.03,5,3,212375.77,688110,1
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,Promotion Discount,,,-3.00%,0.03,5,,,0,1
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,POP-0061,,Karton,208518.1818,0.03,5,5,212375.77,1146850,1
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,Promotion Discount,,,-3.00%,0.03,5,,,0,1
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,POP-0073,,Karton,208518.1818,0.03,5,2,212375.77,458740,1
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,Promotion Discount,,,-3.00%,0.03,5,,,0,1
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,POP-0054,,Karton,208518.1818,0.03,5,3,212375.77,688110,1
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,Promotion Discount,,,-3.00%,0.03,5,,,0,1
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,POP-0053,,Karton,208518.1818,0.03,5,2,212375.77,458740,1
+31/03/2022,SNI20220330-1010,6668920,Cancel atas permintaan Bu Rinda,14,Promotion Discount,,,-3.00%,0.03,5,,,0,1

@@ -164,7 +164,9 @@ define([
                             "AND", 
                             ["mainline","is","T"], 
                             "AND", 
-                            ["vendor.internalid","anyof",vendId]
+                            ["vendor.internalid","anyof",vendId],
+                            "AND",
+                            ["trandate","within","1/1/2024","16/2/2024"]
                         ],
                         columns:
                         [

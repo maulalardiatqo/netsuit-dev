@@ -1,0 +1,15 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+8/4/2022,SNI20220407-108,6669253,Stock cust masih ada,14,NJL-0037,,Karton,16185.58559,0.02,6,3,0,53898,1
+8/4/2022,SNI20220407-108,6669253,Stock cust masih ada,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+8/4/2022,SNI20220407-88,6669248,Cust minta yang expired nya tahun 2024,14,DJL-0003,,Karton,6803.603604,0.01,6,2,224.52,15104,1
+8/4/2022,SNI20220407-88,6669248,Cust minta yang expired nya tahun 2024,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1
+8/4/2022,SNI20220407-88,6669248,Cust minta yang expired nya tahun 2024,14,DJL-0001,,Karton,9072.072072,0.01,6,1,224.52,10070,1
+8/4/2022,SNI20220407-88,6669248,Cust minta yang expired nya tahun 2024,14,Promotion Discount,,,-1.00%,0.01,6,,,0,1
+9/4/2022,SNI20220408-136,6667059,Cust tidak mau menerima karena tidak ada pop ice chocolate,14,POP-0062,,Karton,208518.018,0.03,6,3,16181,694365,1
+9/4/2022,SNI20220408-136,6667059,Cust tidak mau menerima karena tidak ada pop ice chocolate,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1
+9/4/2022,SNI20220408-151,6669234,Stock cust masih ada,14,AGR-0004,,Karton,14724.32432,0.005,6,1,0,16344,1
+9/4/2022,SNI20220408-151,6669234,Stock cust masih ada,14,Promotion Discount,,,-0.50%,0.005,6,,,0,1
+9/4/2022,SNI20220408-151,6669234,Stock cust masih ada,14,AGR-0001,,Karton,17331.53153,0.005,6,1,0,19238,1
+9/4/2022,SNI20220408-151,6669234,Stock cust masih ada,14,Promotion Discount,,,-0.50%,0.005,6,,,0,1
+9/4/2022,SNI20220408-152,6669233,Cust merasa tidak pesan,14,NJL-0049,,Karton,194225.2252,0.03,6,3,14129.89,646770,1
+9/4/2022,SNI20220408-152,6669233,Cust merasa tidak pesan,14,Promotion Discount,,,-3.00%,0.03,6,,,0,1

@@ -1,0 +1,3 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+21/01/2022,SNI20220120-645,6667876,,14,ASR-0001,,Karton,38963.63636,0.00%,5,2,0,85720,2
+21/01/2022,SNI20220120-645,6667876,,14,NJL-0031,,Karton,42448.18182,0.00%,5,1,0,46693,2

@@ -112,6 +112,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if(venAddres === ''){
                     venAddres = vendorRecord.getValue('defaultaddress');
                 }
+                if(venAddres){
+                    log.debug('vendAderss', venAddres);
+                    if(venAddres.includes('&')){
+                        log.debug('includes &')
+                        venAddres = venAddres.replace(/&/g, ' dan ')
+                    }
+                }
                 var taxRegNo = vendorRecord.getValue('vatregnumber');
                 var count = vendorRecord.getLineCount({
                     sublistId: 'submachine'
@@ -365,6 +372,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 duedate = sysDate();
             }
+            log.debug('PoDate', POdate);
             if(POdate){
                 POdate = format.format({
                     value: POdate,

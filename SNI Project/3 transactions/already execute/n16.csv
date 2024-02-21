@@ -1,0 +1,5 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+31/05/2022,T220530-23532,6634349,,10,POP-0052,,Karton,200900.9009,0.00%,6,1,0,223000,2
+31/05/2022,T220530-23532,6634349,,10,POP-0051,,Karton,200630.6306,0.00%,6,1,0,222700,2
+31/05/2022,10232,6634301,,10,POP-0051,,Karton,200630.6306,0.00%,6,2,0,445400,2
+31/05/2022,T220530-24228,191821,,10,POP-0069,,Karton,8108.108108,0.00%,6,10,0,90000,2

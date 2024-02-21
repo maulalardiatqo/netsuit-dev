@@ -1,0 +1,7 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+20/04/2022,10160,6637407,,10,NJL-0032,,Karton,187387.3874,0.00%,6,1,0,208000.00,2
+21/04/2022,10157,6637530,,10,POP-0078,,Karton,8558.558559,0.00%,6,10,0,95000.00,2
+22/04/2022,10161,6637663,,10,POP-0051,,Karton,8108.108108,0.00%,6,5,0,45000.00,2
+22/04/2022,SNI20220419-524,6669757,Toko tutup (sudah coba kirim 3x),14,NJL-0007,,Karton,23593.69369,0.00%,6,1,0,26189.00,2
+22/04/2022,SNI20220419-524,6669757,Toko tutup (sudah coba kirim 3x),14,NJL-0037,,Karton,16185.58559,0.00%,6,1,0,17966.00,2
+22/04/2022,SNI20220419-524,6669757,Toko tutup (sudah coba kirim 3x),14,NJL-0039,,Karton,16185.58559,0.00%,6,1,0,17966.00,2

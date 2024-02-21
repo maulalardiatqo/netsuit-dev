@@ -1,0 +1,11 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+5/4/2022,SNI20220404-32,6669442,Cust tidak mau menerima,14,POP-0056,,Karton,41327.92793,0.02,6,1,0,45874,1
+5/4/2022,SNI20220404-32,6669442,Cust tidak mau menerima,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+5/4/2022,SNI20220404-32,6669442,Cust tidak mau menerima,14,POP-0078,,Karton,41327.92793,0.02,6,1,0,45874,1
+5/4/2022,SNI20220404-32,6669442,Cust tidak mau menerima,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+5/4/2022,SNI20220404-32,6669442,Cust tidak mau menerima,14,POP-0061,,Karton,41327.92793,0.02,6,1,0,45874,1
+5/4/2022,SNI20220404-32,6669442,Cust tidak mau menerima,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+5/4/2022,SNI20220404-32,6669442,Cust tidak mau menerima,14,NJL-0037,,Karton,16039.63964,0.02,6,1,0,17804,1
+5/4/2022,SNI20220404-32,6669442,Cust tidak mau menerima,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1
+5/4/2022,SNI20220404-32,6669442,Cust tidak mau menerima,14,NJL-0033,,Karton,16039.63964,0.02,6,1,0,17804,1
+5/4/2022,SNI20220404-32,6669442,Cust tidak mau menerima,14,Promotion Discount,,,-2.00%,0.02,6,,,0,1

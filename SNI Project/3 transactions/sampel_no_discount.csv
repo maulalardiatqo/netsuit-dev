@@ -1,0 +1,6 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+2/4/2022,10140,6635076,,10,SUN-0003,,Karton,84684.68469,0.00%,6,1,0,94000.00,2
+2/4/2022,10142,6635102,,10,MLU-0001,,Karton,25450.45045,0.00%,6,6,0,169500.00,2
+5/4/2022,10141,6635057,,10,SUN-0003,,Karton,84684.68469,0.00%,6,3,0,282000.00,2
+6/4/2022,10143,6636171,,10,SDP-0011,,Karton,195045.045,0.00%,6,1,0,216500.00,2
+7/4/2022,10145,6645969,,10,YUC-0001,,Karton,171171.1712,0.00%,6,1,0,190000.00,2

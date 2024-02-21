@@ -1,0 +1,33 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,POP-0052,,Karton,208518.1818,0.02,5,1,0,229370.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,POP-0060,,Karton,208518.1818,0.02,5,1,0,229370.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,POP-0066,,Karton,208518.1818,0.02,5,1,0,229370.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,POP-0064,,Karton,208518.1818,0.02,5,1,0,229370.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,POP-0071,,Karton,208518.1818,0.02,5,1,0,229370.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,POP-0053,,Karton,208518.1818,0.02,5,1,0,229370.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,POP-0051,,Karton,208518.1818,0.02,5,3,0,688110.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,NJL-0032,,Karton,194226.3636,0.02,5,5,0,1068245.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,NJL-0007,,Karton,283124.5455,0.02,5,2,0,622874.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,NJL-0040,,Karton,194226.3636,0.02,5,2,0,427298.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,NJL-0039,,Karton,194226.3636,0.02,5,1,0,213649.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,NJL-0037,,Karton,194226.3636,0.02,5,1,0,213649.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,NJL-0038,,Karton,194226.3636,0.02,5,1,0,213649.00,1
+25/03/2022,SNI20220324-816,6668780,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+26/03/2022,SNI20220324-829,6668982,Revisi order (sales salah input harga),14,POP-0062,,Karton,41703.63636,0.02,5,1,408.7,45874.00,1
+26/03/2022,SNI20220324-829,6668982,Revisi order (sales salah input harga),14,Promotion Discount,,,-2.00%,0.02,5,,,0.00,1
+26/03/2022,SNI20220323-736,6668985,,14,NJL-0025,,Karton,509372.7273,0.03,5,5,74113.73,2801550.00,1
+26/03/2022,SNI20220323-736,6668985,,14,Promotion Discount,,,-3.00%,0.03,5,,,0.00,1
+29/03/2022,SNI20220328-873,6668955,Cancel atas permintaan sales,14,NJL-0007,,Karton,283124.5455,0.03,5,1,5492.62,311437.00,1
+29/03/2022,SNI20220328-873,6668955,Cancel atas permintaan sales,14,Promotion Discount,,,-3.00%,0.03,5,,,0.00,1

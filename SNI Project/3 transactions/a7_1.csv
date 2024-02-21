@@ -1,0 +1,2 @@
+date,transactionNumber,idInvoice,memo,locationId,Product Code,description,unit,unitPrice,discountLine,taxrateId,qty,discountAmounr,grossAmount,isDiscount
+1/5/2022,T220326-20807,6656275,,10,BRD-0001,,Karton,15454.54546,0.00%,5,2,0,34000,2
