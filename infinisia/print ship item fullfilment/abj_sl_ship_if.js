@@ -162,7 +162,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+="</tr>";
 
                 body+= "<tr>"
-                body+= "<td style=''>Tax ID# "+taxId+"</td>"
+                // body+= "<td style=''>Tax ID# "+taxId+"</td>"
+                body+= "<td style=''></td>"
                 body+= "<td style=''></td>"
                 body+= "<td style='font-weight:bold;'>Ekspedisi</td>"
                 body+= "<td style=''>"+ekspedisi+"</td>"
