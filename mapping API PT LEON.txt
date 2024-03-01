@@ -1,0 +1,17 @@
+name : displayname
+image : custitem_atlas_item_image
+brand name :
+category name : hardcode 'food'
+-varian 
+1. name : displayname
+2. option : ''
+3. sku : itemId
+4. barcode : upccode
+5. description : purchasedescription
+6. price : online price
+7. cost_price : averagecost
+8. quantity : quantity on hand
+9. weght : weight
+10. width : bebas
+11. height : bebas
+12. length : bebas

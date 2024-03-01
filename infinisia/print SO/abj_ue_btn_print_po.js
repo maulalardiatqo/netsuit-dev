@@ -13,10 +13,15 @@ define(["N/runtime", "N/log"], (runtime, log) => {
 
         form.addButton({
             id: 'custpage_button_po',
-            label: "Print PO",
+            label: "Print SO",
             functionName: "printPDF()"
         });
-        context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js "
+        form.addButton({
+            id: 'custpage_button_po',
+            label: "Print Order Confirmation",
+            functionName: "printPDFOc()"
+        });
+        context.form.clientScriptModulePath = "SuiteScripts/abj_cs_po_print.js"
         }
 }
 return {

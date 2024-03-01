@@ -59,6 +59,7 @@ define([
                 container: "filteroption",
                 source: "location",
             });
+            locationOpt.isMandatory = true;
             var itemOpt = form.addField({
                 id: "custpage_item_opt",
                 label: "Item",
@@ -66,6 +67,7 @@ define([
                 container: "filteroption",
                 source: "item",
             });
+            itemOpt.isMandatory = true;
             var binOpt = form.addField({
                 id: "custpage_bin_opt",
                 label: "Bin",
@@ -135,7 +137,11 @@ define([
                         ],
                         columns:
                         [
-                            search.createColumn({name: "displayname", label: "Display Name"}),
+                            search.createColumn({
+                                name: "itemid",
+                                sort: search.Sort.ASC,
+                                label: "Name"
+                             }),
                             search.createColumn({name: "stockunit", label: "Primary Stock Unit"}),
                             search.createColumn({
                                 name: "inventorynumber",
@@ -167,7 +173,7 @@ define([
                 var i = 0
                 itemSearchObj.run().each(function(result){
                     var ItemName = result.getValue({
-                        name: "displayname",
+                        name: "itemid",
                     });
                     var invNumber = result.getText({
                         name: "inventorynumber",
@@ -181,7 +187,7 @@ define([
                         name: "expirationdate",
                         join: "inventoryDetail",
                     })
-                    log.debug('expDate', expireDate);
+                    log.debug('data', {ItemName : ItemName, invNumber : invNumber, location : location, expireDate : expireDate});
                     var binNumber = result.getText({
                         name: "binnumber",
                         join: "inventoryDetail",
@@ -189,12 +195,23 @@ define([
                     var stockUnit = result.getValue({
                         name: "stockunit",
                     });
-                    currentRecord.setSublistValue({
-                        sublistId: "custpage_sublist_item",
-                        id: "custpage_sublist_item",
-                        value: ItemName,
-                        line: i,
-                    });
+
+                    if(ItemName){
+                        currentRecord.setSublistValue({
+                            sublistId: "custpage_sublist_item",
+                            id: "custpage_sublist_item",
+                            value: ItemName,
+                            line: i,
+                        });
+                    }else{
+                        currentRecord.setSublistValue({
+                            sublistId: "custpage_sublist_item",
+                            id: "custpage_sublist_item",
+                            value: '-',
+                            line: i,
+                        });
+                    }
+
                     if(stockUnit){
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
@@ -202,25 +219,59 @@ define([
                             value: stockUnit,
                             line: i,
                         });
+                    }else{
+                        currentRecord.setSublistValue({
+                            sublistId: "custpage_sublist_item",
+                            id: "custpage_sublist_unit",
+                            value: '-',
+                            line: i,
+                        });
+                    }
+
+                    if(invNumber){
+                        currentRecord.setSublistValue({
+                            sublistId: "custpage_sublist_item",
+                            id: "custpage_sublist_invnumber",
+                            value: invNumber,
+                            line: i,
+                        });
+                    }else{
+                        currentRecord.setSublistValue({
+                            sublistId: "custpage_sublist_item",
+                            id: "custpage_sublist_invnumber",
+                            value: '-',
+                            line: i,
+                        });
+                    }
+
+                    if(location){
+                        currentRecord.setSublistValue({
+                            sublistId: "custpage_sublist_item",
+                            id: "custpage_sublist_location",
+                            value: location,
+                            line: i,
+                        });
+                    }else{
+                        currentRecord.setSublistValue({
+                            sublistId: "custpage_sublist_item",
+                            id: "custpage_sublist_location",
+                            value: '-',
+                            line: i,
+                        });
                     }
                     
-                    currentRecord.setSublistValue({
-                        sublistId: "custpage_sublist_item",
-                        id: "custpage_sublist_invnumber",
-                        value: invNumber,
-                        line: i,
-                    });
-                    currentRecord.setSublistValue({
-                        sublistId: "custpage_sublist_item",
-                        id: "custpage_sublist_location",
-                        value: location,
-                        line: i,
-                    });
                     if(binNumber){
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_bin",
                             value: binNumber,
+                            line: i,
+                        });
+                    }else{
+                        currentRecord.setSublistValue({
+                            sublistId: "custpage_sublist_item",
+                            id: "custpage_sublist_bin",
+                            value: '-',
                             line: i,
                         });
                     }
@@ -230,6 +281,13 @@ define([
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_expdate",
                             value: expireDate,
+                            line: i,
+                        });
+                    }else{
+                        currentRecord.setSublistValue({
+                            sublistId: "custpage_sublist_item",
+                            id: "custpage_sublist_expdate",
+                            value: '-',
                             line: i,
                         });
                     }   
