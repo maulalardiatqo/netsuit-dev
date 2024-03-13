@@ -41,19 +41,19 @@ define([
         return searchResults;
     }
     function pembulatan(angka) {
-            if (angka >= 0) {
-                var bulat = Math.floor(angka);
-                var desimal = angka - bulat;
-                
-                if (desimal >= 0.5) {
-                    return Math.ceil(angka);
-                } else {
-                return Math.floor(angka);
-                }
+        if (angka >= 0) {
+            var bulat = Math.floor(angka);
+            var desimal = angka - bulat;
+    
+            if (desimal >= 0.5) {
+                return (bulat + 1).toFixed(2);
             } else {
-                return Math.ceil(angka);
+                return bulat.toFixed(2);
             }
+        } else {
+            return Math.ceil(angka).toFixed(2);
         }
+    }
         function onRequest(context) {
             var contextRequest = context.request;
             var form = serverWidget.createForm({
@@ -65,7 +65,7 @@ define([
             });
             var prosentField = form.addField({
                 id: "custpage_bill_option",
-                label: "Bill Number",
+                label: "Prosentase",
                 type: serverWidget.FieldType.SELECT,
                 container: "filteroption",
             });
@@ -83,7 +83,7 @@ define([
             });
             prosentField.addSelectOption({
                 value: '>=50%',
-                text: 'PPenjualan dengan Margin >50%'
+                text: 'Penjualan dengan Margin >50%'
             });
             prosentField.isMandatory = true
             form.addSubmitButton({
@@ -93,7 +93,7 @@ define([
                 context.response.writePage(form);
             }else{
                 var formula = context.request.parameters.custpage_bill_option;
-                log.debug('formula', formula)
+                
                 var dataToShow = [];
                 var invoiceSearchObj = search.create({
                     type: "invoice",
@@ -138,7 +138,6 @@ define([
                     ]
                 });
                 var searchResultCount = invoiceSearchObj.runPaged().count;
-                log.debug("invoiceSearchObj result count",searchResultCount);
                 invoiceSearchObj.run().each(function(result){
                     var custName = result.getValue({
                         name: "altname",
@@ -236,13 +235,10 @@ define([
                             }
                         }
                         var totalCogs = Number(qty) * Number(cogsItem)
-                        log.debug('totalInvoice', totalInv)
-                        log.debug('totalCogs',totalCogs )
                         var grossProfit = Number(totalInv) - Number(totalCogs);
                         var prosentGostProfit = Number(grossProfit) / (totalInv)
                         if(formula == '<=0%'){
-                            log.debug('prosentGosProfit', prosentGostProfit);
-                            if(prosentGostProfit <= 0/100){
+                            if(prosentGostProfit <= 0){
                                 dataToShow.push({
                                     custName : custName,
                                     itemName : itemName,
@@ -260,8 +256,9 @@ define([
                                 })
                             }
                         }else if(formula == '>=1 && <=20%'){
-                            log.debug('prosentGosProfit', prosentGostProfit);
-                            if(prosentGostProfit >= 1/100 && prosentGostProfit  <= 20/100){
+                            if(prosentGostProfit >= 1 && prosentGostProfit  <= 20){
+                                log.debug('formula', formula)
+                                log.debug('prosentGosProfit', prosentGostProfit);
                                 dataToShow.push({
                                     custName : custName,
                                     itemName : itemName,
@@ -279,8 +276,7 @@ define([
                                 })
                             }
                         } else if(formula == '>=20 && <=50%'){
-                            log.debug('prosentGosProfit', prosentGostProfit);
-                            if(prosentGostProfit >= 20/100 && prosentGostProfit  <= 50/100){
+                            if(prosentGostProfit >= 20 && prosentGostProfit  <= 50){
                                 dataToShow.push({
                                     custName : custName,
                                     itemName : itemName,
@@ -298,8 +294,7 @@ define([
                                 })
                             }
                         }else if(formula == '>=50%'){
-                            log.debug('prosentGosProfit', prosentGostProfit);
-                            if(prosentGostProfit >= 50/100){
+                            if(prosentGostProfit >= 50){
                                 dataToShow.push({
                                     custName : custName,
                                     itemName : itemName,
@@ -318,7 +313,6 @@ define([
                             }
                         }
 
-                        log.debug('grossProfit', grossProfit)
                     }
                     return true;
                 });
@@ -364,7 +358,7 @@ define([
                             type: format.Type.CURRENCY
                         });
                         var prosentGostProfit = data.prosentGostProfit ||  0
-                        prosentGostProfit = pembulatan(prosentGostProfit)
+                        // prosentGostProfit = pembulatan(prosentGostProfit)
                         prosentGostProfit = prosentGostProfit + '%'
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
@@ -496,7 +490,7 @@ define([
             var sublist_in = form.addSublist({
                 id: sublistname,
                 type: serverWidget.SublistType.LIST,
-                label: "Report COGS",
+                label: "Report Gross Profit",
             });
             sublist_in.addField({
                 id: "custpage_sublist_no",

@@ -205,7 +205,7 @@ function(render, search, record, log, file, http, config, format, email, runtime
                     }
 
                     body+= "<tr>"
-                    body+= "<td style='font-weight:bold;border: 1px black solid;' colspan='7'>NB : Kartu Stock di tulis dengan benar dan baik</td>"
+                    body+= "<td style='font-weight:bold;border: 1px black solid;' colspan='7'>NB : Kartu Stock ditulis dengan benar dan baik</td>"
                     body+= "</tr>"
 
                     body+= "</tbody>"

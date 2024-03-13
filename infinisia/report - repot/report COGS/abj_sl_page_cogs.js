@@ -52,14 +52,27 @@ define([
                 label: "FILTERS",
             });
 
-            var locationOpt = form.addField({
+            var billFilter = form.addField({
                 id: "custpage_bill_option",
                 label: "Bill Number",
                 type: serverWidget.FieldType.SELECT,
                 container: "filteroption",
                 source: "vendorbill",
             });
-            locationOpt.isMandatory = true
+            var itemFilter = form.addField({
+                id: "custpage_item_option",
+                label: "Items",
+                type: serverWidget.FieldType.SELECT,
+                container: "filteroption",
+                source: "item",
+            });
+            var vendorFilter = form.addField({
+                id: "custpage_vendor_option",
+                label: "Principal",
+                type: serverWidget.FieldType.SELECT,
+                container: "filteroption",
+                source: "vendor",
+            });
             form.addSubmitButton({
                 label: "Search",
             });
@@ -67,433 +80,360 @@ define([
                 context.response.writePage(form);
             }else{
                 var idBill = context.request.parameters.custpage_bill_option;
+                var idItem = context.request.parameters.custpage_item_option;
+                var idVendor = context.request.parameters.custpage_vendor_option;
                 log.debug('idBill', idBill);
-                if(idBill){
-                    var recBill = record.load({
-                        type : 'vendorbill',
-                        id : idBill
+                log.debug('idItem', idItem);
+                log.debug('idVendor', idVendor);
+                //If no filters are selected show
+                if(!idBill && !idItem && !idVendor){
+
+                }else{
+                    var dataSearch = search.load({
+                        id: 'customsearch782',
                     });
-                    var vendor = recBill.getValue('entity');
-                    log.debug('vendor', vendor);
-                    var noInvoice = recBill.getValue('tranid');
-                    var trandate = recBill.getValue('trandate')
-                    var exchangerate = recBill.getValue('exchangerate')
-                    var vendorName = '' ;
-                    if(vendor){
-                        var recVendor = record.load({
-                            type : 'vendor',
-                            id : vendor
-                        });
-                        var legalName = recVendor.getValue('legalname');
-                        log.debug('legalName', legalName);
-                        vendorName = legalName
+                    if(idBill){
+                        dataSearch.filters.push(search.createFilter({
+                            name: 'internalid',
+                            operator: search.Operator.IS,
+                            values: idBill
+                        }));
                     }
-                    var poCount = recBill.getLineCount({
-                        sublistId : 'purchaseorders'
-                    });
-                    log.debug('poCOunt', poCount);
-                    var dataPO = []
-                    log.debug('vendorName', vendorName)
-                    if(poCount > 0 ){
-                        for(var i = 0; i  < poCount;i++){
-                            var poId =  recBill.getSublistValue({
-                                sublistId : 'purchaseorders',
-                                fieldId: 'id',
-                                line: i
-                            });
-                            var poNumber =  recBill.getSublistValue({
-                                sublistId : 'purchaseorders',
-                                fieldId: 'poid',
-                                line: i
-                            });
-                            if(poId){
-                                var poRec = record.load({
-                                    type : 'purchaseorder',
-                                    id : poId
-                                })
-                                var countLink = poRec.getLineCount({
-                                    sublistId : 'links'
-                                });
-                                if(countLink > 0){
-                                    for(var j = 0; j < countLink; j++){
-                                        var type = poRec.getSublistValue({
-                                            sublistId : 'links',
-                                            fieldId: 'linktype',
-                                            line: j
-                                        })
-                                        log.debug('type', type)
-                                        if(type == 'Receipt/Fulfillment'){
-                                            var idReceipt = poRec.getSublistValue({
-                                                sublistId : 'links',
-                                                fieldId: 'id',
-                                                line: j
-                                            });
-                                            if(idReceipt){
-                                                var receiptRec  = record.load({
-                                                    type : 'itemreceipt',
-                                                    id : idReceipt
-                                                });
-                                                var inbound = receiptRec.getText('inboundshipment');
-                                                var receiptDate = receiptRec.getValue('trandate');
-                                                if(receiptDate){
-                                                    receiptDate = format.format({
-                                                        value: receiptDate,
-                                                        type: format.Type.DATE
-                                                    });
-                                                }
-                                                var idInbound = receiptRec.getValue('inboundshipment');
-                                                var dateInbound
-                                                var billOfLoading
-                                                var noPib
-                                                if(idInbound){
-                                                    var recInb = record.load({
-                                                        type : 'inboundshipment',
-                                                        id : idInbound
-                                                    });
-                                                    var inbDate = recInb.getValue('shipmentcreateddate');
-                                                    if(inbDate){
-                                                        inbDate = format.format({
-                                                            value: inbDate,
-                                                            type: format.Type.DATE
-                                                        });
-                                                        dateInbound = inbDate
-                                                    }
+                    if(idItem){
+                        dataSearch.filters.push(search.createFilter({
+                            name: 'item',
+                            operator: search.Operator.IS,
+                            values: idItem
+                        }));
+                    }
+                    if(idVendor){
+                        dataSearch.filters.push(search.createFilter({
+                            name: 'vendor.internalid',
+                            operator: search.Operator.ANYOF,
+                            values: idVendor
+                        }));
+                    }
+                    dataSearchSet = dataSearch.run();
+                    dataSearch = dataSearchSet.getRange(0, 999);
+                    log.debug('dataSearch', dataSearch)
+                    
+                    var allData = []
+                    for (var i in dataSearch) {
+                        var py = dataSearch[i];
+                        var itemId = py.getValue(dataSearchSet.columns[0]);
+                        log.debug('itemId', itemId)
+                        var vendor = py.getValue(dataSearchSet.columns[1]);
+                        var billNumbe = py.getValue(dataSearchSet.columns[2]);
+                        var poNumb = py.getValue(dataSearchSet.columns[3]);
+                        log.debug('poNumb', poNumb)
+                        var date = py.getValue(dataSearchSet.columns[4]);
+                        var qty = py.getValue(dataSearchSet.columns[5]);
+                        var excRate = py.getValue(dataSearchSet.columns[6]);
+                        var rateItem = py.getValue(dataSearchSet.columns[7]);
+                        var amount = py.getValue(dataSearchSet.columns[8]);
+                        var priceIdr = Number(amount) * Number(excRate);
+                        var poId = py.getValue(dataSearchSet.columns[9]);
+                        log.debug('poId', poId)
 
-                                                    var loading = recInb.getValue('billoflading');
-                                                    if(loading){
-                                                        billOfLoading = loading
-                                                    }
-                                                    var inbPIB = recInb.getValue('custrecord2');
-                                                    if(inbPIB){
-                                                        noPib = inbPIB
-                                                    }
-                                                }
-                                                var countRecipt = receiptRec.getLineCount({
-                                                    sublistId : 'item'
-                                                });
-                                                if(countRecipt > 0){
-                                                    for(var k = 0; k < countRecipt ;k++ ){
-                                                        var iteminReceipt = receiptRec.getSublistValue({
-                                                            sublistId : 'item',
-                                                            fieldId : 'item',
-                                                            line : k
-                                                        });
-                                                        var isLandedCost = receiptRec.getSublistValue({
-                                                            sublistId : 'item',
-                                                            fieldId : 'landedcostset',
-                                                            line : k
-                                                        });
-                                                        if(isLandedCost == "T"){
-                                                            var landedCost = receiptRec.getSublistValue({
-                                                                sublistId : 'item',
-                                                                fieldId : 'landedcost',
-                                                                line : k
-                                                            });
-                                                            log.debug('landedCost', landedCost)
-                                                            if(landedCost){
-                                                                var recLanded = record.load({
-                                                                    type : 'landedcost',
-                                                                    id : landedCost
-                                                                });
-                                                                log.debug('recLanded', recLanded);
-                                                                var landedCount = recLanded.getLineCount({
-                                                                    sublistId : 'landedcostdata'
-                                                                });
-                                                                var biayaMasuk
-                                                                var biayaAngkut
-                                                                var biayaPengurusan
-                                                                if(landedCount > 0){
-                                                                    for(var u = 0; u < landedCount; u++){
-                                                                        var amount = recLanded.getSublistValue({
-                                                                            sublistId : 'landedcostdata',
-                                                                            fieldId : 'amount',
-                                                                            line : u
-                                                                        })
-                                                                        var category = recLanded.getSublistText({
-                                                                            sublistId : 'landedcostdata',
-                                                                            fieldId : 'costcategory',
-                                                                            line : u
-                                                                        })
-                                                                        var categoryId = recLanded.getSublistValue({
-                                                                            sublistId : 'landedcostdata',
-                                                                            fieldId : 'costcategory',
-                                                                            line : u
-                                                                        })
-                                                                        if(categoryId == '2'){
-                                                                            biayaMasuk = amount
-                                                                        }else if(categoryId == '4'){
-                                                                            biayaAngkut = amount
-                                                                        }else if(categoryId == '3'){
-                                                                            biayaPengurusan = amount
-                                                                        }
-                                                                    }
-
-                                                                }
-                                                                
-                                                            }
-                                                        }
-                                                        dataPO.push({
-                                                            iteminReceipt : iteminReceipt,
-                                                            poNumber : poNumber,
-                                                            inbound : inbound,
-                                                            biayaMasuk : biayaMasuk,
-                                                            biayaPengurusan : biayaPengurusan,
-                                                            biayaAngkut : biayaAngkut,
-                                                            dateInbound : dateInbound,
-                                                            billOfLoading : billOfLoading,
-                                                            noPib : noPib,
-                                                            receiptDate : receiptDate
-
-                                                        })
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        log.debug('dataPO', dataPO)
-                        var dataItem = []
-                    var itemCount = recBill.getLineCount({
-                        sublistId : 'item'
-                    });
-                    if(itemCount > 0){
-                        for(var i = 0; i < itemCount; i++){
-                            var itemId = recBill.getSublistValue({
-                                sublistId : 'item',
-                                fieldId : 'item',
-                                line : i
+                        var searchIr = search.create({
+                            type: "itemreceipt",
+                            filters:
+                            [
+                                ["type","anyof","ItemRcpt"], 
+                                "AND", 
+                                ["createdfrom","anyof",poId], 
+                                "AND", 
+                                ["mainline","is","T"]
+                            ],
+                            columns:
+                            [
+                                search.createColumn({name: "internalid"}),
+                            ]
+                        });
+                        var searchIrSet = searchIr.run();
+                        searchIr = searchIrSet.getRange({
+                            start: 0,
+                            end: 1
+                        });
+                        log.debug('searchIr', searchIr)
+                        var firstResult = searchIr[0];
+                        log.debug('firstResult', firstResult);
+                        var idIr = firstResult.getValue({
+                            name: "internalid"
+                        })
+                        log.debug('idIr', idIr);
+                        // var fieldIr = search.lookupFields({
+                        //     type: search.Type.ITEM_RECEIPT,
+                        //     id: idIr,
+                        //     columns: ['landedcostamount2']
+                        // });
+                        // log.debug('fieldIr', fieldIr)
+                        var inbShipment = '-'
+                        var biayaMasuk = 0
+                        var biayaPengurusan = 0
+                        var biayaAngkut = 0
+                        var irDate = '-'
+                        if(idIr){
+                            var recIr = record.load({
+                                type: search.Type.ITEM_RECEIPT,
+                                id: idIr,
                             });
-                            var itemName = recBill.getSublistValue({
-                                sublistId : 'item',
-                                fieldId : 'item_display',
-                                line : i
-                            });
-                            var qty = recBill.getSublistValue({
-                                sublistId : 'item',
-                                fieldId : 'quantity',
-                                line : i
-                            });
-                            var rate = recBill.getSublistValue({
-                                sublistId : 'item',
-                                fieldId : 'rate',
-                                line : i
-                            });
-                            var amountItem = recBill.getSublistValue({
-                                sublistId : 'item',
-                                fieldId : 'amount',
-                                line : i
-                            });
-                            dataItem.push({
-                                itemId : itemId,
-                                itemName : itemName,
-                                qty : qty,
-                                rate : rate,
-                                amountItem : amountItem
-                            })
+                            var shipment = recIr.getText('inboundshipment');
+                            inbShipment = shipment
+                            var beaMasuk = recIr.getValue('landedcostamount2');
+                            biayaMasuk = beaMasuk
+                            var pengImport = recIr.getValue('landedcostamount3');
+                            biayaPengurusan = pengImport;
+                            var angkut = recIr.getValue('landedcostamount4')
+                            biayaAngkut = angkut
+                            var dateIr = recIr.getValue('trandate');
+                            irDate = dateIr
 
                         }
-
+                        var landedCost = Number(biayaMasuk) + Number(biayaPengurusan) + Number(biayaAngkut)
+                        allData.push({
+                            itemId : itemId,
+                            vendor : vendor,
+                            billNumbe : billNumbe,
+                            date : date,
+                            inbShipment : inbShipment,
+                            irDate : irDate,
+                            poNumb : poNumb,
+                            qty : qty,
+                            rateItem : rateItem,
+                            amount : amount,
+                            excRate : excRate,
+                            priceIdr : priceIdr,
+                            biayaAngkut : biayaAngkut,
+                            biayaMasuk : biayaMasuk,
+                            biayaPengurusan : biayaPengurusan,
+                            landedCost : landedCost
+                        })
+                        log.debug('dataIr', {inbShipment : inbShipment, biayaMasuk : biayaMasuk, biayaPengurusan : biayaPengurusan, biayaAngkut : biayaAngkut})
+                        
                     }
-
-                    var mergedData = [];
-                    var totalQty = 0
-                    dataPO.forEach(function(po) {
-                        var iteminReceipt = po.iteminReceipt;
-
-                        var matchedItems = dataItem.filter(function(item) {
-                            return item.itemId === iteminReceipt;
-                        });
-                        matchedItems.forEach(function(matchedItem) {
-                            var quantiTy = matchedItem.qty
-                            log.debug('quantiTy', quantiTy)
-                            totalQty += Number(qty)
-                            var mergedObject = {
-                                iteminReceipt: iteminReceipt,
-                                poNumber: po.poNumber,
-                                inbound: po.inbound,
-                                biayaMasuk: po.biayaMasuk,
-                                biayaPengurusan: po.biayaPengurusan,
-                                biayaAngkut: po.biayaAngkut,
-                                itemId: matchedItem.itemId,
-                                itemName: matchedItem.itemName,
-                                qty: matchedItem.qty,
-                                rate: matchedItem.rate,
-                                amountItem: matchedItem.amountItem,
-                                dateInbound : po.dateInbound,
-                                billOfLoading : po.billOfLoading,
-                                noPib : po.noPib,
-                                receiptDate : po.receiptDate
-                                
-                            };
-                            mergedData.push(mergedObject);
-                        });
-                    });
-                    log.debug('mergedData', mergedData)
+                    
                     var currentRecord = createSublist("custpage_sublist_item", form);
-                    var no = 1
-                    var i = 0
-                    log.debug('totalQty', totalQty)
-                    log.debug('noInvoice', noInvoice)
-                    log.debug('trandate',trandate)
-                    mergedData.forEach(function(data){
-                        var itemName = data.itemName
-                        var noPib = data.noPib
-                        log.debug('noPIb', noPib)
-                        var receiptDate = data.receiptDate
-                        var billOfLoading = data.billOfLoading
-                        var dateInbound = data.dateInbound
-                        var poNumber = data.poNumber
+                    var noset = 1
+                    var line = 0
+                    allData.forEach(data=>{
+                        var itemId = data.itemId
+                        var vendor = data.vendor
+                        var billNumbe = data.billNumbe
+                        var date = data.date
+                        var inbShipment = data.inbShipment
+                        var irDate = data.irDate
+                        var poNumb = data.poNumb
                         var qty = data.qty
-                        var rate = data.rate
-                        var amountPrice = data.amountItem
-                        var rateExc = exchangerate
-                        var priceIdr = Number(amountPrice) * Number(rateExc)
-                        var freightCharg = (1554*Number(qty))/(totalQty*exchangerate);
-                        log.debug('freightCharg', freightCharg)
+                        var rateItem = data.rateItem
+                        if(rateItem){
+                            rateItem = format.format({
+                                value: rateItem,
+                                type: format.Type.CURRENCY
+                            });
+                        }
+                        
+                        var amount = data.amount
+                        if(amount){
+                            amount = format.format({
+                                value: amount,
+                                type: format.Type.CURRENCY
+                            });
+                        }
+                        var excRate = data.excRate
+                        if(excRate){
+                            excRate = format.format({
+                                value: excRate,
+                                type: format.Type.CURRENCY
+                            });
+                        }
+                        var priceIdr = data.priceIdr
+                        if(priceIdr){
+                            priceIdr = format.format({
+                                value: priceIdr,
+                                type: format.Type.CURRENCY
+                            });
+                        }
                         var biayaAngkut = data.biayaAngkut
-                        var biayaPengurusan = data.biayaPengurusan
+                        if(biayaAngkut){
+                            biayaAngkut = format.format({
+                                value: biayaAngkut,
+                                type: format.Type.CURRENCY
+                            });
+                        }
                         var biayaMasuk = data.biayaMasuk
-                        var landed_cost = Number(priceIdr) + Number(freightCharg) + Number(biayaAngkut) + Number(biayaPengurusan) + Number(biayaMasuk)
-                        var landedCostKg = Number(landed_cost) / Number(qty)
+                        if(biayaMasuk){
+                            biayaMasuk = format.format({
+                                value: biayaMasuk,
+                                type: format.Type.CURRENCY
+                            });
+                        }
+                        var biayaPengurusan = data.biayaPengurusan
+                        if(biayaPengurusan){
+                            biayaPengurusan = format.format({
+                                value: biayaPengurusan,
+                                type: format.Type.CURRENCY
+                            });
+                        }
+                        var landedCost = data.landedCost
+                        var landedCostForCOunt = landedCost
+                        if(landedCost){
+                            landedCost = format.format({
+                                value: landedCost,
+                                type: format.Type.CURRENCY
+                            });
+                        }
+                        log.debug('landedCost', landedCost);
+                        log.debug('qty', qty)
+                        var landedCostperKG = Number(landedCostForCOunt) / Number(qty)
+                        if(landedCostperKG){
+                            landedCostperKG = format.format({
+                                value: landedCostperKG,
+                                type: format.Type.CURRENCY
+                            });
+                        }
+                        
+
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_no",
-                            value: no,
-                            line: i,
+                            value: noset,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_nameitem",
-                            value: itemName,
-                            line: i,
+                            value: itemId,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_vendor",
-                            value: vendorName,
-                            line: i,
+                            value: vendor,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_invno",
-                            value: noInvoice,
-                            line: i,
+                            value: billNumbe,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_invdate",
-                            value: trandate,
-                            line: i,
+                            value: date,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_nopib",
-                            value: noPib || '-',
-                            line: i,
+                            value: inbShipment || '-',
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_tglpib",
-                            value: dateInbound || '-',
-                            line: i,
+                            value: '-',
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_tglir",
-                            value: receiptDate,
-                            line: i,
+                            value: irDate,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_billofloading",
-                            value: billOfLoading || '-',
-                            line: i,
+                            value: inbShipment || '-',
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_bltgl",
-                            value: dateInbound || '-',
-                            line: i,
+                            value: '-',
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_pono",
-                            value: poNumber,
-                            line: i,
+                            value: poNumb,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_qty",
                             value: qty,
-                            line: i,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_unitprice",
-                            value: rate,
-                            line: i,
+                            value: rateItem,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_priceusd",
-                            value: amountPrice,
-                            line: i,
+                            value: amount,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_ratepib",
-                            value: exchangerate,
-                            line: i,
+                            value: excRate,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_priceidr",
                             value: priceIdr,
-                            line: i,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_fc",
-                            value: freightCharg,
-                            line: i,
+                            value: biayaAngkut || '-',
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_ic",
                             value: biayaMasuk || '-',
-                            line: i,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_id",
                             value: biayaPengurusan || '-',
-                            line: i,
+                            line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_lc",
-                            value: landed_cost || '-',
-                            line: i,
+                            value: landedCost || '-',
+                            line: line,
                         });
+                        log.debug('landedCostperKG', landedCostperKG)
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_lckg",
-                            value: landedCostKg || '-',
-                            line: i,
+                            value: landedCostperKG || '-',
+                            line: line,
                         });
-                        no++
-                        i++
-                    })  
-                    }
+                        noset++
+                        line++
+                    })
                     form.addButton({
                         id: 'custpage_button_download',
                         label: "Download",
-                        functionName: "download()"
+                        functionName: "downloadExcel( "+JSON.stringify(allData)+")",
                     });
+                    form.clientScriptModulePath = "SuiteScripts/abj_cs_download_cogs.js";
                     context.response.writePage(form);
                 }
+
+                
             }
             
         }catch(e){
@@ -523,7 +463,7 @@ define([
         });
         sublist_in.addField({
             id: "custpage_sublist_invno",
-            label: "Invoice No",
+            label: "Bill Number",
             type: serverWidget.FieldType.TEXT,
         });
         sublist_in.addField({

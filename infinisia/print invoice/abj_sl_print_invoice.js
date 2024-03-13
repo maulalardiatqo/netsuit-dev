@@ -37,6 +37,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var noPo = invRec.getValue('otherrefnum');
                 var salesRep = invRec.getValue('salesrep');
                 var idCust = invRec.getValue('entity');
+                var accName = invRec.getValue('custbody_iss_inv_account_name');
+                var bankNumber = invRec.getValue('custbody_iss_inv_bank_number');
+                var bankName = invRec.getValue('custbody_iss_inv_branch_name');
                 if(idCust){
                     var recCust = record.load({
                         type : 'customer',
@@ -188,9 +191,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
                 body += "<tbody>";
                 body += "<tr>";
+                body += "<td style='width:17%'></td>"
+                body += "<td style='width:50%'></td>"
                 body += "<td style='width:20%'></td>"
-                body += "<td style='width:35%'></td>"
-                body += "<td style='width:12%'></td>"
                 body += "<td style='width:13%'></td>"
                 body += "</tr>";
                 
@@ -221,9 +224,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body += "<tr>";
                 body+= "<td style='width:17%'></td>"
-                body+= "<td style='width:33%'></td>"
-                body+= "<td style='width:23%'></td>"
-                body+= "<td style='width:27%'></td>"
+                body+= "<td style='width:50%'></td>"
+                body+= "<td style='width:20%'></td>"
+                body+= "<td style='width:13%'></td>"
                 body+= "</tr>"
 
                 body += "<tr>";
@@ -379,19 +382,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style=''></td>"
                 body += "<td style='font-weight:bold;'>A/N</td>"
-                body += "<td style='font-weight:bold;'>"+legalName+"</td>"
+                body += "<td style='font-weight:bold;'>"+accName+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
                 body += "<td style=''></td>"
                 body += "<td style='font-weight:bold;'>BANK</td>"
-                body += "<td style='font-weight:bold;'>BCA-Citra Garden</td>"
+                body += "<td style='font-weight:bold;'>"+bankName+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
                 body += "<td style=''></td>"
                 body += "<td style='font-weight:bold;'>ACCOUNT</td>"
-                body += "<td style='font-weight:bold;'>399-334-9999</td>"
+                body += "<td style='font-weight:bold;'>"+bankNumber+"</td>"
                 body += "</tr>"
 
                 body += "</tbody>";
@@ -663,7 +666,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         });
                         var namaBarang = invRec.getSublistText({
                             sublistId : 'item',
-                            fieldId : 'item',
+                            fieldId : 'description',
                             line : index
                         })
                         var rate = invRec.getSublistValue({
