@@ -30,6 +30,7 @@ define(["N/record", "N/search"], function(
                             fieldId: 'custrecord_abj_pembobotan_department',
                             line: i
                         });
+                        log.debug('soDepartment', soDepartment)
                         var soItem = soRec.getSublistValue({
                             sublistId: 'recmachcustrecord_ajb_pembobotan_so_id',
                             fieldId: 'custrecord_abj_pembobotan_item',
