@@ -16,7 +16,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 fieldId : 'custitem_iss_months'
             });
             console.log('month',month);
-            var montConvert = Number(month) * 30
+            var montConvert = parseFloat(month) * 30
             console.log('montConvert', montConvert)
             vrecord.setValue({
                 fieldId: 'leadtime',

@@ -106,7 +106,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 fieldId :'subsidiary'
             });
             console.log('subsidiary', subsidiary);
-            if(typeTrans == 'estimate' && customForm == '97' && subsidiary == '46'){
+            if(typeTrans == 'estimate' && customForm == '142' && subsidiary == '46'){
                 var countLine = currentRecordObj.getLineCount({ sublistId: 'recmachcustrecord_ajb_pembobotan_so_id' });
                 console.log('countLine', countLine);
                 var iteminCostom = currentRecordObj.getCurrentSublistValue({
