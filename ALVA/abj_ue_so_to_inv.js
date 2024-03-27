@@ -91,30 +91,11 @@ define(["N/record", "N/search"], function(
                 }
                 var crFrom = soRec.getValue('createdfrom');
                 if(crFrom){
-                    var recType = rec.type
-                    if(recType == 'salesorder'){
-                        var recQuot = record.load({
-                            type : "estimate",
-                            id : crFrom,
-                            isDynamic: false,
-                        })
-                    }else if(recType == 'invoice'){
-                        var crText = soRec.getText('createdfrom');
-                        if(crText.indexOf('Sales') !== -1){
-                            var recQuot = record.load({
-                                type : "salesorder",
-                                id : crFrom,
-                                isDynamic: false,
-                            })
-                        }else if(crText.indexOf('Quotation') !== -1){
-                            var recQuot = record.load({
-                                type : "estimate",
-                                id : crFrom,
-                                isDynamic: false,
-                            })
-                        }
-                    }
-                    
+                    var recQuot = record.load({
+                        type : "estimate",
+                        id : crFrom,
+                        isDynamic: false,
+                    })
                     var linePembobotanCount = recQuot.getLineCount({
                         sublistId : 'recmachcustrecord_ajb_pembobotan_so_id'
                     });
@@ -167,13 +148,6 @@ define(["N/record", "N/search"], function(
 
                         }
                         
-                        
-                    }
-                }else{
-                    var countPembobotan = soRec.getLineCount({
-                        sublistId : 'recmachcustrecord_ajb_pembobotan_so_id'
-                    });
-                    if(countPembobotan > 0){
                         
                     }
                 }
