@@ -338,16 +338,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type: format.Type.DATE
                     });
                 }
-                // var amountRecieved = Number(subtotalB) - Number(discount) + Number(taxtotalB) / Number(totalB);
-                // log.debug('subtotal', subtotalB);
-                // log.debug('discount', discount);
-                // log.debug('total', totalB);
-                // log.debug('taxtotal', taxtotalB);
-                // log.debug('amountR', amountRecieved);
-                // amountRecieved = format.format({
-                //     value: amountRecieved,
-                //     type: format.Type.CURRENCY
-                // });
+                
                 var response = context.response;
                 var xml = "";
                 var header = "";
@@ -361,7 +352,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     jobNumber = jobNumber.replace(/&/g, '&amp;');
                 }
                 style += "<style type='text/css'>";
-                style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%; font-family: Times New Roman, serif;}";
+                style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
                 if(subsidiari == 1){
                     style += ".tg .tg-img-logo{width:150px; height:111px; object-vit:cover;}";
@@ -386,13 +377,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
     
                 body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
+
                 body+= "<tr>";
                 body += "<td style='align:left; width:60%;'></td>"
                 body += "<td style='align:left; width:10%;'></td>"
                 body += "<td style='align:left; width:10%;'></td>"
                 body += "<td style='align:left; width:20%;'></td>"
                 body+= "</tr>";
-
+                
                 body+= "<tr>"
                 body+= "<td style='font-size:25px; font-weight: bold; '>"+legalName+"</td>"
                 body+= "<td></td>"
@@ -441,6 +433,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "</tbody>";
                 body+= "</table>";
 
+
                 body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
@@ -464,112 +457,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body += "<td>"+otherComment+"</td>"
-                body += "<td colspan='3'></td>"
+                body += "<td colspan='4'>"+otherComment+"</td>"
                 body+= "</tr>";
+
                 body += getPOItem(context, invoiceRecord);
+
                 body+= "</tbody>";
                 body+= "</table>";
     
-                footer += "<table class='tg' style='table-layout: fixed;'>";
-                footer += "<tbody>";
-                footer += "<tr>";
-                footer += "<td style='width:60%;'></td>"
-                footer += "<td style='width:6%;'></td>"
-                footer += "<td style='width:13%;'></td>"
-                footer += "<td style='width:1%;'></td>"
-                footer += "<td style='width:5%;'></td>"
-                footer += "<td style='width:15%;'></td>"
-                footer += "</tr>";
-
-                footer += "<tr style=''>";
-                footer += "<td style='border-bottom: solid #AC8A25 10px;' colspan='6'></td>"
-                footer += "</tr>";
-
-                footer += "<tr style=''>";
-                footer += "<td style='align:left; font-weight:bold;'>Terms Conditions:</td>"
-                footer += "<td style=''></td>"
-                footer += "<td style=''>Sub Total</td>"
-                footer += "<td style=''>:</td>"
-                footer += "<td style=''>IDR</td>"
-                footer += "<td style='align:right'>"+subTotal+"</td>"
-                footer += "</tr>";
-
-                footer += "<tr style=''>";
-                footer += "<td style=''>"+otherComment+"</td>"
-                footer += "<td style=''></td>"
-                footer += "<td style=''>VAT"+taxRegNo+"</td>"
-                footer += "<td style=''>:</td>"
-                footer += "<td style=''>IDR</td>"
-                footer += "<td style='align:right'>"+totalWhTaxamount+"</td>"
-                footer += "</tr>";
-
-                footer += "<tr style=''>";
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style='font-weight:bold'>Total Invoice</td>"
-                footer += "<td style=''>:</td>"
-                footer += "<td style=''>IDR</td>"
-                footer += "<td style='align:right'>"+total+"</td>"
-                footer += "</tr>";
-
-                footer += "<tr style='height:20px'>";
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style='align:right'></td>"
-                footer += "</tr>";
-
-                footer += "<tr>";
-                footer += "<td style='align:left; font-weight:bold' colspan='4'>Payment Information :</td>"
-                footer += "<td style='align:center' colspan='2'>Submitted By</td>"
-                footer += "</tr>";
-
-                footer += "<tr>";
-                footer += "<td style='align:left' colspan='4'>"+bankBranch+"</td>"
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "</tr>";
-
-                footer += "<tr>";
-                footer += "<td style='align:left' colspan='4'>"+bankName+"</td>"
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "</tr>";
-
-                footer += "<tr>";
-                footer += "<td style='align:left' colspan='4'>"+accountNo+"</td>"
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "</tr>";
-
-                footer += "<tr>";
-                footer += "<td style='align:left' colspan='4'>"+Npwp+"</td>"
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "</tr>";
-
-                footer += "<tr>";
-                footer += "<td style='align:left' colspan='4'>"+swiftCode+"</td>"
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-
-                footer += "</tr>";
-
-                footer += "<tr>";
-                footer += "<td style='align:left' colspan='4'></td>"
-                footer += "<td style='align:center' colspan='2'>(________________)</td>"
-                footer += "</tr>";
-
                 
-                footer += "<tr>";
-                footer += "<td style='align:left; font-size:20px; font-weight:bold;' colspan='6'>Thank You!</td>"
-                footer += "</tr>";
-
-                footer += "</tbody>";
-                footer += "</table>";
     
     
                 var xml = '<?xml version="1.0"?>\n<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">';
@@ -585,7 +481,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "</macro>";
                 xml += "</macrolist>";
                 xml += "</head>"
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='35%'>";
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='25%'>";
                 xml += body;
                 xml += "\n</body>\n</pdf>";
     
@@ -603,7 +499,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 
                 if(itemCount > 0){
                     var body = "";
-                    var no = 1
                     for(var index = 0; index < itemCount; index++){
                         var description = invoiceRecord.getSublistValue({
                             sublistId: 'item',
@@ -648,7 +543,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<td  style='align:right'></td>";
                         body += "<td  style='align:right;'>"+ammount+"</td>";
                         body += "</tr>";
-                        no++
                     }
                     return body;
                 }

@@ -26,7 +26,11 @@
                 returnExternalUrl: false
             });
         }else if(subtrim == 47){
-
+            createPDFURL = url.resolveScript({
+                scriptId: 'customscript1128',
+                deploymentId: 'customdeploy1',
+                returnExternalUrl: false
+            });
         }else if(subtrim == 48){
             createPDFURL = url.resolveScript({
                 scriptId: 'customscript_abj_sl_inv_jingga',
