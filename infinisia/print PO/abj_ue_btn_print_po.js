@@ -10,14 +10,18 @@ define(["N/runtime", "N/log"], (runtime, log) => {
         var form = context.form;
         var rec = context.newRecord;
         var currentUserRole = runtime.getCurrentUser().role;
-
-        form.addButton({
-            id: 'custpage_button_po',
-            label: "Print PO",
-            functionName: "printPDF()"
-        });
-        context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js "
+        var statusPo = rec.getValue('status');
+        log.debug('statusPo', statusPo)
+        if(statusPo == 'Pending Receipt'){
+            form.addButton({
+                id: 'custpage_button_po',
+                label: "Print PO",
+                functionName: "printPDF()"
+            });
+            context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js "
         }
+        
+    }
 }
 return {
     beforeLoad: beforeLoad,

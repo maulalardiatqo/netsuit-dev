@@ -23,6 +23,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     return Math.ceil(angka);
                 }
             }
+            function convertDateFormat(inputDate) {
+                var parts = inputDate.split('/');
+                var day = parts[0];
+                var month = parts[1];
+                var year = parts[2];
+                var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            
+                var monthName = monthNames[parseInt(month, 10) - 1];
+                var formattedDate = day + '-' + monthName + '-' + year;
+                
+                return formattedDate;
+            }
             function onRequest(context) {
                 var recid = context.request.parameters.id;
                 log.debug('recid', recid);
@@ -34,7 +47,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var trandId = invRec.getValue('tranid');
                 var trandate = invRec.getValue('trandate');
                 var idIf = invRec.getValue('custbody3');
-                var doNo
+                var doNo = ''
                 if(idIf){
                     var recIf = record.load({
                         type: "itemfulfillment",
@@ -47,7 +60,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var duedate = invRec.getValue('duedate');
                 var noPo = invRec.getValue('otherrefnum');
                 var salesRep = invRec.getValue('salesrep');
-                var salesName
+                var salesName = ''
                 if (salesRep){
                     var empRec = record.load({
                         type: "employee",
@@ -140,12 +153,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type: format.Type.DATE
                     });
                 }
+                log.debug('trandate', trandate)
                 if(duedate){
                     duedate = format.format({
                         value: duedate,
                         type: format.Type.DATE
                     });
                 }
+                
                 if(subTotal){
                     subTotal = pembulatan(subTotal)
                     log.debug('subTotal', subTotal);
@@ -231,13 +246,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body+= "<tr>"
                 body += "<td style='font-size:18px; align:center; font-weight:bold;'>Faktur Penjualan</td>"
-                body += "<td>Tracking Code :</td>";
-                body += "<td style='align:right; font-weight:bold'>ATRY</td>"
+                body += "<td style='border-top:1px solid black'>Tracking Code :</td>";
+                body += "<td style='align:right; font-weight:bold; border-top:1px solid black'>ATRY</td>"
                 body += "</tr>";
 
                 body+= "<tr>"
                 body+= "<td style='font-size:18px; align:center; font-weight:bold;'>Invoice</td>"
-                body+= "<td colspan='2'>http://crm.infinisia.co.id/check</td>"
+                body+= "<td style='border-bottom:1px solid black' colspan='2'>http://crm.infinisia.co.id/check</td>"
                 body+= "</tr>"
 
                 body += "</tbody>";
@@ -248,9 +263,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body += "<tr>";
                 body+= "<td style='width:17%'></td>"
-                body+= "<td style='width:50%'></td>"
+                body+= "<td style='width:30%'></td>"
                 body+= "<td style='width:20%'></td>"
-                body+= "<td style='width:13%'></td>"
+                body+= "<td style='width:33%'></td>"
                 body+= "</tr>"
 
                 body += "<tr>";
@@ -262,14 +277,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body += "<tr>";
                 body+= "<td style='font-weight:bold;'>Tanggal/Date</td>"
-                body+= "<td style='font-weight:bold;'>"+trandate+"</td>"
+                body+= "<td style='font-weight:bold;'>"+convertDateFormat(trandate)+"</td>"
                 body+= "<td style='font-weight:bold;'>Delivery Order No</td>"
                 body+= "<td style='font-weight:bold;'>"+doNo+"</td>"
                 body+= "</tr>"
 
                 body += "<tr>";
                 body+= "<td style='font-weight:bold;'>Tempo/Due in</td>"
-                body+= "<td style='font-weight:bold;'>"+duedate+"</td>"
+                body+= "<td style='font-weight:bold;'>"+convertDateFormat(duedate)+"</td>" 
                 body+= "<td style='font-weight:bold;'>Sales Person</td>"
                 body+= "<td style='font-weight:bold;'>"+salesName+"</td>"
                 body+= "</tr>"
@@ -281,9 +296,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tbody>";
 
                 body += "<tr style='height:20px;'>";
-                body += "<td style='weight : 48%; align:left'></td>"
-                body += "<td style='weight : 2%'></td>"
-                body += "<td style='weight : 50%; align:left'></td>"
+                body += "<td style='width: 45%;'></td>"
+                body += "<td style='width: 2%'></td>"
+                body += "<td style='width: 53%;'></td>"
                 body += "</tr>"
 
                 body+= "<tr>"
@@ -384,7 +399,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tr>"
 
                 body += "<tr>"
-                body += "<td>2.Pembayaran CEK/GIRO/TRANSFER Bank dianggap lunas apabila dana telah efektif diterima di rekening kami // Payment through CHQEUE/GIRO/BANK Transfer shall be settled after the funds has been received in our account</td>"
+                body += "<td>2.Pembayaran CEK / GIRO / TRANSFER Bank dianggap lunas apabila dana telah efektif diterima di rekening kami // Payment through CHQEUE / GIRO / BANK Transfer shall be settled after the funds has been received in our account</td>"
                 body += "</tr>"
 
                 body += "<tr>"
@@ -428,6 +443,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tbody>";
                 body += "<tr>"
                 body += "<td>4. Harap kirim bukti pembayaran via web ke: http://crm.infinisia.co.id/check // Please upload your payment via web http://crm.infinisia.co.id/check</td>"
+                body += "</tr>"
+                body += "</tbody>";
+                body += "</table>";
+
+                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:8px\">";
+                body += "<tbody>";
+                body += "<tr>"
+                body += "<td>5.Mohon pembayaran dapat disesuaikan dengan jumlah nominal pada invoice, perbedaan nominal akan ditagihkan pada tagihan berikutnya.</td>"
                 body += "</tr>"
                 body += "</tbody>";
                 body += "</table>";
