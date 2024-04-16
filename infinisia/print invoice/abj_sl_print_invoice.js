@@ -154,13 +154,18 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                 }
                 log.debug('trandate', trandate)
+                if(trandate){
+                    trandate = convertDateFormat(trandate)
+                }
                 if(duedate){
                     duedate = format.format({
                         value: duedate,
                         type: format.Type.DATE
                     });
                 }
-                
+                if(duedate){
+                    duedate = convertDateFormat(duedate)
+                }
                 if(subTotal){
                     subTotal = pembulatan(subTotal)
                     log.debug('subTotal', subTotal);
@@ -277,14 +282,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body += "<tr>";
                 body+= "<td style='font-weight:bold;'>Tanggal/Date</td>"
-                body+= "<td style='font-weight:bold;'>"+convertDateFormat(trandate)+"</td>"
+                body+= "<td style='font-weight:bold;'>"+trandate+"</td>"
                 body+= "<td style='font-weight:bold;'>Delivery Order No</td>"
                 body+= "<td style='font-weight:bold;'>"+doNo+"</td>"
                 body+= "</tr>"
 
                 body += "<tr>";
                 body+= "<td style='font-weight:bold;'>Tempo/Due in</td>"
-                body+= "<td style='font-weight:bold;'>"+convertDateFormat(duedate)+"</td>" 
+                body+= "<td style='font-weight:bold;'>"+duedate+"</td>" 
                 body+= "<td style='font-weight:bold;'>Sales Person</td>"
                 body+= "<td style='font-weight:bold;'>"+salesName+"</td>"
                 body+= "</tr>"

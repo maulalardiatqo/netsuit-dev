@@ -4,9 +4,10 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/record", "N/search"], function(
+define(["N/record", "N/search", "N/config"], function(
     record,
     search,
+    config
     ) {
         function afterSubmit(context) {
             try {
@@ -18,6 +19,24 @@ define(["N/record", "N/search"], function(
                         id: rec.id,
                         isDynamic: false
                     })
+                    if(rec.type == 'invoice'){
+                        accName = recNew.getValue('custbody_iss_inv_account_name');
+                        
+                        if(accName){
+                            log.debug('accName', accName);
+                        }else{
+                            var companyInfo = config.load({
+                                type: config.Type.COMPANY_INFORMATION
+                            });
+                            var legalName = companyInfo.getValue("legalname");
+                            log.debug('legalName', legalName);
+                            recNew.setValue({
+                                fieldId : 'custbody_iss_inv_account_name',
+                                value : legalName,
+                                ignoreFieldChange: true
+                            })
+                        }
+                    }
                     var countLine = recNew.getLineCount({
                         sublistId : 'item'
                     });
