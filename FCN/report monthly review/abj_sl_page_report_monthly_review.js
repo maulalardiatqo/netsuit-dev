@@ -52,6 +52,13 @@ define([
                 source: "accountingperiod",
             });
             periodFilter.isMandatory = true
+            var taxrateFilter = form.addField({
+                id: "custpage_taxrate_option",
+                label: "Tax Rate",
+                type: serverWidget.FieldType.TEXT,
+                container: "filteroption",
+            });
+            taxrateFilter.isMandatory = true
             form.addSubmitButton({
                 label: "Search",
             });
@@ -60,65 +67,122 @@ define([
             }else{
                 var periodId = context.request.parameters.custpage_period_option;
                 var subsId = context.request.parameters.custpage_subs_option;
-                
+                var tax = context.request.parameters.custpage_taxrate_option;
+                var taxrate = Number(tax) / 100
+                log.debug('taxrate', taxrate)
                 var periodNamety;
                 var periodNamely;
-
+                var thisYear;
+                var lastYear
                 var accountingperiodSearchObj = search.create({
                     type: "accountingperiod",
                     filters: [
                         ["internalid", "anyof", periodId]
                     ],
                     columns: [
-                        search.createColumn({name: "periodname", label: "Name"})
+                        search.createColumn({name: "periodname", sort: search.Sort.DESC})
                     ]
                 });
-
-                var searchResultCount = accountingperiodSearchObj.runPaged().count;
-
-                accountingperiodSearchObj.run().each(function(result){
-                    var perName = result.getValue({
-                        name: 'periodname'
-                    });
-
+                
+                accountingperiodSearchObj.run().each(function(result) {
+                    var perName = result.getValue({ name: 'periodname' });
                     periodNamety = perName;
-
+                
                     var currentYear = parseInt(periodNamety.split(" ")[1]);
-                    var lastYear = currentYear - 1;
-
-                    periodNamely = periodNamety.replace(currentYear, lastYear);
-
+                    var prevYear = currentYear - 1;
+                    thisYear = currentYear
+                    lastYear = prevYear;
+                
+                    periodNamely = periodNamety.replace(currentYear, prevYear);
+                
                     return true;
                 });
-
+                
                 log.debug('periodNamety', periodNamety);
                 log.debug('periodNamely', periodNamely);
-
+                
                 var postingPeriodData = search.create({
                     type: "accountingperiod",
                     filters: [
-                    ["periodname", "is", periodNamely]
-                ],
-                columns: [
-                    search.createColumn({
-                    name: "periodname",
-                    sort: search.Sort.ASC
-                    }),
-                    "internalid"
-                ]
+                        ["periodname", "is", periodNamely]
+                    ],
+                    columns: ["internalid"]
                 });
-                var searchResultCount = postingPeriodData.runPaged().count;
                 var periodIdly;
                 postingPeriodData.run().each(function(result) {
-                    periodIdly = result.getValue({
-                        name: 'internalid'
-                    });
+                    periodIdly = result.getValue({ name: 'internalid' });
                     return true;
                 });
+
+                var thisYearName = 'FY '+thisYear;
+                var lastYearName = 'FY '+lastYear
+                var yearSearchty = search.create({
+                    type: "accountingperiod",
+                    filters: [
+                        ["periodname", "is", thisYearName]
+                    ],
+                    columns: ["internalid"]
+                });
+                var thisYearId;
+                yearSearchty.run().each(function(result) {
+                    thisYearId = result.getValue({ name: 'internalid' });
+                    return true;
+                });
+
+                var yearSearchly = search.create({
+                    type: "accountingperiod",
+                    filters: [
+                        ["periodname", "is", lastYearName]
+                    ],
+                    columns: ["internalid"]
+                });
+                var lastYearId;
+                yearSearchly.run().each(function(result) {
+                    lastYearId = result.getValue({ name: 'internalid' });
+                    return true;
+                });
+
+                log.debug('lastYearId', lastYearId)
+                var startThisYear = new Date(thisYear, 0, 1); 
+                var endThisYear = new Date(thisYear, 11, 31);
+
+                var startLastYear = new Date(lastYear, 0, 1); 
+                var endLastYear = new Date(lastYear, 11, 31);
+                function convertCurr(data){
+                    data = format.format({
+                        value: data,
+                        type: format.Type.CURRENCY
+                    });
+
+                    return data
+                }
+                function convertText(data){
+                    data = data.toFixed(2) + '%'
+
+                    return data
+                }
+                function formatDate(date) {
+                    var dd = String(date.getDate()).padStart(2, '0'); 
+                    var mm = String(date.getMonth() + 1).padStart(2, '0'); 
+                    var yyyy = date.getFullYear(); 
+                
+                    return dd + '/' + mm + '/' + yyyy;
+                }
+                var formattedStartThisYear = formatDate(startThisYear);
+                var formattedEndThisYear = formatDate(endThisYear);
+
+                var formattedstartLastYear = formatDate(startLastYear);
+                var formattedendLastYear = formatDate(endLastYear);
+
+                log.debug('formattedstartLastYear', formattedstartLastYear);
+                log.debug('formattedendLastYear', formattedendLastYear);
+
                 // load billing this year
                 var billingSearch = search.load({id: "customsearch_monthly_review"});
                 if (periodId) billingSearch.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodId}));
                 if (subsId) billingSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedStartThisYear) billingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedStartThisYear}));
+                if (formattedEndThisYear) billingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedEndThisYear}));
                 var billingtySearch = billingSearch.run().getRange({start: 0, end: 1});
                 var billingty = billingtySearch[0].getValue({
                     name: "amount",
@@ -128,6 +192,8 @@ define([
                 billingSearch.filters.pop(); 
                 if (periodIdly) billingSearch.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
                 if (subsId) billingSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedstartLastYear) billingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
+                if (formattedendLastYear) billingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
                 var billinglySearch = billingSearch.run().getRange({start: 0, end: 1});
                 var billingly = billinglySearch[0].getValue({
                     name: "amount",
@@ -137,16 +203,21 @@ define([
                 // totalBilling
                 var totalbillingSearch = search.load({id: "customsearch_monthly_review"});
                 if (subsId) totalbillingSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedStartThisYear) totalbillingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedStartThisYear}));
+                if (formattedEndThisYear) totalbillingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedEndThisYear}));
                 var totalBillingSearchReturn = totalbillingSearch.run().getRange({start: 0, end: 1});
                 var totalBilling = totalBillingSearchReturn[0].getValue({
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
+                log.debug('totalbilling',totalBilling)
 
                 // load cost of billing
                 var costOfBilling = search.load({id: "customsearch_monthly_review_2"});
                 if (periodId) costOfBilling.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodId}));
                 if (subsId) costOfBilling.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedStartThisYear) costOfBilling.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedStartThisYear}));
+                if (formattedEndThisYear) costOfBilling.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedEndThisYear}));
                 var costOfBillingtySearch = costOfBilling.run().getRange({start: 0, end: 1});
                 var costOfBillingty = costOfBillingtySearch[0].getValue({
                     name: "amount",
@@ -156,6 +227,8 @@ define([
                 costOfBilling.filters.pop(); 
                 if (periodIdly) costOfBilling.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
                 if (subsId) costOfBilling.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedstartLastYear) costOfBilling.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
+                if (formattedendLastYear) costOfBilling.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
                 var costOfBillinglySearch = costOfBilling.run().getRange({start: 0, end: 1});
                 var costOfBillingly = costOfBillinglySearch[0].getValue({
                     name: "amount",
@@ -165,15 +238,21 @@ define([
                 // total cost of billing
                 var totalCostOfBillingSearch = search.load({id: "customsearch_monthly_review"});
                 if (subsId) totalCostOfBillingSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedStartThisYear) totalCostOfBillingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedStartThisYear}));
+                if (formattedEndThisYear) totalCostOfBillingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedEndThisYear}));
                 var totalCostOfBillingSearchReturn = totalCostOfBillingSearch.run().getRange({start: 0, end: 1});
                 var totalCostOfBilling = totalCostOfBillingSearchReturn[0].getValue({
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
+                log.debug('totalCostOfBilling', totalCostOfBilling)
+
                 // load opex
                 var opexSearch = search.load({id: "customsearch_monthly_review_2"});
                 if (periodId) opexSearch.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodId}));
                 if (subsId) opexSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedStartThisYear) opexSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedStartThisYear}));
+                if (formattedEndThisYear) opexSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedEndThisYear}));
                 var opextySearch = opexSearch.run().getRange({start: 0, end: 1});
                 var opexty = opextySearch[0].getValue({
                     name: "amount",
@@ -183,6 +262,8 @@ define([
                 opexSearch.filters.pop(); 
                 if (periodIdly) opexSearch.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
                 if (subsId) opexSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedstartLastYear) opexSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
+                if (formattedendLastYear) opexSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
                 var opexlySearch = opexSearch.run().getRange({start: 0, end: 1});
                 var opexly = opexlySearch[0].getValue({
                     name: "amount",
@@ -236,632 +317,491 @@ define([
                 var depreSearch = search.load({id: "customsearch_monthly_review_2_2_4"});
                 if (periodId) depreSearch.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodId}));
                 if (subsId) depreSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedStartThisYear) depreSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedStartThisYear}));
+                if (formattedEndThisYear) depreSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedEndThisYear}));
                 var depretySearch = depreSearch.run().getRange({start: 0, end: 1});
                 var deprety = depretySearch[0].getValue({
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
-                
+                log.debug('deprety', deprety)
                 depreSearch.filters.pop(); 
                 if (periodIdly) depreSearch.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
                 if (subsId) depreSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedstartLastYear) depreSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
+                if (formattedendLastYear) depreSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
                 var deprelySearch = depreSearch.run().getRange({start: 0, end: 1});
                 var deprely = deprelySearch[0].getValue({
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
-
+                log.debug('deprely', deprely)
                 
                 var totalDepreSearch = search.load({id: "customsearch_monthly_review_2_2_4"});
                 if (subsId) totalDepreSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedStartThisYear) totalDepreSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedStartThisYear}));
+                if (formattedEndThisYear) totalDepreSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedEndThisYear}));
                 var totalDepreSearchReturn = totalDepreSearch.run().getRange({start: 0, end: 1});
                 var totalDepre = totalDepreSearchReturn[0].getValue({
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
+                log.debug('totalDepre', totalDepre)
+                var nettProfitly = (Number(ebitdaly) + Number(deprely)) * Number(1-Number(taxrate))
+                log.debug('dataCount', {ebitdaty: 110955454, deprety: 507208727.66, taxrate: 0.22});
+                var nettProfitty = (Number(ebitdaty) + Number(deprely)) * (1 - Number(taxrate));
+                log.debug('nettProfitty', nettProfitty);
+                var netProvityoy = (nettProfitly !== 0 && nettProfitty !== 0) ? Number(nettProfitty) / Number(nettProfitly) : 0;
+                var netProvityoyText = netProvityoy.toFixed(2) + "%";
+                var netProfitEstimate = (Number(estimateEbitda) + Number(totalDepre)) * Number(1-Number(taxrate))
 
-                var nettProfitly = Number(ebitdaly + deprely) * Number()
-                if(billingly){
-                    billingly = format.format({
-                        value: billingly,
-                        type: format.Type.CURRENCY
-                    });
-                }
-                if(billingty){
-                    billingty = format.format({
-                        value: billingty,
-                        type: format.Type.CURRENCY
-                    });
-                }
-                if(estimateBill){
-                    estimateBill = format.format({
-                        value: estimateBill,
-                        type: format.Type.CURRENCY
-                    });
-                }
+                var netProfittoGply = (nettProfitly !== 0 && grossProvitRevly !== 0) ? Number(nettProfitly) / Number(grossProvitRevly) : 0;
+                var netProfittoGplyText = netProfittoGply.toFixed(2) + '%';
+                var netProfittoGpty = (nettProfitty !== 0 && grossProvitRevty !== 0) ? Number(nettProfitty) / Number(grossProvitRevty) : 0;
+                var netProfittoGptyText = netProfittoGpty.toFixed(2) + '%';
+                var netProfittoGpEstimate = (netProfitEstimate !== 0 && estimateRev !== 0) ? Number(netProfitEstimate) / Number(estimateRev) : 0;
+                var netProfittoGpEstimateText = netProfittoGpEstimate.toFixed(2) + '%';
 
-                if(costOfBillingly){
-                    costOfBillingly = format.format({
-                        value: costOfBillingly,
-                        type: format.Type.CURRENCY
-                    });
-                }
-                if(costOfBillingty){
-                    costOfBillingty = format.format({
-                        value: costOfBillingty,
-                        type: format.Type.CURRENCY
-                    });
-                }
-                if(estimateCoss){
-                    estimateCoss = format.format({
-                        value: estimateCoss,
-                        type: format.Type.CURRENCY
-                    });
-                }
+               
+                // load FY Bill This Year
+                var fyBillSearch = search.load({id: "customsearchbudgetdefaultview"});
+                if (subsId) fyBillSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (thisYearId) fyBillSearch.filters.push(search.createFilter({name: "year", operator: search.Operator.ANYOF, values: thisYearId}));
+                var fyBillSearchReturn = fyBillSearch.run().getRange({start: 0, end: 1});
+                var fyBillty = fyBillSearchReturn[0].getValue({
+                    name: "amount",
+                    summary: "SUM",
+                }) || 0;
+                log.debug('fyBillty', fyBillty)
 
-                if(grossProvitRevly){
-                    grossProvitRevly = format.format({
-                        value: grossProvitRevly,
-                        type: format.Type.CURRENCY
-                    });
-                }
-                if(grossProvitRevty){
-                    grossProvitRevty = format.format({
-                        value: grossProvitRevty,
-                        type: format.Type.CURRENCY
-                    });
-                }
-                if(estimateRev){
-                    estimateRev = format.format({
-                        value: estimateRev,
-                        type: format.Type.CURRENCY
-                    });
-                }
+                var fyCostOfBillSearch = search.load({id: "customsearchbudgetdefaultview_2"});
+                if (subsId) fyCostOfBillSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (thisYearId) fyCostOfBillSearch.filters.push(search.createFilter({name: "year", operator: search.Operator.ANYOF, values: thisYearId}));
+                var fyCostOfBillSearchReturn = fyCostOfBillSearch.run().getRange({start: 0, end: 1});
+                var fyCostOfBillty = fyCostOfBillSearchReturn[0].getValue({
+                    name: "amount",
+                    summary: "SUM",
+                }) || 0;
+                log.debug('fyCostOfBillty', fyCostOfBillty)
 
-                if(opexly){
-                    opexly = format.format({
-                        value: opexly,
-                        type: format.Type.CURRENCY
-                    });
-                }
-                if(opexty){
-                    opexty = format.format({
-                        value: opexty,
-                        type: format.Type.CURRENCY
-                    });
-                }
-                if(estimateOpex){
-                    estimateOpex = format.format({
-                        value: estimateOpex,
-                        type: format.Type.CURRENCY
-                    });
-                }
+                var fyRevty = Number(fyBillty) + Number(fyCostOfBillty);
+                var fyGpty = (fyRevty !== 0 && fyBillty !== 0) ? Number(fyRevty) / Number(fyBillty) : 0;
+                var fyGptyText = fyGpty.toFixed(2) +  '%'
 
-                if(ebitdaly){
-                    ebitdaly = format.format({
-                        value: ebitdaly,
-                        type: format.Type.CURRENCY
-                    });
+                var opexFysearch = search.load({id : "customsearchbudgetdefaultview_3"});
+                if (subsId) opexFysearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (thisYearId) opexFysearch.filters.push(search.createFilter({name: "year", operator: search.Operator.ANYOF, values: thisYearId}));
+                var opexFysearchReturn = opexFysearch.run().getRange({start: 0, end: 1});
+                var fyOpexty = opexFysearchReturn[0].getValue({
+                    name: "amount",
+                    summary: "SUM",
+                }) || 0;
+                log.debug('fyOpexty', fyOpexty)
+
+                var fyOpexfGpty = (fyOpexty !== 0 && fyRevty !== 0) ? Number(fyOpexty) / Number(fyRevty) : 0;
+                var fyOpexfGptyText = fyOpexfGpty.toFixed(2) + '%';
+
+                var fyEbitdaty = Number(fyRevty) - Number(fyOpexty);
+                var fyEbitdaGpty = (fyEbitdaty !== 0 && fyRevty !== 0) ? Number(fyEbitdaty) / Number(fyRevty) : 0;
+                var fyEbitdaGptyText = fyEbitdaGpty.toFixed(2) + '%';
+                var fyNettProfitty = (Number(fyEbitdaty) + Number(totalDepre)) * Number(1-Number(taxrate))
+                var fyNettProfitGpty = (fyNettProfitty !== 0 && fyRevty !== 0) ? Number(fyNettProfitty) / Number(fyRevty) : 0;
+                var fyNettProfitGptyText = fyNettProfitGpty.toFixed(2) + '%';
+                
+
+                var prosFyBillty = (estimateBill !== 0 && fyBillty !== 0) ? Number(estimateBill) / Number(fyBillty) : 0;
+                prosFyBillty = convertText(prosFyBillty);
+                log.debug('prosFyBillty', prosFyBillty)
+                var prosFyRevty = (estimateRev !== 0 && fyCostOfBillty !== 0) ? Number(estimateRev) / Number(fyCostOfBillty) : 0;
+                prosFyRevty = convertText(prosFyRevty);
+                log.debug('prosFyRevty', prosFyRevty)
+                var prosFyOpexty = (estimateOpex !== 0 && fyOpexty !== 0) ? Number(estimateOpex) / Number(fyOpexty) : 0;
+                prosFyOpexty = convertText(prosFyOpexty);
+                log.debug('prosFyOpexty', prosFyOpexty)
+                var prosFyEbitdaty = (estimateEbitda !== 0 && fyEbitdaty !== 0) ? Number(estimateEbitda) / Number(fyEbitdaty) : 0;
+                prosFyEbitdaty = convertText(prosFyEbitdaty);
+                log.debug('prosFyEbitdaty', prosFyEbitdaty)
+                var prosFyNetProfitty = (netProfitEstimate !== 0 && fyNettProfitty !== 0) ? Number(netProfitEstimate) / Number(fyNettProfitty) : 0;
+                prosFyNetProfitty = convertText(prosFyNetProfitty);
+                log.debug('prosFyNetProfitty', prosFyNetProfitty)
+
+                // load FY Bill last year
+                var fyBilllySearch = search.load({id: "customsearchbudgetdefaultview"});
+                if (subsId) fyBilllySearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (lastYearId) fyBilllySearch.filters.push(search.createFilter({name: "year", operator: search.Operator.ANYOF, values: lastYearId}));
+                var fyBilllySearchReturn = fyBilllySearch.run().getRange({start: 0, end: 1});
+                var fyBillly = fyBilllySearchReturn[0].getValue({
+                    name: "amount",
+                    summary: "SUM",
+                }) || 0;
+                log.debug('fyBillly', fyBillly)
+
+                var fyCOstBilllySearch = search.load({id: "customsearchbudgetdefaultview_2"});
+                if (subsId) fyCOstBilllySearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (lastYearId) fyCOstBilllySearch.filters.push(search.createFilter({name: "year", operator: search.Operator.ANYOF, values: lastYearId}));
+                var fyCOstBilllySearchReturn = fyCOstBilllySearch.run().getRange({start: 0, end: 1});
+                var fyCostOfBillly = fyCOstBilllySearchReturn[0].getValue({
+                    name: "amount",
+                    summary: "SUM",
+                }) || 0;
+                log.debug('fyCostOfBillly', fyCostOfBillly)
+
+                var fyRevly = Number(fyBillly) + Number(fyCostOfBillly)
+                var fyGply = (fyRevly !== 0 && fyBillly !== 0) ? Number(fyRevly) / Number(fyBillly) : 0;
+                fyGply = convertText(fyGply);
+                var fyOpexly = Number(opexly) * 12
+                var fyOpexGply = (fyOpexly !== 0 && fyRevly !== 0) ? Number(fyOpexly) / Number(fyRevly) : 0;
+                fyOpexGply = convertText(fyOpexGply);
+                var fyEbitdaly = Number(fyRevly) - Number(fyOpexly)
+                var fyEbitdaGply = (fyEbitdaly !== 0 && fyRevly !== 0) ? Number(fyEbitdaly) / Number(fyRevly) : 0;
+                fyEbitdaGply = convertText(fyEbitdaGply);
+                var fyNettProfitly = (Number(fyEbitdaly) + Number(totalDepre)) * Number(1-Number(taxrate))
+                var fyNettProfitGply = (fyNettProfitly !== 0 && fyRevly !== 0) ? Number(fyNettProfitly) / Number(fyRevly) : 0;
+                fyNettProfitGply = convertText(fyNettProfitGply);
+
+                var prosFyBillly = (estimateBill !== 0 && fyBillly !== 0) ? Number(estimateBill) / Number(fyBillly) : 0;
+                prosFyBillly = convertText(prosFyBillly);
+                var prosFyRevly = (estimateRev !== 0 && fyCostOfBillly !== 0) ? Number(estimateRev) / Number(fyCostOfBillly) : 0;
+                prosFyRevly = convertText(prosFyRevly);
+                var prosFyOpexly = (estimateOpex !== 0 && fyOpexly !== 0) ? Number(estimateOpex) / Number(fyOpexly) : 0;
+                prosFyOpexly = convertText(prosFyOpexly);
+                var prosFyEbitdaly = (estimateEbitda !== 0 && fyEbitdaly !== 0) ? Number(estimateEbitda) / Number(fyEbitdaly) : 0;
+                prosFyEbitdaly = convertText(prosFyEbitdaly);
+                log.debug('fyNettProfitGply', fyNettProfitGply)
+                log.debug('fyNettProfitly', fyNettProfitly)
+                var prosFyNetProfitly = (fyNettProfitly !== 0 && fyRevly !== 0) ? Number(fyNettProfitly) / Number(fyRevly) : 0;
+                log.debug('prosFyNetProfitly', prosFyNetProfitly)
+                prosFyNetProfitly = convertText(prosFyNetProfitly);
+
+                if(fyBillly){
+                    fyBillly = convertCurr(fyBillly)
                 }
-                if(ebitdaty){
-                    ebitdaty = format.format({
-                        value: ebitdaty,
-                        type: format.Type.CURRENCY
-                    });
+                if(fyCostOfBillly){
+                    fyCostOfBillly = convertCurr(fyCostOfBillly)
                 }
-                if(estimateEbitda){
-                    estimateEbitda = format.format({
-                        value: estimateEbitda,
-                        type: format.Type.CURRENCY
-                    });
+                if( fyRevly){
+                    fyRevly = convertCurr(fyRevly)
                 }
+                if(fyOpexly){
+                    fyOpexly = convertCurr(fyOpexly)
+                }
+                if(fyEbitdaly){
+                    fyEbitdaly = convertCurr(fyEbitdaly)
+                }
+                if(fyNettProfitly){
+                    fyNettProfitly = convertCurr(fyNettProfitly)
+                }
+                if(fyBillty){
+                    fyBillty = convertCurr(fyBillty);
+                }
+                if(fyCostOfBillty){
+                    fyCostOfBillty = convertCurr(fyCostOfBillty);
+                }
+                if(fyRevty){
+                    fyRevty = convertCurr(fyRevty);
+                }
+                if(fyOpexty){
+                    fyOpexty = convertCurr(fyOpexty)
+                }
+                if(fyEbitdaty){
+                    fyEbitdaty = convertCurr(fyEbitdaty)
+                }
+                if(fyNettProfitty){
+                    fyNettProfitty = convertCurr(fyNettProfitty)
+                }
+                if (billingly) {
+                    billingly = convertCurr(billingly);
+                }
+                if (billingty) {
+                    billingty = convertCurr(billingty);
+                }
+                if (estimateBill) {
+                    estimateBill = convertCurr(estimateBill);
+                }
+                if (costOfBillingly) {
+                    costOfBillingly = convertCurr(costOfBillingly);
+                }
+                if (costOfBillingty) {
+                    costOfBillingty = convertCurr(costOfBillingty);
+                }
+                if (estimateCoss) {
+                    estimateCoss = convertCurr(estimateCoss);
+                }
+                if (grossProvitRevly) {
+                    grossProvitRevly = convertCurr(grossProvitRevly);
+                }
+                if (grossProvitRevty) {
+                    grossProvitRevty = convertCurr(grossProvitRevty);
+                }
+                if (estimateRev) {
+                    estimateRev = convertCurr(estimateRev);
+                }
+                if (opexly) {
+                    opexly = convertCurr(opexly);
+                }
+                if (opexty) {
+                    opexty = convertCurr(opexty);
+                }
+                if (estimateOpex) {
+                    estimateOpex = convertCurr(estimateOpex);
+                }
+                if (ebitdaly) {
+                    ebitdaly = convertCurr(ebitdaly);
+                }
+                if (ebitdaty) {
+                    ebitdaty = convertCurr(ebitdaty);
+                }
+                if (estimateEbitda) {
+                    estimateEbitda = convertCurr(estimateEbitda);
+                }
+                if (nettProfitly) {
+                    nettProfitly = convertCurr(nettProfitly);
+                }
+                if (nettProfitty) {
+                    nettProfitty = convertCurr(nettProfitty);
+                }
+                if (netProfitEstimate) {
+                    netProfitEstimate = convertCurr(netProfitEstimate);
+                }
+                
+
                 var allData = []
-                var currentRecord = createSublist("custpage_sublist_item", form, periodNamety, periodNamely);
+                var currentRecord = createSublist("custpage_sublist_item", form, periodNamety, periodNamely, thisYear, lastYear);
+                log.debug('estimateOpextoGrossProfitText', estimateOpextoGrossProfitText)
+                const sublistData = [
+                    { 
+                        summary: "Billing", 
+                        act_py: billingly || 0, 
+                        act_ty: billingty || 0, 
+                        yoy: yoyBillingText || 0, 
+                        est_fy: estimateBill || 0, 
+                        fy_target: fyBillty, 
+                        fy_target_p: prosFyBillty,
+                        fy_py : fyBillly,
+                        fy_py_p : prosFyBillly
+                    },
+                    { 
+                        summary: "Cost of Billing", 
+                        act_py: costOfBillingly || 0, 
+                        act_ty: costOfBillingty || 0, 
+                        yoy: '-', 
+                        est_fy: estimateCoss || 0, 
+                        fy_target: fyCostOfBillty, 
+                        fy_target_p: '-',
+                        fy_py : fyCostOfBillly,
+                        fy_py_p : '-'
+                    },
+                    { 
+                        summary: "Gross Profit- Revenue", 
+                        act_py: grossProvitRevly || 0, 
+                        act_ty: grossProvitRevty || 0, 
+                        yoy: yoygrossProvitRevText, 
+                        est_fy: estimateRev, 
+                        fy_target: fyRevty, 
+                        fy_target_p: prosFyRevty,
+                        fy_py : fyRevly,
+                        fy_py_p : prosFyRevly
+                    },
+                    { 
+                        summary: "Gp to Billing", 
+                        act_py: gpToBillinglytext || 0, 
+                        act_ty: gpToBillingtytext || 0, 
+                        yoy: '-', 
+                        est_fy: estimateGpText, 
+                        fy_target: fyGptyText, 
+                        fy_target_p: '-',
+                        fy_py : fyGply,
+                        fy_py_p : '-' 
+                    },
+                    { 
+                        summary: "Opex", 
+                        act_py: opexly || 0, 
+                        act_ty: opexty || 0, 
+                        yoy: yoyOpexText, 
+                        est_fy: estimateOpex, 
+                        fy_target: fyOpexty, 
+                        fy_target_p: prosFyOpexty,
+                        fy_py : fyOpexly,
+                        fy_py_p : prosFyOpexly
+                    },
+                    { 
+                        summary: "Head Count", 
+                        act_py: '-', 
+                        act_ty: '-', 
+                        yoy: '-', 
+                        est_fy: '-', 
+                        fy_target: '-', 
+                        fy_target_p: '-',
+                        fy_py : '-',
+                        fy_py_p : '-' 
+                    },
+                    { 
+                        summary: "Opex to Gross Profit", 
+                        act_py: opexGrossProfitlyText || 0, 
+                        act_ty: opexGrossProfittyText || 0, 
+                        yoy: '-', 
+                        est_fy: estimateOpextoGrossProfitText, 
+                        fy_target: fyOpexfGptyText, 
+                        fy_target_p: '-',
+                        fy_py : fyOpexGply,
+                        fy_py_p : '-' 
+                    },
+                    { 
+                        summary: "Ebitda", 
+                        act_py: ebitdaly || 0, 
+                        act_ty: ebitdaty || 0, 
+                        yoy: yoyEbitdaText, 
+                        est_fy: estimateEbitda, 
+                        fy_target: fyEbitdaty, 
+                        fy_target_p: prosFyEbitdaty,
+                        fy_py : fyEbitdaly,
+                        fy_py_p : prosFyEbitdaly
+                    },
+                    { 
+                        summary: "Ebitda to Gross Profit", 
+                        act_py: ebitdaGplyText || 0, 
+                        act_ty: ebitdaGptyText || 0, 
+                        yoy: '-', 
+                        est_fy: estimateEbitdaGpText, 
+                        fy_target: fyEbitdaGptyText, 
+                        fy_target_p: '-',
+                        fy_py : fyEbitdaGply,
+                        fy_py_p : '-' 
+                    },
+                    { 
+                        summary: "Net Profit", 
+                        act_py: nettProfitly || 0, 
+                        act_ty: nettProfitty || 0, 
+                        yoy: netProvityoyText, 
+                        est_fy: netProfitEstimate, 
+                        fy_target: fyNettProfitty, 
+                        fy_target_p: prosFyNetProfitty,
+                        fy_py : fyNettProfitly,
+                        fy_py_p : prosFyNetProfitly
+                    },
+                    { 
+                        summary: "Net Profit to Gross Profit", 
+                        act_py: netProfittoGplyText || 0, 
+                        act_ty: netProfittoGptyText || 0, 
+                        yoy: '-', 
+                        est_fy: netProfittoGpEstimateText, 
+                        fy_target: fyNettProfitGptyText, 
+                        fy_target_p: '-',
+                        fy_py : fyNettProfitGply,
+                        fy_py_p : '-' 
+                    },
+                ];
+                
+                sublistData.forEach((data, index) => {
+                    currentRecord.setSublistValue({
+                        sublistId: "custpage_sublist_item",
+                        id: "custpage_sublist_summary",
+                        value: data.summary,
+                        line: index
+                    });
+                    currentRecord.setSublistValue({
+                        sublistId: "custpage_sublist_item",
+                        id: "custpage_sublist_act_py",
+                        value: data.act_py,
+                        line: index
+                    });
+                    currentRecord.setSublistValue({
+                        sublistId: "custpage_sublist_item",
+                        id: "custpage_sublist_act_ty",
+                        value: data.act_ty,
+                        line: index
+                    });
+                    currentRecord.setSublistValue({
+                        sublistId: "custpage_sublist_item",
+                        id: "custpage_sublist_yoy",
+                        value: data.yoy,
+                        line: index
+                    });
+                    currentRecord.setSublistValue({
+                        sublistId: "custpage_sublist_item",
+                        id: "custpage_sublist_est_fy",
+                        value: data.est_fy,
+                        line: index
+                    });
+                    currentRecord.setSublistValue({
+                        sublistId: "custpage_sublist_item",
+                        id: "custpage_sublist_fy_target",
+                        value: data.fy_target,
+                        line: index
+                    });
+                    currentRecord.setSublistValue({
+                        sublistId: "custpage_sublist_item",
+                        id: "custpage_sublist_fy_target_p",
+                        value: data.fy_target_p,
+                        line: index
+                    });
+                    currentRecord.setSublistValue({
+                        sublistId: "custpage_sublist_item",
+                        id: "custpage_sublist_fy_py",
+                        value: data.fy_py,
+                        line: index
+                    });
+                    currentRecord.setSublistValue({
+                        sublistId: "custpage_sublist_item",
+                        id: "custpage_sublist_fy_py_p",
+                        value: data.fy_py_p,
+                        line: index
+                    });
+                });
 
-                // set sublist line 1
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_summary",
-                    value: "Billing",
-                    line: 0,
+                var listadd1 = form.addFieldGroup({
+                    id: "wip",
+                    label: "WIP onhand from reconcile file",
                 });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_py",
-                    value: billingly || 0,
-                    line: 0,
+                var grossProfitTotal = Number(totalBilling) + Number(totalCostOfBilling)
+                if(totalBilling){
+                    totalBilling = convertCurr(totalBilling)
+                }
+                if(totalCostOfBilling){
+                    totalCostOfBilling = convertCurr(totalCostOfBilling)
+                }
+                if(grossProfitTotal){
+                    grossProfitTotal = convertCurr(grossProfitTotal)
+                }
+                var lineItem = createItem("custpage_sublist_add", form, listadd1);
+                lineItem.setSublistValue({
+                    sublistId: "custpage_sublist_add",
+                    id: "custpage_sublist_sum",
+                    value: 'Billing',
+                    line: 0
                 });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_ty",
-                    value: billingty || 0,
-                    line: 0,
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_yoy",
-                    value: yoyBillingText || 0,
-                    line: 0,
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_est_fy",
-                    value: estimateBill || 0,
-                    line: 0,
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target",
-                    value: '-',
-                    line: 0,
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target_p",
-                    value: '-',
-                    line: 0,
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py",
-                    value: '-',
-                    line: 0,
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py_p",
-                    value: '-',
-                    line: 0,
+                lineItem.setSublistValue({
+                    sublistId: "custpage_sublist_add",
+                    id: "custpage_sublist_total",
+                    value: totalBilling,
+                    line: 0
                 });
 
-                // set sublist line 2
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_summary",
-                    value: "Cost of Billing",
+                lineItem.setSublistValue({
+                    sublistId: "custpage_sublist_add",
+                    id: "custpage_sublist_sum",
+                    value: 'cost of billing',
                     line: 1
                 });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_py",
-                    value: costOfBillingly || 0,
-                    line: 1
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_ty",
-                    value: costOfBillingty || 0,
-                    line: 1
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_yoy",
-                    value:  '-',
-                    line: 1
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_est_fy",
-                    value: estimateCoss || 0,
-                    line: 1
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target",
-                    value: '-',
-                    line: 1
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target_p",
-                    value: '-',
-                    line: 1
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py",
-                    value: '-',
-                    line: 1
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py_p",
-                    value: '-',
+                lineItem.setSublistValue({
+                    sublistId: "custpage_sublist_add",
+                    id: "custpage_sublist_total",
+                    value: totalCostOfBilling,
                     line: 1
                 });
 
-                 // set sublist line 3
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_summary",
-                    value: "Gross Profit- Revenue",
-                    line : 2
+                lineItem.setSublistValue({
+                    sublistId: "custpage_sublist_add",
+                    id: "custpage_sublist_sum",
+                    value: 'Gross Profit',
+                    line: 2
                 });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_py",
-                    value: grossProvitRevly || 0,
-                    line : 2
+                lineItem.setSublistValue({
+                    sublistId: "custpage_sublist_add",
+                    id: "custpage_sublist_total",
+                    value: grossProfitTotal,
+                    line: 2
                 });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_ty",
-                    value: grossProvitRevty || 0,
-                    line : 2
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_yoy",
-                    value:  yoygrossProvitRevText,
-                    line : 2
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_est_fy",
-                    value:  estimateRev,
-                    line : 2
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target",
-                    value: '-',
-                    line : 2
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target_p",
-                    value: '-',
-                    line : 2
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py",
-                    value: '-',
-                    line : 2
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py_p",
-                    value: '-',
-                    line : 2
-                });
-
-                 // set sublist line 4
-                 currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_summary",
-                    value: "Gp to Billing",
-                    line : 3
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_py",
-                    value: gpToBillinglytext || 0,
-                    line : 3
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_ty",
-                    value: gpToBillingtytext || 0,
-                    line : 3
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_yoy",
-                    value:  '-',
-                    line : 3
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_est_fy",
-                    value:  estimateGpText,
-                    line : 3
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target",
-                    value: '-',
-                    line : 3
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target_p",
-                    value: '-',
-                    line : 3
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py",
-                    value: '-',
-                    line : 3
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py_p",
-                    value: '-',
-                    line : 3
-                });
-
-                 // set sublist line 5
-                 currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_summary",
-                    value: "Opex",
-                    line : 4
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_py",
-                    value: opexly || 0,
-                    line : 4
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_ty",
-                    value: opexty || 0,
-                    line : 4
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_yoy",
-                    value:  yoyOpexText,
-                    line : 4
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_est_fy",
-                    value:  estimateOpex,
-                    line : 4
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target",
-                    value: '-',
-                    line : 4
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target_p",
-                    value: '-',
-                    line : 4
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py",
-                    value: '-',
-                    line : 4
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py_p",
-                    value: '-',
-                    line : 4
-                });
-
-                 // set sublist line 6
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_summary",
-                    value: "Head Count",
-                    line : 5
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_py",
-                    value: '-',
-                    line : 5
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_ty",
-                    value: '-',
-                    line : 5
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_yoy",
-                    value:  '-',
-                    line : 5
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_est_fy",
-                    value:  '-',
-                    line : 5
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target",
-                    value: '-',
-                    line : 5
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target_p",
-                    value: '-',
-                    line : 5
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py",
-                    value: '-',
-                    line : 5
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py_p",
-                    value: '-',
-                    line : 5
-                });
-
-                // set sublist line 7
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_summary",
-                    value: "Opex to Gross Profit",
-                    line : 6
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_py",
-                    value: opexGrossProfitlyText || 0,
-                    line : 6
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_ty",
-                    value: opexGrossProfittyText || 0,
-                    line : 6
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_yoy",
-                    value:  '-',
-                    line : 6
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_est_fy",
-                    value:  estimateOpextoGrossProfitText,
-                    line : 6
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target",
-                    value: '-',
-                    line : 6
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target_p",
-                    value: '-',
-                    line : 6
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py",
-                    value: '-',
-                    line : 6
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py_p",
-                    value: '-',
-                    line : 6
-                });
-
-                // set sublist line 8
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_summary",
-                    value: "Ebitda",
-                    line : 7
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_py",
-                    value: ebitdaly || 0,
-                    line : 7
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_ty",
-                    value: ebitdaty || 0,
-                    line : 7
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_yoy",
-                    value:  yoyEbitdaText,
-                    line : 7
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_est_fy",
-                    value:  estimateEbitda,
-                    line : 7
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target",
-                    value: '-',
-                    line : 7
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target_p",
-                    value: '-',
-                    line : 7
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py",
-                    value: '-',
-                    line : 7
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py_p",
-                    value: '-',
-                    line : 7
-                });
-
-                // set sublist line 9
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_summary",
-                    value: "Ebitda to Gross Profit",
-                    line : 8
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_py",
-                    value: ebitdaGplyText || 0,
-                    line : 8
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_act_ty",
-                    value: ebitdaGptyText || 0,
-                    line : 8
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_yoy",
-                    value:  '-',
-                    line : 8
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_est_fy",
-                    value:  estimateEbitdaGpText,
-                    line : 8
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target",
-                    value: '-',
-                    line : 8
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_target_p",
-                    value: '-',
-                    line : 8
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py",
-                    value: '-',
-                    line : 8
-                });
-                currentRecord.setSublistValue({
-                    sublistId: "custpage_sublist_item",
-                    id: "custpage_sublist_fy_py_p",
-                    value: '-',
-                    line : 8
-                });
-
                 allData.push(
                     "periodNamety : " + periodNamety,
                     "periodNamely : " + periodNamely,
@@ -905,7 +845,7 @@ define([
             log.debug('error', e)
         }
     }
-    function createSublist(sublistname, form, periodNamety, periodNamely) {
+    function createSublist(sublistname, form, periodNamety, periodNamely, thisYear, lastYear) {
         var sublist_in = form.addSublist({
             id: sublistname,
             type: serverWidget.SublistType.LIST,
@@ -938,7 +878,7 @@ define([
         });
         sublist_in.addField({
             id: "custpage_sublist_fy_target",
-            label: "FY this year target",
+            label: "FY target " + thisYear,
             type: serverWidget.FieldType.TEXT,
         });
         sublist_in.addField({
@@ -948,7 +888,7 @@ define([
         });
         sublist_in.addField({
             id: "custpage_sublist_fy_py",
-            label: "FY Previous year",
+            label: "FY " + lastYear,
             type: serverWidget.FieldType.TEXT,
         });
         sublist_in.addField({
@@ -957,6 +897,25 @@ define([
             type: serverWidget.FieldType.TEXT,
         });
         return sublist_in;
+    }
+    function createItem(sublistname, form, listadd1){
+        var sublist_item = form.addSublist({
+            id: sublistname,
+            type: serverWidget.SublistType.LIST,
+            label: "WIP onhand from reconcile file",
+            container : listadd1
+        });
+        sublist_item.addField({
+            id: "custpage_sublist_sum",
+            label: "Summary",
+            type: serverWidget.FieldType.TEXT,
+        });
+        sublist_item.addField({
+            id: "custpage_sublist_total",
+            label: "Total",
+            type: serverWidget.FieldType.TEXT,
+        });
+        return sublist_item
     }
     return{
         onRequest : onRequest

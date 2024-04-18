@@ -15,6 +15,7 @@ define(["N/record", "N/search"], function (record, search) {
           id: rec.id,
         });
         var TransType = recordTRans.getValue("type");
+        var customForm = recordTRans.getValue("customform");
         if (TransType == "custrecordentry") {
           var dateTrans = recordTRans.getValue("custrecord_iss_date");
         } else {
@@ -22,6 +23,7 @@ define(["N/record", "N/search"], function (record, search) {
         }
 
         log.debug("dateBill", dateTrans);
+        log.debug("customForm", customForm);
         var date = new Date(dateTrans);
 
         var day = date.getDate();
@@ -37,9 +39,14 @@ define(["N/record", "N/search"], function (record, search) {
         var lastTwoDigits = year.toString().slice(-2);
         log.debug("lastTwoDigit", lastTwoDigits);
         log.debug("transtype", TransType);
+        log.debug("monthFormatted", monthFormatted);
         var textSub;
         if (TransType == "purchord") {
-          textSub = "PO";
+          if (customForm == 138) {
+            textSub = "PR";
+          } else {
+            textSub = "PO";
+          }
         } else if (TransType == "journal") {
           textSub = "JE";
         } else if (TransType == "vendpymt") {
@@ -86,6 +93,9 @@ define(["N/record", "N/search"], function (record, search) {
           formatRunning = textSub + lastTwoDigits + monthFormatted;
         }
 
+        log.debug("formatRunning", {
+          formattedDate: formattedDate,
+        });
         var searchRunNumb = search.create({
           type: "customrecord__po_numbering",
           columns: ["internalid", "custrecord_msa_pon_transactiontype", "custrecord_msa_pon_prefix", "custrecord_msa_pon_minimum_digit", "custrecord_msa_pon_initial_number", "custrecord_msa_pon_suffix", "custrecord_msa_pon_last_run", "custrecord_msa_pon_start_date", "custrecord_msa_pon_end_date", "custrecord_mas_pon_sample_format"],
@@ -275,7 +285,7 @@ define(["N/record", "N/search"], function (record, search) {
       }
     } catch (e) {
       err_messages = "error in after submit " + e.name + ": " + e.message;
-      log.debug(err_messages);
+      log.error(err_messages);
     }
   }
 

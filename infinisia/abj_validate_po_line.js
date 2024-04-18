@@ -13,27 +13,19 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var currentRecordObj = context.currentRecord;
         var cForm = currentRecordObj.getValue('customform');
         if(cForm == '138'){
+            var currentId = currentRecordObj.getValue('id');
+            console.log('currentId', currentId)
             var soNumber = currentRecordObj.getCurrentSublistValue({
                 sublistId: 'item',
                 fieldId: 'custcol_abj_sales_order_number'
             });
+            console.log('soNumber', soNumber);
+            if(soNumber == ''){
+                return true
+            }
             var countLine = currentRecordObj.getLineCount({ sublistId: 'item' });
             // cek 1
-            if (countLine > 0) {
-                for (var i = 0; i < countLine; i++) {
-                    var cekSo = currentRecordObj.getSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'custcol_abj_sales_order_number',
-                        line: i
-                    });
-                    console.log('cekSo', cekSo);
-                    if (cekSo === soNumber) {
-                        alert('Duplicated Sales Order Number!');
-                        return false;
-                    }
-                }
-            }
-            console.log('soNumber', soNumber);
+            
             var arrSoNumber = [];
             var purchaseorderSearchObj = search.create({
                 type: "purchaseorder",
@@ -45,26 +37,59 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     ["custcol_abj_sales_order_number", "isnotempty", ""]
                 ],
                 columns: [
+                    search.createColumn({ name: "internalid" }),
                     search.createColumn({ name: "custcol_abj_sales_order_number", label: "ABJ - Sales Order Number" })
                 ]
             });
             var searchResultCount = purchaseorderSearchObj.runPaged().count;
             log.debug("purchaseorderSearchObj result count", searchResultCount);
+            var cekValidasi = true
             purchaseorderSearchObj.run().each(function(result) {
                 var numberSO = result.getValue({
                     name: 'custcol_abj_sales_order_number'
                 });
-                arrSoNumber.push(numberSO);
+                var internalId = result.getValue({
+                    name: 'internalid'
+                });
+                console.log('internalid', internalId)
+                if(internalId == currentId){
+                    cekValidasi = false
+                }
+                
                 return true;
             });
             var isSoNumberExist = arrSoNumber.indexOf(soNumber) !== -1;
             console.log('Apakah soNumber ada di dalam arrSoNumber?', isSoNumberExist);
-            if (isSoNumberExist) {
-                alert('Duplicated Sales Order Number!');
-                return false;
-            } else {
+            if (countLine > 0) {
+                for (var i = 0; i < countLine; i++) {
+                    var cekSo = currentRecordObj.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_abj_sales_order_number',
+                        line: i
+                    });
+                    console.log('cekSo', cekSo);
+                    if(cekValidasi == true){
+                        if (cekSo === soNumber) {
+                            alert('Duplicated Sales Order Number!');
+                            return false;
+                        }
+                    }else{
+                        return true;
+                    }
+                    
+                }
+            }
+            if(cekValidasi == true){
+                if (isSoNumberExist) {
+                    alert('Duplicated Sales Order Number!');
+                    return false;
+                } else {
+                    return true;
+                }
+            }else{
                 return true;
             }
+            
         }else{
             return true
         }
