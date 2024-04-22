@@ -69,7 +69,6 @@ define([
                 var subsId = context.request.parameters.custpage_subs_option;
                 var tax = context.request.parameters.custpage_taxrate_option;
                 var taxrate = Number(tax) / 100
-                log.debug('taxrate', taxrate)
                 var periodNamety;
                 var periodNamely;
                 var thisYear;
@@ -97,9 +96,6 @@ define([
                 
                     return true;
                 });
-                
-                log.debug('periodNamety', periodNamety);
-                log.debug('periodNamely', periodNamely);
                 
                 var postingPeriodData = search.create({
                     type: "accountingperiod",
@@ -189,12 +185,12 @@ define([
                     summary: "SUM",
                 }) || 0;
                 
-                billingSearch.filters.pop(); 
-                if (periodIdly) billingSearch.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
-                if (subsId) billingSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
-                if (formattedstartLastYear) billingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
-                if (formattedendLastYear) billingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
-                var billinglySearch = billingSearch.run().getRange({start: 0, end: 1});
+                var billingSearchly = search.load({id: "customsearch_monthly_review"});
+                if (periodIdly) billingSearchly.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
+                if (subsId) billingSearchly.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedstartLastYear) billingSearchly.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
+                if (formattedendLastYear) billingSearchly.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
+                var billinglySearch = billingSearchly.run().getRange({start: 0, end: 1});
                 var billingly = billinglySearch[0].getValue({
                     name: "amount",
                     summary: "SUM",
@@ -210,7 +206,6 @@ define([
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
-                log.debug('totalbilling',totalBilling)
 
                 // load cost of billing
                 var costOfBilling = search.load({id: "customsearch_monthly_review_2"});
@@ -224,19 +219,19 @@ define([
                     summary: "SUM",
                 }) || 0;
                 
-                costOfBilling.filters.pop(); 
-                if (periodIdly) costOfBilling.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
-                if (subsId) costOfBilling.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
-                if (formattedstartLastYear) costOfBilling.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
-                if (formattedendLastYear) costOfBilling.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
-                var costOfBillinglySearch = costOfBilling.run().getRange({start: 0, end: 1});
-                var costOfBillingly = costOfBillinglySearch[0].getValue({
+                var costOfBillingSearchly = search.load({id: "customsearch_monthly_review_2"});
+                if (periodIdly) costOfBillingSearchly.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
+                if (subsId) costOfBillingSearchly.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedstartLastYear) costOfBillingSearchly.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
+                if (formattedendLastYear) costOfBillingSearchly.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
+                var costOfBillinglySearchRetly = costOfBillingSearchly.run().getRange({start: 0, end: 1});
+                var costOfBillingly = costOfBillinglySearchRetly[0].getValue({
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
 
                 // total cost of billing
-                var totalCostOfBillingSearch = search.load({id: "customsearch_monthly_review"});
+                var totalCostOfBillingSearch = search.load({id: "customsearch_monthly_review_2"});
                 if (subsId) totalCostOfBillingSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
                 if (formattedStartThisYear) totalCostOfBillingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedStartThisYear}));
                 if (formattedEndThisYear) totalCostOfBillingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedEndThisYear}));
@@ -245,10 +240,9 @@ define([
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
-                log.debug('totalCostOfBilling', totalCostOfBilling)
 
                 // load opex
-                var opexSearch = search.load({id: "customsearch_monthly_review_2"});
+                var opexSearch = search.load({id: "customsearch_monthly_review_2_2"});
                 if (periodId) opexSearch.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodId}));
                 if (subsId) opexSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
                 if (formattedStartThisYear) opexSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedStartThisYear}));
@@ -259,12 +253,12 @@ define([
                     summary: "SUM",
                 }) || 0;
                 
-                opexSearch.filters.pop(); 
-                if (periodIdly) opexSearch.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
-                if (subsId) opexSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
-                if (formattedstartLastYear) opexSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
-                if (formattedendLastYear) opexSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
-                var opexlySearch = opexSearch.run().getRange({start: 0, end: 1});
+                var opxSearchLy = search.load({id: "customsearch_monthly_review_2_2"});
+                if (periodIdly) opxSearchLy.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
+                if (subsId) opxSearchLy.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedstartLastYear) opxSearchLy.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
+                if (formattedendLastYear) opxSearchLy.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
+                var opexlySearch = opxSearchLy.run().getRange({start: 0, end: 1});
                 var opexly = opexlySearch[0].getValue({
                     name: "amount",
                     summary: "SUM",
@@ -288,7 +282,7 @@ define([
                 var opexGrossProfitly = Number(opexly) / Number(grossProvitRevly) || 0
                 var opexGrossProfitlyText = opexGrossProfitly.toFixed(2) + ' %';
 
-                var opexGrossProfitty = Number(opexty) / Number(grossProvitRevty) || 0
+                var opexGrossProfitty = (opexty !== 0 && grossProvitRevty !== 0) ? Number(opexty) / Number(grossProvitRevty) : 0;
                 var opexGrossProfittyText = opexGrossProfitty.toFixed(2) + '%'
 
 
@@ -297,21 +291,21 @@ define([
                 var yoyEbitda = (ebitdaty !== 0 && ebitdaly !== 0) ? Number(ebitdaty) / Number(ebitdaly) : 0;
                 var yoyEbitdaText = yoyEbitda.toFixed(2) + "%"
 
-                var ebitdaGply = Number(ebitdaly) / Number(grossProvitRevly) || 0
+                var ebitdaGply =  (ebitdaly !== 0 && grossProvitRevly !== 0) ? Number(ebitdaly) / Number(grossProvitRevly) : 0;
                 var ebitdaGplyText = ebitdaGply.toFixed(2) + ' %';
-                var ebitdaGpty = Number(ebitdaty) / Number(grossProvitRevty) || 0
+                var ebitdaGpty = (ebitdaty !== 0 && grossProvitRevty !== 0) ? Number(ebitdaty) / Number(grossProvitRevty) : 0;
                 var ebitdaGptyText = ebitdaGpty.toFixed(2) + ' %';
 
                 var estimateBill = Number(billingty) + Number(totalBilling)
                 var estimateCoss = Number(costOfBillingty) + Number(totalCostOfBilling)
                 var estimateRev = Number(estimateBill) + Number(estimateCoss);
-                var estimateGp = Number(estimateRev) /  Number(estimateBill) || 0;
+                var estimateGp = (estimateRev !== 0 && estimateBill !== 0) ? Number(estimateRev) / Number(estimateBill) : 0;
                 var estimateGpText = estimateGp.toFixed(2) + ' %';
                 var estimateOpex = Number(opexty) * 12
-                var estimateOpextoGrossProfit = Number(estimateOpex) /  Number(estimateRev) || 0;
+                var estimateOpextoGrossProfit = (estimateOpex !== 0 && estimateRev !== 0) ? Number(estimateOpex) / Number(estimateRev) : 0; 
                 var estimateOpextoGrossProfitText = estimateOpextoGrossProfit.toFixed(2) + '%'
                 var estimateEbitda = Number(estimateRev) - Number(estimateOpex);
-                var estimateEbitdaGp = Number(estimateEbitda) / Number(estimateRev)
+                var estimateEbitdaGp = (estimateEbitda !== 0 && estimateRev !== 0) ? Number(estimateEbitda) / Number(estimateRev) : 0;
                 var estimateEbitdaGpText = estimateEbitdaGp.toFixed(2) + '%'
 
                 var depreSearch = search.load({id: "customsearch_monthly_review_2_2_4"});
@@ -324,18 +318,16 @@ define([
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
-                log.debug('deprety', deprety)
-                depreSearch.filters.pop(); 
-                if (periodIdly) depreSearch.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
-                if (subsId) depreSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
-                if (formattedstartLastYear) depreSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
-                if (formattedendLastYear) depreSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
-                var deprelySearch = depreSearch.run().getRange({start: 0, end: 1});
+                var depreSearchly = search.load({id: "customsearch_monthly_review_2_2_4"});
+                if (periodIdly) depreSearchly.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
+                if (subsId) depreSearchly.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                if (formattedstartLastYear) depreSearchly.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
+                if (formattedendLastYear) depreSearchly.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
+                var deprelySearch = depreSearchly.run().getRange({start: 0, end: 1});
                 var deprely = deprelySearch[0].getValue({
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
-                log.debug('deprely', deprely)
                 
                 var totalDepreSearch = search.load({id: "customsearch_monthly_review_2_2_4"});
                 if (subsId) totalDepreSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
@@ -346,11 +338,8 @@ define([
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
-                log.debug('totalDepre', totalDepre)
                 var nettProfitly = (Number(ebitdaly) + Number(deprely)) * Number(1-Number(taxrate))
-                log.debug('dataCount', {ebitdaty: 110955454, deprety: 507208727.66, taxrate: 0.22});
                 var nettProfitty = (Number(ebitdaty) + Number(deprely)) * (1 - Number(taxrate));
-                log.debug('nettProfitty', nettProfitty);
                 var netProvityoy = (nettProfitly !== 0 && nettProfitty !== 0) ? Number(nettProfitty) / Number(nettProfitly) : 0;
                 var netProvityoyText = netProvityoy.toFixed(2) + "%";
                 var netProfitEstimate = (Number(estimateEbitda) + Number(totalDepre)) * Number(1-Number(taxrate))
@@ -362,7 +351,6 @@ define([
                 var netProfittoGpEstimate = (netProfitEstimate !== 0 && estimateRev !== 0) ? Number(netProfitEstimate) / Number(estimateRev) : 0;
                 var netProfittoGpEstimateText = netProfittoGpEstimate.toFixed(2) + '%';
 
-               
                 // load FY Bill This Year
                 var fyBillSearch = search.load({id: "customsearchbudgetdefaultview"});
                 if (subsId) fyBillSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
@@ -372,7 +360,6 @@ define([
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
-                log.debug('fyBillty', fyBillty)
 
                 var fyCostOfBillSearch = search.load({id: "customsearchbudgetdefaultview_2"});
                 if (subsId) fyCostOfBillSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
@@ -382,7 +369,6 @@ define([
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
-                log.debug('fyCostOfBillty', fyCostOfBillty)
 
                 var fyRevty = Number(fyBillty) + Number(fyCostOfBillty);
                 var fyGpty = (fyRevty !== 0 && fyBillty !== 0) ? Number(fyRevty) / Number(fyBillty) : 0;
@@ -396,7 +382,6 @@ define([
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
-                log.debug('fyOpexty', fyOpexty)
 
                 var fyOpexfGpty = (fyOpexty !== 0 && fyRevty !== 0) ? Number(fyOpexty) / Number(fyRevty) : 0;
                 var fyOpexfGptyText = fyOpexfGpty.toFixed(2) + '%';
@@ -411,19 +396,14 @@ define([
 
                 var prosFyBillty = (estimateBill !== 0 && fyBillty !== 0) ? Number(estimateBill) / Number(fyBillty) : 0;
                 prosFyBillty = convertText(prosFyBillty);
-                log.debug('prosFyBillty', prosFyBillty)
                 var prosFyRevty = (estimateRev !== 0 && fyCostOfBillty !== 0) ? Number(estimateRev) / Number(fyCostOfBillty) : 0;
                 prosFyRevty = convertText(prosFyRevty);
-                log.debug('prosFyRevty', prosFyRevty)
                 var prosFyOpexty = (estimateOpex !== 0 && fyOpexty !== 0) ? Number(estimateOpex) / Number(fyOpexty) : 0;
                 prosFyOpexty = convertText(prosFyOpexty);
-                log.debug('prosFyOpexty', prosFyOpexty)
                 var prosFyEbitdaty = (estimateEbitda !== 0 && fyEbitdaty !== 0) ? Number(estimateEbitda) / Number(fyEbitdaty) : 0;
                 prosFyEbitdaty = convertText(prosFyEbitdaty);
-                log.debug('prosFyEbitdaty', prosFyEbitdaty)
                 var prosFyNetProfitty = (netProfitEstimate !== 0 && fyNettProfitty !== 0) ? Number(netProfitEstimate) / Number(fyNettProfitty) : 0;
                 prosFyNetProfitty = convertText(prosFyNetProfitty);
-                log.debug('prosFyNetProfitty', prosFyNetProfitty)
 
                 // load FY Bill last year
                 var fyBilllySearch = search.load({id: "customsearchbudgetdefaultview"});
@@ -434,7 +414,6 @@ define([
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
-                log.debug('fyBillly', fyBillly)
 
                 var fyCOstBilllySearch = search.load({id: "customsearchbudgetdefaultview_2"});
                 if (subsId) fyCOstBilllySearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
@@ -444,7 +423,6 @@ define([
                     name: "amount",
                     summary: "SUM",
                 }) || 0;
-                log.debug('fyCostOfBillly', fyCostOfBillly)
 
                 var fyRevly = Number(fyBillly) + Number(fyCostOfBillly)
                 var fyGply = (fyRevly !== 0 && fyBillly !== 0) ? Number(fyRevly) / Number(fyBillly) : 0;
@@ -467,10 +445,7 @@ define([
                 prosFyOpexly = convertText(prosFyOpexly);
                 var prosFyEbitdaly = (estimateEbitda !== 0 && fyEbitdaly !== 0) ? Number(estimateEbitda) / Number(fyEbitdaly) : 0;
                 prosFyEbitdaly = convertText(prosFyEbitdaly);
-                log.debug('fyNettProfitGply', fyNettProfitGply)
-                log.debug('fyNettProfitly', fyNettProfitly)
                 var prosFyNetProfitly = (fyNettProfitly !== 0 && fyRevly !== 0) ? Number(fyNettProfitly) / Number(fyRevly) : 0;
-                log.debug('prosFyNetProfitly', prosFyNetProfitly)
                 prosFyNetProfitly = convertText(prosFyNetProfitly);
 
                 if(fyBillly){
@@ -567,7 +542,6 @@ define([
 
                 var allData = []
                 var currentRecord = createSublist("custpage_sublist_item", form, periodNamety, periodNamely, thisYear, lastYear);
-                log.debug('estimateOpextoGrossProfitText', estimateOpextoGrossProfitText)
                 const sublistData = [
                     { 
                         summary: "Billing", 
@@ -802,6 +776,93 @@ define([
                     value: grossProfitTotal,
                     line: 2
                 });
+
+                if(deprely){
+                    deprely = convertCurr(deprely)
+                }
+                if(deprety){
+                    deprety = convertCurr(deprety)
+                }
+                if(totalDepre){
+                    totalDepre = convertCurr(totalDepre)
+                }
+                var depreLine = createDepre("custpage_sublist_depre", form, periodNamety, periodNamely);
+                depreLine.setSublistValue({
+                    sublistId: "custpage_sublist_depre",
+                    id: "custpage_sublist_summary",
+                    value: "total Depreciation per month",
+                    line: 0
+                });
+                depreLine.setSublistValue({
+                    sublistId: "custpage_sublist_depre",
+                    id: "custpage_sublist_first",
+                    value: deprely,
+                    line: 0
+                });
+                depreLine.setSublistValue({
+                    sublistId: "custpage_sublist_depre",
+                    id: "custpage_sublist_second",
+                    value: deprety,
+                    line: 0
+                });
+                depreLine.setSublistValue({
+                    sublistId: "custpage_sublist_depre",
+                    id: "custpage_sublist_fullyear",
+                    value: totalDepre,
+                    line: 0
+                });
+
+                depreLine.setSublistValue({
+                    sublistId: "custpage_sublist_depre",
+                    id: "custpage_sublist_summary",
+                    value: "-",
+                    line: 1
+                });
+                depreLine.setSublistValue({
+                    sublistId: "custpage_sublist_depre",
+                    id: "custpage_sublist_first",
+                    value: "-",
+                    line: 1
+                });
+                depreLine.setSublistValue({
+                    sublistId: "custpage_sublist_depre",
+                    id: "custpage_sublist_second",
+                    value: "_",
+                    line: 1
+                });
+                depreLine.setSublistValue({
+                    sublistId: "custpage_sublist_depre",
+                    id: "custpage_sublist_fullyear",
+                    value: "-",
+                    line: 1
+                });
+
+                depreLine.setSublistValue({
+                    sublistId: "custpage_sublist_depre",
+                    id: "custpage_sublist_summary",
+                    value: "Tax Rate",
+                    line: 2
+                });
+                depreLine.setSublistValue({
+                    sublistId: "custpage_sublist_depre",
+                    id: "custpage_sublist_first",
+                    value: tax + "%",
+                    line: 2
+                });
+                depreLine.setSublistValue({
+                    sublistId: "custpage_sublist_depre",
+                    id: "custpage_sublist_second",
+                    value: tax + "%",
+                    line: 2
+                });
+                depreLine.setSublistValue({
+                    sublistId: "custpage_sublist_depre",
+                    id: "custpage_sublist_fullyear",
+                    value: "-",
+                    line: 2
+                });
+
+                
                 allData.push(
                     "periodNamety : " + periodNamety,
                     "periodNamely : " + periodNamely,
@@ -832,7 +893,6 @@ define([
                     "ebitdaGptyText: " + ebitdaGptyText,
                     "estimateEbitdaGpText: " + estimateEbitdaGpText
                 );
-                log.debug('allData',allData);
                 form.addButton({
                     id: 'custpage_button_po',
                     label: "Download",
@@ -916,6 +976,34 @@ define([
             type: serverWidget.FieldType.TEXT,
         });
         return sublist_item
+    }
+    function createDepre(sublistname, form, periodNamety, periodNamely){
+        var sublist_depre = form.addSublist({
+            id: sublistname,
+            type: serverWidget.SublistType.LIST,
+            label: "Deprecation / Tax Rate"
+        });
+        sublist_depre.addField({
+            id: "custpage_sublist_summary",
+            label: "Summary",
+            type: serverWidget.FieldType.TEXT,
+        });
+        sublist_depre.addField({
+            id: "custpage_sublist_first",
+            label: periodNamely,
+            type: serverWidget.FieldType.TEXT,
+        });
+        sublist_depre.addField({
+            id: "custpage_sublist_second",
+            label: periodNamety,
+            type: serverWidget.FieldType.TEXT,
+        });
+        sublist_depre.addField({
+            id: "custpage_sublist_fullyear",
+            label: "Full Year",
+            type: serverWidget.FieldType.TEXT,
+        });
+        return sublist_depre
     }
     return{
         onRequest : onRequest

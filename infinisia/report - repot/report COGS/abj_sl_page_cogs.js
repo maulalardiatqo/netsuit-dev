@@ -87,7 +87,7 @@ define([
                 log.debug('idVendor', idVendor);
                 //If no filters are selected show
                 if(!idBill && !idItem && !idVendor){
-
+                    
                 }else{
                     var dataSearch = search.load({
                         id: 'customsearch782',
@@ -303,25 +303,25 @@ define([
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_nameitem",
-                            value: itemId,
+                            value: itemId || '-',
                             line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_vendor",
-                            value: vendor,
+                            value: vendor || '-',
                             line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_invno",
-                            value: billNumbe,
+                            value: billNumbe || '-',
                             line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_invdate",
-                            value: date,
+                            value: date || '-',
                             line: line,
                         });
                         currentRecord.setSublistValue({
@@ -357,37 +357,37 @@ define([
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_pono",
-                            value: poNumb,
+                            value: poNumb || '-',
                             line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_qty",
-                            value: qty,
+                            value: qty || '-',
                             line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_unitprice",
-                            value: rateItem,
+                            value: rateItem || '-',
                             line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_priceusd",
-                            value: amount,
+                            value: amount || '-',
                             line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_ratepib",
-                            value: excRate,
+                            value: excRate || '-',
                             line: line,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_priceidr",
-                            value: priceIdr,
+                            value: priceIdr || '-',
                             line: line,
                         });
                         currentRecord.setSublistValue({
