@@ -51,7 +51,38 @@ define([
                 container: "filteroption",
                 source: "accountingperiod",
             });
+            
             periodFilter.isMandatory = true
+
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const currentDate = new Date();
+            const currentMonth = months[currentDate.getMonth()];
+            const currentYear = currentDate.getFullYear();
+            const previousYear = currentYear - 1;
+            const previousFormatted = `${currentMonth} ${previousYear}`;
+            log.debug('previousFormatted', previousFormatted)
+            var postingPeriodData = search.create({
+                type: "accountingperiod",
+                filters: [
+                    ["periodname", "is", previousFormatted]
+                ],
+                columns: ["internalid"]
+            });
+            var prevPeriodId;
+            postingPeriodData.run().each(function(result) {
+                prevPeriodId = result.getValue({ name: 'internalid' });
+                return true;
+            });
+            log.debug('prevPeriodId', prevPeriodId)
+            var periodComparation = form.addField({
+                id: "custpage_period_comparation_option",
+                label: "Period Comparation",
+                type: serverWidget.FieldType.SELECT,
+                container: "filteroption",
+                source: "accountingperiod",
+            });
+            periodComparation.isMandatory = true
+            periodComparation.defaultValue = prevPeriodId
             var taxrateFilter = form.addField({
                 id: "custpage_taxrate_option",
                 label: "Tax Rate",
@@ -66,6 +97,8 @@ define([
                 context.response.writePage(form);
             }else{
                 var periodId = context.request.parameters.custpage_period_option;
+                var periodComparationId = context.request.parameters.custpage_period_comparation_option;
+                log.debug('periodComparationId', periodComparationId)
                 var subsId = context.request.parameters.custpage_subs_option;
                 var tax = context.request.parameters.custpage_taxrate_option;
                 var taxrate = Number(tax) / 100
@@ -186,7 +219,7 @@ define([
                 }) || 0;
                 
                 var billingSearchly = search.load({id: "customsearch_monthly_review"});
-                if (periodIdly) billingSearchly.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
+                if (periodComparationId) billingSearchly.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
                 if (subsId) billingSearchly.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
                 if (formattedstartLastYear) billingSearchly.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
                 if (formattedendLastYear) billingSearchly.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
@@ -220,7 +253,7 @@ define([
                 }) || 0;
                 
                 var costOfBillingSearchly = search.load({id: "customsearch_monthly_review_2"});
-                if (periodIdly) costOfBillingSearchly.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
+                if (periodComparationId) costOfBillingSearchly.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
                 if (subsId) costOfBillingSearchly.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
                 if (formattedstartLastYear) costOfBillingSearchly.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
                 if (formattedendLastYear) costOfBillingSearchly.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
@@ -254,7 +287,7 @@ define([
                 }) || 0;
                 
                 var opxSearchLy = search.load({id: "customsearch_monthly_review_2_2"});
-                if (periodIdly) opxSearchLy.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
+                if (periodComparationId) opxSearchLy.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
                 if (subsId) opxSearchLy.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
                 if (formattedstartLastYear) opxSearchLy.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
                 if (formattedendLastYear) opxSearchLy.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));
@@ -319,7 +352,7 @@ define([
                     summary: "SUM",
                 }) || 0;
                 var depreSearchly = search.load({id: "customsearch_monthly_review_2_2_4"});
-                if (periodIdly) depreSearchly.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
+                if (periodComparationId) depreSearchly.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: periodIdly}));
                 if (subsId) depreSearchly.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
                 if (formattedstartLastYear) depreSearchly.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: formattedstartLastYear}));
                 if (formattedendLastYear) depreSearchly.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: formattedendLastYear}));

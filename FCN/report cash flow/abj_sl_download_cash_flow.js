@@ -8,6 +8,14 @@ define(["N/ui/serverWidget","N/search","N/record","N/ui/message","N/url","N/redi
         try{
             var allData = JSON.parse(context.request.parameters.allData);
             var idSub = JSON.parse(context.request.parameters.idSub);
+            if(idSub){
+                var subsidiariRec = record.load({
+                    type: "subsidiary",
+                    id: idSub,
+                    isDynamic: false,
+                  });
+                  var legalName = subsidiariRec.getValue('legalname');
+            }
             log.debug('allData', allData)
             if(allData.length<=0){
                 var html = `<html>
@@ -59,6 +67,14 @@ define(["N/ui/serverWidget","N/search","N/record","N/ui/message","N/url","N/redi
                         "<Font ss:Bold='1' ss:Color='#000000' ss:FontName='Calibri' ss:Size='12' />";
                     xmlStr += "<Interior ss:Color='#FFFFFF' ss:Pattern='Solid' />";
                     xmlStr += "</Style>";
+
+                    xmlStr += "<Style ss:ID='BCN'>";
+                    xmlStr += "<Alignment ss:Horizontal='Center' ss:Vertical='Center' />";
+                    xmlStr +=
+                        "<Font ss:Bold='1' ss:Color='#000000' ss:FontName='Calibri' ss:Size='12' />";
+                    xmlStr += "<Interior ss:Color='#FFFFFF' ss:Pattern='Solid' />";
+                    xmlStr += "</Style>";
+
                     xmlStr += "<Style ss:ID='Subtotal'>";
                     xmlStr += "<Alignment />";
                     xmlStr += "<Font ss:FontName='Calibri' ss:Size='12' />";
@@ -146,12 +162,35 @@ define(["N/ui/serverWidget","N/search","N/record","N/ui/message","N/url","N/redi
                     xmlStr +=
                     "<Table>" +
                     "<Column ss:Index='1' ss:AutoFitWidth='0' ss:Width='250' />";
+                    var jumlahCell = 0;
                     var index = 2;
                     for (var period in uniquePeriods) {
                         xmlStr += `<Column ss:Index='${index}' ss:AutoFitWidth='0' ss:Width='100' />`;
                         index++;
+                        jumlahCell ++
                     }
-                    var headerRow = "<Row ss:Index='1' ss:Height='20'>";
+                    log.debug('index', index)
+                    var headRow1 = "<Row ss:Index='1' ss:Height='20'>";
+                    headRow1 += `<Cell ss:StyleID="BCN" ss:MergeAcross='${jumlahCell}'><Data ss:Type="String">Cash Flow Projection</Data></Cell>`;
+                    headRow1 += "</Row>";
+                    if(legalName){
+                        headRow1 += "<Row>";
+                        headRow1 += `<Cell ss:StyleID="BCN" ss:MergeAcross='${jumlahCell}'><Data ss:Type="String">`+legalName+`</Data></Cell>`;
+                        headRow1 += "</Row>";
+                    }
+                    log.debug('uniquePeriods', uniquePeriods)
+                    var keys = Object.keys(uniquePeriods);
+                    var firstPeriod = keys[0];
+                    var lastPeriod = keys[keys.length - 1];
+                    var formattedFirstPeriod = firstPeriod.charAt(0).toUpperCase() + firstPeriod.slice(1).replace("_", " ");
+                    var formattedLastPeriod = lastPeriod.charAt(0).toUpperCase() + lastPeriod.slice(1).replace("_", " ");
+                    headRow1 += "<Row>";
+                    headRow1 += `<Cell ss:StyleID="BCN" ss:MergeAcross='${jumlahCell}'><Data ss:Type="String">Periode `+formattedFirstPeriod+` sd `+formattedLastPeriod+`</Data></Cell>`;
+                    headRow1 += "</Row>";
+
+                    xmlStr += headRow1;
+                    
+                    var headerRow = "<Row ss:Index='4' ss:Height='20'>";
                     headerRow += '<Cell ss:StyleID="BC"><Data ss:Type="String">Summary</Data></Cell>';
                     Object.keys(uniquePeriods).forEach(function(period) {
                         headerRow += '<Cell ss:StyleID="BC"><Data ss:Type="String">'+period+'</Data></Cell>';
