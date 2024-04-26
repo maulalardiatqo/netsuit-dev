@@ -895,41 +895,27 @@ define([
                     line: 2
                 });
 
-                
-                allData.push(
-                    "periodNamety : " + periodNamety,
-                    "periodNamely : " + periodNamely,
-                    "billingly: " + billingly,
-                    "billingly: " + billingly,
-                    "billingty: " + billingty,
-                    "yoyBillingText: " + yoyBillingText,
-                    "estimateBill: " + estimateBill,
-                    "costOfBillingly: " + costOfBillingly,
-                    "costOfBillingty: " + costOfBillingty,
-                    "estimateCoss: " + estimateCoss,
-                    "grossProvitRevly: " + grossProvitRevly,
-                    "grossProvitRevty: " + grossProvitRevty,
-                    "yoygrossProvitRevText: " + yoygrossProvitRevText,
-                    "estimateRev: " + estimateRev,
-                    "gpToBillinglytext: " + gpToBillinglytext,
-                    "gpToBillingtytext: " + gpToBillingtytext,
-                    "estimateGpText: " + estimateGpText,
-                    "opexly: " + opexly,
-                    "opexty: " + opexty,
-                    "yoyOpexText: " + yoyOpexText,
-                    "estimateOpex: " + estimateOpex,
-                    "ebitdaly: " + ebitdaly,
-                    "ebitdaty: " + ebitdaty,
-                    "yoyEbitdaText: " + yoyEbitdaText,
-                    "estimateEbitda: " + estimateEbitda,
-                    "ebitdaGplyText: " + ebitdaGplyText,
-                    "ebitdaGptyText: " + ebitdaGptyText,
-                    "estimateEbitdaGpText: " + estimateEbitdaGpText
-                );
+                var totalan = [];
+                var nameAct = [];
+                nameAct.push({
+                    periodNamely : periodNamely,
+                    periodNamety : periodNamety,
+                    thisYear : thisYear,
+                    lastYear : lastYear
+                })
+                totalan.push({
+                    totalBilling : totalBilling,
+                    totalCostOfBilling : totalCostOfBilling,
+                    grossProfitTotal : grossProfitTotal,
+                    deprely : deprely,
+                    deprety : deprety,
+                    totalDepre : totalDepre,
+                    tax : tax   
+                })
                 form.addButton({
                     id: 'custpage_button_po',
-                    label: "Download",
-                    functionName: "download( "+JSON.stringify(allData)+")"
+                    label: "Export Excel",
+                    functionName: "download('" + JSON.stringify(sublistData) + "', '" + JSON.stringify(totalan) + "', '" + JSON.stringify(nameAct) + "')"
                 });
                 form.clientScriptModulePath = "SuiteScripts/abj_cs_download_monthly_review.js";
                 context.response.writePage(form);

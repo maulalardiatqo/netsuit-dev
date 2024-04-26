@@ -175,8 +175,6 @@ define([
                 var alloprasionalExp = []
                 var allIdPeriod = []
                 var allEndingBalance = []
-
-                var prevEndingBalance = 0
                 allPeriod.forEach(function(periodName, index) {
                     
                     var postingPeriodData = search.create({
@@ -191,88 +189,77 @@ define([
                         idPeriod = result.getValue({ name: 'internalid' });
                         return true;
                     });
-                
-                    var beginningBalance;
                     
                     var beginningBalanceSearch = search.load({id: "customsearch_monthly_review_2_2_2"});
-                    if (idPeriod) beginningBalanceSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
-                    if (subsId) beginningBalanceSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) beginningBalanceSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) beginningBalanceSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
-                
-                    var beginningBalanceSearchReturn = beginningBalanceSearch.run().getRange({ start: 0, end: 1 });
-                    log.debug('index', index)
-                    if (index == 0) {
-                        log.debug('masukIf', index)
-                        beginningBalance = beginningBalanceSearchReturn[0].getValue({
-                            name: "amount",
-                            summary: "SUM",
-                        }) || 0;
-                    } else {
-                        log.debug('masukElse', index)
-                        beginningBalance = prevEndingBalance
-                    }
-                    log.debug('beginningBalance', beginningBalance)
-                    var beginningBalancetoCOunt = beginningBalance;
-                    if (beginningBalance) {
-                        beginningBalance = convertCurr(beginningBalance);
+                    if (idPeriod) beginningBalanceSearch.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod}));
+                    if (subsId) beginningBalanceSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                    if (lastYear) beginningBalanceSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear}));
+                    if (currentYear) beginningBalanceSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear}));
+                    var beginningBalanceSearchReturn = beginningBalanceSearch.run().getRange({start: 0, end: 1});
+                    var beginningBalance = beginningBalanceSearchReturn[0].getValue({
+                        name: "amount",
+                        summary: "SUM",
+                    }) || 0;
+                    var beginningBalancetoCOunt = beginningBalance
+                    if(beginningBalance){
+                        beginningBalance = convertCurr(beginningBalance)
                     }
                     var periodToset = periodName.toLowerCase().replace(/\s/g, '_');
-                    allIdPeriod.push({ idPeriod: idPeriod, periodToset: periodToset });
-                    dataToSet.push(periodToset);
-                    allBeginningBalance.push({ beginningBalance: beginningBalance, periodToset: periodToset });
-                
-                    var outstandingSearch = search.load({ id: "customsearch_monthly_review_2_2_2_2" });
-                    if (idPeriod) outstandingSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
-                    if (subsId) outstandingSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) outstandingSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) outstandingSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
-                    var outstandingSearchReturn = outstandingSearch.run().getRange({ start: 0, end: 1 });
+                    allIdPeriod.push({idPeriod : idPeriod, periodToset : periodToset})
+                    dataToSet.push(periodToset)
+                    allBeginningBalance.push({beginningBalance : beginningBalance, periodToset : periodToset})
+
+                    var outstandingSearch = search.load({id: "customsearch_monthly_review_2_2_2_2"});
+                    if (idPeriod) outstandingSearch.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod}));
+                    if (subsId) outstandingSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                    if (lastYear) outstandingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear}));
+                    if (currentYear) outstandingSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear}));
+                    var outstandingSearchReturn = outstandingSearch.run().getRange({start: 0, end: 1});
                     var outstanding = outstandingSearchReturn[0].getValue({
                         name: "amount",
                         summary: "SUM",
                     }) || 0;
-                    var outstandingToCount = outstanding;
-                    if (outstanding) {
-                        outstanding = convertCurr(outstanding);
+                    var outstandingToCount = outstanding
+                    if(outstanding){
+                        outstanding = convertCurr(outstanding)
                     }
-                    allOutstanding.push({ outstanding: outstanding, periodToset: periodToset });
-                
-                    var outstandingPayableSearch = search.load({ id: "customsearch_monthly_review_2_2_2_2_2" });
-                    if (idPeriod) outstandingPayableSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
-                    if (subsId) outstandingPayableSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) outstandingPayableSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) outstandingPayableSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
-                    var outstandingPayableSearchReturn = outstandingPayableSearch.run().getRange({ start: 0, end: 1 });
+                    allOutstanding.push({outstanding : outstanding, periodToset : periodToset})
+
+                    var outstandingPayableSearch = search.load({id: "customsearch_monthly_review_2_2_2_2_2"});
+                    if (idPeriod) outstandingPayableSearch.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod}));
+                    if (subsId) outstandingPayableSearch.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                    if (lastYear) outstandingPayableSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear}));
+                    if (currentYear) outstandingPayableSearch.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear}));
+                    var outstandingPayableSearchReturn = outstandingPayableSearch.run().getRange({start: 0, end: 1});
                     var outstandingPayable = outstandingPayableSearchReturn[0].getValue({
                         name: "amount",
                         summary: "SUM",
                     }) || 0;
-                    var outstandingPayableToCount = outstandingPayable;
-                    if (outstandingPayable) {
-                        outstandingPayable = convertCurr(outstandingPayable);
+                    var outstandingPayableToCount = outstandingPayable
+                    if(outstandingPayable){
+                        outstandingPayable = convertCurr(outstandingPayable)
                     }
-                    alloutstandingPayable.push({ outstandingPayable: outstandingPayable, periodToset: periodToset });
-                
-                    var oprasionalExpense = search.load({ id: "customsearch_monthly_review_2_2_3" });
-                    if (idPeriod) oprasionalExpense.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
-                    if (subsId) oprasionalExpense.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) oprasionalExpense.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) oprasionalExpense.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
-                    var oprasionalExpenseReturn = oprasionalExpense.run().getRange({ start: 0, end: 1 });
+                    alloutstandingPayable.push({outstandingPayable : outstandingPayable, periodToset : periodToset})
+
+                    var oprasionalExpense = search.load({id: "customsearch_monthly_review_2_2_3"});
+                    if (idPeriod) oprasionalExpense.filters.push(search.createFilter({name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod}));
+                    if (subsId) oprasionalExpense.filters.push(search.createFilter({name: "subsidiary", operator: search.Operator.IS, values: subsId}));
+                    if (lastYear) oprasionalExpense.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear}));
+                    if (currentYear) oprasionalExpense.filters.push(search.createFilter({name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear}));
+                    var oprasionalExpenseReturn = oprasionalExpense.run().getRange({start: 0, end: 1});
                     var oprasionalExp = oprasionalExpenseReturn[0].getValue({
                         name: "amount",
                         summary: "SUM",
                     }) || 0;
-                    var oprasionalExpToCount = oprasionalExp;
-                    if (oprasionalExp) {
-                        oprasionalExp = convertCurr(oprasionalExp);
+                    var oprasionalExpToCount = oprasionalExp
+                    if(oprasionalExp){
+                        oprasionalExp = convertCurr(oprasionalExp)
                     }
-                    alloprasionalExp.push({ oprasionalExp: oprasionalExp, periodToset: periodToset });
-                
+                    alloprasionalExp.push({oprasionalExp : oprasionalExp, periodToset : periodToset})
+                    
                     var endingBalance = Number(beginningBalancetoCOunt) + Number(outstandingToCount) + Number(outstandingPayableToCount) + Number(oprasionalExpToCount)
                     allEndingBalance.push({endingBalance : endingBalance, periodToset : periodToset})
-                    prevEndingBalance = endingBalance
+                    
                 });
                 var setList = createList("custpage_sublist_item", form, dataToSet)
                 // set beginning

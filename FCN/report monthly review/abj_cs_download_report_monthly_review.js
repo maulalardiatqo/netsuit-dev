@@ -16,8 +16,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     ) {
         function pageInit(context) {
         }
-        function download(allData){
-            console.log('allData', allData)
+        function download(allData, totalan, nameAct){
             if(allData){
                 var downloadExcel = url.resolveScript({
                     scriptId: 'customscript_abj_sl_download_monthlyrevi',
@@ -28,7 +27,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 console.log("urlpdf", downloadExcel);
     
                 if (downloadExcel) {
-                    newWindow = window.open(downloadExcel + '&allData=' + encodeURIComponent(JSON.stringify(allData)));
+                    newWindow = window.open(downloadExcel + '&allData=' + encodeURIComponent(allData) + '&totalan='+ encodeURIComponent(totalan) +'&nameAct='+ encodeURIComponent(nameAct));
                 }
             }
         }
