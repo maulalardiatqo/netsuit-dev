@@ -10,9 +10,21 @@ define(["N/runtime", "N/log"], (runtime, log) => {
         var form = context.form;
         var rec = context.newRecord;
         var currentUserRole = runtime.getCurrentUser().role;
-        var statusPo = rec.getValue('status');
-        log.debug('statusPo', statusPo)
-        if(statusPo == 'Pending Receipt'){
+        var cForm = rec.getValue('tranid');
+        log.debug('cForm', cForm)
+        var status = rec.getValue('approvalstatus');
+        log.debug('status', status)
+        if(cForm.indexOf('PR') !== -1){
+            if(status == '2'){
+                form.addButton({
+                    id: 'custpage_button_pr',
+                    label: "Print PR",
+                    functionName: "printPDFPR()"
+                });
+                context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js "
+            }
+           
+        }else{
             form.addButton({
                 id: 'custpage_button_po',
                 label: "Print PO",
@@ -20,6 +32,7 @@ define(["N/runtime", "N/log"], (runtime, log) => {
             });
             context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js "
         }
+       
         
     }
 }
