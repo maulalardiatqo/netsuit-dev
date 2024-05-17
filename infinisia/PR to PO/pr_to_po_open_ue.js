@@ -103,6 +103,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             var internalIDPR = POLine.internalIDPR;
             arrayPR.push(internalIDPR);
             log.debug("poItem", poItem);
+            log.debug('currentStock', currentStock)
             if (poItem) {
               poData.insertLine({
                 sublistId: "item",
@@ -116,7 +117,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
               });
               poData.setSublistValue({
                 sublistId: "item",
-                fieldId: "quantityonhand",
+                fieldId: "custcol_abj_onhand",
                 line: line_idx,
                 value: currentStock,
               });

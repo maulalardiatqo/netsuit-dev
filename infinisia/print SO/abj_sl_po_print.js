@@ -33,7 +33,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
                 var poDate = poRec.getValue("trandate");
                 var tranid = poRec.getValue("tranid");
-                var employeId = poRec.getValue("custbody_fcn_sales_employee");
+                var employeId = poRec.getValue("custbody_abj_sales_rep_fulfillment");
+                var salesrep = poRec.getText("salesrep");
 
                 var subTotal = poRec.getValue("subtotal");
                 var taxTotal = poRec.getValue("taxtotal");
@@ -68,7 +69,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
 
                 var employeeName = '';
-                
+                log.debug('employeId', employeId)
                 if(employeId){
                     var empRec = record.load({
                         type: "employee",
@@ -92,6 +93,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                  
                 }
+                log.debug('employeeName', employeeName)
                 var vendorId = poRec.getValue("entity");
                 var vendorName = '';
                 var vendorAddress = '';
@@ -139,7 +141,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     type: config.Type.COMPANY_INFORMATION
                 });
                 var legalName = companyInfo.getValue("legalname");
-    
+                var terms = poRec.getText('terms')
+                var leadTime = poRec.getValue('custbody5');
                 log.debug('legalName', legalName);
                 var logo = companyInfo.getValue('formlogo');
                         var filelogo;
@@ -184,6 +187,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type: format.Type.CURRENCY
                     });
                 }
+                var tipeKurs = poRec.getValue('custbody4')
                 var response = context.response;
                 var xml = "";
                 var header = "";
@@ -346,7 +350,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>";
                 body += "<td>Lead Time</td>"
                 body += "<td>:</td>"
-                body += "<td>"+leadTimeArray+"</td>"
+                body += "<td>"+leadTime+"</td>"
                 body += "<td style='font-weight:bold; align:right;'>Subtotal :</td>"
                 body += "<td style='font-weight:bold;'>"+subTotal+"</td>"
                 body += "</tr>"
@@ -354,7 +358,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>";
                 body += "<td>Payment Term</td>"
                 body += "<td>:</td>"
-                body += "<td>"+paymentTermsArray+"</td>"
+                body += "<td>"+terms+"</td>"
                 body += "<td style='font-weight:bold; align:right;'>Tax Total :</td>"
                 body += "<td style='font-weight:bold;'>"+taxTotal+"</td>"
                 body += "</tr>"
@@ -362,7 +366,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>";
                 body += "<td>Kurs</td>"
                 body += "<td>:</td>"
-                body += "<td>TT Counter Sell BCA</td>"
+                body += "<td>"+tipeKurs+"</td>"
                 body += "<td style='font-weight:bold; align:right;'>Total :</td>"
                 body += "<td style='font-weight:bold;'>"+total+"</td>"
                 body += "</tr>"

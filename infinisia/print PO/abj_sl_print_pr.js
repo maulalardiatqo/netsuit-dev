@@ -56,6 +56,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     isDynamic: false,
                 });
                 var venName
+                var vendLeadTime
                 var isperson = vendorRecord.getValue('isperson');
                 // log.debug('isperson', isperson)
                 if(isperson == 'T'){
@@ -86,6 +87,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         venAddres = venAddres.replace(/&/g, ' dan ')
                     }
                 }
+                vendLeadTime =  vendorRecord.getValue('custentity1');
 
             }
             log.debug('venName', venName)
@@ -94,6 +96,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var POdate = poRecord.getValue('trandate');
             log.debug('podate', POdate);
             log.debug('tandId', tandId)
+            var busdev = poRecord.getValue('employee');
+            var busdevName 
+            if(busdev){
+                var empRec = record.load({
+                    type: "employee",
+                    id: busdev,
+                    isDynamic: false,
+                });
+                var altName = empRec.getValue('altname')
+                busdevName = altName
+            }
             if(POdate){
                 POdate = format.format({
                     value: POdate,
@@ -105,7 +118,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var xml = "";
             var header = "";
             var body = "";
-            var headerHeight = '1%';
+            var headerHeight = '0%';
             var style = "";
             var footer = "";
             var pdfFile = null;
@@ -114,13 +127,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             style += "<style type='text/css'>";
             style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
             style += ".tg .tg-headerlogo{align:center; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
-            style += ".tg .tg-img-logo{width:150px; height:90px; object-vit:cover;}";
+            style += ".tg .tg-img-logo{width:120px; height:70px; object-vit:cover;}";
             style += ".tg .tg-headerrow{align: right;font-size:12px;}";
             style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
             style += ".tg .tg-headerrow_Total{align: right;font-size:16px;word-break:break-all; font-weight: bold;}";
             style += ".tg .tg-headerrow_left{align: left;font-size:12px;}";
-            style += ".tg .tg-head_body{align: left;font-size:12px;font-weight: bold; border-top: 3px solid black; border-bottom: 3px solid black;}";
-            style += ".tg .tg-b_body{align: left;font-size:12px; border-bottom: solid black 2px;}";
+            style += ".tg .tg-head_body{align: center;font-size:8px;font-weight: bold; border: 1px solid black;}";
+            style += ".tg .tg-b_body{align: left;font-size:8px; border: 1px solid black;}";
             style += ".tg .tg-f_body{align: right;font-size:14px;border-bottom: solid black 2px;}";
             style += ".tg .tg-foot{font-size:11px; color: #808080; position: absolute; bottom: 0;}";
             style += "</style>";
@@ -135,16 +148,187 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<tbody>";
             body += "<tr>";
             if (urlLogo) {
-                body += "<td class='tg-headerlogo' style='width:100%;vertical-align:center; align:center;'><div style='display: flex; height:130px; width:150px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+                body += "<td class='tg-headerlogo' style='width:100%;vertical-align:center; align:center;'><div style='display: flex; height:80px; width:120px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
             }
             body += "</tr>";
+            body += "<tr>";
+            body += "<td style='align:right; font-size:12px; font-weight: bold;'>No. Form : </td>"
+            body += "</tr>";
+            body += "<tr>";
+            body += "<td style='align:center; font-size:11px;'>"+venAddres+" </td>"
+            body += "</tr>";
+            body += "<tr>";
+            body += "<td style='align:center; border-bottom:1px solid black; border-top:1px solid black'></td>"
+            body += "</tr>";
+            body += "<tr>";
+            body += "<td style='align:center; font-size:11px; font-weight: bold;'>PURCHASE REQUEST ("+venName+") </td>"
+            body += "</tr>";
+            body += "</tbody>";
+            body += "</table>";
+
+            body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
+            body += "<tbody>";
+            body += "<tr>";
+            body += "<td style='width:17%'></td>"
+            body += "<td style='width:83%'></td>"
+            body += "</tr>";
+
+            body += "<tr>";
+            body += "<td style='font-weight: bold;'>PRINCIPALS</td>"
+            body += "<td style=''>: "+venName+"</td>"
+            body += "</tr>";
+
+            body += "<tr>";
+            body += "<td style='font-weight: bold;'>TANGGAL</td>"
+            body += "<td style=''>: "+POdate+"</td>"
+            body += "</tr>";
+
+            body += "<tr>";
+            body += "<td style='font-weight: bold;'>NO. PURCHASE</td>"
+            body += "<td style=''>: "+tandId+"</td>"
+            body += "</tr>";
+
+            body += "<tr>";
+            body += "<td style='font-weight: bold;'>LEAD TIME</td>"
+            body += "<td style=''>: "+vendLeadTime+"</td>"
+            body += "</tr>";
+
+            body += "</tbody>";
+            body += "</table>";
+
+            body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
+            body += "<tbody>";
+            
+            body += "<tr>";
+            body += "<td style='width:3%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:10%'></td>"
+            body += "<td style='width:8%'></td>"
+            body += "<td style='width:4%'></td>"
+            body += "<td style='width:4%'></td>"
+            body += "<td style='width:10%'></td>"
+            body += "<td style='width:4%'></td>"
+            body += "<td style='width:9%'></td>"
+            body += "<td style='width:7%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:6%'></td>"
+            body += "<td style='width:10%'></td>"
+            body += "</tr>";
+
+            body += "<tr>";
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> NO </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> INVENTORY ID </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> INVENTORY NAME </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> CURRENT STOCK </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> INCOMING STOCK </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> SALES </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> CUSOTMER </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> OS.PO </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> NO. PO </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> TANGGAL KIRIM </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA;' colspan='2'> FORECAST  BUFFER STOCK </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA;' colspan='2'> RATA RATA PENGIRIMAN </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> TOTAL ORDER </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> NOTE </td>"
+            body += "</tr>";
+
+            body += "<tr>";
+            body += "<td class='tg-head_body' style='background-color:#72C9FA;'> BUSDEV </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA;'> RUMUS PEHITUNGAN </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA;'> BUSDEV </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA;'> ACCOUNTING </td>"
+            body += "</tr>";
+            body += getPOItem(context, poRecord);
+            body += "</tbody>";
+            body += "</table>";
+
+            body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:9px;\">";
+            body += "<tbody>";
+            body += "<tr>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:10%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:10%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:16%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:12%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:12%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "</tr>";
+
+            body += "<tr>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style='align:center;'>DIBUAT OLEH,</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style='align:center;'>DIPERIKSA OLEH,</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style='align:center;'>DISETUJUI OLEH,</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style='align:center;'>DIPROSES OLEH,</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style='align:center;'>DIKETAHUI OLEH,</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "</tr>";
+
+            body += "<tr>"
+            body += "<td style='height:40px' colspan='20'></td>"
+            body += "</tr>";
+
+            body += "<tr>"
+            body += "<td style=''></td>"
+            body += "<td style=''>(</td>"
+            body += "<td style='align:center;'>"+busdevName+"</td>"
+            body += "<td style=''>}</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''>(</td>"
+            body += "<td style='align:center;'>ACCOUNTING</td>"
+            body += "<td style=''>)</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''>(</td>"
+            body += "<td style='align:center;'>OPERATIONAL DIRECTOR</td>"
+            body += "<td style=''>)</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''>(</td>"
+            body += "<td style='align:center;'>PURCHASING</td>"
+            body += "<td style=''>)</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''>(</td>"
+            body += "<td style='align:center;'>PRESIDENT DIRECTOR</td>"
+            body += "<td style=''>)</td>"
+            body += "<td style=''></td>"
+            body += "</tr>";
+
             body += "</tbody>";
             body += "</table>";
 
             footer += "<table class='tg' style='table-layout: fixed;'>";
             footer += "<tbody>";
             footer += "<tr class='tg-foot'>";
-            footer += "<td style='align:left'>Purchase Order # "+tandId+"</td>"
             footer += "<td style='align:right'></td>"
             footer += "</tr>";
             footer += "</tbody>";
@@ -163,7 +347,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             xml += "</macro>";
             xml += "</macrolist>";
             xml += "</head>"
-            xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='3%'>";
+            xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 21cm; width: 29.7cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='3%'>";
             xml += body;
             xml += "\n</body>\n</pdf>";
 
@@ -173,155 +357,230 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             });
 
         }
+        function generateTableHTML(itemId, dataItem, nomor){
+            log.debug('dataItem', dataItem)
+            var fieldLookUpSection = search.lookupFields({
+                type: "item",
+                id: itemId,
+                columns: ["itemid"],
+            });
+            var itemName = fieldLookUpSection.itemid;
+            log.debug('itemName', itemName)
+            var lengthDataItem = dataItem.items.length;
+            log.debug('lengthDataItem', lengthDataItem)
+            let html = "";
+    
+            dataItem.items.forEach((item, index) => {
+                if(index === 0){
+                    html += `<tr>
+                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center;" rowspan="${lengthDataItem}">${nomor}</td>
+                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center;" rowspan="${lengthDataItem}">${itemId}</td>
+                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center;" rowspan="${lengthDataItem}">${itemName}</td>`;
+                } else {
+                    html += `<tr>`;
+                }
+        
+                html += `
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.onHand}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.inComingStock}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.salesRepCode}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.customer}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.osPO}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.noSO}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.tglKirim}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.forecase}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.leadTimeKirim}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.avgpengBusdev}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.avgpengAcc}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.qty}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.notes}</td>
+                </tr>`;
+            });
+            html += `<tr>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;">${dataItem.totalOnHand}</td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;">${dataItem.totalInComingStock}</td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;">${dataItem.totalOsPO}</td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;">${dataItem.totalForecase}</td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;">${dataItem.totalQty}</td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;"></td>>
+            </tr>`;
+            return html;
+            
+        }
+        var dataItem = []
         function getPOItem(context, poRecord){
             var itemCount = poRecord.getLineCount({
                 sublistId: 'item'
             });
             // log.debug('itemCount', itemCount);
-            
             if(itemCount > 0){
                 var body = "";
                 for(var index = 0; index < itemCount; index++){
-                    var qty = poRecord.getSublistValue({
+                    var itemId = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'item',
+                        line: index
+                    });
+                    var itemText = poRecord.getSublistText({
+                        sublistId: 'item',
+                        fieldId: 'item',
+                        line: index
+                    });
+                    // var onHand = poRecord.getSublistText({
+                    //     sublistId: 'item',
+                    //     fieldId: 'quantityonhand',
+                    //     line: index
+                    // });
+                    var onHand = parseFloat(poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_abj_onhand',
+                        line: index
+                    })) || 0;
+                    log.debug('onHand', onHand)
+                    var inComingStock = parseFloat(poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol5',
+                        line: index
+                    })) || 0;
+                    var salesRepCode
+                    var salesId = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_abj_sales_rep_line',
+                        line: index
+                    });
+                    if(salesId){
+                        var empRec = record.load({
+                            type: "employee",
+                            id: salesId,
+                            isDynamic: false,
+                        });
+                        var employeeId = empRec.getValue('entityid');
+                        if(employeeId){
+                            salesRepCode = employeeId
+                        }
+                    }
+                    var customer = poRecord.getSublistText({
+                        sublistId: 'item',
+                        fieldId: 'customer',
+                        line: index
+                    });
+                    var osPO = parseFloat(poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol6',
+                        line: index
+                    })) || 0;
+                    var noSO = poRecord.getSublistText({
+                        sublistId: 'item',
+                        fieldId: 'custcol_abj_no_so',
+                        line: index
+                    });
+                    var tglKirim = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol14',
+                        line: index
+                    });
+                    if(tglKirim){
+                        tglKirim = format.format({
+                            value: tglKirim,
+                            type: format.Type.DATE
+                        });
+                    }
+                    var forecase = parseFloat(poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol9',
+                        line: index
+                    })) || 0;
+                    var leadTimeKirim = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol9',
+                        line: index
+                    });
+                    var avgpengBusdev = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol10',
+                        line: index
+                    });
+                    var avgpengAcc = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol11',
+                        line: index
+                    });
+                    var qty = parseFloat(poRecord.getSublistValue({
                         sublistId: 'item',
                         fieldId: 'quantity',
                         line: index
-                    });
-                    var description = poRecord.getSublistValue({
+                    })) || 0;
+                    var notes = poRecord.getSublistValue({
                         sublistId: 'item',
-                        fieldId: 'description',
+                        fieldId: 'custcol13',
                         line: index
                     });
-                    if(description.includes('\\')){
-                        description = description.replace(/\\/g, '<br/>');
-                    }
-                    var unit = poRecord.getSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'units',
-                        line: index
-                    });
-                    var rate;
-                    // var rateBef = poRecord.getSublistValue({
-                    //     sublistId: 'item',
-                    //     fieldId: 'amount',
-                    //     line: index
-                    // });
-                    var ammount = poRecord.getSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'amount',
-                        line: index
-                    });
-                    // if(rateBef){
-                    //     rate = rateBef
-                    // }else{
-                    //     rate = Number(ammount) / Number(qty)
-                    // }
-                    rate = Number(ammount) / Number(qty)
-                    if(rate){
-                        rate = pembulatan(rate)
-                        rate = format.format({
-                            value: rate,
-                            type: format.Type.CURRENCY
-                        });
-                    }
-                    
-                    var taxAmt = poRecord.getSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'tax1amt',
-                        line: index
-                    });
-                    if(taxAmt){
-                        taxAmt = pembulatan(taxAmt)
-                        taxAmt = format.format({
-                            value: taxAmt,
-                            type: format.Type.CURRENCY
-                        });
-                    }
-                    // log.debug('amount', ammount)
-                    if(ammount){
-                        ammount = pembulatan(ammount)
-                        ammount = format.format({
-                            value: ammount,
-                            type: format.Type.CURRENCY
-                        });
-                    }
-                   
-                    body += "<tr>";
-                    body += "<td class='tg-b_body'>"+qty+" - "+unit+ "Pcs</td>";
-                    body += "<td class='tg-b_body'>"+description+"</td>";
-                    body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(rate)+"</td>";
-                    body += "<td class='tg-b_body' style='align:right'> X </td>";
-                    body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(ammount)+"</td>";
-                    body += "</tr>";
+                    dataItem.push({
+                        itemId : itemId,
+                        itemText : itemText,
+                        onHand : onHand,
+                        inComingStock : inComingStock,
+                        salesRepCode : salesRepCode,
+                        customer : customer,
+                        osPO : osPO,
+                        noSO : noSO,
+                        tglKirim : tglKirim,
+                        forecase : forecase,
+                        leadTimeKirim : leadTimeKirim,
+                        avgpengBusdev : avgpengBusdev,
+                        avgpengAcc : avgpengAcc,
+                        qty : qty,
+                        notes : notes
+                    })
                 }
+                log.debug('dataItem', dataItem)
+                const groupedItems = {};
+                dataItem.forEach((item) => {
+                    if (!groupedItems[item.itemId]) {
+                        groupedItems[item.itemId] = {
+                            totalOnHand: 0,
+                            totalInComingStock: 0,
+                            totalOsPO: 0,
+                            totalForecase :0,
+                            totalQty :0,
+                            lastNotes : '',
+                            items: []
+                        };
+                    }
+
+                    groupedItems[item.itemId].totalOnHand += item.onHand;
+                    groupedItems[item.itemId].totalInComingStock += item.inComingStock;
+                    groupedItems[item.itemId].totalOsPO += item.osPO;
+                    groupedItems[item.itemId].totalForecase += item.forecase;
+                    groupedItems[item.itemId].totalQty += item.qty;
+                    groupedItems[item.itemId].lastNotes = item.notes;
+
+                    groupedItems[item.itemId].items.push(item);
+                });
+
+                log.debug('groupedItems', groupedItems)
+                let tableHTML = "";
+                var nomor = 1
+                for (const itemId in groupedItems) {
+                    tableHTML += generateTableHTML(itemId, groupedItems[itemId], nomor);
+                    nomor++
+                }
+                body += tableHTML;
                 return body;
             }
             
         }
-        function getPOExpense(context, poRecord){
-            var expCont = poRecord.getLineCount({
-                sublistId : 'expense'
-            });
-            if(expCont > 0){
-                var body = "";
-                for(var index = 0; index < expCont; index++){
-                    var qty = 1;
-                    var description = poRecord.getSublistValue({
-                        sublistId: 'expense',
-                        fieldId: 'memo',
-                        line: index
-                    });
-                    if(description.includes('\\')){
-                        description = description.replace(/\\/g, '<br/>');
-                    }
-                    var amount = poRecord.getSublistValue({
-                        sublistId: 'expense',
-                        fieldId: 'amount',
-                        line: index
-                    });
-                    if(amount){
-                        var amountBef = amount
-                        
-                        amount = pembulatan(amount)
-                        amount = format.format({
-                            value: amount,
-                            type: format.Type.CURRENCY
-                        });
-                    }
-                    var taxamt_exp = poRecord.getSublistValue({
-                        sublistId: 'expense',
-                        fieldId: 'tax1amt',
-                        line: index
-                    });
-                    if(taxamt_exp){
-                        taxamt_exp = pembulatan(taxamt_exp)
-                        taxamt_exp = format.format({
-                            value: taxamt_exp,
-                            type: format.Type.CURRENCY
-                        });
-                    }
-                    // log.debug('amountbef', amountBef)
-                    var grosamt_exp = Number(amountBef) * Number(qty)
-                    // log.debug('grosamt_exp', grosamt_exp)
-                    if(grosamt_exp){
-                        grosamt_exp = pembulatan(grosamt_exp)
-                        grosamt_exp = format.format({
-                            value: grosamt_exp,
-                            type: format.Type.CURRENCY
-                        });
-                    }
-                    body += "<tr>";
-                    body += "<td class='tg-b_body'>"+qty+"</td>";
-                    body += "<td class='tg-b_body'>"+description+"</td>";
-                    body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(amount)+"</td>";
-                    body += "<td class='tg-b_body' style='align:right'>X</td>";
-                    body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(grosamt_exp)+"</td>";
-                    body += "</tr>";
-                }
-                return body;
-            }
-            
-        }
+        
     return {
         onRequest: onRequest,
     };

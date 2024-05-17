@@ -147,6 +147,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     var quoteTotal = dataRec.getValue("total") || 0;
     var taxtotal = dataRec.getValue("taxtotal") || 0;
     var total = dataRec.getValue("total") || 0;
+    var termsCondition = dataRec.getValue('custbody_abj_memo_quotation_rate_card');
     var jobNumber = dataRec.getValue("custbody_abj_custom_jobnumber");
     if (jobNumber.includes("\\")) {
       jobNumber = jobNumber.replace(/\\/g, "<br/>");
@@ -247,6 +248,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         type: format.Type.CURRENCY,
       });
     }
+    var subtotalBef = subTotal
     if (subTotal) {
       subTotal = pembulatan(subTotal);
       subTotal = format.format({
@@ -292,6 +294,37 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         type: format.Type.CURRENCY,
       });
     }
+
+    var itemCount = dataRec.getLineCount({
+      sublistId: "item",
+    });
+    var totalDiscount = 0
+    var totalCost = 0
+    if (itemCount > 0) {
+      for (var index = 0; index < itemCount; index++) {
+        var discLine = dataRec.getSublistValue({
+          sublistId: "item",
+          fieldId: "custcol_abj_disc_line",
+          line: index,
+        }) || 0
+        log.debug('discLine atas', discLine)
+        totalDiscount += parseFloat(discLine)
+        var itemId = dataRec.getSublistValue({
+          sublistId: "item",
+          fieldId: "item",
+          line: index,
+        });
+        if(itemId != '2880'){
+          var itemPrice = dataRec.getSublistValue({
+            sublistId: "item",
+            fieldId: "rate",
+            line: index,
+          }) || 0;
+          totalCost += parseFloat(itemPrice)
+        } 
+        
+      }
+    }
     var response = context.response;
     var xml = "";
     var header = "";
@@ -318,8 +351,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     style += ".tg .tg-headerrow_Total{align: right;font-size:16px;word-break:break-all; font-weight: bold;}";
     style += ".tg .tg-headerrow_left{align: left;font-size:10px;}";
     style += ".tg .tg-headerrow_center{align: center;font-size:10px;}";
-    style += ".tg .tg-head_body{align: left;font-size:10px;font-weight: bold; border-top: 1px solid black; border-bottom: 1px solid black;}";
-    style += ".tg .tg-b_body{align: left;font-size:10px; border-bottom: solid black 1px; border-left: solid black 1px;}";
+    style += ".tg .tg-head_body{align: center;font-size:10px;font-weight: bold; border-top: 1px solid black; border-bottom: 1px solid black; color:#fcfafa}";
+    style += ".tg .tg-b_body{align: left;font-size:10px;}";
     style += ".tg .tg-f_body{align: right;font-size:10px;}";
     style += ".tg .tg-foot{font-size:11px; color: #808080; position: absolute; bottom: 0;}";
     style += "</style>";
@@ -332,170 +365,190 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "<tbody>";
     body += "<tr>";
     if (urlLogo) {
-      body += "<td class='tg-headerlogo' style='width:50%;vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+      body += "<td class='tg-headerlogo' style='width:70%;vertical-align:center; align:left;'><div style='display: flex; height:50px; width:50px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
     }
-    body += "<td width='30%' valign='middle' style='border-top: 1px solid black;border-left: 1px solid black;border-bottom: 1px solid black;'>";
-    body += "<p class='tg-headerrow_legalNameLeft' style='margin-top: 10px; margin-bottom: 10px;'>" + legalName + "</p>";
-    body += "<p class='tg-headerrow_left' style='margin-top: 1px; margin-bottom: 1px;'>" + addresSubsidiaries + "</p>";
-    body += "</td>";
-    body += "<td valign='middle' style='border-top: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;'>";
-    body += "<p class='tg-headerrow_quote' style='margin-top: 10px; margin-bottom: 10px;'><b>QUOTATION</b></p>";
-    body += "</td>";
+    body += "<td valign='middle' style='font-weight:bold; align:center; font-size:18px; vertical-align:center;'>QUOTATION</td>"
     body += "</tr>";
 
-    body += "<tr style='height:30px;'>";
-    body += "</tr>";
+    // body += "<tr style='height:30px;'>";
+    // body += "</tr>";
     body += "</tbody>";
     body += "</table>";
 
-    body += `
-          <table class="tg" width="100%"  style="table-layout:fixed;">
-            <tbody>
-              <tr>
-                <td rowspan="2" class="tg-headerrow_left" style='border-top: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;' width="40%"><b>Order By : ${custName}</b></td>
-                <td rowspan="2" width="40%"></td>
-                <td class="tg-headerrow_center" style='border-top: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;' width="20%"><b>Send Date</b></td>
-              </tr>
-              <tr>
-                <td class="tg-headerrow_center" style='border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;' width="20%">${sendDate}</td>
-              </tr>
-              <tr style='height:20px;'></tr>
-            </tbody>
-          </table>
-    `;
+    body += '<table class=\'tg\' width="100%" style="table-layout:fixed; font-size:11px;">';
+    body += "<tbody>";
+    body += "<tr>";
+    body += "<td style='width:20%'></td>"
+    body += "<td style='width:30%'></td>"
+    body += "<td style='width:20%'></td>"
+    body += "<td style='width:10%'></td>"
+    body += "<td style='width:20%'></td>"
+    body += "</tr>";
 
-    body += `
-          <table class="tg" width="100%"  style="table-layout:fixed;">
-            <tbody>
-              <tr>
-                <td class="tg-headerrow_left" style='border-top: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;' width="30%"><b>Contact Person :</b></td>
-                <td rowspan="2" width="30%"></td>
-                <td class="tg-headerrow_center" style='border-top: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;' width="20%"><b>Job Title</b></td>
-                <td class="tg-headerrow_center" style='border-top: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;' width="20%"><b>Job No.</b></td>
-              </tr>
-              <tr>
-                <td class="tg-headerrow_left" style='border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;'><b>Email :</b> ${custEmail} <br/><br/> <b>Phone :</b> ${custPhone}</td>
-                <td class="tg-headerrow_center" style='border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;' width="20%">${jobTitle}</td>
-                <td class="tg-headerrow_center" style='border-right: 1px solid black;border-bottom: 1px solid black;' width="20%">${jobNumber}</td>
-              </tr>
-              <tr style='height:30px;'></tr>
-            </tbody>
-          </table>
-    `;
+    body += "<tr>";
+    body += "<td colspan='2'>"+legalName+"</td>"
+    body += "<td></td>"
+    body += "<td>DATE</td>"
+    body += "<td style='align:right'>"+sendDate+"</td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td rowspan='2' colspan='2'>"+addresSubsidiaries+"</td>"
+    body += "<td></td>"
+    body += "<td>JOB TITLE</td>"
+    body += "<td style='align:right'>"+jobTitle+"</td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td></td>"
+    body += "<td>JOB NO.</td>"
+    body += "<td style='align:right'>"+jobNumber+"</td>"
+    body += "</tr>";
+
+    body += "<tr style='hight:30px;'>";
+    body += "<td colspan='5' style='height:30px'></td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td>ORDER BY</td>"
+    body += "<td>"+custName+"</td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td>CONTACT PERSON</td>"
+    body += "<td>"+custPhone+"</td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td>EMAIL</td>"
+    body += "<td>"+custEmail+"</td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td>PHONE</td>"
+    body += "<td>"+custPhone+"</td>"
+    body += "</tr>";
+
+    body += "<tr style='hight:30px;'>";
+    body += "<td colspan='5' style='height:30px'></td>"
+    body += "</tr>";
+
+    body += "</tbody>";
+    body += "</table>";
+
 
     body += '<table class=\'tg\' width="100%" style="table-layout:fixed;">';
     body += "<tbody>";
     body += "<tr>";
-    body += "<td class='tg-head_body' style='border-left: 1px solid black;' width='5%'> No </td>";
-    body += "<td class='tg-head_body' style='border-left: 1px solid black;' width='15%'> Item </td>";
-    body += "<td class='tg-head_body' style='border-left: 1px solid black;' width='25%'> Description </td>";
-    body += "<td class='tg-head_body' style='border-left: 1px solid black;' width='13%'> Remarks </td>";
-    body += "<td class='tg-head_body' style='border-left: 1px solid black;' width='15%'> Complexity Level </td>";
-    body += "<td class='tg-head_body' style='border-left: 1px solid black;' width='10%'> Item Price </td>";
-    body += "<td class='tg-head_body' style='border-left: 1px solid black;' width='5%'> QTY </td>";
-    body += "<td class='tg-head_body' style='border-left: 1px solid black;' width='11%'> Total Costs </td>";
-    body += "<td class='tg-head_body' style='border-right: 1px solid black; border-left: 1px solid black;'  width='11%'> Line Total </td>";
+    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='5%'> No </td>";
+    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='30%'> Item </td>";
+    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='20%'> Complexity Level </td>";
+    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='21%'> Item Price </td>";
+    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='5%'> QTY </td>";
+    body += "<td class='tg-head_body' style='border-right: 1px solid black; border-left: 1px solid black; background-color:#757575'  width='24%'> Total Costs </td>";
     body += "</tr>";
     body += getPOItem(context, dataRec);
+    body += "<tr>";
+    body += "<td style='border-top: 1px solid black;' colspan='6'></td>";
+    body += "</tr>";
+
     body += "<tr style='height:20px;'></tr>";
     body += "</tbody>";
     body += "</table>";
 
-    body += `
-          <table class="tg" width="100%">
-            <tbody>
-              <tr>
-                <td colspan="6" class="tg-headerrow_left" style='border-top: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;'><b>Terms & Conditions :</b></td>
-                <td></td>
-                <td class='tg-f_body' style='border-top: 1px solid black;border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;'>Subtotal 1	</td>
-                <td class='tg-f_body' style='border-top: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;'>${removeDecimalFormat(subTotal)}</td>
-              </tr>
-              <tr>
-                <td colspan="6" class="tg-headerrow_left" style='border-left: 1px solid black;border-right: 1px solid black;'>
-                - All price above is estimation and adjustable which can be changed based on third party or KOL ratecard
-                </td>
-                <td></td>
-                <td class='tg-f_body' style='border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;'>Discount (Optional)	</td>
-                <td class='tg-f_body' style='border-right: 1px solid black;border-bottom: 1px solid black;'>${removeDecimalFormat(discountTotal)}</td>
-              </tr>
-              <tr>
-                <td colspan="6" class="tg-headerrow_left" style='border-left: 1px solid black;border-right: 1px solid black;'>
-                - Grand Total includes VAT (11%)
-                </td>
-                <td></td>
-                <td class='tg-f_body' style='border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;'>Subtotal 2	</td>
-                <td class='tg-f_body' style='border-right: 1px solid black;border-bottom: 1px solid black;'>${removeDecimalFormat(subTotal2)}</td>
-              </tr>
-              <tr>
-                <td colspan="6" class="tg-headerrow_left" style='border-left: 1px solid black;border-right: 1px solid black;'>
-                - Deliverables or request out of the SOW will be invoiced according to the agreed ratecard
-                </td>
-                <td></td>
-                <td class='tg-f_body' style='border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;'>VAT ${taxrateList}%	</td>
-                <td class='tg-f_body' style='border-right: 1px solid black;border-bottom: 1px solid black;'>${removeDecimalFormat(taxtotal)}</td>
-              </tr>
-              <tr>
-                <td colspan="6" class="tg-headerrow_left" style='border-left: 1px solid black;border-right: 1px solid black;'>
-                - All rates excludes travel expense & per diem
-                </td>
-                <td></td>
-                <td class='tg-f_body' style='border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;'>GRAND TOTAL	</td>
-                <td class='tg-f_body' style='border-right: 1px solid black;border-bottom: 1px solid black;'>${removeDecimalFormat(total)}</td>
-              </tr>
-              <tr>
-                <td colspan="6" class="tg-headerrow_left" style='border-left: 1px solid black;border-right: 1px solid black;'>
-                - All costs must have prior client approval before execution of work
-                </td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <td colspan="6" class="tg-headerrow_left" style='border-left: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;'>
-                - Any price changes from 3rd party will be quoted to client seperately
-                </td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr style='height:30px;'></tr>
-            </tbody>
-          </table>
-    `;
+    body += '<table class=\'tg\' width="100%" style="table-layout:fixed;">';
+    body += "<tbody>";
 
-    body += `
-          <table class="tg" width="100%" style="table-layout:fixed;">
-            <tr>
-              <td></td>
-              <td class="tg-headerrow_left" width="30%"><b>Proposed by,</b></td>
-              <td colspan="2"></td>
-              <td></td>
-              <td class="tg-headerrow_left" width="30%"><b>Approved by,</b></td>
-            </tr>
-            <tr style='height:70px;'>
-              <td></td>
-              <td class="tg-headerrow_left" style='border-bottom: 1px solid black; border-top: 1px solid black; border-left: 1px solid black;border-right: 1px solid black;'></td>
-              <td colspan="2"></td>
-              <td></td>
-              <td class="tg-headerrow_left" style='border-bottom: 1px solid black; border-top: 1px solid black; border-left: 1px solid black;border-right: 1px solid black;'></td>
-            </tr>
-            <tr style='height:15px;'></tr>
-            <tr>
-              <td class="tg-headerrow_left">Name :</td>
-              <td class="tg-headerrow_left" width="30%" style='border-bottom: 1px solid black; border-top: 1px solid black; border-left: 1px solid black;border-right: 1px solid black;'>${employeeName}</td>
-              <td colspan="2"></td>
-              <td class="tg-headerrow_left">Name :</td>
-              <td class="tg-headerrow_left" width="30%" style='border-bottom: 1px solid black; border-top: 1px solid black; border-left: 1px solid black;border-right: 1px solid black;'></td>
-            </tr>
-            <tr>
-              <td class="tg-headerrow_left">Date :</td>
-              <td class="tg-headerrow_left" width="30%" style='border-bottom: 1px solid black; border-left: 1px solid black;border-right: 1px solid black;'>${sendDate}</td>
-              <td colspan="2"></td>
-              <td class="tg-headerrow_left">Date :</td>
-              <td class="tg-headerrow_left" width="30%" style='border-bottom: 1px solid black; border-left: 1px solid black;border-right: 1px solid black;'></td>
-            </tr>
-          </table>
-    `;
+    body += "<tr>";
+    body += "<td style='width:55%'></td>"
+    body += "<td style='width:5%'></td>"
+    body += "<td style='width:20%'></td>"
+    body += "<td style='width:20%'></td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    log.debug('termsCondition', termsCondition)
+    if (termsCondition.includes("Terms & Conditions:")) {
+      termsCondition = termsCondition.replace("Terms & Conditions:", "<strong>Terms & Conditions:</strong><br />");
+    }
+    if (termsCondition.includes("Payment & Cancellation Terms:")) {
+      termsCondition = termsCondition.replace("Payment & Cancellation Terms:", "<br /><strong>Payment & Cancellation Terms:</strong><br />");
+    }
+    body += "<td rowspan='10'>"+termsCondition+"</td>"
+    body += "<td></td>"
+    body += "<td style='align:right'>TOTAL COST</td>"
+    body += "<td style='align:right'>Rp. "+numberWithCommas(totalCost)+"</td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td></td>"
+    body += "<td style='align:right'>TOTAL DISCOUNT</td>"
+    body += "<td style='align:right'>Rp. ("+numberWithCommas(totalDiscount)+")</td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td></td>"
+    body += "<td style='align:right'>SUB TOTAL</td>"
+    var subtotalcount = parseFloat(totalCost) - parseFloat(totalDiscount)
+    body += "<td style='align:right'>Rp. "+numberWithCommas(subtotalcount)+"</td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td></td>"
+    body += "<td style='align:right'>VAT 11%</td>"
+    body += "<td style='align:right'>Rp. "+removeDecimalFormat(taxtotal)+"</td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td></td>"
+    body += "<td style='align:right'>GRAND TOTAL</td>"
+    body += "<td style='align:right'>Rp. "+removeDecimalFormat(total)+"</td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td colspan='4'></td>"
+    body += "</tr>";
+    body += "<tr>";
+    body += "<td colspan='4'></td>"
+    body += "</tr>";
+    body += "<tr>";
+    body += "<td colspan='4'></td>"
+    body += "</tr>";
+    body += "<tr>";
+    body += "<td colspan='4'></td>"
+    body += "</tr>";
+    body += "<tr>";
+    body += "<td colspan='4' style='height:30px'></td>"
+    body += "</tr>";
+
+    body += "</tbody>";
+    body += "</table>";
+   
+    body += '<table class=\'tg\' width="100%" style="table-layout:fixed;">';
+    body += "<tbody>";
+    body += "<tr>";
+    body += "<td style='width:50%'></td>"
+    body += "<td style='width:50%'></td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td>Proposed by,</td>"
+    body += "<td>Approved by,</td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td colspan='2' style='height:60px;'></td>"
+    body += "</tr>";
+
+
+    body += "<tr>";
+    body += "<td>(____________)</td>"
+    body += "<td>(____________)</td>"
+    body += "</tr>";
+
+    body += "</tbody>";
+    body += "</table>";
+
 
     footer += "<table class='tg' style='table-layout: fixed;'>";
     footer += "<tbody>";
@@ -536,20 +589,35 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       columns: ["name"],
     });
     var sectionName = fieldLookUpSection.name;
-    let html = `<tr><td colspan="9" class='tg-b_body' style="border-right: 1px solid black;">${sectionName}</td></tr>`;
+    let html = `<tr><td colspan="6" class='tg-b_body' style="border-right: 1px solid black; border-left: 1px solid black; background-color:#adacac">${sectionName}</td></tr>`;
     var no = 1;
     items.forEach((item, index) => {
       html += `<tr>
-                    <td class='tg-b_body'></td>
+                    <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
                     <td class='tg-b_body'>${item.itemText}</td>
-                    <td class='tg-b_body' align="left">${item.description}</td>
-                    <td class='tg-b_body'>${item.remarks}</td>
-                    <td class='tg-b_body'>${item.complexityLevel}</td>
-                    <td class='tg-b_body' align="right">${numberWithCommas(item.itemPrice)}</td>
-                    <td class='tg-b_body'>${item.quantity}</td>
-                    <td class='tg-b_body' align="right">${removeDecimalFormat(item.totalCost)}</td>
-                    ${index === 0 ? `<td valign='middle' class='tg-b_body' style="border-right: 1px solid black;" rowspan="${items.length}">${items.reduce((total, item) => total + parseFloat(item.totalCost.replace(/,/g, "")), 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>` : ""}
-                </tr>`;
+                    <td class='tg-b_body' style='align:center'>${item.complexityLevel}</td>
+                    <td class='tg-b_body' align="right">Rp. ${numberWithCommas(item.itemPrice)}</td>
+                    <td class='tg-b_body' style='align:center'>${item.quantity}</td>
+                    ${index === 0 ? `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}">Rp. ${removeDecimalFormat(item.totalCost)}</td>` : ""}
+                </tr>
+                <tr>
+                    <td class='tg-b_body' style='border-left: 1px solid black'></td>
+                    <td class='tg-b_body' >${item.description}</td>
+                    <td class='tg-b_body' style='border-right: 1px solid black' colspan="4"></td>
+                </tr>
+                <tr>
+                    <td class='tg-b_body' style='border-left: 1px solid black'></td>
+                    <td class='tg-b_body' style='font-weight:bold;'>${item.remarks}</td>
+                    <td class='tg-b_body' style='border-right: 1px solid black' colspan="4"></td>
+                </tr>
+                <tr>
+                    <td class='tg-b_body' style='border-left: 1px solid black'></td>
+                    <td class='tg-b_body' style=' background-color:#e7eb07'>[Discount - ${item.prosDiscLine}%]</td>
+                    <td class='tg-b_body' colspan="3"></td>
+                    <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>(${numberWithCommas(item.discLine)})</td>
+                </tr>
+                `;
+                no ++
     });
     return html;
   }
@@ -621,6 +689,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
               fieldId: "custcol_abj_rate_card_section_list",
               line: index,
             });
+            var discLine = dataRec.getSublistValue({
+              sublistId: "item",
+              fieldId: "custcol_abj_disc_line",
+              line: index,
+            }) || 0
+            var prosDiscLine =  Number(discLine)/ Number(itemPrice) *100
+            log.debug('itemPrice', itemPrice);
+            log.debug('discLine', discLine);
+            log.debug("prosDiscLine", prosDiscLine);
             dataSection.push(sectionName);
             dataItem.push({
               itemText: itemText,
@@ -631,6 +708,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
               itemPrice: itemPrice,
               quantity: quantity,
               totalCost: totalCost,
+              discLine : discLine,
+              prosDiscLine : prosDiscLine
             });
           }
         }

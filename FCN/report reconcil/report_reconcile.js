@@ -43,6 +43,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           amntSF: 0,
           amntMF: 0,
           amntIncentive: 0,
+          amntAdditionalCF: 0,
           amntOthers: 0,
         };
       }
@@ -53,6 +54,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       groupedData[key].amntSF += parseFloat(entry.amntSF || 0);
       groupedData[key].amntMF += parseFloat(entry.amntMF || 0);
       groupedData[key].amntIncentive += parseFloat(entry.amntIncentive || 0);
+      groupedData[key].amntIncentive += parseFloat(entry.amntAdditionalCF || 0);
       groupedData[key].amntOthers += parseFloat(entry.amntOthers || 0);
     });
     const resultArray = Object.values(groupedData);
@@ -288,7 +290,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           amntSF,
           amntMF,
           amntIncentive,
+          amntAdditionalCF,
           amntOthers = "";
+          // selain 6 masuk ke others
         switch (revenue) {
           case "Retainer":
             amntRetainer = amount;
@@ -304,6 +308,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             break;
           case "Incentive":
             amntIncentive = amount;
+            break;
+          case "Additional Creative Fee":
+            amntAdditionalCF = amount;
             break;
 
           default:
@@ -330,6 +337,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           amntSF: amntSF || "",
           amntMF: amntMF || "",
           amntIncentive: amntIncentive || "",
+          amntAdditionalCF : amntAdditionalCF || "",
           amntOthers: amntOthers || "",
           costOfBilling: amount,
           quoteNumberVal: quoteNumberVal,
@@ -368,6 +376,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           amntSF,
           amntMF,
           amntIncentive,
+          amntAdditionalCF,
           amntOthers = "";
         switch (revenue) {
           case "Retainer":
@@ -385,7 +394,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           case "Incentive":
             amntIncentive = amount;
             break;
-
+          case "Additional Creative Fee":
+            amntAdditionalCF = amount;
+            break;
           default:
             amntOthers = amount;
             break;
@@ -410,6 +421,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           amntSF: amntSF || "",
           amntMF: amntMF || "",
           amntIncentive: amntIncentive || "",
+          amntAdditionalCF : amntAdditionalCF || "",
           amntOthers: amntOthers || "",
           costOfBilling: amount,
           quoteNumberVal: quoteNumberVal,
@@ -461,6 +473,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
           acc[index].amntMF = ((parseFloat(acc[index].amntMF) || 0) + (parseFloat(curr.amntMF) || 0)).toFixed(2);
           acc[index].amntIncentive = ((parseFloat(acc[index].amntIncentive) || 0) + (parseFloat(curr.amntIncentive) || 0)).toFixed(2);
+          acc[index].amntAdditionalCF = ((parseFloat(acc[index].amntAdditionalCF) || 0) + (parseFloat(curr.amntAdditionalCF) || 0)).toFixed(2);
           acc[index].amntOthers = ((parseFloat(acc[index].amntOthers) || 0) + (parseFloat(curr.amntOthers) || 0)).toFixed(2);
         } else {
           acc.push(curr);
@@ -553,6 +566,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         totalWIPSf = 0,
         totalWIPMf = 0,
         totalWIPIf = 0,
+        totalWIPadditionalCF = 0,
         totalWIPOthers = 0,
         previousTotalRev = 0,
         previousTotalRevJD = 0;
@@ -597,6 +611,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           row.amntSF = "";
           row.amntMF = "";
           row.amntIncentive = "";
+          row.amntAdditionalCF = "";
           row.amntOthers = "";
           row.billingBeforeVat = "";
         }
@@ -617,6 +632,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntSF) || "" + "</td>";
         qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntMF) || "" + "</td>";
         qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntIncentive) || "" + "</td>";
+        qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntAdditionalCF) || "" + "</td>";
         qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntOthers) || "" + "</td>";
         qContent += '            <td class="uir-list-row-cell">' + row.paymentStatus || "" + "</td>";
         qContent += '            <td class="uir-list-row-cell">' + row.poNo || "" + "</td>";
@@ -632,6 +648,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         totalWIPSf += Number(row.amntSF || 0);
         totalWIPMf += Number(row.amntMF || 0);
         totalWIPIf += Number(row.amntIncentive || 0);
+        totalWIPadditionalCF += Number(row.amntAdditionalCF || 0);
         totalWIPOthers += Number(row.amntOthers || 0);
       });
       mergedJobDoneArray.forEach((row, index) => {
@@ -656,6 +673,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntSF) || "" + "</td>";
         jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntMF) || "" + "</td>";
         jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntIncentive) || "" + "</td>";
+        jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntAdditionalCF) || "" + "</td>";
         jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntOthers) || "" + "</td>";
         jContent += '            <td class="uir-list-row-cell">' + row.paymentStatus || "" + "</td>";
         jContent += '            <td class="uir-list-row-cell">' + row.poNo || "" + "</td>";
@@ -748,6 +766,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           amntSF,
           amntMF,
           amntIncentive,
+          amntAdditionalCF,
           amntOthers = "";
         switch (revenue) {
           case "Retainer":
@@ -765,6 +784,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           case "Incentive":
             amntIncentive = total;
             break;
+          case "Additional Creative Fee":
+            amntAdditionalCF = amount;
+            break;
 
           default:
             amntOthers = total;
@@ -780,6 +802,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           amntSF: amntSF || "",
           amntMF: amntMF || "",
           amntIncentive: amntIncentive || "",
+          amntAdditionalCF : amntAdditionalCF || "",
           amntOthers: amntOthers || "",
         });
       });
@@ -793,6 +816,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         totalSf = 0,
         totalMf = 0,
         totalIf = 0,
+        totalAdditionalFC = 0,
         totalOthers = 0;
       groupedDataSummary.forEach(function (row) {
         dContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
@@ -804,6 +828,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntSF) || "" + "</td>";
         dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntMF) || "" + "</td>";
         dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntIncentive) || "" + "</td>";
+        dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntAdditionalCF) || "" + "</td>";
         dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntOthers) || "" + "</td>";
         dContent += "        </tr>";
         totalBilling += Number(row.billing || 0);
@@ -813,6 +838,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         totalSf += Number(row.amntSF || 0);
         totalMf += Number(row.amntMF || 0);
         totalIf += Number(row.amntIncentive || 0);
+        totalAdditionalFC += Number(row.amntAdditionalCF || 0)
         totalOthers += Number(row.amntOthers || 0);
       });
       // end summary data
@@ -825,11 +851,11 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += "    <table>";
       sContent += '        <tr class="uir-list-headerrow">';
       sContent += '            <th colspan="9" class="uir-list-header-td" style="text-align: center;font-weight: bold;"></th>';
-      sContent += '            <th colspan="7" class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #ed7c39 !important;">REVENUE</th>';
+      sContent += '            <th colspan="8" class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #ed7c39 !important;">REVENUE</th>';
       sContent += '            <th colspan="6" class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #45a147 !important;">COST OF BILLING</th>';
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
-      sContent += '            <th colspan="22" class="uir-list-header-td" style="text-align: left;font-weight: bold; background-color: #8eaadc !important">WORK IN PROGRESS</th>';
+      sContent += '            <th colspan="23" class="uir-list-header-td" style="text-align: left;font-weight: bold; background-color: #8eaadc !important">WORK IN PROGRESS</th>';
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">QUOTE NUMBER</th>';
@@ -847,7 +873,8 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Supervision Fee</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Media Fee</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Incentive</th>';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Others/Rebate</th>';
+      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Additional Creative Fee</th>';
+      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Others</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">Payment Status</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">PO NO</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">VENDOR NAME</th>';
@@ -872,6 +899,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #bdd6ee !important;">' + numberWithCommas(totalWIPSf) + "</th>";
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #bdd6ee !important;">' + numberWithCommas(totalWIPMf) + "</th>";
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #bdd6ee !important;">' + numberWithCommas(totalWIPIf) + "</th>";
+      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #bdd6ee !important;">' + numberWithCommas(totalAdditionalFC) + "</th>";
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #bdd6ee !important;">' + numberWithCommas(totalWIPOthers) + "</th>";
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
@@ -881,14 +909,14 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
-      sContent += '            <th colspan="22" class="uir-list-header-td" style="text-align: left;font-weight: bold; background: #a8d18d !important;">JOB DONE</th>';
+      sContent += '            <th colspan="23" class="uir-list-header-td" style="text-align: left;font-weight: bold; background: #a8d18d !important;">JOB DONE</th>';
       sContent += "        </tr>";
       sContent += jContent;
       sContent += "    </table>";
       sContent += "    <br><br>";
       sContent += "    <table>";
       sContent += '        <tr class="uir-list-headerrow">';
-      sContent += '            <th colspan="9" class="uir-list-header-td" style="text-align: left;font-weight: bold;">SUMMARY</th>';
+      sContent += '            <th colspan="10" class="uir-list-header-td" style="text-align: left;font-weight: bold;">SUMMARY</th>';
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">MONTH</th>';
@@ -899,6 +927,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">SUPERVISION FEE</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">MEDIA FEE</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">INCENTIVE</th>';
+      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Additional Creative Fee</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">OTHERS</th>';
       sContent += "        </tr>";
       sContent += dContent;
@@ -911,6 +940,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalSf) + "</th>";
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalMf) + "</th>";
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalIf) + "</th>";
+      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalAdditionalFC) + "</th>";
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalOthers) + "</th>";
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';

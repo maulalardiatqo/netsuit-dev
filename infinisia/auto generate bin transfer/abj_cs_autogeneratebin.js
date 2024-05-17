@@ -27,7 +27,7 @@ define(['N/url', 'N/record', 'N/search', 'N/ui/message'], function(url, record, 
             id : idRec,
             isDynamic: false, 
         });
-        var location = recItem.getValue("location");
+        var location = recItem.getValue("location"); 
         var tranDate = recItem.getValue("trandate");
         var memo = recItem.getValue('memo');
         var recCreateBin = record.create({

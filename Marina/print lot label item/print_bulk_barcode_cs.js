@@ -176,6 +176,40 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
         console.log("error", error);
       }
     }
+    if (context.fieldId == "custpage_item_select_all"){
+      try {
+        var checkBoxAll = vrecord.getValue('custpage_item_select_all');
+        console.log('checkBoxAll', checkBoxAll);
+        let lineTotal = vrecord.getLineCount({
+          sublistId: "custpage_sublist_item",
+      });
+      console.log('lineTotal', lineTotal);
+      var valuetoSet
+      if(checkBoxAll == true){
+        valuetoSet = true
+      }else{
+        valuetoSet = false
+      }
+      for (let i = 0; i < lineTotal; i++) {
+        var lineNum = vrecord.selectLine({
+          sublistId : 'custpage_sublist_item',
+          line : i
+        });
+        console.log('lineNum', lineNum)
+        vrecord.setCurrentSublistValue({
+          sublistId : 'custpage_sublist_item',
+          fieldId : 'custpage_sublist_item_select',
+          value : valuetoSet,
+          ignoreFieldChange: true,
+        });
+        vrecord.commitLine({
+          sublistId: 'custpage_sublist_item'
+        });
+      }
+      }catch(e){
+        console.log('error', e)
+      }
+    }
   }
 
   exports.printLabel = printLabel;

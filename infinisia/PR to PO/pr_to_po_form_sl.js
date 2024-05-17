@@ -118,9 +118,10 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let osPO = prToPO[i].getValue({
             name: prToPOSet.columns[12],
           });
-          let itemRate = prToPO[i].getValue({
+          let cek2 =  prToPO[i].getValue({
             name: prToPOSet.columns[15],
           });
+          
           let leadTimeKirim = prToPO[i].getValue({
             name: prToPOSet.columns[16],
           });
@@ -148,7 +149,19 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let soNumber = prToPO[i].getValue({
             name: prToPOSet.columns[24],
           });
+          let cek1 =  prToPO[i].getValue({
+            name: prToPOSet.columns[25],
+          });
           let totalOrder = parseFloat(currentStock || 0) + parseFloat(incomingStock || 0) - (parseFloat(osPO || 0) + parseFloat(forecastBusdev || 0));
+          var itemRate
+          log.debug('cek1', cek1);
+          log.debug('cek2', cek2)
+          if(cek1 || cek1 != ''){
+            itemRate = cek1
+          }else{
+            itemRate = cek2
+          }
+          log.debug('itemRate', itemRate)
           log.debug("taxItemRate", taxItemRate);
           currentRecord.setSublistValue({
             sublistId: "custpage_sublist_item",
@@ -258,6 +271,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             value: customerID || " ",
             line: i,
           });
+          log.debug('itemRate', itemRate)
           currentRecord.setSublistValue({
             sublistId: "custpage_sublist_item",
             id: "custpage_sublist_rate",
@@ -415,7 +429,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let osPO = prToPO[i].getValue({
             name: prToPOSet.columns[12],
           });
-          let itemRate = prToPO[i].getValue({
+          let cek2 = prToPO[i].getValue({
             name: prToPOSet.columns[15],
           });
           let leadTimeKirim = prToPO[i].getValue({
@@ -445,7 +459,16 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let soNumber = prToPO[i].getValue({
             name: prToPOSet.columns[24],
           });
+          let cek1 = prToPO[i].getValue({
+            name: prToPOSet.columns[25],
+          });
           let totalOrder = parseFloat(currentStock || 0) + parseFloat(incomingStock || 0) - (parseFloat(osPO || 0) + parseFloat(forecastBusdev || 0));
+          var itemRate
+          if(cek1 || cek1 != ''){
+            itemRate = cek1
+          }else{
+            itemRate = cek2
+          }
           log.debug("taxItemRate", taxItemRate);
           currentRecord.setSublistValue({
             sublistId: "custpage_sublist_item",

@@ -30,17 +30,39 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       id: "filteroption",
       label: "FILTERS",
     });
+    var selectOption = form.addFieldGroup({
+      id: "selectoption",
+      label: "SELECT OPTION",
+    });
     var itemName = form.addField({
       id: "custpage_item_name",
       label: "ITEM NAME",
       type: serverWidget.FieldType.TEXT,
       container: "filteroption",
     });
+    var selectAll = form.addField({
+      id: "custpage_item_select_all",
+      label: "Select All",
+      type: serverWidget.FieldType.CHECKBOX,
+      container: "selectoption",
+    }).updateDisplayType({
+      displayType: serverWidget.FieldDisplayType.ENTRY,
+    });;
     form.addButton({
       id: "printPDF",
       label: "Print Label",
       functionName: "printLabel",
     });
+    // form.addButton({
+    //   id: "selectAll",
+    //   label: "Select All",
+    //   functionName: "selectAll",
+    // });
+    // form.addButton({
+    //   id: "unselectAll",
+    //   label: "Unselect All",
+    //   functionName: "printLabel",
+    // });
 
     form.addSubmitButton({
       label: "Search",
@@ -122,7 +144,6 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             sort: search.Sort.ASC,
           }),
           "upccode",
-          search.createColumn({name: "serialnumber", label: "Serial/Lot Number"})
         ],
       });
       var resultSet = getAllResults(itemSearchObj);
@@ -151,12 +172,12 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           value: row.getValue("upccode") || " ",
           line: i,
         });
-        currentRecord.setSublistValue({
-          sublistId: "custpage_sublist_item",
-          id: "custpage_sublist_lotnumber",
-          value: row.getValue("serialnumber") || " ",
-          line: i,
-        });
+        // currentRecord.setSublistValue({
+        //   sublistId: "custpage_sublist_item",
+        //   id: "custpage_sublist_lotnumber",
+        //   value: row.getValue("serialnumber") || " ",
+        //   line: i,
+        // });
         currentRecord.setSublistValue({
           sublistId: "custpage_sublist_item",
           id: "custpage_sublist_item_no_of_labels",
@@ -205,11 +226,11 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       label: "UPC CODE",
       type: serverWidget.FieldType.TEXT,
     });
-    sublist_in.addField({
-      id: "custpage_sublist_lotnumber",
-      label: "Lot Number",
-      type: serverWidget.FieldType.TEXT,
-    });
+    // sublist_in.addField({
+    //   id: "custpage_sublist_lotnumber",
+    //   label: "Lot Number",
+    //   type: serverWidget.FieldType.TEXT,
+    // });
     sublist_in
       .addField({
         id: "custpage_sublist_item_no_of_labels",

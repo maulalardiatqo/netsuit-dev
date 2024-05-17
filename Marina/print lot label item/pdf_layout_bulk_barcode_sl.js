@@ -36,8 +36,8 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
     // }
     function getItemDetails(internalID, itemPrice, itemName, lotNumber) {
       var formattedPrice = isNaN(itemPrice) ? "0" : numberWithCommas(itemPrice);
-      var displayID = lotNumber ? `${internalID} - ${lotNumber}` : internalID; 
-      var barcodeValue = lotNumber ? `${internalID}-${lotNumber}` : internalID; 
+      var displayID = internalID
+      var barcodeValue = internalID
       return `
           <table height="15mm" width="33mm">
               <tr>
