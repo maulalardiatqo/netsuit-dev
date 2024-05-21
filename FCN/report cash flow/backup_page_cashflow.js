@@ -197,7 +197,6 @@ define([
                         let month = parts[0];
                         let year = parseInt(parts[1]);
                     
-                        // Jika bulan adalah Januari, kurangi tahun juga
                         if (month === 'Jan') {
                             month = 'Dec';
                             year--;
@@ -259,11 +258,32 @@ define([
                     dataToSet.push(periodToset);
                     allBeginningBalance.push({ beginningBalance: beginningBalance, periodToset: periodToset });
                 
-                    var outstandingSearch = search.load({ id: "customsearch_monthly_review_2_2_2_2" });
-                    if (idPeriod) outstandingSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
-                    if (subsId) outstandingSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) outstandingSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) outstandingSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
+                    var outstandingSearch = search.create({
+                        type: "transaction",
+                        settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
+                        filters:
+                        [
+                            ["posting","is","T"], 
+                            "AND", 
+                            ["account","anyof","318","319","320","1889","322","323","324","325","326","327","328","330","329","2302","2092","2091","2090","1504","1503","1502","1501","1500","1484","1481","1483","1482","1480","1479","1717","940","939","938","937","331"], 
+                            "AND", 
+                            ["subsidiary","anyof",subsId], 
+                            "AND", 
+                            ["postingperiod","abs",idPeriod], 
+                            "AND", 
+                            ["trandate","after",lastYear], 
+                            "AND", 
+                            ["trandate","before",currentYear]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({
+                                name: "amount",
+                                summary: "SUM",
+                                label: "Amount"
+                            })
+                        ]
+                     });
                     var outstandingSearchReturn = outstandingSearch.run().getRange({ start: 0, end: 1 });
                     var outstanding = outstandingSearchReturn[0].getValue({
                         name: "amount",
@@ -408,6 +428,8 @@ define([
                 var maxLoanCount = 0;
                 allIdPeriod.forEach(function (data) {
                     var idPeriod = data.idPeriod;
+                    log.debug('idPeriod', idPeriod)
+                    log.debug('subsId', subsId)
                     var customrecord641SearchObj = search.create({
                         type: "customrecord641",
                         filters: [["custrecord_mitcf_period", "anyof", idPeriod],"AND", 
@@ -418,10 +440,12 @@ define([
                     });
 
                     var searchResultCount = customrecord641SearchObj.runPaged().count;
+                    log.debug('searchResultCount', searchResultCount)
                     if (searchResultCount > maxLoanCount) {
                         maxLoanCount = searchResultCount;
                     }
                 });
+                log.debug('maxLoanCount', maxLoanCount)
                 allIdPeriod.forEach(function (data) {
                     var idPeriod = data.idPeriod;
                     var periodToset = data.periodToset;
@@ -451,7 +475,7 @@ define([
                 var groupedData = [];
                 log.debug('allLoan', allLoan)
                 log.debug('allLoan[0].length;', allLoan[0].length)
-                for (var i = 0; i < allLoan.length; i++) {
+                for (var i = 0; i < allLoan[0].length; i++) {
                     var group = [];
                     
                     allLoan.forEach(function(loan) {

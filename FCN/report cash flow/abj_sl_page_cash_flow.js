@@ -88,19 +88,17 @@ define([
                 }
                 function groupByPeriod(allLoan) {
                     const groupedLoans = {};
-                  
                     allLoan.forEach(loanList => {
-                      loanList.forEach(loan => {
-                        const period = loan.periodToset;
-                        if (!groupedLoans[period]) {
-                          groupedLoans[period] = [];
-                        }
-                        groupedLoans[period].push(loan);
-                      });
+                        loanList.forEach(loan => {
+                            const period = loan.periodToset;
+                            if (!groupedLoans[period]) {
+                                groupedLoans[period] = [];
+                            }
+                            groupedLoans[period].push(loan);
+                        });
                     });
-                  
                     return groupedLoans;
-                  }
+                }
                 function getMonthsCountAndNames(startDate, endDate) {
                     var startMonth = startDate.getMonth();
                     var endMonth = endDate.getMonth();
@@ -142,7 +140,7 @@ define([
                 accountingperiodFromSearchObj.run().each(function(result) {
                     periodFromName = result.getValue({ name: 'periodname' });
 
-                    return true;
+                    return false;
                 });
 
                 var accountingperiodToSearchObj = search.create({
@@ -158,7 +156,7 @@ define([
                 accountingperiodToSearchObj.run().each(function(result) {
                     periodToName = result.getValue({ name: 'periodname' });
 
-                    return true;
+                    return false;
                 });
                 
                 var startPeriod = new Date(periodFromName);
@@ -208,40 +206,56 @@ define([
                     }
 
                     const periodBeforeName = getPeriodBeforeName(periodName);
+                    log.debug('periodBeforeName', periodBeforeName)
 
-                    var postingPeriodData = search.create({
-                        type: "accountingperiod",
-                        filters: [
-                            ["periodname", "is", periodName]
-                        ],
-                        columns: ["internalid"]
-                    });
-                    var idPeriod;
-                    postingPeriodData.run().each(function(result) {
-                        idPeriod = result.getValue({ name: 'internalid' });
-                        return true;
-                    });
-
-                    var postingPeriodBefSearch = search.create({
-                        type: "accountingperiod",
-                        filters: [
-                            ["periodname", "is", periodBeforeName]
-                        ],
-                        columns: ["internalid"]
-                    });
-                    var idPeriodBef;
-                    postingPeriodBefSearch.run().each(function(result) {
-                        idPeriodBef = result.getValue({ name: 'internalid' });
-                        return true;
-                    });
+                    function getPeriodIdByName(periodName) {
+                        var periodSearch = search.create({
+                            type: "accountingperiod",
+                            filters: [
+                                ["periodname", "is", periodName]
+                            ],
+                            columns: ["internalid"]
+                        });
+                    
+                        var periodId;
+                        periodSearch.run().each(function(result) {
+                            periodId = result.getValue({ name: 'internalid' });
+                            return false;
+                        });
+                        return periodId;
+                    }
+                    
+                    var idPeriod = getPeriodIdByName(periodName);
+                    var idPeriodBef = getPeriodIdByName(periodBeforeName);
                     
                     var beginningBalance;
                     
-                    var beginningBalanceSearch = search.load({id: "customsearch775"});
-                    if (idPeriodBef) beginningBalanceSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriodBef }));
-                    if (subsId) beginningBalanceSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) beginningBalanceSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) beginningBalanceSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
+                    var beginningBalanceSearch =  search.create({
+                        type: "transaction",
+                        settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
+                        filters:
+                        [
+                            ["posting","is","T"], 
+                            "AND", 
+                            ["account","anyof","723","224","725","724","240","237","225","241","231","232","226","1883","722","234","227","228","726","229","230","1835","1076","1823","256","257","741","243","258","244","259","260","261","287","1875","288","1877","247","251","245","729","265","1813","727","740","747","252","246","263","738","730","733","743","739","745","746","742","732","249","285","253","1870","264","267","1880","1797","250","254","1817","731","744","1800","1847","728","1845","269","2541","1874","272","273","295","1488","1487","278","275","736","734","735","737","281","274","2308","1828","1830","1831","1832","1833","1843","1844","1850","1851","1852","1853","1854","1855","1862","1882","1892","1893","1890","1891","1829","1990","1995","2001","2005","1991","1996","2002","2006","1992","1997","2003","2007","1993","1998","2008","1994","1999","2009","2010","2540","318","319","320","1889","322","323","324","325","326","327","328","329","330","331","937","938","939","940","1717","1479","1480","1482","1483","1481","1484","1500","1501","1502","1503","1504","2090","2302","2091","2092","527","528","529","530","531","532","533","534","535","536","1478","538","539","540","541","542","543","544","545","546","547","548","550","551","552","553","554","555","556","557","558","559","560","1703","1802","2304","2309","835","836","837","838","839","840","841","842","843","844","845","846","847","848","849","850","1489","594","595","596","597","598","599","600","601","602","1836","561","562","563","564","1856","565","1810","1811","566","567","568","569","570","571","572","573","574","575","576","577","578","579","580","581","978","1533","1534","1535","1536","1719","2093","2094","1276","1376","1377","1378","1379","1380","1381","1382","1383","1822","1384","1385","1386","1857","1387","1388","1389","1390","1391","1392","1393","1394","1801","1395","1396","1806","1809","1398","1805","1808","1399","1804","1807","1397","1812","1821","1825","1864","1866","1859","1537","1538","1539","1540","1541","1542","1543","1544","1545","1546","1547","1548","1549","1815","1816","1600","1824","2293","2294","2318","2319","583","766","767","768","769","770","771","772","1826","774","775","776","1772","1773","777","778","584","585","586","587","588","589","590","591","592","593","1834","385"], 
+                            "AND", 
+                            ["subsidiary","anyof",subsId], 
+                            "AND", 
+                            ["postingperiod","abs",idPeriodBef], 
+                            "AND", 
+                            ["trandate","after",lastYear], 
+                            "AND", 
+                            ["trandate","before",currentYear]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({
+                                name: "amount",
+                                summary: "SUM",
+                                label: "Amount"
+                            })
+                        ]
+                    });
                 
                     var beginningBalanceSearchReturn = beginningBalanceSearch.run().getRange({ start: 0, end: 1 });
                     beginningBalance = beginningBalanceSearchReturn[0].getValue({
@@ -257,12 +271,72 @@ define([
                     allIdPeriod.push({ idPeriod: idPeriod, periodToset: periodToset });
                     dataToSet.push(periodToset);
                     allBeginningBalance.push({ beginningBalance: beginningBalance, periodToset: periodToset });
+
+                    var endingBalanceSearch = search.create({
+                        type: "transaction",
+                        settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
+                        filters:
+                        [
+                            ["posting","is","T"], 
+                            "AND", 
+                            ["account","anyof","723","224","725","724","240","237","225","241","231","232","226","1883","722","234","227","228","726","229","230","1835","1076","1823","256","257","741","243","258","244","259","260","261","287","1875","288","1877","247","251","245","729","265","1813","727","740","747","252","246","263","738","730","733","743","739","745","746","742","732","249","285","253","1870","264","267","1880","1797","250","254","1817","731","744","1800","1847","728","1845","269","2541","1874","272","273","295","1488","1487","278","275","736","734","735","737","281","274","2308","1828","1830","1831","1832","1833","1843","1844","1850","1851","1852","1853","1854","1855","1862","1882","1892","1893","1890","1891","1829","1990","1995","2001","2005","1991","1996","2002","2006","1992","1997","2003","2007","1993","1998","2008","1994","1999","2009","2010","2540","318","319","320","1889","322","323","324","325","326","327","328","329","330","331","937","938","939","940","1717","1479","1480","1482","1483","1481","1484","1500","1501","1502","1503","1504","2090","2302","2091","2092","527","528","529","530","531","532","533","534","535","536","1478","538","539","540","541","542","543","544","545","546","547","548","550","551","552","553","554","555","556","557","558","559","560","1703","1802","2304","2309","835","836","837","838","839","840","841","842","843","844","845","846","847","848","849","850","1489","594","595","596","597","598","599","600","601","602","1836","561","562","563","564","1856","565","1810","1811","566","567","568","569","570","571","572","573","574","575","576","577","578","579","580","581","978","1533","1534","1535","1536","1719","2093","2094","1276","1376","1377","1378","1379","1380","1381","1382","1383","1822","1384","1385","1386","1857","1387","1388","1389","1390","1391","1392","1393","1394","1801","1395","1396","1806","1809","1398","1805","1808","1399","1804","1807","1397","1812","1821","1825","1864","1866","1859","1537","1538","1539","1540","1541","1542","1543","1544","1545","1546","1547","1548","1549","1815","1816","1600","1824","2293","2294","2318","2319","583","766","767","768","769","770","771","772","1826","774","775","776","1772","1773","777","778","584","585","586","587","588","589","590","591","592","593","1834","385"], 
+                            "AND", 
+                            ["subsidiary","anyof",subsId], 
+                            "AND", 
+                            ["postingperiod","abs",idPeriod], 
+                            "AND", 
+                            ["trandate","after",lastYear], 
+                            "AND", 
+                            ["trandate","before",currentYear]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({
+                                name: "amount",
+                                summary: "SUM",
+                                label: "Amount"
+                            })
+                        ]
+                    });
                 
-                    var outstandingSearch = search.load({ id: "customsearch_monthly_review_2_2_2_2" });
-                    if (idPeriod) outstandingSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
-                    if (subsId) outstandingSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) outstandingSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) outstandingSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
+                    var endingBalanceSearchReturn = endingBalanceSearch.run().getRange({ start: 0, end: 1 });
+                    var endingBalance = endingBalanceSearchReturn[0].getValue({
+                        name: "amount",
+                        summary: "SUM",
+                    }) || 0;
+
+                    if (endingBalance) {
+                        endingBalance = convertCurr(endingBalance);
+                    }
+                    allEndingBalance.push({endingBalance : endingBalance, periodToset : periodToset})
+                   
+
+                    var outstandingSearch = search.create({
+                        type: "transaction",
+                        settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
+                        filters:
+                        [
+                            ["posting","is","T"], 
+                            "AND", 
+                            ["account","anyof","318","319","320","1889","322","323","324","325","326","327","328","330","329","2302","2092","2091","2090","1504","1503","1502","1501","1500","1484","1481","1483","1482","1480","1479","1717","940","939","938","937","331"], 
+                            "AND", 
+                            ["subsidiary","anyof",subsId], 
+                            "AND", 
+                            ["postingperiod","abs",idPeriod], 
+                            "AND", 
+                            ["trandate","after",lastYear], 
+                            "AND", 
+                            ["trandate","before",currentYear]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({
+                                name: "amount",
+                                summary: "SUM",
+                                label: "Amount"
+                            })
+                        ]
+                    });
                     var outstandingSearchReturn = outstandingSearch.run().getRange({ start: 0, end: 1 });
                     var outstanding = outstandingSearchReturn[0].getValue({
                         name: "amount",
@@ -274,11 +348,32 @@ define([
                     }
                     allOutstanding.push({ outstanding: outstanding, periodToset: periodToset });
                 
-                    var outstandingPayableSearch = search.load({ id: "customsearch_monthly_review_2_2_2_2_2" });
-                    if (idPeriod) outstandingPayableSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
-                    if (subsId) outstandingPayableSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) outstandingPayableSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) outstandingPayableSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
+                    var outstandingPayableSearch = search.create({
+                        type: "transaction",
+                        settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
+                        filters:
+                        [
+                            ["posting","is","T"], 
+                            "AND", 
+                            ["account","anyof","333","334","954","955","968","969","970","1477","1701","1762","1771","1770","1769","1768","1767","1766","1765","1764","1763"], 
+                            "AND", 
+                            ["subsidiary","anyof",subsId], 
+                            "AND", 
+                            ["postingperiod","abs",idPeriod], 
+                            "AND", 
+                            ["trandate","after",lastYear], 
+                            "AND", 
+                            ["trandate","before",currentYear]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({
+                                name: "amount",
+                                summary: "SUM",
+                                label: "Amount"
+                            })
+                        ]
+                    });
                     var outstandingPayableSearchReturn = outstandingPayableSearch.run().getRange({ start: 0, end: 1 });
                     var outstandingPayable = outstandingPayableSearchReturn[0].getValue({
                         name: "amount",
@@ -290,11 +385,32 @@ define([
                     }
                     alloutstandingPayable.push({ outstandingPayable: outstandingPayable, periodToset: periodToset });
                 
-                    var oprasionalExpense = search.load({ id: "customsearch_monthly_review_2_2_3" });
-                    if (idPeriod) oprasionalExpense.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
-                    if (subsId) oprasionalExpense.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) oprasionalExpense.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) oprasionalExpense.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
+                    var oprasionalExpense = search.create({
+                        type: "transaction",
+                        settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
+                        filters:
+                        [
+                            ["posting","is","T"], 
+                            "AND", 
+                            ["account","anyof","417","980","418","419","420","421","2290","423","424","425","426","979","428","429","430","432","433","434","435","2291","437","438","1796","439","440","441","442","443","444","445","447","446","448","981","1803","1846","1839","449","450","982","1780","1838","453","455","456","457","458","459","460","461","462","463","464","465","466","467","468","469","470","471","472","986","1798","1849","1860","474","475","476","477","478","2317","480","482","483","484","485","486","487","488","489","490","491","985"], 
+                            "AND", 
+                            ["subsidiary","anyof",subsId], 
+                            "AND", 
+                            ["postingperiod","abs",idPeriod], 
+                            "AND", 
+                            ["trandate","after",lastYear], 
+                            "AND", 
+                            ["trandate","before",currentYear]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({
+                                name: "amount",
+                                summary: "SUM",
+                                label: "Amount"
+                            })
+                        ]
+                    });
                     var oprasionalExpenseReturn = oprasionalExpense.run().getRange({ start: 0, end: 1 });
                     var oprasionalExp = oprasionalExpenseReturn[0].getValue({
                         name: "amount",
@@ -306,23 +422,7 @@ define([
                     }
                     alloprasionalExp.push({ oprasionalExp: oprasionalExp, periodToset: periodToset });
                 
-                    var endingBalanceSearch = search.load({ id: "customsearch775" });
-                    if (idPeriod) endingBalanceSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
-                    if (subsId) endingBalanceSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) endingBalanceSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) endingBalanceSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
-                    var endingBalanceSearchReturn = endingBalanceSearch.run().getRange({ start: 0, end: 1 });
-                    var endingBalance = endingBalanceSearchReturn[0].getValue({
-                        name: "amount",
-                        summary: "SUM",
-                    }) || 0;
-
-                    if (endingBalance) {
-                        endingBalance = convertCurr(endingBalance);
-                    }
-                    allEndingBalance.push({endingBalance : endingBalance, periodToset : periodToset})
-
-
+            
                     // var endingBalance = Number(beginningBalancetoCOunt) + Number(outstandingToCount) + Number(outstandingPayableToCount) + Number(oprasionalExpToCount)
                     // allEndingBalance.push({endingBalance : endingBalance, periodToset : periodToset})
                     // prevEndingBalance = endingBalance

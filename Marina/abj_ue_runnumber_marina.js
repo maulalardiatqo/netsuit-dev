@@ -65,8 +65,11 @@ define(["N/record", "N/search"], function(
                     textSub = 'CD'
                 }else if(TransType == 'check'){
                     textSub ='CHK'
+                }else if(TransType == 'vendbill'){
+                    textSub ='BILL'
                 }
                 var formatRunning = textSub + lastTwoDigits + monthFormatted
+                log.debug('formatRunning awal', formatRunning)
     
                 var searchRunNumb =  search.create({
                     type: 'customrecord_po_numbering',
@@ -172,6 +175,7 @@ define(["N/record", "N/search"], function(
                     });
                     log.debug('saveRecordTrans', saveRecordTrans);
                 }else{
+                    log.debug('formatRunning', formatRunning)
                     var createRecord = record.create({
                         type: 'customrecord_po_numbering',
                         isDynamic: true

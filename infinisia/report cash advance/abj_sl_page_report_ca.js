@@ -120,31 +120,30 @@ define([
                         var paymentAmount
                         var expensereportSearchObj = search.create({
                             type: "expensereport",
-                            settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
+                            // settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
                             filters:
                             [
                                 ["type","anyof","ExpRept"], 
                                 "AND", 
                                 ["mainline","is","F"], 
                                 "AND", 
+                                ["employee","anyof",empId], 
+                                "AND", 
                                 ["taxline","is","F"], 
-                                "AND",  
-                                ["employee","anyof",employee], 
                                 "AND", 
                                 ["advanceaccount","anyof",account], 
                                 "AND", 
-                                ["custbody_abj_check_no","anyof",idTrans]
+                                ["custbody_abj_deposit_no","anyof",idTrans]
                             ],
                             columns:
                             [
                                 search.createColumn({name: "tranid", label: "Document Number"}),
                                 search.createColumn({name: "advanceaccount", label: "Advance To Apply Account"}),
                                 search.createColumn({name: "trandate", label: "Date"}),
-                                search.createColumn({name: "amount", label: "Amount"}),
                                 search.createColumn({
                                     name: "amount",
-                                    join: "CUSTBODY_ABJ_DEPOSIT",
-                                    label: "Deposit Amount"
+                                    join: "CUSTBODY_ABJ_DEPOSIT_NO",
+                                    label: "Amount"
                                 }),
                                 search.createColumn({name: "internalid", label: "Internal ID"})
                             ]
@@ -236,7 +235,7 @@ define([
                             name: "internalid"
                         });
                         log.debug('idTrans', idTrans)
-                        var link = '<a href="https://8591721.app.netsuite.com/app/accounting/transactions/check.nl?id=' + idTrans + '&whence=" target="_blank">' + noTrans + '</a>';
+                        var link = '<a href="https://9274135.app.netsuite.com/app/accounting/transactions/check.nl?id=' + idTrans + '&whence=" target="_blank">' + noTrans + '</a>';
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_no",
