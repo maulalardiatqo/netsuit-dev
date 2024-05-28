@@ -607,7 +607,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           row.qty = "";
           row.invoiceNumber = "";
           row.amntRetainer = "";
-          row.amntCF = "";
+          row.amntCF = "";  
           row.amntSF = "";
           row.amntMF = "";
           row.amntIncentive = "";
@@ -619,7 +619,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         qContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
         qContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/salesord.nl?id=' + row.quoteNumberVal + '&whence=" target="_blank" >' + row.quoteNumber || "" + "</a></td>";
         qContent += '            <td class="uir-list-row-cell">' + row.jobNumber || "" + "</td>";
-        qContent += '            <td class="uir-list-row-cell">' + row.project || "" + "</td>";
+        // qContent += '            <td class="uir-list-row-cell">' + row.project || "" + "</td>";
         qContent += '            <td class="uir-list-row-cell">' + row.status || "" + "</td>";
         qContent += '            <td class="uir-list-row-cell">' + row.pic || "" + "</td>";
         qContent += '            <td class="uir-list-row-cell">' + row.deliverables || "" + "</td>";
@@ -660,7 +660,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         jContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
         jContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/salesord.nl?id=' + row.quoteNumberVal + '&whence=" target="_blank" >' + row.quoteNumber || "" + "</a></td>";
         jContent += '            <td class="uir-list-row-cell">' + row.jobNumber || "" + "</td>";
-        jContent += '            <td class="uir-list-row-cell">' + row.project || "" + "</td>";
+        // jContent += '            <td class="uir-list-row-cell">' + row.project || "" + "</td>";
         jContent += '            <td class="uir-list-row-cell">' + row.status || "" + "</td>";
         jContent += '            <td class="uir-list-row-cell">' + row.pic || "" + "</td>";
         jContent += '            <td class="uir-list-row-cell">' + row.deliverables || "" + "</td>";
@@ -850,7 +850,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       });
       sContent += "    <table>";
       sContent += '        <tr class="uir-list-headerrow">';
-      sContent += '            <th colspan="9" class="uir-list-header-td" style="text-align: center;font-weight: bold;"></th>';
+      sContent += '            <th colspan="8" class="uir-list-header-td" style="text-align: center;font-weight: bold;"></th>';
       sContent += '            <th colspan="8" class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #ed7c39 !important;">REVENUE</th>';
       sContent += '            <th colspan="6" class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #45a147 !important;">COST OF BILLING</th>';
       sContent += "        </tr>";
@@ -860,7 +860,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '        <tr class="uir-list-headerrow">';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">QUOTE NUMBER</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">JOB NO</th>';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">PROJECT</th>';
+      // sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">PROJECT</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">STATUS</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">PIC</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">DELIVERABLES</th>';
@@ -886,7 +886,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '        <tr class="uir-list-headerrow">';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;">TOTAL WIP</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
+      // sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
@@ -909,7 +909,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
-      sContent += '            <th colspan="23" class="uir-list-header-td" style="text-align: left;font-weight: bold; background: #a8d18d !important;">JOB DONE</th>';
+      sContent += '            <th colspan="22" class="uir-list-header-td" style="text-align: left;font-weight: bold; background: #a8d18d !important;">JOB DONE</th>';
       sContent += "        </tr>";
       sContent += jContent;
       sContent += "    </table>";
