@@ -325,6 +325,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         
       }
     }
+    var taxTotalRate = (parseFloat(totalCost) - parseFloat(totalDiscount)) * 11 / 100;
+    var discountHeader = dataRec.getValue("discountrate")||0;
+    totalDiscount = parseFloat(totalDiscount) + parseFloat(discountHeader)
     var response = context.response;
     var xml = "";
     var header = "";
@@ -380,9 +383,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "<tr>";
     body += "<td style='width:20%'></td>"
     body += "<td style='width:30%'></td>"
-    body += "<td style='width:20%'></td>"
+    body += "<td style='width:15%'></td>"
     body += "<td style='width:10%'></td>"
-    body += "<td style='width:20%'></td>"
+    body += "<td style='width:25%'></td>"
     body += "</tr>";
 
     body += "<tr>";
@@ -496,7 +499,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "<tr>";
     body += "<td></td>"
     body += "<td style='align:right'>VAT 11%</td>"
-    body += "<td style='align:right'>Rp. "+removeDecimalFormat(taxtotal)+"</td>"
+    // body += "<td style='align:right'>Rp. "+removeDecimalFormat(taxtotal)+"</td>"
+    body += "<td style='align:right'>Rp. "+removeDecimalFormat(taxTotalRate)+"</td>"
     body += "</tr>";
 
     body += "<tr>";
@@ -598,26 +602,30 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
                     <td class='tg-b_body' style='align:center'>${item.complexityLevel}</td>
                     <td class='tg-b_body' align="right">Rp. ${numberWithCommas(item.itemPrice)}</td>
                     <td class='tg-b_body' style='align:center'>${item.quantity}</td>
-                    ${index === 0 ? `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}">Rp. ${removeDecimalFormat(item.totalCost)}</td>` : ""}
+                    ${index === 0 ? `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}">Rp. ${removeDecimalFormat(item.totalCost)}</td>` : `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}"></td>`}
+
                 </tr>
                 <tr>
                     <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                    <td class='tg-b_body' >${item.description}</td>
+                    <td class='tg-b_body'>${item.description}</td>
                     <td class='tg-b_body' style='border-right: 1px solid black' colspan="4"></td>
                 </tr>
                 <tr>
                     <td class='tg-b_body' style='border-left: 1px solid black'></td>
                     <td class='tg-b_body' style='font-weight:bold;'>${item.remarks}</td>
                     <td class='tg-b_body' style='border-right: 1px solid black' colspan="4"></td>
-                </tr>
-                <tr>
-                    <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                    <td class='tg-b_body' style=' background-color:#e7eb07'>[Discount - ${item.prosDiscLine}%]</td>
-                    <td class='tg-b_body' colspan="3"></td>
-                    <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>(${numberWithCommas(item.discLine)})</td>
-                </tr>
-                `;
-                no ++
+                </tr>`;
+
+              if (item.discLine && item.discLine != 0) {
+                  html += `<tr>
+                                  <td class='tg-b_body' style='border-left: 1px solid black'></td>
+                                  <td class='tg-b_body' style='background-color:#e7eb07'>[Discount - ${item.prosDiscLine}%]</td>
+                                  <td class='tg-b_body' colspan="3"></td>
+                                  <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>(${numberWithCommas(item.discLine)})</td>
+                              </tr>`;
+              }
+
+              no++;
     });
     return html;
   }
@@ -642,7 +650,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
           fieldId: "item",
           line: index,
         });
+        
         if(itemId != '2880'){
+          log.debug('itemId', itemId)
           if (account) {
             var itemText = dataRec.getSublistText({
               sublistId: "item",
@@ -717,6 +727,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       }
       dataSection = removeDuplicates(dataSection);
       log.debug("dataSection", dataSection);
+      log.debug('dataItem', dataItem)
       const groupedItems = {};
       dataItem.forEach((item) => {
         if (!groupedItems[item.sectionID]) {
