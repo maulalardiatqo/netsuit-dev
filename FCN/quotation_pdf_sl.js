@@ -230,7 +230,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     totalWhTaxamount = totalWhTaxamountItem + totalWhTaxamountExp;
     var totalWHTaxToCount = totalWhTaxamount;
 
-    total = Number(subTotal) + Number(taxtotal);
+    // total = Number(subTotal) + Number(taxtotal);
     var totalReceived = total;
     var subTotal2 = Number(subTotal) + Number(discountTotal);
     log.debug("subTotal2", subTotal2);
@@ -325,9 +325,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         
       }
     }
-    var taxTotalRate = (parseFloat(totalCost) - parseFloat(totalDiscount)) * 11 / 100;
+    
     var discountHeader = dataRec.getValue("discountrate")||0;
     totalDiscount = parseFloat(totalDiscount) + parseFloat(discountHeader)
+    log.debug('totalDiscount', totalDiscount);
+    var taxTotalRate = (parseFloat(totalCost) - parseFloat(totalDiscount)) * 11 / 100;
     var response = context.response;
     var xml = "";
     var header = "";
@@ -492,15 +494,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "<tr>";
     body += "<td></td>"
     body += "<td style='align:right'>SUB TOTAL</td>"
-    var subtotalcount = parseFloat(totalCost) - parseFloat(totalDiscount)
+    
+    var subtotalcount = parseFloat(totalCost) + parseFloat(totalDiscount)
+    log.debug('subtotalcount', {subtotalcount : subtotalcount, totalCost : totalCost, totalDiscount : totalDiscount})
     body += "<td style='align:right'>Rp. "+numberWithCommas(subtotalcount)+"</td>"
     body += "</tr>";
 
     body += "<tr>";
     body += "<td></td>"
     body += "<td style='align:right'>VAT 11%</td>"
-    // body += "<td style='align:right'>Rp. "+removeDecimalFormat(taxtotal)+"</td>"
-    body += "<td style='align:right'>Rp. "+removeDecimalFormat(taxTotalRate)+"</td>"
+    body += "<td style='align:right'>Rp. "+removeDecimalFormat(taxtotal)+"</td>"
+    // body += "<td style='align:right'>Rp. "+numberWithCommas(taxTotalRate)+"</td>"
     body += "</tr>";
 
     body += "<tr>";
