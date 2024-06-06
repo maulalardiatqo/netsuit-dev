@@ -70,6 +70,7 @@ define([
                     type: "customrecord_ncfar_asset",
                     filters:
                     [
+                        ["custrecord_assetstatus","noneof","4"]
                     ],
                     columns:
                     [
@@ -274,7 +275,9 @@ define([
                         type: "customrecord_ncfar_asset",
                         filters:
                         [
-                            ["custrecord_assettype","anyof",type]
+                            ["custrecord_assettype","anyof",type],
+                            "AND",
+                            ["custrecord_assetstatus","noneof","4"]
                         ],
                         columns:
                         [
@@ -304,7 +307,9 @@ define([
                         type: "customrecord_ncfar_asset",
                         filters:
                         [
-                            ["custrecord_assetstatus","anyof",status]
+                            ["custrecord_assetstatus","anyof",status],
+                            "AND",
+                            ["custrecord_assetstatus","noneof","4"]
                         ],
                         columns:
                         [
@@ -335,7 +340,9 @@ define([
                         [
                             ["custrecord_assettype","anyof",type], 
                             "AND", 
-                            ["custrecord_assetstatus","anyof",status]
+                            ["custrecord_assetstatus","anyof",status],
+                            "AND",
+                            ["custrecord_assetstatus","noneof","4"]
                         ],
                         columns:
                         [
@@ -364,6 +371,7 @@ define([
                         type: "customrecord_ncfar_asset",
                         filters:
                         [
+                            ["custrecord_assetstatus","noneof","4"]
                         ],
                         columns:
                         [

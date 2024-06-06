@@ -144,6 +144,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     // PO data
     var jobTitle = dataRec.getValue("title");
     var sendDate = dataRec.getText("trandate");
+    var tranId = dataRec.getValue("tranid");
     var quoteTotal = dataRec.getValue("total") || 0;
     var taxtotal = dataRec.getValue("taxtotal") || 0;
     var total = dataRec.getValue("total") || 0;
@@ -385,8 +386,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "<tr>";
     body += "<td style='width:20%'></td>"
     body += "<td style='width:30%'></td>"
-    body += "<td style='width:15%'></td>"
     body += "<td style='width:10%'></td>"
+    body += "<td style='width:14%'></td>"
+    body += "<td style='width:1%'></td>"
     body += "<td style='width:25%'></td>"
     body += "</tr>";
 
@@ -394,6 +396,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "<td colspan='2'>"+legalName+"</td>"
     body += "<td></td>"
     body += "<td>DATE</td>"
+    body += "<td></td>"
     body += "<td style='align:right'>"+sendDate+"</td>"
     body += "</tr>";
 
@@ -401,12 +404,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "<td rowspan='2' colspan='2'>"+addresSubsidiaries+"</td>"
     body += "<td></td>"
     body += "<td>JOB TITLE</td>"
+    body += "<td></td>"
     body += "<td style='align:right'>"+jobTitle+"</td>"
     body += "</tr>";
 
     body += "<tr>";
     body += "<td></td>"
     body += "<td>JOB NO.</td>"
+    body += "<td></td>"
     body += "<td style='align:right'>"+jobNumber+"</td>"
     body += "</tr>";
 
@@ -417,6 +422,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "<tr>";
     body += "<td>ORDER BY</td>"
     body += "<td>"+custName+"</td>"
+    body += "<td></td>"
+    body += "<td>QUOTATION NO.</td>"
+    body += "<td></td>"
+    body += "<td style='align:right'>"+tranId+"</td>"
     body += "</tr>";
 
     body += "<tr>";
@@ -495,9 +504,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "<td></td>"
     body += "<td style='align:right'>SUB TOTAL</td>"
     
-    var subtotalcount = parseFloat(totalCost) + parseFloat(totalDiscount)
-    log.debug('subtotalcount', {subtotalcount : subtotalcount, totalCost : totalCost, totalDiscount : totalDiscount})
-    body += "<td style='align:right'>Rp. "+numberWithCommas(subtotalcount)+"</td>"
+    // var subtotalcount = parseFloat(totalCost) + parseFloat(totalDiscount)
+    // log.debug('subtotalcount', {subtotalcount : subtotalcount, totalCost : totalCost, totalDiscount : totalDiscount})
+    body += "<td style='align:right'>Rp. "+removeDecimalFormat(subTotal2)+"</td>"
     body += "</tr>";
 
     body += "<tr>";

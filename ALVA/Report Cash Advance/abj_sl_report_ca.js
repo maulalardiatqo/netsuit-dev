@@ -67,6 +67,12 @@ define([
                 container: "filteroption",
                 source: "employee",
             });
+            var datefilter = form.addField({
+                id: "custpage_date_option",
+                label: "Date",
+                type: serverWidget.FieldType.DATE,
+                container: "filteroption"
+            });
             form.addSubmitButton({
                 label: "Search",
             });
@@ -75,6 +81,7 @@ define([
             }else{
                 var projectId = context.request.parameters.custpage_project_option;
                 var empId = context.request.parameters.custpage_employee_option;
+                var dateFilter = context.request.parameters.custpage_date_option;
 
 
                     var currentRecord = createSublist("custpage_sublist_item", form);
@@ -100,7 +107,16 @@ define([
                             })
                         );
                     }
-                    log.debug('dataCheck', dataCheck)
+                    if(dateFilter){
+                        dataCheck.filters.push(
+                            search.createFilter({
+                                name: "trandate",
+                                operator: search.Operator.ON,
+                                values: dateFilter,
+                            })
+                        );
+                    }
+                    var allData = [];
                     var resultDataChect = getAllResults(dataCheck);
                     var line = 0
                     resultDataChect.forEach(function (row) {
@@ -370,7 +386,29 @@ define([
                             line: line,
                         });
                         line++
-                    })
+                        allData.push({
+                            noTrans : noTrans,
+                            empName : empName || '',
+                            projectName : projectName,
+                            memo : memo || '',
+                            amountCash :amountCash,
+                            transferDate : transferDate,
+                            bank : bank,
+                            bankAcc : bankAcc,
+                            norec : norec,
+                            expDate : expDate || '',
+                            expAmount : expAmount || 0.00,
+                            diffAmt : diffAmt || 0.00,
+                            depoAmount : depoAmount || 0.00,
+                            paymentAmount : paymentAmount || 0.00
+                        })
+                    });
+                    form.addButton({
+                        id: 'custpage_button_po',
+                        label: "Export Excel",
+                        functionName: "download('" + JSON.stringify(allData) + "')"
+                    });
+                    form.clientScriptModulePath = "SuiteScripts/abj_cs_report_ca.js";
                     context.response.writePage(form);
                 
             }

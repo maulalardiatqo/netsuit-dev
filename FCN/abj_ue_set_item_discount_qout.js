@@ -23,6 +23,7 @@ define(['N/record', 'N/search', 'N/error'], function(record, search, error) {
                 log.debug('lineCount', lineCount);
                 var totalDiscount = 0;
                 var cekItem = false;
+                var taxcode
                 if(lineCount > 0){
                     for (var i = 0; i < lineCount; i++) {
                         var itemId = currentRecord.getSublistValue({
@@ -35,6 +36,14 @@ define(['N/record', 'N/search', 'N/error'], function(record, search, error) {
                             fieldId : 'custcol_abj_disc_line',
                             line : i
                         })
+                        var cekTaxCode = currentRecord.getSublistValue({
+                            sublistId : 'item',
+                            fieldId : 'taxcode',
+                            line : i
+                        })
+                        if(cekTaxCode){
+                            taxcode = cekTaxCode
+                        }
                         if(itemId == '2880'){
                             cekItem = true
                             log.debug('cekItem', cekItem);
@@ -72,11 +81,17 @@ define(['N/record', 'N/search', 'N/error'], function(record, search, error) {
                                         value : totalDiscountMin
                                     })
                                     recLoad.setCurrentSublistValue({
-                                        sublistId : "item",
-                                        fieldId : "amount",
+                                        sublistId : 'item',
+                                        fieldId : 'taxcode',
                                         line : i,
-                                        value : totalDiscountMin
+                                        value : taxcode
                                     })
+                                    // recLoad.setCurrentSublistValue({
+                                    //     sublistId : "item",
+                                    //     fieldId : "amount",
+                                    //     line : i,
+                                    //     value : totalDiscountMin
+                                    // })
                                     recLoad.commitLine("item")
                                 }
                             }
@@ -103,9 +118,14 @@ define(['N/record', 'N/search', 'N/error'], function(record, search, error) {
                         })
                         recLoad.setCurrentSublistValue({
                             sublistId : 'item',
-                            fieldId : 'amount',
-                            value : totalDiscountMin
+                            fieldId : 'taxcode',
+                            value : taxcode
                         })
+                        // recLoad.setCurrentSublistValue({
+                        //     sublistId : 'item',
+                        //     fieldId : 'amount',
+                        //     value : totalDiscountMin
+                        // })
                         recLoad.commitLine("item")
                     }
                 }

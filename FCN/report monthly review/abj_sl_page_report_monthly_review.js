@@ -297,8 +297,8 @@ define([
                     summary: "SUM",
                 }) || 0;
             
-                var grossProvitRevly = Number(billingly) + Number(costOfBillingly);
-                var grossProvitRevty = Number(billingty) + Number(costOfBillingty);
+                var grossProvitRevly = Number(billingly) - Number(costOfBillingly);
+                var grossProvitRevty = Number(billingty) - Number(costOfBillingty);
                 
                 var gpToBillingly = billingly !== 0 ? grossProvitRevly / billingly : 0;
                 var gpToBillinglytext = gpToBillingly.toFixed(2) + '%'
@@ -331,7 +331,7 @@ define([
 
                 var estimateBill = Number(billingty) + Number(totalBilling)
                 var estimateCoss = Number(costOfBillingty) + Number(totalCostOfBilling)
-                var estimateRev = Number(estimateBill) + Number(estimateCoss);
+                var estimateRev = Number(estimateBill) - Number(estimateCoss);
                 var estimateGp = (estimateRev !== 0 && estimateBill !== 0) ? Number(estimateRev) / Number(estimateBill) : 0;
                 var estimateGpText = estimateGp.toFixed(2) + ' %';
                 var estimateOpex = Number(opexty) * 12
@@ -457,7 +457,7 @@ define([
                     summary: "SUM",
                 }) || 0;
 
-                var fyRevly = Number(fyBillly) + Number(fyCostOfBillly)
+                var fyRevly = Number(fyBillly) - Number(fyCostOfBillly)
                 var fyGply = (fyRevly !== 0 && fyBillly !== 0) ? Number(fyRevly) / Number(fyBillly) : 0;
                 fyGply = convertText(fyGply);
                 var fyOpexly = Number(opexly) * 12
