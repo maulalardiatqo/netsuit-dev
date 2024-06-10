@@ -51,13 +51,19 @@ define([
                 id: "filteroption",
                 label: "FILTERS",
             });
-            
+          
             var empFilter = form.addField({
                 id: "custpage_employee_option",
                 label: "Employee",
                 type: serverWidget.FieldType.SELECT,
                 container: "filteroption",
                 source: "employee",
+            });
+            var datefilter = form.addField({
+                id: "custpage_date_option",
+                label: "Date",
+                type: serverWidget.FieldType.DATE,
+                container: "filteroption"
             });
             form.addSubmitButton({
                 label: "Search",
@@ -66,6 +72,7 @@ define([
                 context.response.writePage(form);
             }else{
                 var empId = context.request.parameters.custpage_employee_option;
+                var dateFilter = context.request.parameters.custpage_date_option;
 
 
                     var currentRecord = createSublist("custpage_sublist_item", form);
@@ -79,6 +86,15 @@ define([
                                 name: "employee",
                                 operator: search.Operator.IS,
                                 values: empId,
+                            })
+                        );
+                    }
+                    if(dateFilter){
+                        dataCheck.filters.push(
+                            search.createFilter({
+                                name: "trandate",
+                                operator: search.Operator.ON,
+                                values: dateFilter,
                             })
                         );
                     }
@@ -101,6 +117,10 @@ define([
                             name: "internalid",
                             join: "employee",
                         })
+                        var projectName = row.getValue({
+                            name: "name",
+                            join: "class",
+                        })
                         var memo = row.getValue({
                             name: "memo"
                         });
@@ -110,9 +130,25 @@ define([
                         var transferDate = row.getValue({
                             name: "trandate"
                         });
+                        var bank = row.getValue({
+                            name: "custentity_abj_bank_name",
+                            join: "employee",
+                        });
+                        var norec = row.getValue({
+                            name: "custentity_abj_account_name",
+                            join: "employee",
+                        });
+                        log.debug('norek', norec)
+                        var bankAcc = row.getValue({
+                            name: "custentity_abj_bank_account_name",
+                            join: "employee",
+                        })
                         var account = row.getValue({
                             name : 'account'
                         });
+                        var project = row.getValue({
+                            name : 'class'
+                        })
                         log.debug('data', {employee : employee, account : account,});
                         var expDate
                         var expAmount
@@ -127,13 +163,15 @@ define([
                                 "AND", 
                                 ["mainline","is","F"], 
                                 "AND", 
-                                ["employee","anyof",empId], 
-                                "AND", 
                                 ["taxline","is","F"], 
+                                "AND",  
+                                ["class.internalid","noneof","@NONE@"], 
+                                "AND", 
+                                ["employee","anyof",employee], 
                                 "AND", 
                                 ["advanceaccount","anyof",account], 
                                 "AND", 
-                                ["custbody_abj_deposit_no","anyof",idTrans]
+                                ["custbody_abj_check_no","anyof",idTrans]
                             ],
                             columns:
                             [

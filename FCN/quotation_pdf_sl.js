@@ -493,21 +493,26 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "<td style='align:right'>TOTAL COST</td>"
     body += "<td style='align:right'>Rp. "+numberWithCommas(totalCost)+"</td>"
     body += "</tr>";
+    log.debug('totalDiscount', totalDiscount)
+    if(totalDiscount != 0 || totalDiscount != '0'){
+      body += "<tr>";
+      body += "<td></td>"
+      body += "<td style='align:right'>TOTAL DISCOUNT</td>"
+      body += "<td style='align:right'>Rp. ("+numberWithCommas(totalDiscount)+")</td>"
+      body += "</tr>";
 
-    body += "<tr>";
-    body += "<td></td>"
-    body += "<td style='align:right'>TOTAL DISCOUNT</td>"
-    body += "<td style='align:right'>Rp. ("+numberWithCommas(totalDiscount)+")</td>"
-    body += "</tr>";
-
-    body += "<tr>";
-    body += "<td></td>"
-    body += "<td style='align:right'>SUB TOTAL</td>"
+      body += "<tr>";
+      body += "<td></td>"
+      body += "<td style='align:right'>SUB TOTAL</td>"
+      
+      // var subtotalcount = parseFloat(totalCost) + parseFloat(totalDiscount)
+      // log.debug('subtotalcount', {subtotalcount : subtotalcount, totalCost : totalCost, totalDiscount : totalDiscount})
+      body += "<td style='align:right'>Rp. "+removeDecimalFormat(subTotal2)+"</td>"
+      body += "</tr>";
+    }
     
-    // var subtotalcount = parseFloat(totalCost) + parseFloat(totalDiscount)
-    // log.debug('subtotalcount', {subtotalcount : subtotalcount, totalCost : totalCost, totalDiscount : totalDiscount})
-    body += "<td style='align:right'>Rp. "+removeDecimalFormat(subTotal2)+"</td>"
-    body += "</tr>";
+
+  
 
     body += "<tr>";
     body += "<td></td>"
