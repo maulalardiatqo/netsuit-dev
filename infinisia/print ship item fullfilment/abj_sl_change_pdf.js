@@ -49,7 +49,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var poCust = recSo.getValue('otherrefnum');
                 }
                 var shippingDate = ifRec.getValue('trandate');
-                var dikirim = ifRec.getValue('shipcarrier');
+                var dikirim = ifRec.getValue('shipcarrier') || '';
                 var docnumber = ifRec.getValue('tranid');
                 log.debug('dikirim', dikirim)
                 var ekspedisi = ifRec.getText('shipmethod');
@@ -126,11 +126,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var response = context.response;
                 var xml = "";
                 var header = "";
-                var body = "";
+                var body1 = "";
+                var body2 = "";
                 var headerHeight = '1%';
                 var style = "";
-                var footer = "";
+                var footer1 = "";
+                var footer2 = "";
                 var pdfFile = null;
+                
                 style += "<style type='text/css'>";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
@@ -147,232 +150,265 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 style += ".page-break { page-break-before: always; }"; 
                 style += "</style>";
                 
-    
                 header += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
                 header += "<tbody>";
                 header += "</tbody>";
                 header += "</table>";
-
-                body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
-                body+= "<tbody>";
-                body+= "<tr>"
-                body+= "<td style='width:15%'></td>"
-                body+= "<td style='width:33%'></td>"
-                body+= "<td style='width:4%'></td>"
-                body+= "<td style='width:18%'></td>"
-                body+= "<td style='width:30%'></td>"
-                body+="</tr>";
-
-                body+= "<tr>"
-                body+= "<td style='font-size:18px; font-weight:bold; align:left' colspan='2'>PT. Infinisia Sumber Semesta</td>"
-                body+= "<td></td>"
-                body+= "<td style='font-size:18px; font-weight:bold; align:right' colspan='2'>Surat Jalan / Delivery Order</td>"
-                body+="</tr>";
-
-                body+= "<tr>"
-                body+= "<td style='font-weight:bold'>DO#</td>"
-                body+= "<td>: "+docnumber+"</td>"
-                body+= "<td></td>"
-                body+= "<td style='font-weight:bold'>Dikirim Dengan :</td>"
-                body+= "<td rowspan='2'>"+dikirim+"</td>"
-                body+= "</tr>";
-
-                body+= "<tr>"
-                body+= "<td style='font-weight:bold'>Tanggal</td>"
-                body+= "<td>: "+shippingDate+"</td>"
-                body+= "</tr>";
-
-                body+= "<tr>"
-                body+= "<td style='font-weight:bold'>SO#</td>"
-                body+= "<td>: "+trandId+"</td>"
-                body+= "</tr>";
-
-                body+= "<tr>"
-                body+= "<td style='font-weight:bold'>Cust. PO</td>"
-                body+= "<td>: "+poCust+"</td>"
-                body+= "</tr>";
-
-                body+= "<tr>"
-                body+= "<td style='font-weight:bold'>Kirim Ke</td>"
-                body+= "<td rowspa='2'>: "+shipTo+"</td>"
-                body+= "</tr>";
-                body+= "<tr>"
-                body+= "<td style='height:30px'></td>"
-                body+= "</tr>"
-
-                body+= "</tbody>";
-                body+= "</table>";
-
-                body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
-                body+= "<tbody>";
-
-                body+= "<tr>"
-                body+= "<td style='width:5%'></td>"
-                body+= "<td style='width:20%'></td>"
-                body+= "<td style='width:15%'></td>"
-                body+= "<td style='width:15%'></td>"
-                body+= "<td style='width:13%'></td>"
-                body+= "<td style='width:12%'></td>"
-                body+= "<td style='width:15%'></td>"
-                body+= "</tr>";
-
-                body+= "<tr>"
-                body+= "<td style='border-top:1px solid black; border-bottom:2px solid black'>No</td>"
-                body+= "<td style='border-top:1px solid black; border-bottom:2px solid black'>Kode Barang</td>"
-                body+= "<td style='border-top:1px solid black; border-bottom:2px solid black' colspan='2'>Keterangan</td>"
-                body+= "<td style='border-top:1px solid black; border-bottom:2px solid black'>Kemasan</td>"
-                body+= "<td style='border-top:1px solid black; border-bottom:2px solid black'>Unit</td>"
-                body+= "<td style='border-top:1px solid black; border-bottom:2px solid black'>Total QTY</td>"
-                body+= "</tr>";  
                 
-                body += getLine(context, ifRec);
-
-                body+= "</tbody>";
-                body+= "</table>";
-
-                body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
-                body+= "<tbody>";
-
-                body+= "<tr>"
-                body+= "<td style='width:20%'></td>"
-                body+= "<td style='width:20%'></td>"
-                body+= "<td style='width:20%'></td>"
-                body+= "<td style='width:20%'></td>"
-                body+= "<td style='width:20%'></td>"
-                body+= "</tr>";
-
-                body+= "<tr>"
-                body+= "<td style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black' >Diterima Oleh :</td>"
-                body+= "<td style='border-top:1px solid black; border-right:1px solid black; align:center;'>Track Tag #</td>"
-                body+= "<td style='border-top:1px solid black; border-right:1px solid black'>Supir,</td>"
-                body+= "<td style='border-top:1px solid black; border-right:1px solid black' >Gudang</td>"
-                body+= "<td style='border-top:1px solid black; border-right:1px solid black' >Admin</td>"
-                body+= "</tr>"; 
-
-                body+= "<tr style='height:40px'>"
-                body+= "<td style='border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black' ></td>"
-                body+= "<td style='border-bottom:1px solid black; border-right:1px solid black; font-size:9px; align:center;'>http://crm.infinisia.co.id/check</td>"
-                body+= "<td style='border-bottom:1px solid black; border-right:1px solid black'></td>"
-                body+= "<td style='border-bottom:1px solid black; border-right:1px solid black' ></td>"
-                body+= "<td style='border-bottom:1px solid black; border-right:1px solid black' ></td>"
-                body+= "</tr>"; 
-
-                body+= "<tr style='height:40px'>"
-                body+= "</tr>"; 
-                body+= "<tr>"
-                body+= "<td style='font-size:14px;font-weight:bold'>"+nopolMobil+"</td>"
-                body+= "</tr>"; 
-
-                body+= "<tr style='height:40px'>"
-                body+= "</tr>"; 
-
-                body+= "</tbody>";
-                body+= "</table>";
-
-                body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
-                body+= "<tbody>";
-                body+= "<tr>"
-                body+= "<td style='width:25%'></td>"
-                body+= "<td style='width:25%'></td>"
-                body+= "<td style='width:25%'></td>"
-                body+= "<td style='width:25%'></td>"
-                body+= "</tr>";
+                // Konten untuk halaman pertama
+                body1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
+                body1 += "<tbody>";
+                body1 += "<tr>";
+                body1 += "<td style='width:15%'></td>";
+                body1 += "<td style='width:33%'></td>";
+                body1 += "<td style='width:4%'></td>";
+                body1 += "<td style='width:18%'></td>";
+                body1 += "<td style='width:30%'></td>";
+                body1 += "</tr>";
+                body1 += "<tr>";
+                body1 += "<td style='font-size:18px; font-weight:bold; align:left' colspan='2'>PT. Infinisia Sumber Semesta</td>";
+                body1 += "<td></td>";
+                body1 += "<td style='font-size:18px; font-weight:bold; align:right' colspan='2'>Surat Jalan / Delivery Order</td>";
+                body1 += "</tr>";
+                body1 += "<tr>";
+                body1 += "<td style='font-weight:bold'>DO#</td>";
+                body1 += "<td>: " + docnumber + "</td>";
+                body1 += "<td></td>";
+                body1 += "<td style='font-weight:bold'>Dikirim Dengan :</td>";
+                body1 += "<td rowspan='2'>" + dikirim + "</td>";
+                body1 += "</tr>";
+                body1 += "<tr>";
+                body1 += "<td style='font-weight:bold'>Tanggal</td>";
+                body1 += "<td>: " + shippingDate + "</td>";
+                body1 += "</tr>";
+                body1 += "<tr>";
+                body1 += "<td style='font-weight:bold'>SO#</td>";
+                body1 += "<td>: " + trandId + "</td>";
+                body1 += "</tr>";
+                body1 += "<tr>";
+                body1 += "<td style='font-weight:bold'>Cust. PO</td>";
+                body1 += "<td>: " + poCust + "</td>";
+                body1 += "</tr>";
+                body1 += "<tr>";
+                body1 += "<td style='font-weight:bold'>Kirim Ke</td>";
+                body1 += "<td rowspa='2'>: " + shipTo + "</td>";
+                body1 += "</tr>";
+                body1 += "<tr>";
+                body1 += "<td style='height:30px'></td>";
+                body1 += "</tr>";
+                body1 += "</tbody>";
+                body1 += "</table>";
+                body1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
+                body1 += "<tbody>";
+                body1 += "<tr>";
+                body1 += "<td style='width:5%'></td>";
+                body1 += "<td style='width:20%'></td>";
+                body1 += "<td style='width:15%'></td>";
+                body1 += "<td style='width:15%'></td>";
+                body1 += "<td style='width:13%'></td>";
+                body1 += "<td style='width:12%'></td>";
+                body1 += "<td style='width:15%'></td>";
+                body1 += "</tr>";
+                body1 += "<tr>";
+                body1 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>No</td>";
+                body1 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Kode Barang</td>";
+                body1 += "<td style='border-top:1px solid black; border-bottom:2px solid black' colspan='2'>Keterangan</td>";
+                body1 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Kemasan</td>";
+                body1 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Unit</td>";
+                body1 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Total QTY</td>";
+                body1 += "</tr>";  
+                body1 += getLine(context, ifRec);
+                body1 += "</tbody>";
+                body1 += "</table>";
+                body1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
+                body1 += "<tbody>";
+                body1 += "<tr>";
+                body1 += "<td style='width:20%'></td>";
+                body1 += "<td style='width:20%'></td>";
+                body1 += "<td style='width:20%'></td>";
+                body1 += "<td style='width:20%'></td>";
+                body1 += "<td style='width:20%'></td>";
+                body1 += "</tr>";
+                body1 += "<tr>";
+                body1 += "<td style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black' >Diterima Oleh :</td>";
+                body1 += "<td style='border-top:1px solid black; border-right:1px solid black; align:center;'>Track Tag #</td>";
+                body1 += "<td style='border-top:1px solid black; border-right:1px solid black'>Supir,</td>";
+                body1 += "<td style='border-top:1px solid black; border-right:1px solid black' >Gudang</td>";
+                body1 += "<td style='border-top:1px solid black; border-right:1px solid black' >Admin</td>";
+                body1 += "</tr>"; 
+                body1 += "<tr style='height:60px'>";
+                body1 += "<td style='border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black' ></td>";
+                body1 += "<td style='border-bottom:1px solid black; border-right:1px solid black; font-size:9px; align:center;'>http://crm.infinisia.co.id/check</td>";
+                body1 += "<td style='border-bottom:1px solid black; border-right:1px solid black'></td>";
+                body1 += "<td style='border-bottom:1px solid black; border-right:1px solid black' ></td>";
+                body1 += "<td style='border-bottom:1px solid black; border-right:1px solid black' ></td>";
+                body1 += "</tr>"; 
+                body1 += "<tr style='height:40px'>";
+                body1 += "</tr>"; 
+                body1 += "<tr>";
+                body1 += "<td style='font-size:14px;font-weight:bold'>" + nopolMobil + "</td>";
+                body1 += "</tr>"; 
+                body1 += "<tr style='height:40px'>";
+                body1 += "</tr>"; 
+                body1 += "</tbody>";
+                body1 += "</table>";
                 
-                body+= "<tr>"
-                body+= "<td style='align:center'>"+docnumber+"</td>"
-                body+= "<td style='align:center'>"+location+"</td>"
-                body+= "<td style='align:center'>DWIANNUARAH</td>"
-                body+= "<td style='align:center'>Page 1 of 1</td>"
-                body+= "</tr>";
+                // Konten untuk halaman kedua
+                body2 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
+                body2 += "<tbody>";
+                body2 += "<tr>";
+                body2 += "<td style='width:15%'></td>";
+                body2 += "<td style='width:33%'></td>";
+                body2 += "<td style='width:4%'></td>";
+                body2 += "<td style='width:18%'></td>";
+                body2 += "<td style='width:30%'></td>";
+                body2 += "</tr>";
+                body2 += "<tr>";
+                body2 += "<td style='font-size:18px; font-weight:bold; align:left' colspan='2'>PT. Infinisia Sumber Semesta</td>";
+                body2 += "<td></td>";
+                body2 += "<td style='font-size:18px; font-weight:bold; align:right' colspan='2'>Surat Daftar Kemasan / Packing List</td>";
+                body2 += "</tr>";
+                body2 += "<tr>";
+                body2 += "<td style='font-weight:bold'>DO#</td>";
+                body2 += "<td>: " + docnumber + "</td>";
+                body2 += "</tr>";
+                body2 += "<tr>";
+                body2 += "<td style='font-weight:bold'>Tanggal</td>";
+                body2 += "<td>: " + shippingDate + "</td>";
+                body2 += "</tr>";
+                body2 += "<tr>";
+                body2 += "<td style='font-weight:bold'>SO#</td>";
+                body2 += "<td>: " + trandId + "</td>";
+                body2 += "</tr>";
+                body2 += "<tr>";
+                body2 += "<td style='font-weight:bold'>Cust. PO</td>";
+                body2 += "<td>: " + poCust + "</td>";
+                body2 += "</tr>";
+                body2 += "<tr>";
+                body2 += "<td style='font-weight:bold'>Kirim Ke</td>";
+                body2 += "<td rowspa='2'>: " + shipTo + "</td>";
+                body2 += "</tr>";
+                body2 += "<tr>";
+                body2 += "<td style='height:30px'></td>";
+                body2 += "</tr>";
+                body2 += "</tbody>";
+                body2 += "</table>";
 
+                body2 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
+                body2 += "<tbody>";
+                body2 += "<tr>";
+                body2 += "<td style='width:5%'></td>";
+                body2 += "<td style='width:20%'></td>";
+                body2 += "<td style='width:15%'></td>";
+                body2 += "<td style='width:15%'></td>";
+                body2 += "<td style='width:13%'></td>";
+                body2 += "<td style='width:12%'></td>";
+                body2 += "<td style='width:15%'></td>";
+                body2 += "</tr>";
+                body2 += "<tr>";
+                body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>No</td>";
+                body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Kode Barang</td>";
+                body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black' colspan='2'>lokasi</td>";
+                body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Batch/Lot No.</td>";
+                body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Kemasan</td>";
+                body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Unit Kemasan</td>";
+                body2 += "</tr>";  
+                body2 += getLine2(context, ifRec);
 
-                body+= "<tr style='height:40px'>"
-                body+= "</tr>"; 
+                body2 += "<tr>";
+                body2 += "<td style='border-bottom:2px solid black; height:20px;' colspan='7'></td>"
+                body2 += "</tr>"; 
+                body2 += "</tbody>";
+                body2 += "</table>";
 
-                body+= "</tbody>";
-                body+= "</table>";
-                // hal 2
-                body += "<div class='page-break'></div>";
-                body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
-                body+= "<tbody>";
-                body+= "<tr>"
-                body+= "<td style='width:15%'></td>"
-                body+= "<td style='width:33%'></td>"
-                body+= "<td style='width:4%'></td>"
-                body+= "<td style='width:18%'></td>"
-                body+= "<td style='width:30%'></td>"
-                body+="</tr>";
+                body2 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
+                body2 += "<tbody>";
+                body2 += "<tr>";
+                body2 += "<td style='width:20%'></td>";
+                body2 += "<td style='width:30%'></td>";
+                body2 += "<td style='width:25%'></td>";
+                body2 += "<td style='width:25%'></td>";
+                body2 += "</tr>";
+                body2 += "<tr>";
+                body2 += "<td style='border-top:1px solid black; border-left:1px solid black'>Diterima oleh,</td>"
+                body2 += "<td style='border-top:1px solid black; border-left:1px solid black'></td>"
+                body2 += "<td style='border-top:1px solid black; border-left:1px solid black'>Disiapkan oleh,</td>"
+                body2 += "<td style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black'>Diperiksa oleh,</td>"
+                body2 += "</tr>"; 
 
-                body+= "<tr>"
-                body+= "<td style='font-size:18px; font-weight:bold; align:left' colspan='2'>PT. Infinisia Sumber Semesta</td>"
-                body+= "<td></td>"
-                body+= "<td style='font-size:18px; font-weight:bold; align:right' colspan='2'>Surat Daftar Kemasan / Packing List</td>"
-                body+="</tr>";
+                body2 += "<tr style='height:60px'>";
+                body2 += "<td style='border-bottom:1px solid black; border-left:1px solid black'></td>"
+                body2 += "<td style='border-bottom:1px solid black; border-left:1px solid black'></td>"
+                body2 += "<td style='border-bottom:1px solid black; border-left:1px solid black'></td>"
+                body2 += "<td style='border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black'></td>"
+                body2 += "</tr>"; 
 
-                body+= "<tr>"
-                body+= "<td style='font-weight:bold'>DO#</td>"
-                body+= "<td>: "+docnumber+"</td>"
-                body+= "</tr>";
-
-                body+= "<tr>"
-                body+= "<td style='font-weight:bold'>Tanggal</td>"
-                body+= "<td>: "+shippingDate+"</td>"
-                body+= "</tr>";
-
-                body+= "<tr>"
-                body+= "<td style='font-weight:bold'>SO#</td>"
-                body+= "<td>: "+trandId+"</td>"
-                body+= "</tr>";
-
-                body+= "<tr>"
-                body+= "<td style='font-weight:bold'>Cust. PO</td>"
-                body+= "<td>: "+poCust+"</td>"
-                body+= "</tr>";
-
-                body+= "<tr>"
-                body+= "<td style='font-weight:bold'>Kirim Ke</td>"
-                body+= "<td rowspa='2'>: "+shipTo+"</td>"
-                body+= "</tr>";
-                body+= "<tr>"
-                body+= "<td style='height:30px'></td>"
-                body+= "</tr>"
-
-                body+= "</tbody>";
-                body+= "</table>";
-
-                footer += "<table class='tg' style='table-layout: fixed;'>";
-                footer += "<tbody>";
-                footer+= "<tr>"
-                footer+= "<td style='width:56%'></td>"
-                footer+= "<td style='width:4%'></td>"
-                footer+= "<td style='width:20%'></td>"
-                footer+= "<td style='width:20%'></td>"
-                footer+="</tr>";
-                footer += "</tbody>";
-                footer += "</table>";
-
+                body2 += "</tbody>";
+                body2 += "</table>";
+                
+                footer1 += "<table class='tg' style='table-layout: fixed;'>";
+                footer1 += "<tbody>";
+                footer1 += "<tr>";
+                footer1 += "<td style='width:25%'></td>";
+                footer1 += "<td style='width:25%'></td>";
+                footer1 += "<td style='width:25%'></td>";
+                footer1 += "<td style='width:25%'></td>";
+                footer1 += "</tr>";
+                footer1 += "<tr>";
+                footer1 += "<td style='align:center'>" + docnumber + "</td>";
+                footer1 += "<td style='align:center'>" + location + "</td>";
+                footer1 += "<td style='align:center'>DWIANNUARAH</td>";
+                footer1 += "<td style='align:center'>Page 1 of 1</td>";
+                footer1 += "</tr>";
+                footer1 += "</tbody>";
+                footer1 += "</table>";
+                
+                footer2 += "<table class='tg' style='table-layout: fixed;'>";
+                footer2 += "<tbody>";
+                footer2 += "<tr>";
+                footer2 += "<td style='width:23%'></td>";
+                footer2 += "<td style='width:30%'></td>";
+                footer2 += "<td style='width:25%'></td>";
+                footer2 += "<td style='width:22%'></td>";
+                footer2 += "</tr>";
+                footer2 += "<tr>";
+                footer2 += "<td style='align:center'>DWIANNUARAH</td>";
+                footer2 += "<td style='align:center; font-size:10px;'>Surat Daftar Kemasan/Packing List</td>";
+                footer2 += "<td style='align:center'>" + docnumber + "</td>";
+                footer2 += "<td style='align:center'>Page 1 of 1</td>";
+                footer2 += "</tr>";
+                footer2 += "</tbody>";
+                footer2 += "</table>";
                 
                 var xml = '<?xml version="1.0"?>\n<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">';
                 xml += "<pdf>";
                 xml += "<head>";
                 xml += style;
                 xml += "<macrolist>";
-                xml += "<macro id=\"nlheader\">";
+                xml += "<macro id='nlheader'>";
                 xml += header;
                 xml += "</macro>";
-                xml += "<macro id=\"nlfooter\">";
-                xml += footer;
+                xml += "<macro id='nlfooter1'>";
+                xml += footer1;
+                xml += "</macro>";
+                xml += "<macro id='nlfooter2'>";
+                xml += footer2;
                 xml += "</macro>";
                 xml += "</macrolist>";
-                xml += "</head>"
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='25%'>";
-                xml += body;
-                xml += "\n</body>\n</pdf>";
-    
+                xml += "</head>";
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter1' footer-height='10%'>";
+                xml += body1;
+                xml += "</body>";
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter2' footer-height='10%'>";
+                xml += body2;
+                xml += "</body>";
+                xml += "</pdf>";
+                
                 xml = xml.replace(/ & /g, ' &amp; ');
                 response.renderPdf({
                     xmlString: xml
                 });
+                
             }
             function getLine(context, ifRec){
                 var itemCount = ifRec.getLineCount({
@@ -420,6 +456,105 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<td style=''>"+qty+"</td>";
                         body += "<td style=''>"+units+"</td>";
                         body += "<td style=''>"+konversi+"</td>";
+                        body += "</tr>";
+                    }
+                    return body;
+                }
+            }
+            function getLine2(context, ifRec){
+                var recid = ifRec.getValue('id');
+                var itemCount = ifRec.getLineCount({
+                    sublistId: 'item'
+                });
+                var nomor = 0
+                if(itemCount > 0){
+                    var body = "";
+                    for(var index = 0; index < itemCount; index++){
+                        var item = ifRec.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'itemname',
+                            line: index
+                        });
+                        var itemId = ifRec.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'item',
+                            line: index
+                        });
+                        var description = ifRec.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'description',
+                            line: index
+                        });
+                        var qty = ifRec.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'quantity',
+                            line: index
+                        });
+                        var units = ifRec.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'unitsdisplay',
+                            line: index
+                        });
+                        var locationItem = ifRec.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'location',
+                            line: index
+                        });
+                        var locationLine
+                        if(locationItem){
+                            var locationRec =  record.load({
+                                type : 'location',
+                                id : locationItem,
+                                isDynamic : false
+                            })
+                            var locationName = locationRec.getValue('name');
+                            locationLine = locationName
+                        }
+                        var lotNumberItem = ''
+                        log.debug('recId', recid)
+                        var itemfulfillmentSearchObj = search.create({
+                            type: "itemfulfillment",
+                            filters:
+                            [
+                                ["type","anyof","ItemShip"], 
+                                "AND", 
+                                ["internalid","anyof",recid], 
+                                "AND", 
+                                ["inventorydetail.inventorynumber","noneof","@NONE@"], 
+                                "AND", 
+                                ["item","anyof",itemId]
+                            ],
+                            columns:
+                            [
+                                search.createColumn({
+                                    name: "inventorynumber",
+                                    join: "inventoryDetail",
+                                    label: " Number"
+                                })
+                            ]
+                        });
+                        var searchResultCount = itemfulfillmentSearchObj.runPaged().count;
+                        log.debug("itemfulfillmentSearchObj result count",searchResultCount);
+                        itemfulfillmentSearchObj.run().each(function(result){
+                            var lot = result.getText({
+                                name: "inventorynumber",
+                                join: "inventoryDetail",
+                            })
+                            log.debug('lot', lot);
+                            if(lot){
+                                lotNumberItem = lot
+                            }
+                        return true;
+                        });
+                        log.debug('lotNumberItem', lotNumberItem)
+                        nomor++;
+                        body += "<tr>";
+                        body += "<td style=''>"+nomor+"</td>";
+                        body += "<td style=''>"+item+"</td>";
+                        body += "<td style='' colspan='2'>"+locationLine+"</td>";
+                        body += "<td style=''>"+lotNumberItem+"</td>";
+                        body += "<td style=''>"+qty+"</td>";
+                        body += "<td style=''>"+units+"</td>";
                         body += "</tr>";
                     }
                     return body;
