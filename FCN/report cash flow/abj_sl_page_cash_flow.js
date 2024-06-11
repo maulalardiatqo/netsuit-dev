@@ -29,7 +29,7 @@ define([
         try{
             var contextRequest = context.request;
             var form = serverWidget.createForm({
-                title: "Cash Flow Projection",
+                title: "Cash Flow Operation Projection",
             });
             var filterOption = form.addFieldGroup({
                 id: "filteroption",
@@ -651,7 +651,7 @@ define([
         var sublist_item = form.addSublist({
             id: sublistname,
             type: serverWidget.SublistType.LIST,
-            label: "Cash Flow Projection",
+            label: "Cash Flow Operation Projection",
         });
         sublist_item.addField({
             id: "custpage_sublist_sum",
