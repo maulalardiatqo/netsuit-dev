@@ -513,16 +513,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var itemCount = poRecord.getLineCount({
                 sublistId: 'item'
             });
-        
+            // log.debug('itemCount', itemCount);
+            
             if(itemCount > 0){
                 var body = "";
-                var items = {};
                 for(var index = 0; index < itemCount; index++){
-                    var itemId = poRecord.getSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'item',
-                        line: index
-                    });
                     var qty = poRecord.getSublistValue({
                         sublistId: 'item',
                         fieldId: 'quantity',
@@ -533,64 +528,72 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fieldId: 'description',
                         line: index
                     });
+                    if(description.includes('\\')){
+                        description = description.replace(/\\/g, '<br/>');
+                    }
                     var unit = poRecord.getSublistValue({
                         sublistId: 'item',
                         fieldId: 'units',
                         line: index
                     });
-                    var amount = poRecord.getSublistValue({
+                    var rate;
+                    // var rateBef = poRecord.getSublistValue({
+                    //     sublistId: 'item',
+                    //     fieldId: 'amount',
+                    //     line: index
+                    // });
+                    var ammount = poRecord.getSublistValue({
                         sublistId: 'item',
                         fieldId: 'amount',
                         line: index
                     });
-        
-                    if(!items[itemId]){
-                        items[itemId] = {
-                            description: description,
-                            unit: unit,
-                            qty: 0,
-                            amount: 0
-                        };
+                    // if(rateBef){
+                    //     rate = rateBef
+                    // }else{
+                    //     rate = Number(ammount) / Number(qty)
+                    // }
+                    rate = Number(ammount) / Number(qty)
+                    if(rate){
+                        rate = pembulatan(rate)
+                        rate = format.format({
+                            value: rate,
+                            type: format.Type.CURRENCY
+                        });
                     }
-        
-                    items[itemId].qty += Number(qty);
-                    items[itemId].amount += Number(amount);
-                }
-        
-                // Format the accumulated data into the body
-                for(var itemId in items){
-                    var item = items[itemId];
-        
-                    if(item.description.includes('\\')){
-                        item.description = item.description.replace(/\\/g, '<br/>');
+                    
+                    var taxAmt = poRecord.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'tax1amt',
+                        line: index
+                    });
+                    if(taxAmt){
+                        taxAmt = pembulatan(taxAmt)
+                        taxAmt = format.format({
+                            value: taxAmt,
+                            type: format.Type.CURRENCY
+                        });
                     }
-        
-                    var rate = item.amount / item.qty;
-                    rate = pembulatan(rate);
-                    rate = format.format({
-                        value: rate,
-                        type: format.Type.CURRENCY
-                    });
-        
-                    var amountFormatted = pembulatan(item.amount);
-                    amountFormatted = format.format({
-                        value: amountFormatted,
-                        type: format.Type.CURRENCY
-                    });
-        
+                    // log.debug('amount', ammount)
+                    if(ammount){
+                        ammount = pembulatan(ammount)
+                        ammount = format.format({
+                            value: ammount,
+                            type: format.Type.CURRENCY
+                        });
+                    }
+                   
                     body += "<tr>";
-                    body += "<td class='tg-b_body'>"+item.qty+" - "+item.unit+ "Pcs</td>";
-                    body += "<td class='tg-b_body'>"+item.description+"</td>";
+                    body += "<td class='tg-b_body'>"+qty+" - "+unit+ "Pcs</td>";
+                    body += "<td class='tg-b_body'>"+description+"</td>";
                     body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(rate)+"</td>";
                     body += "<td class='tg-b_body' style='align:right'> X </td>";
-                    body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(amountFormatted)+"</td>";
+                    body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(ammount)+"</td>";
                     body += "</tr>";
                 }
-        
                 return body;
             }
+            
         }
-        
         function getPOExpense(context, poRecord){
             var expCont = poRecord.getLineCount({
                 sublistId : 'expense'
