@@ -184,6 +184,31 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tr>"
 
                 body += getGL(recid, arAcc, invoiceRecord)
+                body += "<tr style='height:40px'>"
+                body += "</tr>"
+
+                body += "</tbody>";
+                body += "</table>";
+
+                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:12px;\">";
+                body += "<tbody>";
+                body += "<tr>"
+                body += "<td style='width:25%'></td>"
+                body += "<td style='width:25%'></td>"
+                body += "<td style='width:25%'></td>"
+                body += "<td style='width:25%'></td>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td style='border-top:1px solid black; border-bottom:1px solid black'>ID Invoice</td>"
+                body += "<td style='border-top:1px solid black; border-bottom:1px solid black; align:right'>Orig. Amount</td>"
+                body += "<td style='border-top:1px solid black; border-bottom:1px solid black; align:right'>Amount Due</td>"
+                body += "<td style='border-top:1px solid black; border-bottom:1px solid black; align:right'>Payment</td>"
+                body += "</tr>"
+                body += getPymnt(invoiceRecord)
+                body += "<tr>"
+                body += "<td style='border-top:1px solid black;' colspan='4'></td>"
+                body += "</tr>"
                 body += "</tbody>";
                 body += "</table>";
 
@@ -226,7 +251,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style='align:center; border-bottom:1px solid black'>Debby Natalia</td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
-                footer += "<td style='align:center; border-bottom:1px solid black'>Meliana Hadiwidjaya</td>"
+                footer += "<td style='align:center; border-bottom:1px solid black'>Mediana Hadiwidjaya</td>"
                 footer += "<td></td>"
                 footer += "</tr>"
                 var emptitleParsing = emptitle1.replace("&", "&amp;")
@@ -267,7 +292,65 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     xmlString: xml
                 });
             }
-            
+            function getPymnt(invoiceRecord){
+                var countApply = invoiceRecord.getLineCount({
+                    sublistId: 'apply'
+                });
+                log.debug('countApply', countApply);
+                var allInv = [];
+                if(countApply > 0){
+                    var body = "";
+                    for (var i = 0; i < countApply; i++) {
+                        var isApply = invoiceRecord.getSublistValue({
+                            sublistId: 'apply',
+                            fieldId: 'apply',
+                            line: i
+                        });
+                        log.debug('isApply', isApply);
+                        if(isApply == true || isApply == "T"){
+                            var docNum = invoiceRecord.getSublistValue({
+                                sublistId: 'apply',
+                                fieldId: 'refnum',
+                                line: i
+                            });
+                            var amount = invoiceRecord.getSublistValue({
+                                sublistId: 'apply',
+                                fieldId: 'amount',
+                                line: i
+                            });
+                            var total = invoiceRecord.getSublistValue({
+                                sublistId: 'apply',
+                                fieldId: 'total',
+                                line: i
+                            });
+                            var due = invoiceRecord.getSublistValue({
+                                sublistId: 'apply',
+                                fieldId: 'due',
+                                line: i
+                            });
+                            amount = format.format({
+                                value: amount,
+                                type: format.Type.CURRENCY
+                            });
+                            due = format.format({
+                                value: due,
+                                type: format.Type.CURRENCY
+                            });
+                            total = format.format({
+                                value: total,
+                                type: format.Type.CURRENCY
+                            });
+                            body += "<tr>";
+                            body += "<td >"+docNum+"</td>";
+                            body += "<td style='align:right'>"+removeDecimalFormat(total)+"</td>";
+                            body += "<td style='align:right'>"+removeDecimalFormat(due)+"</td>";
+                            body += "<td style='align:right'>"+removeDecimalFormat(amount)+"</td>";
+                            body += "</tr>";
+                        }
+                    }
+                    return body;
+                }
+            }
             function getGL(recId, arAcc, invoiceRecord){
                 var arAcc = arAcc
                 log.debug('arAcc', arAcc)
@@ -413,12 +496,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             body += "<td>"+numberAccount+"</td>";
                             body += "<td>"+accountName+"</td>";
                             body += "<td></td>";
-                            if(account == arAcc){
-                                body += "<td>"+formattedInv+"</td>";
-                            }else{
-                                body += "<td>"+memo+"</td>";
-                            }
-                            
+                            body += "<td>"+memo+"</td>";
                             body += "<td>"+removeDecimalFormat(debitAmount)+"</td>";
                             body += "<td>"+removeDecimalFormat(creditamount)+"</td>";
                             body += "</tr>";
