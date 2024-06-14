@@ -137,7 +137,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 style += "<style type='text/css'>";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
-                style += ".tg .tg-img-logo{width:200px; height:70px; object-vit:cover;}";
+                style += ".tg .tg-img-logo{width:220px; height:90px; object-vit:cover;}";
                 style += ".tg .tg-img-logo-a{width:150px; height:70px; object-vit:cover;}";
                 style += ".tg .tg-headerrow{align: right;font-size:12px;}";
                 style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
@@ -166,7 +166,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body1 += "<td style='width:30%'></td>";
                 body1 += "</tr>";
                 body1 += "<tr>";
-                body1 += "<td style='font-size:18px; font-weight:bold; align:left' colspan='2'>PT. Infinisia Sumber Semesta</td>";
+                if (urlLogo) {
+                    body1 += "<td class='tg-headerlogo' style='width:50%;vertical-align:center; align:left; margin-left:4px;' colspan='2'><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+                }
                 body1 += "<td></td>";
                 body1 += "<td style='font-size:18px; font-weight:bold; align:right' colspan='2'>Surat Jalan / Delivery Order</td>";
                 body1 += "</tr>";
@@ -264,7 +266,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body2 += "<td style='width:30%'></td>";
                 body2 += "</tr>";
                 body2 += "<tr>";
-                body2 += "<td style='font-size:18px; font-weight:bold; align:left' colspan='2'>PT. Infinisia Sumber Semesta</td>";
+                if (urlLogo) {
+                    body2 += "<td class='tg-headerlogo' style='width:50%;vertical-align:center; align:left; margin-left:4px;' colspan='2'><div style='display: flex;' ><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+                }
                 body2 += "<td></td>";
                 body2 += "<td style='font-size:18px; font-weight:bold; align:right' colspan='2'>Surat Daftar Kemasan / Packing List</td>";
                 body2 += "</tr>";
@@ -308,7 +312,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body2 += "<tr>";
                 body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>No</td>";
                 body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Kode Barang</td>";
-                body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black' colspan='2'>lokasi</td>";
+                body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black' colspan='2'>Lokasi</td>";
                 body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Batch/Lot No.</td>";
                 body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Kemasan</td>";
                 body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Unit Kemasan</td>";

@@ -38,6 +38,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // PO data
                 var tandId = invoiceRecord.getValue('tranid');
                 var InvDate = invoiceRecord.getValue('trandate');
+                var voucherNo = invoiceRecord.getValue('custbody_abj_voucherno');
+                var arAcc = invoiceRecord.getValue('aracct');
+                log.debug('arAcc head', arAcc)
                 if(InvDate){
                     InvDate = format.format({
                         value: InvDate,
@@ -45,7 +48,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                 }
                 var emp = invoiceRecord.getValue('custbody_fcn_sales_employee');
-                var empName 
+                var empName = ''
+                var titleEmp = ''
                 if (emp){
                     var empRec = record.load({
                         type: "employee",
@@ -56,7 +60,39 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     if(nama){
                         empName = nama
                     }
+                    var empTitle = empRec.getValue("title");
+                    if(empTitle){
+                        titleEmp = empTitle
+                    }
                    
+                }
+                var idEmp1 = 94
+                var idEmp1Rec = record.load({
+                    type: "employee",
+                    id: idEmp1,
+                    isDynamic: false,
+                })
+                var emptitle1 = idEmp1Rec.getValue("title");
+                var idEmp2 = 92
+                var idEmp2Rec = record.load({
+                    type: "employee",
+                    id: idEmp2,
+                    isDynamic: false,
+                });
+                var emptitle2 = idEmp2Rec.getValue("title");
+                var customerId = invoiceRecord.getValue('customer');
+                log.debug('customerId', customerId);
+                var custName
+                if(customerId){
+                    var custRec = record.load({
+                        type : "customer",
+                        id: customerId,
+                        isDynamic : false
+                    });
+                    var namaCust = custRec.getValue("companyname");
+                    if(namaCust){
+                        custName = namaCust
+                    }
                 }
                 var response = context.response;
                 var xml = "";
@@ -108,22 +144,21 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:12px;\">";
                 body += "<tbody>";
                 body += "<tr>"
-                body += "<td style='width:5%;font-weight:bold;'></td>"
+                body += "<td style='width:2%;font-weight:bold;'></td>"
                 body += "<td style='width:15%;font-weight:bold;'>Received From</td>"
                 body += "<td style='width:1%; font-weight:bold;'>:</td>"
-                body += "<td style='width:29%; font-weight:bold;'></td>"
-                body += "<td style='width:15%; font-weight:bold;'>Date</td>"
+                body += "<td style='width:34%; font-weight:bold;'>"+custName+"</td>"
+                body += "<td style='width:10%; font-weight:bold;'></td>"
+                body += "<td style='width:5%; font-weight:bold;'>Date</td>"
                 body += "<td style='width:1%; font-weight:bold;'>:</td>"
-                body += "<td style='width:34; font-weight:bold;'>"+InvDate+"</td>"
+                body += "<td style='width:32%; font-weight:bold;'>"+InvDate+"</td>"
                 body += "</tr>"
                 body += "<tr>"
-                body += "<td style='width:5%;font-weight:bold;'></td>"
-                body += "<td style='width:15%;font-weight:bold;'>IDGL/Reff #</td>"
-                body += "<td style='width:1%; font-weight:bold;'>:</td>"
-                body += "<td style='width:29%; font-weight:bold;'>"+tandId+"</td>"
-                body += "<td style='width:20%; font-weight:bold;'></td>"
-                body += "<td style='width:1%; font-weight:bold;'></td>"
-                body += "<td style='width:29; font-weight:bold;'></td>"
+                body += "<td style='font-weight:bold;'></td>"
+                body += "<td style='font-weight:bold;'>IDGL/Reff #</td>"
+                body += "<td style='font-weight:bold;'>:</td>"
+                body += "<td style='font-weight:bold;'>"+tandId+"</td>"
+                body += "<td style='font-weight:bold;' colspan='4'>"+voucherNo+"</td>"
                 body += "</tr>"
                 body += "</tbody>";
                 body += "</table>";
@@ -148,7 +183,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='align:left; border-top: 1px solid black; border-bottom: 1px solid black; font-weight:bold;'>Credit</td>"
                 body += "</tr>"
 
-                body += getGL(recid)
+                body += getGL(recid, arAcc, invoiceRecord)
                 body += "</tbody>";
                 body += "</table>";
 
@@ -156,26 +191,20 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<tbody>";
 
                 footer += "<tr>";
-                footer += "<td style='width:2%;'></td>";
-                footer += "<td style='width:21%;'></td>";
-                footer += "<td style='width:2%;'></td>";
-                footer += "<td style='width:2%;'></td>";
-                footer += "<td style='width:21%;'></td>";
+                footer += "<td style='width:1%;'></td>";
+                footer += "<td style='width:30%;'></td>";
                 footer += "<td style='width:2%;'></td>";
                 footer += "<td style='width:2%;'></td>";
-                footer += "<td style='width:21%;'></td>";
+                footer += "<td style='width:30%;'></td>";
                 footer += "<td style='width:2%;'></td>";
                 footer += "<td style='width:2%;'></td>";
-                footer += "<td style='width:21%;'></td>";
-                footer += "<td style='width:2%;'></td>";
+                footer += "<td style='width:30%;'></td>";
+                footer += "<td style='width:1%;'></td>"
                 footer += "</tr>";
 
                 footer += "<tr>"
                 footer += "<td></td>"
                 footer += "<td style='align:center'>Posted By:</td>"
-                footer += "<td></td>"
-                footer += "<td></td>"
-                footer += "<td style='align:center'>Checked By:</td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
                 footer += "<td style='align:center'>Approved By:</td>"
@@ -191,18 +220,28 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 footer += "<tr>"
                 footer += "<td></td>"
-                footer += "<td style='align:center'>"+empName+"</td>"
+                footer += "<td style='align:center; border-bottom:1px solid black'>"+empName+"</td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
-                footer += "<td style='align:center; border-bottom:1px solid black'></td>"
+                footer += "<td style='align:center; border-bottom:1px solid black'>Debby Natalia</td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
-                footer += "<td style='align:center; border-bottom:1px solid black'></td>"
-                footer += "<td></td>"
-                footer += "<td></td>"
-                footer += "<td style='align:center; border-bottom:1px solid black'></td>"
+                footer += "<td style='align:center; border-bottom:1px solid black'>Meliana Hadiwidjaya</td>"
                 footer += "<td></td>"
                 footer += "</tr>"
+                var emptitleParsing = emptitle1.replace("&", "&amp;")
+                footer += "<tr>"
+                footer += "<td></td>"
+                footer += "<td style='align:center'>"+titleEmp+"</td>"
+                footer += "<td></td>"
+                footer += "<td></td>"
+                footer += "<td style='align:center;'>"+emptitleParsing+"</td>"
+                footer += "<td></td>"
+                footer += "<td></td>"
+                footer += "<td style='align:center;'>"+emptitle2+"</td>"
+                footer += "<td></td>"
+                footer += "</tr>"
+
                 footer += "</tbody>";
                 footer += "</table>";
 
@@ -229,8 +268,39 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
             }
             
-            function getGL(recId){
+            function getGL(recId, arAcc, invoiceRecord){
+                var arAcc = arAcc
+                log.debug('arAcc', arAcc)
                 var recId = recId
+                var countApply = invoiceRecord.getLineCount({
+                    sublistId: 'apply'
+                });
+                log.debug('countApply', countApply);
+                var allInv = [];
+                if(countApply > 0){
+                   
+                    for (var i = 0; i < countApply; i++) {
+                        var isApply = invoiceRecord.getSublistValue({
+                            sublistId: 'apply',
+                            fieldId: 'apply',
+                            line: i
+                        });
+                        log.debug('isApply', isApply);
+                        if(isApply == true || isApply == "T"){
+                            var docNum = invoiceRecord.getSublistValue({
+                                sublistId: 'apply',
+                                fieldId: 'refnum',
+                                line: i
+                            });
+                            log.debug('docNum', docNum);
+                            if(docNum){
+                                allInv.push(docNum)
+                            }
+                        }
+                    }
+                }
+                log.debug('allInv', allInv)
+                var formattedInv = allInv.join(', ');
                 var allData = []
                 var invoiceSearchObj = search.create({
                     type: "customerpayment",
@@ -254,6 +324,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var account = result.getValue({
                         name : "account"
                     });
+                    log.debug('account', account)
                     var numberAccount
                     var accountName
                     if(account){
@@ -302,6 +373,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         name : "debitamount"
                     });
                     allData.push({
+                        account : account,
                         numberAccount : numberAccount,
                         accountName : accountName,
                         memo : memo,
@@ -314,6 +386,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var totalDebit = 0
                 var totalCredit = 0
                 allData.forEach((data)=>{
+                    var account = data.account
                     var numberAccount = data.numberAccount;
                     var accountName = data.accountName;
                     var memo = data.memo;
@@ -340,7 +413,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             body += "<td>"+numberAccount+"</td>";
                             body += "<td>"+accountName+"</td>";
                             body += "<td></td>";
-                            body += "<td>"+memo+"</td>";
+                            if(account == arAcc){
+                                body += "<td>"+formattedInv+"</td>";
+                            }else{
+                                body += "<td>"+memo+"</td>";
+                            }
+                            
                             body += "<td>"+removeDecimalFormat(debitAmount)+"</td>";
                             body += "<td>"+removeDecimalFormat(creditamount)+"</td>";
                             body += "</tr>";
