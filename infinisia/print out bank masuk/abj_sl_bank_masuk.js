@@ -300,7 +300,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                 }
                 log.debug('allInv', allInv)
-                var formattedInv = allInv.join(', ');
+                var formattedInv = allInv.join('<br />');
                 var allData = []
                 var invoiceSearchObj = search.create({
                     type: "customerpayment",

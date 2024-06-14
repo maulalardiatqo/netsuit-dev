@@ -99,36 +99,12 @@ define(["N/runtime", "N/log", "N/ui/serverWidget"], (runtime, log, serverWidget)
         var currentRole = userObj.role
         var form = context.form;
         var rec = context.newRecord;
-        var recType = rec.type
-        log.debug('recType', recType)
         if ( context.type === context.UserEventType.EDIT || context.type === context.UserEventType.CREATE || context.type === context.UserEventType.VIEW) {
             var cekFrom = rec.getValue('customform');
             log.debug('cekFrom', cekFrom)
-            if(recType == 'purchaseorder'){
-                if(currentRole == 1016 || currentRole == 1004 || currentRole == 1013 || currentRole == 1025 || currentRole == 1026 || currentRole == 1005 || currentRole == 1024){
-                    hideField(form);
-                }
-                log.debug('recType PO')
+            if(currentRole == 1016 || currentRole == 1004 || currentRole == 1013 || currentRole == 1025 || currentRole == 1026 || currentRole == 1005 || currentRole == 1024){
+                hideField(form);
             }
-            if(recType == 'salesorder'){
-                log.debug('recSO');
-                if(currentRole == 1025 || currentRole == 1026 || currentRole == 1005 || currentRole == 1024 || currentRole == 3){
-                    hideField(form);
-                    var discountTotal = form.getField({
-                        id: 'discounttotal',
-                    })
-                    discountTotal.updateDisplayType({
-                        displayType: serverWidget.FieldDisplayType.HIDDEN
-                    });
-                    var discountRate = form.getField({
-                        id: 'discountrate',
-                    })
-                    discountRate.updateDisplayType({
-                        displayType: serverWidget.FieldDisplayType.HIDDEN
-                    });
-                }
-            }
-            
 
         }
         // if(context.type === context.UserEventType.VIEW){
