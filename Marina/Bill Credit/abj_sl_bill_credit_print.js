@@ -160,9 +160,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var total = vencredRecord.getValue('total') || 0;
             var duedate = vencredRecord.getValue('duedate');
             var jobNumber = vencredRecord.getValue('custbody_abj_custom_jobnumber');
-            if(jobNumber.includes('\\')){
-                jobNumber = jobNumber.replace(/\\/g, '<br/>');
+            if(jobNumber){
+                if(jobNumber.includes('\\')){
+                    jobNumber = jobNumber.replace(/\\/g, '<br/>');
+                }
             }
+            
             var currenc = vendorRecord.getValue('currency');
             if(currenc){
                 var recCurrenc = record.load({
@@ -432,7 +435,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<tbody>";
             body += "<tr>"
             body += "<td class='tg-head_body' style='width:15%'> QTY </td>"
-            body += "<td class='tg-head_body' style='width:35%'> DESCRIPTION </td>"
+            body += "<td class='tg-head_body' style='width:35%'> ITEM </td>"
             body += "<td class='tg-head_body'> UNIT PRICE ("+tlcCurr+") </td>"
             body += "<td class='tg-head_body' style='align:right'> TAXED </td>"
             body += "<td class='tg-head_body' style='align:right'> AMOUNT ("+tlcCurr+") </td>"
@@ -478,9 +481,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             // body += "<td style='align: right;font-size:15px;border-top: solid black 2px; font-weight: bold;'>"+removeDecimalFormat(amountRecieved)+"</td>"
             body += "</tr>"
             body += "<tr style='height:30px;'></tr>"
-            body += "<tr>"
-            body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>"+jobNumber+"</td>"
-            body += "</tr>"
+            // body += "<tr>"
+            // body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>"+jobNumber+"</td>"
+            // body += "</tr>"
             body += "</tbody>";
             body += "</table>";
 
@@ -547,14 +550,20 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fieldId: 'quantity',
                         line: index
                     });
-                    var description = vencredRecord.getSublistValue({
+                    var description = vencredRecord.getSublistText({
                         sublistId: 'item',
-                        fieldId: 'description',
+                        fieldId: 'item',
                         line: index
                     });
-                    if(description.includes('\\')){
-                        description = description.replace(/\\/g, '<br/>');
+                    if(description){
+                        if(description.includes('\\')){
+                            description = description.replace(/\\/g, '<br/>');
+                        }
+                        if (description.includes('&')) {
+                            description = description.replace(/&/g, '&amp;');
+                        }
                     }
+                    
                     var unit = vencredRecord.getSublistText({
                         sublistId: 'item',
                         fieldId: 'units',

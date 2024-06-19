@@ -289,7 +289,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style='align:center; border-bottom:1px solid black'>Mediana Hadiwidjaya</td>"
                 footer += "<td></td>"
                 footer += "</tr>"
-
+                var emptitleParsing = emptitle1.replace("&", "&amp;")
                 footer += "<tr>"
                 footer += "<td></td>"
                 footer += "<td style='align:center;'>"+titleEmp+"</td>"
@@ -298,7 +298,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style='align:center;'>"+emptitle3+"</td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
-                footer += "<td style='align:center;'>"+emptitle2+"</td>"
+                footer += "<td style='align:center;'>"+emptitleParsing+"</td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
                 footer += "<td style='align:center;'>"+emptitle2+"</td>"

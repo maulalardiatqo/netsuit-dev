@@ -137,9 +137,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var total = poRecord.getValue('total') || 0;
             var duedate = poRecord.getValue('duedate');
             var jobNumber = poRecord.getValue('custbody_abj_custom_jobnumber');
-            if(jobNumber.includes('\\')){
-                jobNumber = jobNumber.replace(/\\/g, '<br/>');
+            if(jobNumber){
+                if(jobNumber.includes('\\')){
+                    jobNumber = jobNumber.replace(/\\/g, '<br/>');
+                }
             }
+            
             var subTotal = 0;
             var totalToCount = total
             var totalWhTaxamount = 0;
@@ -420,7 +423,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<tbody>";
             body += "<tr>"
             body += "<td class='tg-head_body' style='width:12%'> QTY </td>"
-            body += "<td class='tg-head_body' style='width:35%'> DESCRIPTION </td>"
+            body += "<td class='tg-head_body' style='width:35%'> ITEM </td>"
             body += "<td class='tg-head_body'> UNIT PRICE ("+ tlcCurr+") </td>"
             body += "<td class='tg-head_body' style='align:right'> TAXED </td>"
             body += "<td class='tg-head_body' style='align:right; width:20%;'> AMOUNT ("+ tlcCurr +") </td>"
@@ -466,9 +469,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td style='align: right;font-size:15px;border-top: solid black 2px; font-weight: bold;'>"+removeDecimalFormat(amountRecieved)+"</td>"
             body += "</tr>"
             body += "<tr style='height:30px;'></tr>"
-            body += "<tr>"
-            body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>"+jobNumber+"</td>"
-            body += "</tr>"
+            // body += "<tr>"
+            // body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>"+jobNumber+"</td>"
+            // body += "</tr>"
             body += "</tbody>";
             body += "</table>";
 
@@ -522,14 +525,20 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 fieldId: 'quantity',
                                 line: index
                             });
-                            var description = poRecord.getSublistValue({
+                            var description = poRecord.getSublistText({
                                 sublistId: 'item',
-                                fieldId: 'description',
+                                fieldId: 'item',
                                 line: index
                             });
-                            if(description.includes('\\')){
-                                description = description.replace(/\\/g, '<br/>');
+                            if(description){
+                                if (description.includes('&')) {
+                                    description = description.replace(/&/g, '&amp;');
+                                }
+                                if(description.includes('\\')){
+                                    description = description.replace(/\\/g, '<br/>');
+                                }
                             }
+                            
                             var unit = poRecord.getSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'units',
@@ -614,9 +623,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var qty = 1;
                         var description = poRecord.getSublistValue({
                             sublistId: 'expense',
-                            fieldId: 'memo',
+                            fieldId: 'item',
                             line: index
                         });
+                        if (description.includes('&')) {
+                            description = description.replace(/&/g, '&amp;');
+                        }
                         if(description.includes('\\')){
                             description = description.replace(/\\/g, '<br/>');
                         }

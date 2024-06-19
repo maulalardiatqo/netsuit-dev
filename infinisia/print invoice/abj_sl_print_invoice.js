@@ -251,13 +251,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body+= "<tr>"
                 body += "<td style='font-size:18px; align:center; font-weight:bold;'>Faktur Penjualan</td>"
-                body += "<td style='border-top:1px solid black'>Tracking Code :</td>";
-                body += "<td style='align:right; font-weight:bold; border-top:1px solid black'>ATRY</td>"
                 body += "</tr>";
 
                 body+= "<tr>"
                 body+= "<td style='font-size:18px; align:center; font-weight:bold;'>Invoice</td>"
-                body+= "<td style='border-bottom:1px solid black' colspan='2'>http://crm.infinisia.co.id/check</td>"
+                body+= "<td style='border-bottom:1px solid black; border-top:1px solid black' colspan='2'>http://crm.infinisia.co.id/check</td>"
                 body+= "</tr>"
 
                 body += "</tbody>";
@@ -315,14 +313,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tr>"
                 body+= "<td style='align:left'>"+custName+"</td>"
                 body+= "<td></td>"
-                body+= "<td style='align:left'>"+custName+"</td>"
+                body+= "<td style='align:left'>"+custAdders+"</td>"
                 body+= "</tr>"
 
-                body+= "<tr>"
-                body+= "<td style='align:left'>"+custAdders+"</td>"
-                body+= "<td></td>"
-                body+= "<td style='align:left'>"+custAdders+"</td>"
-                body+= "</tr>"
+                // body+= "<tr>"
+                // body+= "<td style='align:left'>"+custAdders+"</td>"
+                // body+= "<td></td>"
+                // body+= "<td style='align:left'>"+custAdders+"</td>"
+                // body+= "</tr>"
 
                 body += "</tbody>";
                 body += "</table>";
@@ -426,19 +424,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style=''></td>"
                 body += "<td style='font-weight:bold;'>A/N</td>"
-                body += "<td style='font-weight:bold;'>"+accName+"</td>"
+                body += "<td style='font-weight:bold;'>PT. Infinisia Sumber Semesta</td>"
                 body += "</tr>"
 
                 body += "<tr>"
                 body += "<td style=''></td>"
                 body += "<td style='font-weight:bold;'>BANK</td>"
-                body += "<td style='font-weight:bold;'>"+bankName+"</td>"
+                body += "<td style='font-weight:bold;'>BCA - Citra Garden</td>"
                 body += "</tr>"
 
                 body += "<tr>"
                 body += "<td style=''></td>"
                 body += "<td style='font-weight:bold;'>ACCOUNT</td>"
-                body += "<td style='font-weight:bold;'>"+bankNumber+"</td>"
+                body += "<td style='font-weight:bold;'>399334999</td>"
                 body += "</tr>"
 
                 body += "</tbody>";

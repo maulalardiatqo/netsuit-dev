@@ -12,7 +12,7 @@ define(["N/runtime", "N/log"], (runtime, log) => {
         var currentUserRole = runtime.getCurrentUser().role;
         var status = rec.getValue('status');
         log.debug('status', status);
-            if(status == 'Open'){
+            if(status == 'Open' || status == 'Paid In Full'){
                 form.addButton({
                     id: 'custpage_button_inv',
                     label: "Print Invoice",

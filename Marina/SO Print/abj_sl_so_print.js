@@ -294,7 +294,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
       body += "<thead>"
       body += "<tr>"
       body += "<td class='tg-head_body' style='width:20%'> QTY </td>"
-      body += "<td class='tg-head_body' style='width:20%'> DESCRIPTION </td>"
+      body += "<td class='tg-head_body' style='width:20%'> ITEM </td>"
       body += "<td class='tg-head_body' style='align:right' width='20%'> UNIT PRICE (Rp.) </td>"
       body += "<td class='tg-head_body' style='align:right' width='20%'> TAXED </td>"
       body += "<td class='tg-head_body' style='align:right' width='20%'> AMOUNT (Rp.) </td>"
@@ -391,9 +391,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
     //   body += "<td style='align:left;' colspan='2'>" + paymentReferences + "</td>"
     //   body += "</tr>"
       body += "<tr style='height:30px;'></tr>"
-      body += "<tr>"
-      body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>" + jobNumber + "</td>"
-      body += "</tr>"
+      // body += "<tr>"
+      // body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>" + jobNumber + "</td>"
+      // body += "</tr>"
       body += "</table>";
 
       footer += "<table class='tg' style='table-layout: fixed;'>";
@@ -447,6 +447,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             fieldId: 'item_display',
             line: index
           });
+          if (description.includes('&')) {
+            description = description.replace(/&/g, '&amp;');
+        }
           var unit = soRecord.getSublistValue({
             sublistId: 'item',
             fieldId: 'units',

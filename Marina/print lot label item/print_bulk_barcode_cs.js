@@ -99,7 +99,110 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
       console.log("error", error.message);
     }
   }
+  function printRakPDF(centex){
+    var records = currentRecord.get();
+    try {
+      var dataBarcode = [];
+      var count = records.getLineCount({
+        sublistId: "custpage_sublist_item",
+      });
+      console.log("count", count);
 
+      for (var j = 0; j < count; j++) {
+        var selected = records.getSublistValue({
+          sublistId: "custpage_sublist_item",
+          fieldId: "custpage_sublist_item_select",
+          line: j,
+        });
+        console.log('selected', selected)
+        if (selected) {
+          var internalID = records.getSublistValue({
+            sublistId: "custpage_sublist_item",
+            fieldId: "custpage_sublist_item_internalid",
+            line: j,
+          });
+          console.log("internalID", internalID);
+          var itemName = records.getSublistValue({
+            sublistId: "custpage_sublist_item",
+            fieldId: "custpage_sublist_item_name",
+            line: j,
+          });
+          var upcCode = records.getSublistValue({
+            sublistId: "custpage_sublist_item",
+            fieldId: "custpage_sublist_upccode",
+            line: j,
+          });
+          var countLabel = records.getSublistValue({
+            sublistId: "custpage_sublist_item",
+            fieldId: "custpage_sublist_item_no_of_labels",
+            line: j,
+          });
+          var rangeHarga = [];
+          var itemSearchObj = search.create({
+            type: "item",
+            filters:
+            [
+                ["internalid","anyof",internalID]
+            ],
+            columns:
+            [
+                search.createColumn({name: "itemid", label: "Name"}),
+                search.createColumn({name: "displayname", label: "Display Name"}),
+                search.createColumn({
+                    name: "custrecord_msa_gpq_volume",
+                    join: "CUSTRECORD_MSA_PRICEQTY_ITEM_ID",
+                    label: "Batas Volume &gt;="
+                }),
+                search.createColumn({
+                    name: "custrecord_msa_gpq_harga",
+                    join: "CUSTRECORD_MSA_PRICEQTY_ITEM_ID",
+                    label: "Harga"
+                })
+            ]
+          });
+          var searchResultCount = itemSearchObj.runPaged().count;
+          log.debug("itemSearchObj result count",searchResultCount);
+          itemSearchObj.run().each(function(result){
+            var batasVolume = result.getValue({
+                name: "custrecord_msa_gpq_volume",
+                join: "CUSTRECORD_MSA_PRICEQTY_ITEM_ID",
+            })
+            var harga = result.getValue({
+              name: "custrecord_msa_gpq_harga",
+              join: "CUSTRECORD_MSA_PRICEQTY_ITEM_ID",
+            })
+            rangeHarga.push({
+              batasVolume : batasVolume,
+              harga : harga
+            })
+            return true;
+          });
+          
+        }
+        rangeHarga.sort(function (a, b) {
+          return parseFloat(a.batasVolume) - parseFloat(b.batasVolume);
+        });
+        dataBarcode.push({
+          internalID : internalID,
+          upcCode : upcCode,
+          countLabel : countLabel,
+          itemName : itemName,
+          rangeHarga : rangeHarga
+        })
+        var dataBarcodeString = JSON.stringify(dataBarcode);
+        var createURL = url.resolveScript({
+          scriptId: "customscript_abj_sl_print_out_label_rak",
+          deploymentId: "customdeploy_abj_sl_print_out_label_rak",
+          params: { custscript_list_item_to_print: dataBarcodeString },
+          returnExternalUrl: false,
+        });
+        window.open(createURL, "_blank");
+      }
+      console.log('dataBarcode', dataBarcode)
+    }catch(e){
+      console.log('error', e.message)
+    }
+  }
   function fieldChanged(context) {
     var vrecord = currentRecord.get();
     if (context.fieldId == "custpage_item_name") {
@@ -215,6 +318,7 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
   exports.printLabel = printLabel;
   exports.fieldChanged = fieldChanged;
   exports.pageInit = pageInit;
+  exports.printRakPDF = printRakPDF;
 
   return exports;
 });

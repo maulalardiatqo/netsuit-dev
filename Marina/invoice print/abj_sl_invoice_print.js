@@ -160,10 +160,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var prosentDiscount = invoiceRecord.getValue('discountrate');
                 var discount = invoiceRecord.getValue('discounttotal') || 0;
                 var jobNumber = invoiceRecord.getValue('custbody_abj_custom_jobnumber');
-                if (jobNumber.includes('\\')) {
-                    log.debug('ada tanda');
-                    jobNumber = jobNumber.replace(/\\/g, '<br/>');
+                if(jobNumber){
+                    if (jobNumber.includes('\\')) {
+                        log.debug('ada tanda');
+                        jobNumber = jobNumber.replace(/\\/g, '<br/>');
+                    }
                 }
+               
                 var otehrRefNum = invoiceRecord.getValue('otherrefnum');
                 discount = Math.abs(discount);
                 prosentDiscount = Math.abs(prosentDiscount);
@@ -411,7 +414,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tbody>";
                 body += "<tr>"
                 body += "<td class='tg-head_body' style='width:12%'> QTY </td>"
-                body += "<td class='tg-head_body' style='width:31%'> DESCRIPTION </td>"
+                body += "<td class='tg-head_body' style='width:31%'> ITEM </td>"
                 body += "<td class='tg-head_body' style='align:right; width:17%;'> UNIT PRICE ("+ tlcCurr +") </td>"
                 body += "<td class='tg-head_body' style='align:right'> TAXED </td>"
                 body += "<td class='tg-head_body' style='align:right; width:20%;'> AMOUNT ("+ tlcCurr +") </td>"
@@ -521,9 +524,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='align:left;'>: "+ fakturPajak +"</td>"
                 body += "</tr>"
                 body += "<tr style='height:40px;'></tr>"
-                body += "<tr>"
-                body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='4'>"+jobNumber+"</td>"
-                body += "</tr>"
+                // body += "<tr>"
+                // body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='4'>"+jobNumber+"</td>"
+                // body += "</tr>"
                 body += "</tbody>";
                 body += "</table>";
                 
@@ -583,12 +586,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         });
                         var description = invoiceRecord.getSublistText({
                             sublistId: 'item',
-                            fieldId: 'description',
+                            fieldId: 'item',
                             line: index
                         });
                         if (description.includes('\\')) {
                             // log.debug('ada tanda');
                             description = description.replace(/\\/g, '<br/>');
+                        }
+                        if(description.includes('&') && description.includes('&&')){
+                            log.debug('masuk $')
+                            description = description.replace(/&/g, '&amp;');;
                         }
                         if(description.includes('$') && description.includes('$$')){
                             log.debug('masuk $')

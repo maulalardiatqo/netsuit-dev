@@ -152,9 +152,12 @@ var total = cmRecord.getValue('total') || 0;
 var duedate = cmRecord.getValue('duedate') || 0;
 var discount = cmRecord.getValue('discounttotal') || 0;
 var jobNumber = cmRecord.getValue('custbody_abj_custom_jobnumber');
-if(jobNumber.includes('\\')){
-  jobNumber = jobNumber.replace(/\\/g, '<br/>')
+if(jobNumber){
+    if(jobNumber.includes('\\')){
+        jobNumber = jobNumber.replace(/\\/g, '<br/>')
+      }
 }
+
 var countApply = cmRecord.getLineCount({
     sublistId : 'apply'
 });
@@ -362,7 +365,7 @@ body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
 body += "<thead>"
 body += "<tr>"
 body += "<td class='tg-head_body' style='width:20%'> QTY </td>"
-body += "<td class='tg-head_body' style='width:20%'> DESCRIPTION </td>"
+body += "<td class='tg-head_body' style='width:20%'> ITEM </td>"
 body += "<td class='tg-head_body' style='align:right' width='20%'> UNIT PRICE ("+tlcCurr+") </td>"
 body += "<td class='tg-head_body' style='align:right' width='20%'> TAXED </td>"
 body += "<td class='tg-head_body' style='align:right' width='20%'> AMOUNT ("+tlcCurr+") </td>"
@@ -468,14 +471,20 @@ function getPOItem(context, cmRecord) {
         fieldId: 'quantity',
         line: index
         });
-        var description = cmRecord.getSublistValue({
+        var description = cmRecord.getSublistText({
         sublistId: 'item',
-        fieldId: 'description',
+        fieldId: 'item',
         line: index
         });
-        if(description.includes('\\')){
-          description = description.replace(/\\/g, '<br/>')
+        if(description){
+            if(description.includes('\\')){
+                description = description.replace(/\\/g, '<br/>')
+              }
+              if (description.includes('&')) {
+                description = description.replace(/&/g, '&amp;');
+            }
         }
+        
         var unit = cmRecord.getSublistValue({
         sublistId: 'item',
         fieldId: 'units',
