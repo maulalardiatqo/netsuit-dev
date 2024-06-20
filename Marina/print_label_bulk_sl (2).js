@@ -37,7 +37,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
     var itemName = form.addField({
       id: "custpage_item_name",
       label: "ITEM NAME",
-      type: serverWidget.FieldType.SELECT,
+      type: serverWidget.FieldType.MULTISELECT,
       container: "filteroption",
       source: "item",
     });
