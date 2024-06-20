@@ -102,8 +102,8 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             <body padding="0mm 0mm 0mm 4mm" size="custom" width="72mm" height="15mm">
                 <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="padding: 0; margin: 0;">${pageRow1}</td>
-                        <td style="padding: 0; margin: 0;">${pageRow2}</td>
+                        <td style="padding: 1mm; margin: 0;">${pageRow1}</td>
+                        <td style="padding-left: 2mm; margin-left: 1mm;">${pageRow2}</td>
                     </tr>
                 </table>
             </body>
