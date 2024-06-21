@@ -234,6 +234,15 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             fieldId: "custbody_convert_from_prid",
             value: arrayPR,
           });
+          log.debug('arrayPR', arrayPR)
+          var dataTerakhir = arrayPR[arrayPR.length - 1];
+          log.debug('dataTerakhir', dataTerakhir)
+           poData.setValue({
+            fieldId: "custbody_abj_pr_number",
+            value: dataTerakhir,
+          });
+       
+          
         }
       }
     } catch (e) {

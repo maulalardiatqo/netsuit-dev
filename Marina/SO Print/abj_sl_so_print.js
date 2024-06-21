@@ -60,15 +60,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
           id: customer_id,
           isDynamic: false,
         });
-        var custName = customerRecord.getText('entityid');
+        var custName = customerRecord.getText('altname');
         var custAddres = customerRecord.getValue('defaultaddress');
         var custAddres = custAddres.replace(new RegExp('\r?\n', 'g'), '<br />');
         var custAddres = custAddres.substring(custAddres.indexOf('<br />') + 6);
         var custEmail = customerRecord.getValue('email');
         var taxRegNo = customerRecord.getValue('vatregnumber');
 
-        var spaceCust = custName.indexOf(" ");
-        var custName= custName.substring(spaceCust + 1);
+        
 
         var count = customerRecord.getLineCount({
           sublistId: 'submachine'
@@ -349,57 +348,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
       body += "</tr>"
       body += "</tbody>"
       body += "</table>"
-      body += "<table class='tg' width=\"100%\">";
-      body += "<tr style='height:30px;'></tr>"
-      body += "<tr>"
-      body += "<td style='align:left; font-weight: bold;'>Payment Detail</td>"
-      body += "<td width='10'></td>"
-      body += "<td></td>"
-      body += "<td style='align:left; font-weight: bold;' colspan='2'>Other Information</td>"
-      body += "<td></td>"
-      body += "</tr>"
-      body += "<tr>"
-      body += "<td style='align:left;'>Bank Name</td>"
-      body += "<td width='10'>:</td>"
-      body += "<td style='align:left;'>" + bankName + "</td>"
-      body += "<td style='align:left;' colspan='2'>Customer References :</td>"
-      body += "<td style='align:left;'>" + otehrRefNum + "</td>"
-      body += "</tr>"
-      body += "<tr>"
-      body += "<td style='align:left;'>Bank Branch</td>"
-      body += "<td width='10'>:</td>"
-      body += "<td style='align:left;'>" + bankBranch + "</td>"
-      body += "</tr>"
-      body += "<tr>"
-      body += "<td style='align:left;'>Bank/Seift Code</td>"
-      body += "<td width='10'>:</td>"
-      body += "<td style='align:left;'>" + swiftCode + "</td>"
-      body += "</tr>"
-      body += "<tr>"
-      body += "<td style='align:left;'>Acount Name</td>"
-      body += "<td width='10'>:</td>"
-      body += "<td style='align:left;' colspan='2'>" + legalName + "</td>"
-      body += "</tr>"
-      body += "<tr>"
-      body += "<td style='align:left;'>Acount Number</td>"
-      body += "<td width='10'>:</td>"
-      body += "<td style='align:left;' colspan='2'>" + accountNo + "</td>"
-      body += "</tr>"
-    //   body += "<tr>"
-    //   body += "<td style='align:left;'>Payment References</td>"
-    //   body += "<td width='10'>:</td>"
-    //   body += "<td style='align:left;' colspan='2'>" + paymentReferences + "</td>"
-    //   body += "</tr>"
-      body += "<tr style='height:30px;'></tr>"
-      // body += "<tr>"
-      // body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>" + jobNumber + "</td>"
-      // body += "</tr>"
-      body += "</table>";
+     
 
       footer += "<table class='tg' style='table-layout: fixed;'>";
       footer += "<tbody>";
       footer += "<tr class='tg-foot'>";
-      footer += "<td style='align:left'>Credit Memo # " + tandId + "</td>"
+      footer += "<td style='align:left'> Sales Order # " + tandId + "</td>"
       footer += "<td style='align:right'></td>"
       footer += "</tr>";
       footer += "</tbody>";
