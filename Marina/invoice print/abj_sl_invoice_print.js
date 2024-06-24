@@ -73,13 +73,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         //get url
                         urlLogo = filelogo.url.replace(/&/g, "&amp;");
                     }
-                    
-                    if(addresSubsidiaries.includes("<br>")){
-                        addresSubsidiaries = addresSubsidiaries.replace(/<br>/g, "");
+                    if(addresSubsidiaries){
+                        if(addresSubsidiaries.includes("<br>")){
+                            addresSubsidiaries = addresSubsidiaries.replace(/<br>/g, "");
+                        }
+                        if(name){
+                            addresSubsidiaries = addresSubsidiaries.replace(name, "");
+                        }
                     }
-                    if(name){
-                        addresSubsidiaries = addresSubsidiaries.replace(name, "");
-                    }
+                   
                 }
                 
                 // load vendor
@@ -347,10 +349,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var style = "";
                 var footer = "";
                 var pdfFile = null;
-                if(jobNumber.includes('&')){
-                    log.debug('masuk');
-                    jobNumber = jobNumber.replace(/&/g, '&amp;');
+                if(jobNumber){
+                    if(jobNumber.includes('&')){
+                        log.debug('masuk');
+                        jobNumber = jobNumber.replace(/&/g, '&amp;');
+                    }
                 }
+                
                 style += "<style type='text/css'>";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
@@ -479,56 +484,56 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tbody>";
                 body += "</table>";
     
-                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
-                body += "<tbody>";
-                body += "<tr>"
-                body += "<td style='align:left; width:20%;'></td>"
-                body += "<td style='align:left; width:30%;'></td>"
-                body += "<td style='align:left; width:20%;'></td>"
-                body += "<td style='align:left; width:20%;'></td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left; font-weight: bold;'>Payment Detail</td>"
-                body += "<td></td>"
-                body += "<td style='align:left; font-weight: bold;'>Other Information</td>"
-                body += "<td></td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Bank Name </td>"
-                body += "<td style='align:left;'>: "+ bankName +"</td>"
-                body += "<td style='align:left;'>Customer References </td>"
-                body += "<td style='align:left;'>: "+ otehrRefNum +"</td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Bank Branch </td>"
-                body += "<td style='align:left;'>: "+ bankBranch +"</td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Bank/Swift Code </td>"
-                body += "<td style='align:left;'>: "+ swiftCode +"</td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Account Name </td>"
-                body += "<td style='align:left;' colspan='2'>: "+ legalName +"</td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Account Number </td>"
-                body += "<td style='align:left;'>: "+ accountNo +"</td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Payment References </td>"
-                body += "<td style='align:left;'>: "+ tandId  +"</td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Faktur Pajak :</td>"
-                body += "<td style='align:left;'>: "+ fakturPajak +"</td>"
-                body += "</tr>"
-                body += "<tr style='height:40px;'></tr>"
+                // body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
+                // body += "<tbody>";
                 // body += "<tr>"
-                // body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='4'>"+jobNumber+"</td>"
+                // body += "<td style='align:left; width:20%;'></td>"
+                // body += "<td style='align:left; width:30%;'></td>"
+                // body += "<td style='align:left; width:20%;'></td>"
+                // body += "<td style='align:left; width:20%;'></td>"
                 // body += "</tr>"
-                body += "</tbody>";
-                body += "</table>";
+                // body += "<tr>"
+                // body += "<td style='align:left; font-weight: bold;'>Payment Detail</td>"
+                // body += "<td></td>"
+                // body += "<td style='align:left; font-weight: bold;'>Other Information</td>"
+                // body += "<td></td>"
+                // body += "</tr>"
+                // body += "<tr>"
+                // body += "<td style='align:left;'>Bank Name </td>"
+                // body += "<td style='align:left;'>: "+ bankName +"</td>"
+                // body += "<td style='align:left;'>Customer References </td>"
+                // body += "<td style='align:left;'>: "+ otehrRefNum +"</td>"
+                // body += "</tr>"
+                // body += "<tr>"
+                // body += "<td style='align:left;'>Bank Branch </td>"
+                // body += "<td style='align:left;'>: "+ bankBranch +"</td>"
+                // body += "</tr>"
+                // body += "<tr>"
+                // body += "<td style='align:left;'>Bank/Swift Code </td>"
+                // body += "<td style='align:left;'>: "+ swiftCode +"</td>"
+                // body += "</tr>"
+                // body += "<tr>"
+                // body += "<td style='align:left;'>Account Name </td>"
+                // body += "<td style='align:left;' colspan='2'>: "+ legalName +"</td>"
+                // body += "</tr>"
+                // body += "<tr>"
+                // body += "<td style='align:left;'>Account Number </td>"
+                // body += "<td style='align:left;'>: "+ accountNo +"</td>"
+                // body += "</tr>"
+                // body += "<tr>"
+                // body += "<td style='align:left;'>Payment References </td>"
+                // body += "<td style='align:left;'>: "+ tandId  +"</td>"
+                // body += "</tr>"
+                // body += "<tr>"
+                // body += "<td style='align:left;'>Faktur Pajak :</td>"
+                // body += "<td style='align:left;'>: "+ fakturPajak +"</td>"
+                // body += "</tr>"
+                // body += "<tr style='height:40px;'></tr>"
+                // // body += "<tr>"
+                // // body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='4'>"+jobNumber+"</td>"
+                // // body += "</tr>"
+                // body += "</tbody>";
+                // body += "</table>";
                 
     
                 footer += "<table class='tg' style='table-layout: fixed;'>";
@@ -589,26 +594,29 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId: 'item',
                             line: index
                         });
-                        if (description.includes('\\')) {
-                            // log.debug('ada tanda');
-                            description = description.replace(/\\/g, '<br/>');
+                        if(description){
+                            if (description.includes('\\')) {
+                                // log.debug('ada tanda');
+                                description = description.replace(/\\/g, '<br/>');
+                            }
+                            if(description.includes('&') && description.includes('&&')){
+                                log.debug('masuk $')
+                                description = description.replace(/&/g, '&amp;');;
+                            }
+                            if(description.includes('$') && description.includes('$$')){
+                                log.debug('masuk $')
+                                description = description.replace(/\$(.*?)\$\$/g, '<b>$1</b>');
+                            }
+                            if(description.includes('#') && description.includes('##')){
+                                log.debug('masuk #')
+                                description = description.replace(/\#(.*?)\#\#/g, '<i>$1</i>');
+                            }
+                            if(description.includes('*') && description.includes('**')){
+                                log.debug('masuk *')
+                                description = description.replace(/\*(.*?)\*\*/g, '<u>$1</u>');
+                            }
                         }
-                        if(description.includes('&') && description.includes('&&')){
-                            log.debug('masuk $')
-                            description = description.replace(/&/g, '&amp;');;
-                        }
-                        if(description.includes('$') && description.includes('$$')){
-                            log.debug('masuk $')
-                            description = description.replace(/\$(.*?)\$\$/g, '<b>$1</b>');
-                        }
-                        if(description.includes('#') && description.includes('##')){
-                            log.debug('masuk #')
-                            description = description.replace(/\#(.*?)\#\#/g, '<i>$1</i>');
-                        }
-                        if(description.includes('*') && description.includes('**')){
-                            log.debug('masuk *')
-                            description = description.replace(/\*(.*?)\*\*/g, '<u>$1</u>');
-                        }
+                        
                         // if(description.includes('<b>')){
                         //     log.debug('masukKondisi', description)
                         //     description = description.replace(/<b>(.*?)<\/b>/g, '<strong>$1</strong>');
