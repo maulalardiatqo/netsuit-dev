@@ -456,7 +456,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tbody>";
                     body += "<tr>";
                     body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='5%'> No </td>";
-                    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='30%'> Item </td>";
+                    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='30%'> Description </td>";
                     body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='20%'> Complexity Level </td>";
                     body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='21%'> Item Price </td>";
                     body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='5%'> QTY </td>";
@@ -529,7 +529,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<thead>";
                     body += "<tr>";
                     body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='5%'> No </td>";
-                    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='40%'> Item </td>";
+                    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='40%'> Description </td>";
                     body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='25%'> Item Price </td>";
                     body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='10%'> QTY </td>";
                     body += "<td class='tg-head_body' style='border-right: 1px solid black; border-left: 1px solid black; background-color:#757575'  width='25%'> Total Costs </td>";
@@ -721,15 +721,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 items.forEach((item, index) => {
                     html += `<tr>
                                 <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
-                                <td class='tg-b_body'>${item.itemText}</td>
+                                <td class='tg-b_body'>${item.description}</td>
                                 <td class='tg-b_body' align="right">Rp. ${numberWithCommas(item.itemPrice)}</td>
                                 <td class='tg-b_body' style='align:center'>${item.quantity}</td>
-                                <td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}">Rp. ${removeDecimalFormat(item.totalCost)}</td>
-                            </tr>
-                            <tr>
-                                <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                                <td class='tg-b_body'>${item.description}</td>
-                                <td class='tg-b_body' style='border-right: 1px solid black' colspan="3"></td>
+                                <td class='tg-b_body' style="border-right: 1px solid black; align:right;">Rp. ${removeDecimalFormat(item.totalCost)}</td>
                             </tr>`;
                     
                     if (item.discLine && item.discLine != 0) {
@@ -834,17 +829,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 items.forEach((item, index) => {
                   html += `<tr>
                                 <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
-                                <td class='tg-b_body'>${item.itemText}</td>
+                                <td class='tg-b_body'>${item.description}</td>
                                 <td class='tg-b_body' style='align:center'>${item.complexityLevel}</td>
                                 <td class='tg-b_body' align="right">Rp. ${numberWithCommas(item.itemPrice)}</td>
                                 <td class='tg-b_body' style='align:center'>${item.quantity}</td>
                                 ${index === 0 ? `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}">Rp. ${removeDecimalFormat(item.totalCost)}</td>` : `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}"></td>`}
             
-                            </tr>
-                            <tr>
-                                <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                                <td class='tg-b_body'>${item.description}</td>
-                                <td class='tg-b_body' style='border-right: 1px solid black' colspan="4"></td>
                             </tr>
                             <tr>
                                 <td class='tg-b_body' style='border-left: 1px solid black'></td>
