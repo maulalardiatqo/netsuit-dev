@@ -19,7 +19,7 @@ define(['N/record', 'N/search', 'N/error'], function(record, search, error) {
                 });
                 var cFrom = recLoad.getValue('customform');
                 log.debug('cFrom', cFrom)
-                if(cFrom == "105" || cFrom =="149"){
+                if(cFrom == "105" || cFrom =="151"){
                     var createdFrom = recLoad.getValue("createdfrom");
                     log.debug('createdFrom', createdFrom)
                     if(createdFrom && createdFrom != ""){

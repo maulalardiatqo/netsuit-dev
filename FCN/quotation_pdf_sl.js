@@ -331,6 +331,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     totalDiscount = parseFloat(totalDiscount) + parseFloat(discountHeader)
     log.debug('totalDiscount', totalDiscount);
     var taxTotalRate = (parseFloat(totalCost) - parseFloat(totalDiscount)) * 11 / 100;
+
+    var customForm = dataRec.getValue('customform');
+    log.debug('customForm', customForm);
+
     var response = context.response;
     var xml = "";
     var header = "";
@@ -453,15 +457,26 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
 
     body += '<table class=\'tg\' width="100%" style="table-layout:fixed;">';
     body += "<tbody>";
-    body += "<tr>";
-    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='5%'> No </td>";
-    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='30%'> Item </td>";
-    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='20%'> Complexity Level </td>";
-    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='21%'> Item Price </td>";
-    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='5%'> QTY </td>";
-    body += "<td class='tg-head_body' style='border-right: 1px solid black; border-left: 1px solid black; background-color:#757575'  width='24%'> Total Costs </td>";
-    body += "</tr>";
-    body += getPOItem(context, dataRec);
+    if(customForm == 143){
+      body += "<tr>";
+      body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='5%'> No </td>";
+      body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='30%'> Item </td>";
+      body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='20%'> Complexity Level </td>";
+      body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='21%'> Item Price </td>";
+      body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='5%'> QTY </td>";
+      body += "<td class='tg-head_body' style='border-right: 1px solid black; border-left: 1px solid black; background-color:#757575'  width='24%'> Total Costs </td>";
+      body += "</tr>";
+    }else{
+      body += "<tr>";
+      body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='5%'> No </td>";
+      body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='35%'> Item </td>";
+      body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='25%'> Item Price </td>";
+      body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='10%'> QTY </td>";
+      body += "<td class='tg-head_body' style='border-right: 1px solid black; border-left: 1px solid black; background-color:#757575'  width='25%'> Total Costs </td>";
+      body += "</tr>";
+    }
+   
+    body += getPOItem(context, dataRec, customForm);
     body += "<tr>";
     body += "<td style='border-top: 1px solid black;' colspan='6'></td>";
     body += "</tr>";
@@ -604,54 +619,85 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     });
   }
 
-  function generateTableHTML(sectionID, items) {
+  function generateTableHTML(sectionID, items, customForm) {
     var fieldLookUpSection = search.lookupFields({
-      type: "customlist_abj_rate_card_section",
-      id: sectionID,
-      columns: ["name"],
+        type: "customlist_abj_rate_card_section",
+        id: sectionID,
+        columns: ["name"],
     });
     var sectionName = fieldLookUpSection.name;
     let html = `<tr><td colspan="6" class='tg-b_body' style="border-right: 1px solid black; border-left: 1px solid black; background-color:#adacac">${sectionName}</td></tr>`;
     var no = 1;
     items.forEach((item, index) => {
-      html += `<tr>
+        html += `<tr>
                     <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
-                    <td class='tg-b_body'>${item.itemText}</td>
-                    <td class='tg-b_body' style='align:center'>${item.complexityLevel}</td>
-                    <td class='tg-b_body' align="right">Rp. ${numberWithCommas(item.itemPrice)}</td>
-                    <td class='tg-b_body' style='align:center'>${item.quantity}</td>
-                    ${index === 0 ? `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}">Rp. ${removeDecimalFormat(item.totalCost)}</td>` : `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}"></td>`}
+                    <td class='tg-b_body'>${item.itemText}</td>`;
+        
+        if (customForm == 143) {
+            html += `<td class='tg-b_body' style='align:center'>${item.complexityLevel}</td>`;
+            html += `<td class='tg-b_body' align="right">Rp. ${numberWithCommas(item.itemPrice)}</td>
+                     <td class='tg-b_body' style='align:center'>${item.quantity}</td>`;
+        } else {
+            html += `<td class='tg-b_body' align="right">Rp. ${numberWithCommas(item.itemPrice)}</td>
+                     <td class='tg-b_body' style='align:center'>${item.quantity}</td>`;
+        }
+        
+        if (index === 0) {
+            html += `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}">Rp. ${removeDecimalFormat(item.totalCost)}</td>`;
+        } else {
+            html += `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}"></td>`;
+        }
 
-                </tr>
-                <tr>
-                    <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                    <td class='tg-b_body'>${item.description}</td>
-                    <td class='tg-b_body' style='border-right: 1px solid black' colspan="4"></td>
-                </tr>
-                <tr>
-                    <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                    <td class='tg-b_body' style='font-weight:bold;'>${item.remarks}</td>
-                    <td class='tg-b_body' style='border-right: 1px solid black' colspan="4"></td>
-                </tr>`;
+        html += `</tr>
+                 <tr>
+                     <td class='tg-b_body' style='border-left: 1px solid black'></td>
+                     <td class='tg-b_body'>${item.description}</td>`;
+        
+        if (customForm == 143) {
+            html += `<td class='tg-b_body' style='border-right: 1px solid black' colspan="4"></td>`;
+        }
 
-              if (item.discLine && item.discLine != 0) {
-                  html += `<tr>
-                                  <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                                  <td class='tg-b_body' style='background-color:#e7eb07'>[Discount - ${item.prosDiscLine}%]</td>
-                                  <td class='tg-b_body' colspan="3"></td>
-                                  <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>(${numberWithCommas(item.discLine)})</td>
-                              </tr>`;
-              }
+        html += `</tr>
+                 <tr>
+                     <td class='tg-b_body' style='border-left: 1px solid black'></td>
+                     <td class='tg-b_body' style='font-weight:bold;'>${item.remarks}</td>`;
+        
+        if (customForm == 143) {
+            html += `<td class='tg-b_body' style='border-right: 1px solid black' colspan="4"></td>`;
+        } else {
+            html += `<td class='tg-b_body' style='border-right: 1px solid black' colspan="3"></td>`;
+        }
 
-              no++;
+        html += `</tr>`;
+
+        if (item.discLine && item.discLine != 0) {
+            html += `<tr>
+                        <td class='tg-b_body' style='border-left: 1px solid black'></td>
+                        <td class='tg-b_body' style='background-color:#e7eb07'>[Discount - ${item.prosDiscLine}%]</td>`;
+            
+            if (customForm == 143) {
+                html += `<td class='tg-b_body' colspan="3"></td>`;
+            } else {
+                html += `<td class='tg-b_body' colspan="2"></td>`;
+            }
+
+            html += `<td class='tg-b_body' style='border-right: 1px solid black; align:right;'>(${numberWithCommas(item.discLine)})</td>
+                    </tr>`;
+        }
+
+        no++;
     });
     return html;
-  }
+}
+
+
+
+
 
   var dataSection = [];
   var dataItem = [];
 
-  function getPOItem(context, dataRec) {
+  function getPOItem(context, dataRec, customForm) {
     var itemCount = dataRec.getLineCount({
       sublistId: "item",
     });
@@ -755,7 +801,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       });
       let tableHTML = "";
       for (const sectionID in groupedItems) {
-        tableHTML += generateTableHTML(sectionID, groupedItems[sectionID]);
+        tableHTML += generateTableHTML(sectionID, groupedItems[sectionID], customForm);
       }
       body += tableHTML;
       return body;
