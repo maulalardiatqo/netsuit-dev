@@ -439,7 +439,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         body += "<td></td>"
         body += "<td></td>"
         body += "<td style='align:right'>TOTAL DISCOUNT</td>"
-        body += "<td style='align:right'>Rp. ("+numberWithCommas(totalDiscount)+")</td>"
+        log.debug('totalDiscount', totalDiscount)
+        body += "<td style='align:right'>Rp. ("+numberWithCommas(Math.abs(totalDiscount))+")</td>"
         body += "</tr>";
 
         body += "<tr>";
@@ -516,7 +517,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         body += "<td></td>"
         body += "<td></td>"
         body += "<td style='align:right'>TOTAL DISCOUNT</td>"
-        body += "<td style='align:right'>Rp. ("+numberWithCommas(totalDiscount)+")</td>"
+        body += "<td style='align:right'>Rp. ("+numberWithCommas(Math.abs(totalDiscount))+")</td>"
         body += "</tr>";
 
         body += "<tr>";
@@ -876,9 +877,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
               line: index,
             }) || 0
             var prosDiscLine =  Number(discLine)/ Number(itemPrice) *100
-            log.debug('itemPrice', itemPrice);
-            log.debug('discLine', discLine);
-            log.debug("prosDiscLine", prosDiscLine);
             dataSection.push(sectionName);
             dataItem.push({
               itemText: itemText,
@@ -897,8 +895,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         
       }
       dataSection = removeDuplicates(dataSection);
-      log.debug("dataSection", dataSection);
-      log.debug('dataItem', dataItem)
       const groupedItems = {};
       dataItem.forEach((item) => {
         if (!groupedItems[item.sectionID]) {

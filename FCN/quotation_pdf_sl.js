@@ -513,7 +513,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       body += "<tr>";
       body += "<td></td>"
       body += "<td style='align:right'>TOTAL DISCOUNT</td>"
-      body += "<td style='align:right'>Rp. ("+numberWithCommas(totalDiscount)+")</td>"
+      body += "<td style='align:right'>Rp. ("+numberWithCommas(Math.abs(totalDiscount))+")</td>"
       body += "</tr>";
 
       body += "<tr>";

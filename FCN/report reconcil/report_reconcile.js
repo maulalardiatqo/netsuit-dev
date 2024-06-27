@@ -306,7 +306,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           case "Media Fee":
             amntMF = amount;
             break;
-          case "Incentive":
+          case "3rd Party Production":
             amntIncentive = amount;
             break;
           case "Additional Creative Fee":
@@ -345,7 +345,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           deliverablesVal: deliverablesVal,
         });
       });
-      log.debug("pendingBillDataArr", pendingBillDataArr);
 
       var myResultsJob = getAllResults(jobDoneData);
       var jobDoneDataArr = [];
@@ -391,7 +390,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           case "Media Fee":
             amntMF = amount;
             break;
-          case "Incentive":
+          case "3rd Party Production":
             amntIncentive = amount;
             break;
           case "Additional Creative Fee":
@@ -431,7 +430,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       });
 
       var myResultsPO = getAllResults(poData);
-      log.debug('myResultsPO length', myResultsPO.length)
       var poDataArr = [];
       myResultsPO.forEach(function (result) {
         let poNo = result.getValue("tranid");
@@ -457,17 +455,13 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           deliverablesVal: deliverables,
         });
       });
-      log.debug("poDataArr", poDataArr);
 
       const groupedPendingBillArray = pendingBillDataArr.reduce((acc, curr) => {
         const index = acc.findIndex((item) => item.quoteNumberVal === curr.quoteNumberVal);
         if (index !== -1) {
-          log.debug('index', index)
           const accQty = parseInt(acc[index].qty) || 0;
           const currQty = parseInt(curr.qty) || 0;
           acc[index].qty = (accQty + currQty).toString();
-          log.debug('curr.qty', curr.qty);
-          log.debug('acc[index].qty', acc[index].qty)
           acc[index].amntRetainer = ((parseFloat(acc[index].amntRetainer) || 0) + (parseFloat(curr.amntRetainer) || 0)).toFixed(2);
           acc[index].amntCF = ((parseFloat(acc[index].amntCF) || 0) + (parseFloat(curr.amntCF) || 0)).toFixed(2);
           acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
@@ -480,24 +474,40 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         }
         return acc;
       }, []);
-      log.debug('groupedPendingBillArray debug', groupedPendingBillArray)
+      const groupedJobDoneArray = jobDoneDataArr.reduce((acc, curr) => {
+        const index = acc.findIndex((item) => item.quoteNumberVal === curr.quoteNumberVal);
+        if (index !== -1) {
+          const accQty = parseInt(acc[index].qty) || 0;
+          const currQty = parseInt(curr.qty) || 0;
+          acc[index].qty = (accQty + currQty).toString();
+          acc[index].amntRetainer = ((parseFloat(acc[index].amntRetainer) || 0) + (parseFloat(curr.amntRetainer) || 0)).toFixed(2);
+          acc[index].amntCF = ((parseFloat(acc[index].amntCF) || 0) + (parseFloat(curr.amntCF) || 0)).toFixed(2);
+          acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
+          acc[index].amntMF = ((parseFloat(acc[index].amntMF) || 0) + (parseFloat(curr.amntMF) || 0)).toFixed(2);
+          acc[index].amntIncentive = ((parseFloat(acc[index].amntIncentive) || 0) + (parseFloat(curr.amntIncentive) || 0)).toFixed(2);
+          acc[index].amntAdditionalCF = ((parseFloat(acc[index].amntAdditionalCF) || 0) + (parseFloat(curr.amntAdditionalCF) || 0)).toFixed(2);
+          acc[index].amntOthers = ((parseFloat(acc[index].amntOthers) || 0) + (parseFloat(curr.amntOthers) || 0)).toFixed(2);
+        } else {
+          acc.push(curr);
+        }
+        return acc;
+      }, []);
       let mergedPendingBillArray = [];
       groupedPendingBillArray.forEach((pendingBillItem) => {
         let matchingPOs = poDataArr.filter((poItem) => {
           var nomorPO = poItem.poNo
-          if(nomorPO == "FCN PO2405001"){
-            log.debug('nomorPO', nomorPO)
-            log.debug('poItem.quoteNumberVal', poItem.quoteNumberVal)
-            log.debug('pendingBillItem.quoteNumberVal', pendingBillItem.quoteNumberVal)
-            log.debug('pendingBillItem.projectVal', pendingBillItem.projectVal)
-            log.debug('poItem.projectVal', poItem.projectVal)
-            log.debug('poItem.deliverablesVal', poItem.deliverablesVal)
-            log.debug('pendingBillItem.deliverablesVal', pendingBillItem.deliverablesVal)
-          }
+          // if(nomorPO == "FCN PO2405001"){
+          //   log.debug('nomorPO', nomorPO)
+          //   log.debug('poItem.quoteNumberVal', poItem.quoteNumberVal)
+          //   log.debug('pendingBillItem.quoteNumberVal', pendingBillItem.quoteNumberVal)
+          //   log.debug('pendingBillItem.projectVal', pendingBillItem.projectVal)
+          //   log.debug('poItem.projectVal', poItem.projectVal)
+          //   log.debug('poItem.deliverablesVal', poItem.deliverablesVal)
+          //   log.debug('pendingBillItem.deliverablesVal', pendingBillItem.deliverablesVal)
+          // }
           
           return poItem.quoteNumberVal === pendingBillItem.quoteNumberVal && poItem.projectVal === pendingBillItem.projectVal && poItem.deliverablesVal === pendingBillItem.deliverablesVal;
         });
-        log.debug('matchingPOs', matchingPOs)
         if (matchingPOs.length > 0) {
           matchingPOs.forEach((matchingPO) => {
             let mergedItem = {
@@ -524,25 +534,21 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           mergedPendingBillArray.push(mergedItem);
         }
       });
-      log.debug("dataa", mergedPendingBillArray);
-
       let mergedJobDoneArray = [];
-      jobDoneDataArr.forEach((jobDoneItem) => {
-        // Find matching entry in poDataArr
+      groupedJobDoneArray.forEach((jobDoneItem) => {
         let matchingPOs = poDataArr.filter((poItem) => {
-          
           return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
         });
         if (matchingPOs.length > 0) {
           matchingPOs.forEach((matchingPO) => {
             let mergedItem = {
               ...jobDoneItem,
-              poNo: matchingPO ? matchingPO.poNo : "",
-              vendorName: matchingPO ? matchingPO.vendorName : "",
-              amountPo: matchingPO ? matchingPO.amountPo : "",
-              total: matchingPO ? matchingPO.total : "",
-              remarks: matchingPO ? matchingPO.remarks : "",
-              paymentStatus: matchingPO ? matchingPO.paymentStatus : "",
+              poNo: matchingPO.poNo || "",
+              vendorName: matchingPO.vendorName || "",
+              amountPo: matchingPO.amountPo || "",
+              total: matchingPO.total || "",
+              remarks: matchingPO.remarks || "",
+              paymentStatus: matchingPO.paymentStatus || "",
             };
             mergedJobDoneArray.push(mergedItem);
           });
@@ -559,6 +565,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           mergedJobDoneArray.push(mergedItem);
         }
       });
+      
       var totalWIPBilling = 0,
         totalWIPTotal = 0,
         totalWIIPRetainer = 0,
@@ -615,7 +622,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           row.amntOthers = "";
           row.billingBeforeVat = "";
         }
-        log.debug('row.qty', row.qty)
         qContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
         qContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/salesord.nl?id=' + row.quoteNumberVal + '&whence=" target="_blank" >' + row.quoteNumber || "" + "</a></td>";
         qContent += '            <td class="uir-list-row-cell">' + row.jobNumber || "" + "</td>";
@@ -747,6 +753,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           summary: "GROUP",
           formula: "TO_CHAR({trandate}, 'YYYY')",
         });
+        log.debug('yearD', yearD)
         let total = result.getValue({
           name: "amount",
           summary: "SUM",
@@ -781,7 +788,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           case "Media Fee":
             amntMF = total;
             break;
-          case "Incentive":
+          case "3rd Party Production":
             amntIncentive = total;
             break;
           case "Additional Creative Fee":
@@ -807,8 +814,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         });
       });
       const groupedDataSummary = groupByMonthAndYear(summaryDataArr);
-      log.debug("summaryDataArr", summaryDataArr);
-      log.debug("groupedData", groupedDataSummary);
       var totalBilling = 0,
         totalTotal = 0,
         totalRetainer = 0,
@@ -818,29 +823,93 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         totalIf = 0,
         totalAdditionalFC = 0,
         totalOthers = 0;
-      groupedDataSummary.forEach(function (row) {
-        dContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
-        dContent += '            <td class="uir-list-row-cell">' + getMonthName(row.month) || "" + "</td>";
-        dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.billing) || "" + "</td>";
-        dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.total) || "" + "</td>";
-        dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntRetainer) || "" + "</td>";
-        dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntCF) || "" + "</td>";
-        dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntSF) || "" + "</td>";
-        dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntMF) || "" + "</td>";
-        dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntIncentive) || "" + "</td>";
-        dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntAdditionalCF) || "" + "</td>";
-        dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntOthers) || "" + "</td>";
-        dContent += "        </tr>";
-        totalBilling += Number(row.billing || 0);
-        totalTotal += Number(row.total || 0);
-        totalRetainer += Number(row.amntRetainer || 0);
-        totalCF += Number(row.amntCF || 0);
-        totalSf += Number(row.amntSF || 0);
-        totalMf += Number(row.amntMF || 0);
-        totalIf += Number(row.amntIncentive || 0);
-        totalAdditionalFC += Number(row.amntAdditionalCF || 0)
-        totalOthers += Number(row.amntOthers || 0);
+        log.debug('groupedDataSummary', groupedDataSummary)
+     // Parse date strings to get start and end dates
+      var startDate = new Date(startDateSelected.split('/').reverse().join('-'));
+      var endDate = new Date(endDateSelected.split('/').reverse().join('-'));
+
+      // Function to get month name
+      function getMonthName(month) {
+          var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+          return monthNames[month - 1];
+      }
+
+      // Function to add commas to numbers
+      function numberWithCommas(x) {
+          return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+
+      // Generate list of months between start and end dates
+      function getMonthsInRange(startDate, endDate) {
+          var date = new Date(startDate.getTime());
+          var months = [];
+
+          while (date <= endDate) {
+              months.push({
+                  month: ('0' + (date.getMonth() + 1)).slice(-2),
+                  year: date.getFullYear().toString().slice(-2)
+              });
+              date.setMonth(date.getMonth() + 1);
+          }
+
+          return months;
+      }
+
+      var monthsInRange = getMonthsInRange(startDate, endDate);
+
+      // Fill missing months with empty data
+      var filledGroupedDataSummary = monthsInRange.map(function(monthInfo) {
+          var existingData = groupedDataSummary.find(function(row) {
+              return row.month === monthInfo.month && row.year === monthInfo.month;
+          });
+
+          if (existingData) {
+              return existingData;
+          } else {
+              return {
+                  month: monthInfo.month,
+                  year: monthInfo.year,
+                  total: "0.00",
+                  billing: "0.00",
+                  amntRetainer: "0.00",
+                  amntCF: "0.00",
+                  amntSF: "0.00",
+                  amntMF: "0.00",
+                  amntIncentive: "0.00",
+                  amntAdditionalCF: "0",
+                  amntOthers: "0.00"
+              };
+          }
       });
+
+      // Log filledGroupedDataSummary to debug
+      log.debug("filledGroupedDataSummary", filledGroupedDataSummary);
+
+      filledGroupedDataSummary.forEach(function (row) {
+          dContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
+          dContent += '            <td class="uir-list-row-cell">' + (getMonthName(parseInt(row.month)) || "") + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.billing) || "") + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.total) || "") + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntRetainer) || "") + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntCF) || "") + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntSF) || "") + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntMF) || "") + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntIncentive) || "") + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntAdditionalCF) || "") + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntOthers) || "") + "</td>";
+          dContent += "        </tr>";
+          totalBilling += Number(row.billing || 0);
+          totalTotal += Number(row.total || 0);
+          totalRetainer += Number(row.amntRetainer || 0);
+          totalCF += Number(row.amntCF || 0);
+          totalSf += Number(row.amntSF || 0);
+          totalMf += Number(row.amntMF || 0);
+          totalIf += Number(row.amntIncentive || 0);
+          totalAdditionalFC += Number(row.amntAdditionalCF || 0);
+          totalOthers += Number(row.amntOthers || 0);
+      });
+
+
       // end summary data
       fldTable = form.addField({
         id: "custpage_htmlfield",
@@ -858,7 +927,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th colspan="23" class="uir-list-header-td" style="text-align: left;font-weight: bold; background-color: #8eaadc !important">WORK IN PROGRESS</th>';
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">QUOTE NUMBER</th>';
+      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">SO NUMBER</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">JOB NO</th>';
       // sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">PROJECT</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">STATUS</th>';
@@ -872,7 +941,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Agency<br/>Commission/Creative<br/>Fee</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Supervision Fee</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Media Fee</th>';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Incentive</th>';
+      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">3rd Party Production</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Additional Creative Fee</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Others</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">Payment Status</th>';
@@ -926,7 +995,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">CREATIVE FEE</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">SUPERVISION FEE</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">MEDIA FEE</th>';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">INCENTIVE</th>';
+      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">3rd Party Production</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Additional Creative Fee</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">OTHERS</th>';
       sContent += "        </tr>";
@@ -945,14 +1014,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">BUDGET</th>';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">-</th>';
-      sContent += "        </tr>";
-      sContent += '        <tr class="uir-list-headerrow">';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">TOTAL JOB</th>';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">-</th>';
-      sContent += "        </tr>";
-      sContent += '        <tr class="uir-list-headerrow">';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">BALANCE BUDGET</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">-</th>';
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
