@@ -50,7 +50,7 @@ define(["N/record", "N/search"], function (record, search) {
         } else if (TransType == "journal") {
           textSub = "JE";
         } else if (TransType == "vendpymt") {
-          textSub = "PYMT";
+          textSub = "VPYMT";
         } else if (TransType == "custinvc") {
           textSub = "INV";
         } else if (TransType == "vendcred") {
@@ -60,7 +60,11 @@ define(["N/record", "N/search"], function (record, search) {
         } else if (TransType == "vendbill") {
           textSub = "VEND";
         } else if (TransType == "salesord") {
-          textSub = "SO";
+          if(customForm == 148){
+              textSub = "PI";
+          }else{
+              textSub = "SO";
+          }
         } else if (TransType == "itemrcpt") {
           textSub = "IR";
         } else if (TransType == "opprtnty") {
@@ -78,7 +82,7 @@ define(["N/record", "N/search"], function (record, search) {
         } else if (TransType == "estimate") {
           textSub = "QT";
         } else if (TransType == "custpymt") {
-          textSub = "PYMT";
+          textSub = "CPYMT";
         } else if (TransType == "vprep") {
           textSub = "VPP";
         } else if (TransType == "exprept") {

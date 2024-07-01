@@ -138,6 +138,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     // log.debug("balance", balance);
     // PO data
     var tandId = soRecord.getValue("tranid");
+    var memo = soRecord.getValue('memo')
     var InvDate = soRecord.getValue("trandate");
     var terms = soRecord.getText("terms");
     var subTotal = soRecord.getValue("subtotal") || 0;
@@ -566,7 +567,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "</tr>";
 
     body += "<tr>";  
-    body += "<td style='align:left;'>Created Form</td>";
+    body += "<td style='align:left;'>Created From</td>";
     body += "<td>:</td>";
     body += "<td style='align:left;'>"+createdFrom+"</td>";  
     body += "</tr>";
@@ -575,6 +576,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "<td style='align:left;'>PO# </td>";
     body += "<td>:</td>";
     body += "<td style='align:left;'>" + otehrRefNum + "</td>";
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td style='align:left;'>Memo </td>";
+    body += "<td>:</td>";
+    body += "<td style='align:left;'>" + memo + "</td>";
     body += "</tr>";
 
     body += "<tr>";

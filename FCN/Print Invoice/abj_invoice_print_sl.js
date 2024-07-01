@@ -169,6 +169,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // PO data
                 var tandId = invoiceRecord.getValue('tranid');
                 var InvDate = invoiceRecord.getValue('trandate');
+                var memo = invoiceRecord.getValue('memo');
                 var terms = invoiceRecord.getText('terms');
                 var fakturPajak = invoiceRecord.getValue('custbody_fcn_faktur_pajak');
                 var subTotal = invoiceRecord.getValue('subtotal') || 0;
@@ -263,7 +264,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                   }
                 var subBefore = subTotal
                 var taxtotalBefor = taxtotal
-                total = Number(subBefore) + Number(taxtotalBefor);
+                total = Number(subTotal2) + Number(taxtotalBefor);
                 amountReceive = total
                 if(taxpphToPrint){
                     amountReceive = amountReceive - totalWhTaxamount;
@@ -617,7 +618,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tr>";
             
                 body += "<tr>";  
-                body += "<td style='align:left;'>Created Form</td>";
+                body += "<td style='align:left;'>Created From</td>";
                 body += "<td>:</td>";
                 body += "<td style='align:left;'>"+createdFrom+"</td>";  
                 body += "</tr>";
@@ -626,6 +627,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='align:left;'>PO# </td>";
                 body += "<td>:</td>";
                 body += "<td style='align:left;'>" + otehrRefNum + "</td>";
+                body += "</tr>";
+
+                body += "<tr>";
+                body += "<td style='align:left;'>Memo </td>";
+                body += "<td>:</td>";
+                body += "<td style='align:left;'>" + memo + "</td>";
                 body += "</tr>";
             
                 body += "<tr>";
@@ -757,8 +764,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId: "item",
                             line: index,
                         });
-            
-                        
+                        if(itemId != '2880'){
                             if (account) {
                                 const itemText = dataRec.getSublistText({
                                     sublistId: "item",
@@ -810,6 +816,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 });
                             
                         }
+                        }
+                        
+                            
                     }
                     let tableHTML = generateTableHTMLSO(dataItemSO);
                     body += tableHTML;

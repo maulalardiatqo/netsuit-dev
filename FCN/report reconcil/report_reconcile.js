@@ -20,7 +20,14 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
     } while (resultslice.length >= 1000);
     return searchResults;
   }
+  function convertCurr(data){
+    data = format.format({
+        value: data,
+        type: format.Type.CURRENCY
+    });
 
+    return data
+}
   function numberWithCommas(x) {
     x = x.toString();
     var pattern = /(-?\d+)(\d{3})/;
@@ -283,8 +290,17 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           name: "formulacurrency",
           formula: "{totalamount}-{taxtotal}",
         });
+        var discount = 0;
+        let discLine = result.getValue('custcol_abj_disc_line');
+        let discBody = result.getValue('discountamount');
+        if(discLine && discLine != 0){
+          discount = discLine
+        }else if(discBody && discBody != 0){
+          discount = discBody 
+        }
         let revenue = result.getText("line.cseg_abjproj_cust_");
-        let amount = result.getValue("amount");
+        let amountBefor = result.getValue("amount");
+        let amount = Number(amountBefor) - Number(discount)
         var amntRetainer,
           amntCF,
           amntSF,
@@ -347,6 +363,8 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       });
 
       var myResultsJob = getAllResults(jobDoneData);
+      log.debug('myResultsJob', myResultsJob)
+      log.debug('length jobdone', myResultsJob.length)
       var jobDoneDataArr = [];
       myResultsJob.forEach(function (result) {
         let quoteNumber = result.getValue("tranid");
@@ -369,7 +387,16 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           formula: "{totalamount}-{taxtotal}",
         });
         let revenue = result.getText("line.cseg_abjproj_cust_");
-        let amount = result.getValue("amount");
+        var discount = 0;
+        let discLine = result.getValue('custcol_abj_disc_line');
+        let discBody = result.getValue('discountamount');
+        if(discLine && discLine != 0){
+          discount = discLine
+        }else if(discBody && discBody != 0){
+          discount = discBody 
+        }
+        let amountBefor = result.getValue("amount");
+        let amount = Number(amountBefor) - Number(discount)
         var amntRetainer,
           amntCF,
           amntSF,
@@ -492,6 +519,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         }
         return acc;
       }, []);
+      log.debug('groupedJobDoneArray', groupedJobDoneArray)
       let mergedPendingBillArray = [];
       groupedPendingBillArray.forEach((pendingBillItem) => {
         let matchingPOs = poDataArr.filter((poItem) => {
@@ -690,225 +718,348 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         jContent += "        </tr>";
         previousTotalRevJD = totalRev;
       });
-
-      // summary data
-      var summaryData = search.load({
-        id: "customsearch662",
+      var newSummaryData = search.load({
+        id: "customsearch807",
       });
-      summaryData.filters.push(
-        search.createFilter({
-          name: "subsidiary",
-          operator: search.Operator.IS,
-          values: subsidiarySelected,
-        })
-      );
-      if (customerSelected) {
-        summaryData.filters.push(
+      newSummaryData.filters.push(
           search.createFilter({
-            name: "entity",
+              name: "subsidiary",
+              operator: search.Operator.IS,
+              values: subsidiarySelected,
+          })
+      );
+      if(subsidiarySelected){
+        newSummaryData.filters.push(
+          search.createFilter({
+            name: "subsidiary",
             operator: search.Operator.IS,
-            values: customerSelected,
+            values: subsidiarySelected,
           })
         );
+      }
+      
+      if (customerSelected) {
+          newSummaryData.filters.push(
+              search.createFilter({
+                  name: "entity",
+                  operator: search.Operator.IS,
+                  values: customerSelected,
+              })
+          );
       }
       if (startDateSelected && endDateSelected) {
-        summaryData.filters.push(
-          search.createFilter({
-            name: "trandate",
-            operator: search.Operator.ONORAFTER,
-            values: startDateSelected,
-          })
-        );
-        summaryData.filters.push(
-          search.createFilter({
-            name: "trandate",
-            operator: search.Operator.ONORBEFORE,
-            values: endDateSelected,
-          })
-        );
+          newSummaryData.filters.push(
+              search.createFilter({
+                  name: "trandate",
+                  operator: search.Operator.ONORAFTER,
+                  values: startDateSelected,
+              })
+          );
+          newSummaryData.filters.push(
+              search.createFilter({
+                  name: "trandate",
+                  operator: search.Operator.ONORBEFORE,
+                  values: endDateSelected,
+              })
+          );
       }
-      /*if (endDateSelected) {
-        var endDateParts = endDateSelected.split("/");
-        let endDate = endDateParts[2];
-        summaryData.filters.push(
-          search.createFilter({
-            name: "formulatext",
-            operator: search.Operator.IS,
-            values: endDate,
-            formula: "TO_CHAR({trandate}, 'YYYY')",
-          })
-        );
-      }*/
-
-      var myResultsSummary = getAllResults(summaryData);
-      var summaryDataArr = [];
-      myResultsSummary.forEach(function (result) {
-        let monthD = result.getValue({
-          name: "formulatext",
-          summary: "GROUP",
-          formula: "TO_CHAR({trandate}, 'MM')",
-        });
-        let yearD = result.getValue({
-          name: "formulatext",
-          summary: "GROUP",
-          formula: "TO_CHAR({trandate}, 'YYYY')",
-        });
-        log.debug('yearD', yearD)
-        let total = result.getValue({
-          name: "amount",
-          summary: "SUM",
-        });
-        let billing = result.getValue({
-          name: "formulacurrency",
-          summary: "SUM",
-          formula: "{totalamount}-{taxtotal}",
-        });
-        let revenue = result.getText({
-          name: "line.cseg_abjproj_cust_",
-          summary: "GROUP",
-        });
-
-        var amntRetainer,
-          amntCF,
-          amntSF,
-          amntMF,
-          amntIncentive,
-          amntAdditionalCF,
-          amntOthers = "";
-        switch (revenue) {
-          case "Retainer":
-            amntRetainer = total;
-            break;
-          case "Agency Commission/Creative Fee":
-            amntCF = total;
-            break;
-          case "Supervision Fee":
-            amntSF = total;
-            break;
-          case "Media Fee":
-            amntMF = total;
-            break;
-          case "3rd Party Production":
-            amntIncentive = total;
-            break;
-          case "Additional Creative Fee":
-            amntAdditionalCF = amount;
-            break;
-
-          default:
-            amntOthers = total;
-            break;
-        }
-        summaryDataArr.push({
-          month: monthD,
-          year: yearD,
-          total: total,
-          billing: billing,
-          amntRetainer: amntRetainer || "",
-          amntCF: amntCF || "",
-          amntSF: amntSF || "",
-          amntMF: amntMF || "",
-          amntIncentive: amntIncentive || "",
-          amntAdditionalCF : amntAdditionalCF || "",
-          amntOthers: amntOthers || "",
-        });
+      var ResultnewSummaryData = getAllResults(newSummaryData);
+      log.debug('ResultnewSummaryData', ResultnewSummaryData)
+      log.debug('ResultnewSummaryData.length', ResultnewSummaryData.length)
+      var newsummaryDataArr = [];
+      
+      // Fungsi untuk mendapatkan bulan dan tahun dari tanggal
+      function getMonthAndYearFromDate(dateString) {
+          var dateParts = dateString.split('/');
+          var day = dateParts[0];
+          var month = dateParts[1];
+          var year = dateParts[2];
+          return { month: month, year: year };
+      }
+      
+      var groupedData = {};
+      
+      ResultnewSummaryData.forEach(function (result) {
+          let trandate = result.getValue("trandate");
+          let { month, year } = getMonthAndYearFromDate(trandate);
+          let billingBeforeVat = parseFloat(result.getValue({
+              name: "formulacurrency",
+              formula: "{totalamount}-{taxtotal}",
+          })) || 0;
+          log.debug('billingBeforeVat', billingBeforeVat)
+          let revenue = result.getText("line.cseg_abjproj_cust_");
+          var discount = 0;
+          let discLine = result.getValue('custcol_abj_disc_line');
+          let discBody = result.getValue('discountamount');
+          if(discLine && discLine != 0){
+            discount = discLine
+          }else if(discBody && discBody != 0){
+            discount = discBody 
+          }
+          let amountBefor = result.getValue("amount");
+          let amount = Number(amountBefor) - Number(discount)
+      
+          var amntRetainer = 0,
+              amntCF = 0,
+              amntSF = 0,
+              amntMF = 0,
+              amntIncentive = 0,
+              amntAdditionalCF = 0,
+              amntOthers = 0;
+      
+          switch (revenue) {
+              case "Retainer":
+                  amntRetainer = amount;
+                  break;
+              case "Agency Commission/Creative Fee":
+                  amntCF = amount;
+                  break;
+              case "Supervision Fee":
+                  amntSF = amount;
+                  break;
+              case "Media Fee":
+                  amntMF = amount;
+                  break;
+              case "3rd Party Production":
+                  amntIncentive = amount;
+                  break;
+              case "Additional Creative Fee":
+                  amntAdditionalCF = amount;
+                  break;
+              default:
+                  amntOthers = amount;
+                  break;
+          }
+      
+      
+          let key = year + '-' + month;
+          if (!groupedData[key]) {
+              groupedData[key] = {
+                  month: month,
+                  year: year,
+                  totalBillingBeforeVat: 0,
+                  totalAmountBill: 0,
+                  totalAmntRetainer: 0,
+                  totalAmntCF: 0,
+                  totalAmntSF: 0,
+                  totalAmntMF: 0,
+                  totalAmntIncentive: 0,
+                  totalAmntAdditionalCF: 0,
+                  totalAmntOthers: 0,
+                  totalCostOfBilling: 0,
+                  totalUse: 0
+              };
+          }
+          groupedData[key].totalBillingBeforeVat += Number(billingBeforeVat);
+          groupedData[key].totalAmountBill += Number(amount);
+          groupedData[key].totalAmntRetainer += Number(amntRetainer);
+          groupedData[key].totalAmntCF += Number(amntCF);
+          groupedData[key].totalAmntSF += Number(amntSF);
+          groupedData[key].totalAmntMF += Number(amntMF);
+          groupedData[key].totalAmntIncentive += Number(amntIncentive);
+          groupedData[key].totalAmntAdditionalCF += Number(amntAdditionalCF);
+          groupedData[key].totalAmntOthers += Number(amntOthers);
+          groupedData[key].totalCostOfBilling += Number(amount);
+          groupedData[key].totalUse = Number(groupedData[key].totalAmntRetainer) + Number(groupedData[key].totalAmntCF) + Number(groupedData[key].totalAmntSF) + Number(groupedData[key].totalAmntMF) + Number(groupedData[key].totalAmntIncentive) + Number(groupedData[key].totalAmntAdditionalCF) + Number(groupedData[key].totalAmntOthers);
       });
-      const groupedDataSummary = groupByMonthAndYear(summaryDataArr);
+      
+      var newsummaryDataArr = [];
+      for (var key in groupedData) {
+          newsummaryDataArr.push({
+              month: groupedData[key].month,
+              year: groupedData[key].year,
+              totalBillingBeforeVat: groupedData[key].totalBillingBeforeVat,
+              totalAmountBill: groupedData[key].totalAmountBill,
+              totalAmntRetainer: groupedData[key].totalAmntRetainer,
+              totalAmntCF: groupedData[key].totalAmntCF,
+              totalAmntSF: groupedData[key].totalAmntSF,
+              totalAmntMF: groupedData[key].totalAmntMF,
+              totalAmntIncentive: groupedData[key].totalAmntIncentive,
+              totalAmntAdditionalCF: groupedData[key].totalAmntAdditionalCF,
+              totalAmntOthers: groupedData[key].totalAmntOthers,
+              totalCostOfBilling: groupedData[key].totalCostOfBilling,
+              totalUse: groupedData[key].totalUse
+          });
+      }
+      const groupedNewSummaryData = newsummaryDataArr;
+      log.debug('groupedNewSummaryData', groupedNewSummaryData)
       var totalBilling = 0,
-        totalTotal = 0,
-        totalRetainer = 0,
-        totalCF = 0,
-        totalSf = 0,
-        totalMf = 0,
-        totalIf = 0,
-        totalAdditionalFC = 0,
-        totalOthers = 0;
-        log.debug('groupedDataSummary', groupedDataSummary)
-     // Parse date strings to get start and end dates
+          totalTotal = 0,
+          totalRetainer = 0,
+          totalCF = 0,
+          totalSf = 0,
+          totalMf = 0,
+          totalIf = 0,
+          totalAdditionalFC = 0,
+          totalOthers = 0;
       var startDate = new Date(startDateSelected.split('/').reverse().join('-'));
       var endDate = new Date(endDateSelected.split('/').reverse().join('-'));
-
-      // Function to get month name
+      var filterYear = endDate.getFullYear().toString();
+      
       function getMonthName(month) {
           var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-          return monthNames[month - 1];
+          return monthNames[month -1];
       }
-
-      // Function to add commas to numbers
-      function numberWithCommas(x) {
-          return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      }
-
-      // Generate list of months between start and end dates
+      
+      
       function getMonthsInRange(startDate, endDate) {
-          var date = new Date(startDate.getTime());
-          var months = [];
-
-          while (date <= endDate) {
-              months.push({
-                  month: ('0' + (date.getMonth() + 1)).slice(-2),
-                  year: date.getFullYear().toString().slice(-2)
-              });
-              date.setMonth(date.getMonth() + 1);
-          }
-
-          return months;
-      }
-
+        var months = [];
+        var currentDate = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), 1));
+    
+        while (currentDate <= endDate) {
+            var month = ('0' + (currentDate.getUTCMonth() + 1)).slice(-2); 
+            var year = currentDate.getUTCFullYear().toString(); 
+    
+            months.push({
+                month: month,
+                year: year
+            });
+            currentDate.setUTCMonth(currentDate.getUTCMonth() + 1);
+            if (currentDate > endDate) {
+                break;
+            }
+        }
+    
+        return months;
+    }
+    
+      
       var monthsInRange = getMonthsInRange(startDate, endDate);
-
-      // Fill missing months with empty data
-      var filledGroupedDataSummary = monthsInRange.map(function(monthInfo) {
-          var existingData = groupedDataSummary.find(function(row) {
-              return row.month === monthInfo.month && row.year === monthInfo.month;
+      var filledGroupedDataSummary = monthsInRange.map(function (monthInfo) {
+          var existingData = groupedNewSummaryData.find(function (row) {
+            log.debug('row.month', row.month);
+            log.debug('monthInfo.month', monthInfo.month)
+              return row.month === monthInfo.month && row.year === monthInfo.year;
           });
-
+      
           if (existingData) {
               return existingData;
           } else {
               return {
                   month: monthInfo.month,
                   year: monthInfo.year,
-                  total: "0.00",
-                  billing: "0.00",
-                  amntRetainer: "0.00",
-                  amntCF: "0.00",
-                  amntSF: "0.00",
-                  amntMF: "0.00",
-                  amntIncentive: "0.00",
-                  amntAdditionalCF: "0",
-                  amntOthers: "0.00"
+                  totalAmountBill: 0,
+                  totalUse: 0,
+                  totalAmntRetainer: 0,
+                  totalAmntCF: 0,
+                  totalAmntSF: 0,
+                  totalAmntMF: 0,
+                  totalAmntIncentive: 0,
+                  totalAmntAdditionalCF: 0,
+                  totalAmntOthers: 0
               };
           }
       });
-
-      // Log filledGroupedDataSummary to debug
-      log.debug("filledGroupedDataSummary", filledGroupedDataSummary);
-
+      log.debug('filledGroupedDataSummary', filledGroupedDataSummary)
       filledGroupedDataSummary.forEach(function (row) {
+        log.debug('row.totalBillingBeforeVat', row.totalBillingBeforeVat)
           dContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
           dContent += '            <td class="uir-list-row-cell">' + (getMonthName(parseInt(row.month)) || "") + "</td>";
-          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.billing) || "") + "</td>";
-          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.total) || "") + "</td>";
-          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntRetainer) || "") + "</td>";
-          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntCF) || "") + "</td>";
-          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntSF) || "") + "</td>";
-          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntMF) || "") + "</td>";
-          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntIncentive) || "") + "</td>";
-          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntAdditionalCF) || "") + "</td>";
-          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (numberWithCommas(row.amntOthers) || "") + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalBillingBeforeVat || 0) + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalUse || 0) + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalAmntRetainer || 0) + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalAmntCF || 0) + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalAmntSF || 0) + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalAmntMF || 0) + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalAmntIncentive || 0) + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalAmntAdditionalCF || 0) + "</td>";
+          dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalAmntOthers || 0) + "</td>";
           dContent += "        </tr>";
-          totalBilling += Number(row.billing || 0);
-          totalTotal += Number(row.total || 0);
-          totalRetainer += Number(row.amntRetainer || 0);
-          totalCF += Number(row.amntCF || 0);
-          totalSf += Number(row.amntSF || 0);
-          totalMf += Number(row.amntMF || 0);
-          totalIf += Number(row.amntIncentive || 0);
-          totalAdditionalFC += Number(row.amntAdditionalCF || 0);
-          totalOthers += Number(row.amntOthers || 0);
+          totalBilling += Number(row.totalBillingBeforeVat || 0);
+          totalTotal += Number(row.totalUse || 0);
+          totalRetainer += Number(row.totalAmntRetainer || 0);
+          totalCF += Number(row.totalAmntCF || 0);
+          totalSf += Number(row.totalAmntSF || 0);
+          totalMf += Number(row.totalAmntMF || 0);
+          totalIf += Number(row.totalAmntIncentive || 0);
+          totalAdditionalFC += Number(row.totalAmntAdditionalCF || 0);
+          totalOthers += Number(row.totalAmntOthers || 0);
+      });
+      
+      var periodName = 'FY ' + filterYear;
+      var periodSearch = search.create({
+          type: "accountingperiod",
+          filters: [
+              ["periodname", "is", periodName]
+          ],
+          columns: ["internalid"]
       });
 
+      var periodId;
+      periodSearch.run().each(function(result) {
+          periodId = result.getValue({ name: 'internalid' });
+          return false;
+      });
+      // budget
+      var sales = search.load({
+        id: "customsearch808",
+      });
+      if(subsidiarySelected){
+          sales.filters.push(
+            search.createFilter({
+                name: "subsidiary",
+                operator: search.Operator.IS,
+                values: subsidiarySelected,
+            })
+        );
+      }
+      if(periodId){
+          sales.filters.push(
+            search.createFilter({
+                name: "year",
+                operator: search.Operator.IS,
+                values: periodId,
+            })
+        );
+      }
+      var resultSales = getAllResults(sales);
+      var salesData = 0;
+      resultSales.forEach(function (result) {
+          let amount = result.getValue({
+            name: "amount",
+            summary: "SUM"
+          });
+          salesData = amount || 0;
+      });
+
+      var costOfSales = search.load({
+        id: "customsearch809",
+      });
+      if(subsidiarySelected){
+        costOfSales.filters.push(
+            search.createFilter({
+                name: "subsidiary",
+                operator: search.Operator.IS,
+                values: subsidiarySelected,
+            })
+        );
+      }
+      if(periodId){
+        costOfSales.filters.push(
+            search.createFilter({
+                name: "year",
+                operator: search.Operator.IS,
+                values: periodId,
+            })
+        );
+      }
+      var resultcostOfSales = getAllResults(costOfSales);
+      var costOfSalesData = 0;
+      resultcostOfSales.forEach(function (result) {
+          let amount = result.getValue({
+            name: "amount",
+            summary: "SUM"
+          });
+          costOfSalesData = amount || 0;
+      });
+      log.debug('salesData', salesData);
+      log.debug('costOfSalesData', costOfSalesData);
+      
+      var budgetYear = Number(salesData) - Number(costOfSalesData);
+      log.debug('budgetYear', budgetYear)
+      log.debug('totalTotal', totalTotal);
+      var balanceToGO = Number(budgetYear) - Number(totalTotal)
+      log.debug('balanceToGo', balanceToGO)
 
       // end summary data
       fldTable = form.addField({
@@ -1002,23 +1153,23 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += dContent;
       sContent += '        <tr class="uir-list-headerrow">';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #d5a6bd !important;">TOTAL</th>';
-      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalBilling) + "</th>";
-      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalTotal) + "</th>";
-      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalRetainer) + "</th>";
-      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalCF) + "</th>";
-      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalSf) + "</th>";
-      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalMf) + "</th>";
-      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalIf) + "</th>";
-      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalAdditionalFC) + "</th>";
-      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + numberWithCommas(totalOthers) + "</th>";
+      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalBilling) + "</th>";
+      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalTotal) + "</th>";
+      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalRetainer) + "</th>";
+      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalCF) + "</th>";
+      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalSf) + "</th>";
+      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalMf) + "</th>";
+      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalIf) + "</th>";
+      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalAdditionalFC) + "</th>";
+      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalOthers) + "</th>";
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">BUDGET</th>';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">-</th>';
+      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">'+ convertCurr(budgetYear)+'</th>';
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">BALANCE TO GO</th>';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">-</th>';
+      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">'+convertCurr(balanceToGO)+'</th>';
       sContent += "        </tr>";
       sContent += "    </table>";
       fldTable.defaultValue = sContent;

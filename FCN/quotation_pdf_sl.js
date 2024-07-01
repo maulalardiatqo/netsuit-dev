@@ -650,11 +650,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
 
         html += `</tr>
                  <tr>
-                     <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                     <td class='tg-b_body'>${item.description}</td>`;
+                      <td class='tg-b_body' style='border-left: 1px solid black'></td>
+                      <td class='tg-b_body'>${item.description}</td>`;
         
         if (customForm == 143) {
+          log.debug('masuk sini')
             html += `<td class='tg-b_body' style='border-right: 1px solid black' colspan="4"></td>`;
+        }else{
+          log.debug('masuk else')
+          html += `<td class='tg-b_body' style='border-right: 1px solid black' colspan="3"></td>`;
         }
 
         html += `</tr>

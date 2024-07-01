@@ -12,6 +12,12 @@ define(['N/record', 'N/search', 'N/error'], function(record, search, error) {
                 var internalId = currentRecord.id;
                 log.debug('internalid', internalId);
                 var typeRec = currentRecord.getValue('type');
+                log.debug('typeRec', typeRec);
+                if(typeRec == 'salesord'){
+                    typeRec = 'salesorder'
+                }else if(typeRec == 'custinvc'){
+                    typeRec = 'invoice'
+                }
                 var recLoad = record.load({
                     type : typeRec,
                     id : internalId,
