@@ -366,7 +366,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                       if(itemId != '2880'){
                         var itemPrice = invoiceRecord.getSublistValue({
                           sublistId: "item",
-                          fieldId: "rate",
+                          fieldId: "amount",
                           line: index,
                         }) || 0;
                         totalCost += parseFloat(itemPrice)
@@ -376,6 +376,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                   }
                   
                   var discountHeader = invoiceRecord.getValue("discountrate")||0;
+                  log.debug('discountheader', discountHeader)
+                  discountHeader = discountHeader.toString();
+                  if(discountHeader.includes('%')){
+                    log.debug('mengandung prosent')
+                    var ubahProsent = parseFloat(discountHeader.replace('%', ''));
+                    var ubahmin = Math.abs(ubahProsent);
+                    var hitungUlang = parseFloat(totalCost) * parseFloat(ubahmin) / 100
+                    log.debug('hitungUlang', hitungUlang);
+                    discountHeader = pembulatan(hitungUlang)
+                  }
                   totalDiscount = parseFloat(totalDiscount) + parseFloat(discountHeader)
                   var taxTotalRate = (parseFloat(totalCost) - parseFloat(totalDiscount)) * 11 / 100;
                 var customForm = invoiceRecord.getValue('customform');

@@ -271,6 +271,8 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       var myResults = getAllResults(pendingBillData);
       var pendingBillDataArr = [];
       myResults.forEach(function (result) {
+        let item = result.getValue('item');
+        log.debug('item', item)
         let quoteNumber = result.getValue("tranid");
         let jobNumber = result.getValue("custbody_abj_custom_jobnumber");
         let project = result.getText("class");
@@ -301,6 +303,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         let revenue = result.getText("line.cseg_abjproj_cust_");
         let amountBefor = result.getValue("amount");
         let amount = Number(amountBefor) - Number(discount)
+        if(item == '2880'){
+          amount = 0
+        }
         var amntRetainer,
           amntCF,
           amntSF,
@@ -363,10 +368,10 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       });
 
       var myResultsJob = getAllResults(jobDoneData);
-      log.debug('myResultsJob', myResultsJob)
-      log.debug('length jobdone', myResultsJob.length)
       var jobDoneDataArr = [];
       myResultsJob.forEach(function (result) {
+        let item = result.getValue('item');
+        log.debug('item', item)
         let quoteNumber = result.getValue("tranid");
         let jobNumber = result.getValue("custbody_abj_custom_jobnumber");
         let project = result.getText("class");
@@ -397,6 +402,10 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         }
         let amountBefor = result.getValue("amount");
         let amount = Number(amountBefor) - Number(discount)
+        log.debug('penjumlahan', {amount : amount, amountBefor : amountBefor, discount : discount});
+        if(item == '2880'){
+          amount = 0
+        }
         var amntRetainer,
           amntCF,
           amntSF,
@@ -519,20 +528,11 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         }
         return acc;
       }, []);
-      log.debug('groupedJobDoneArray', groupedJobDoneArray)
       let mergedPendingBillArray = [];
       groupedPendingBillArray.forEach((pendingBillItem) => {
         let matchingPOs = poDataArr.filter((poItem) => {
           var nomorPO = poItem.poNo
-          // if(nomorPO == "FCN PO2405001"){
-          //   log.debug('nomorPO', nomorPO)
-          //   log.debug('poItem.quoteNumberVal', poItem.quoteNumberVal)
-          //   log.debug('pendingBillItem.quoteNumberVal', pendingBillItem.quoteNumberVal)
-          //   log.debug('pendingBillItem.projectVal', pendingBillItem.projectVal)
-          //   log.debug('poItem.projectVal', poItem.projectVal)
-          //   log.debug('poItem.deliverablesVal', poItem.deliverablesVal)
-          //   log.debug('pendingBillItem.deliverablesVal', pendingBillItem.deliverablesVal)
-          // }
+          
           
           return poItem.quoteNumberVal === pendingBillItem.quoteNumberVal && poItem.projectVal === pendingBillItem.projectVal && poItem.deliverablesVal === pendingBillItem.deliverablesVal;
         });
@@ -728,14 +728,14 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
               values: subsidiarySelected,
           })
       );
-      if(subsidiarySelected){
-        newSummaryData.filters.push(
-          search.createFilter({
-            name: "subsidiary",
-            operator: search.Operator.IS,
-            values: subsidiarySelected,
-          })
-        );
+      if (subsidiarySelected) {
+          newSummaryData.filters.push(
+              search.createFilter({
+                  name: "subsidiary",
+                  operator: search.Operator.IS,
+                  values: subsidiarySelected,
+              })
+          );
       }
       
       if (customerSelected) {
@@ -764,8 +764,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           );
       }
       var ResultnewSummaryData = getAllResults(newSummaryData);
-      log.debug('ResultnewSummaryData', ResultnewSummaryData)
-      log.debug('ResultnewSummaryData.length', ResultnewSummaryData.length)
       var newsummaryDataArr = [];
       
       // Fungsi untuk mendapatkan bulan dan tahun dari tanggal
@@ -778,27 +776,31 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       }
       
       var groupedData = {};
+      var uniqueIds = new Set(); // Set to store unique transaction IDs
       
       ResultnewSummaryData.forEach(function (result) {
+          let item = result.getValue('item')
+          let idTran = result.getValue('internalid');
           let trandate = result.getValue("trandate");
           let { month, year } = getMonthAndYearFromDate(trandate);
           let billingBeforeVat = parseFloat(result.getValue({
               name: "formulacurrency",
               formula: "{totalamount}-{taxtotal}",
           })) || 0;
-          log.debug('billingBeforeVat', billingBeforeVat)
           let revenue = result.getText("line.cseg_abjproj_cust_");
           var discount = 0;
           let discLine = result.getValue('custcol_abj_disc_line');
           let discBody = result.getValue('discountamount');
-          if(discLine && discLine != 0){
-            discount = discLine
-          }else if(discBody && discBody != 0){
-            discount = discBody 
+          if (discLine && discLine != 0) {
+              discount = discLine;
+          } else if (discBody && discBody != 0) {
+              discount = discBody;
           }
           let amountBefor = result.getValue("amount");
-          let amount = Number(amountBefor) - Number(discount)
-      
+          let amount = Number(amountBefor) - Number(discount);
+          if(item == '2880'){
+            amount = 0
+          }
           var amntRetainer = 0,
               amntCF = 0,
               amntSF = 0,
@@ -831,7 +833,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                   break;
           }
       
-      
           let key = year + '-' + month;
           if (!groupedData[key]) {
               groupedData[key] = {
@@ -850,7 +851,12 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                   totalUse: 0
               };
           }
-          groupedData[key].totalBillingBeforeVat += Number(billingBeforeVat);
+      
+          if (!uniqueIds.has(idTran)) {
+              groupedData[key].totalBillingBeforeVat += Number(billingBeforeVat);
+              uniqueIds.add(idTran); 
+          }
+      
           groupedData[key].totalAmountBill += Number(amount);
           groupedData[key].totalAmntRetainer += Number(amntRetainer);
           groupedData[key].totalAmntCF += Number(amntCF);
@@ -869,7 +875,8 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
               month: groupedData[key].month,
               year: groupedData[key].year,
               totalBillingBeforeVat: groupedData[key].totalBillingBeforeVat,
-              totalAmountBill: groupedData[key].totalAmountBill,
+              // totalAmountBill: groupedData[key].totalAmountBill,
+              totalAmountBill: groupedData[key].totalBillingBeforeVat,
               totalAmntRetainer: groupedData[key].totalAmntRetainer,
               totalAmntCF: groupedData[key].totalAmntCF,
               totalAmntSF: groupedData[key].totalAmntSF,
@@ -878,11 +885,11 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
               totalAmntAdditionalCF: groupedData[key].totalAmntAdditionalCF,
               totalAmntOthers: groupedData[key].totalAmntOthers,
               totalCostOfBilling: groupedData[key].totalCostOfBilling,
-              totalUse: groupedData[key].totalUse
+              totalUse: groupedData[key].totalBillingBeforeVat
+              // totalUse: groupedData[key].totalUse
           });
       }
       const groupedNewSummaryData = newsummaryDataArr;
-      log.debug('groupedNewSummaryData', groupedNewSummaryData)
       var totalBilling = 0,
           totalTotal = 0,
           totalRetainer = 0,
@@ -898,37 +905,33 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       
       function getMonthName(month) {
           var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-          return monthNames[month -1];
+          return monthNames[month - 1];
       }
       
-      
       function getMonthsInRange(startDate, endDate) {
-        var months = [];
-        var currentDate = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), 1));
-    
-        while (currentDate <= endDate) {
-            var month = ('0' + (currentDate.getUTCMonth() + 1)).slice(-2); 
-            var year = currentDate.getUTCFullYear().toString(); 
-    
-            months.push({
-                month: month,
-                year: year
-            });
-            currentDate.setUTCMonth(currentDate.getUTCMonth() + 1);
-            if (currentDate > endDate) {
-                break;
-            }
-        }
-    
-        return months;
-    }
-    
+          var months = [];
+          var currentDate = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), 1));
+      
+          while (currentDate <= endDate) {
+              var month = ('0' + (currentDate.getUTCMonth() + 1)).slice(-2);
+              var year = currentDate.getUTCFullYear().toString();
+      
+              months.push({
+                  month: month,
+                  year: year
+              });
+              currentDate.setUTCMonth(currentDate.getUTCMonth() + 1);
+              if (currentDate > endDate) {
+                  break;
+              }
+          }
+      
+          return months;
+      }
       
       var monthsInRange = getMonthsInRange(startDate, endDate);
       var filledGroupedDataSummary = monthsInRange.map(function (monthInfo) {
           var existingData = groupedNewSummaryData.find(function (row) {
-            log.debug('row.month', row.month);
-            log.debug('monthInfo.month', monthInfo.month)
               return row.month === monthInfo.month && row.year === monthInfo.year;
           });
       
@@ -950,9 +953,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
               };
           }
       });
-      log.debug('filledGroupedDataSummary', filledGroupedDataSummary)
       filledGroupedDataSummary.forEach(function (row) {
-        log.debug('row.totalBillingBeforeVat', row.totalBillingBeforeVat)
           dContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
           dContent += '            <td class="uir-list-row-cell">' + (getMonthName(parseInt(row.month)) || "") + "</td>";
           dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalBillingBeforeVat || 0) + "</td>";
@@ -974,7 +975,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           totalIf += Number(row.totalAmntIncentive || 0);
           totalAdditionalFC += Number(row.totalAmntAdditionalCF || 0);
           totalOthers += Number(row.totalAmntOthers || 0);
-      });
+      });    
       
       var periodName = 'FY ' + filterYear;
       var periodSearch = search.create({
@@ -1052,14 +1053,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           });
           costOfSalesData = amount || 0;
       });
-      log.debug('salesData', salesData);
-      log.debug('costOfSalesData', costOfSalesData);
       
       var budgetYear = Number(salesData) - Number(costOfSalesData);
-      log.debug('budgetYear', budgetYear)
-      log.debug('totalTotal', totalTotal);
       var balanceToGO = Number(budgetYear) - Number(totalTotal)
-      log.debug('balanceToGo', balanceToGO)
 
       // end summary data
       fldTable = form.addField({
