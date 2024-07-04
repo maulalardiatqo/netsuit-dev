@@ -170,6 +170,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var tandId = invoiceRecord.getValue('tranid');
                 var InvDate = invoiceRecord.getValue('trandate');
                 var memo = invoiceRecord.getValue('memo');
+                var quoteNumber = invoiceRecord.getValue('custbody_abj_quotation_from_sales')
                 var terms = invoiceRecord.getText('terms');
                 var fakturPajak = invoiceRecord.getValue('custbody_fcn_faktur_pajak');
                 var subTotal = invoiceRecord.getValue('subtotal') || 0;
@@ -622,11 +623,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='width:1%'></td>"
                 body += "<td style='width:64%'></td>"
                 body += "</tr>"
-            
+                
                 body += "<tr>";
                 body += "<td style='align:left; font-weight: bold;' colspan='2'>Other Information</td>";
                 body += "</tr>";
-            
+                
+                body += "<tr>";
+                body += "<td style='align:left;'>Quote </td>";
+                body += "<td>:</td>";
+                body += "<td style='align:left;'>" + quoteNumber + "</td>";
+                body += "</tr>";
+
                 body += "<tr>";  
                 body += "<td style='align:left;'>Created From</td>";
                 body += "<td>:</td>";
@@ -639,11 +646,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='align:left;'>" + otehrRefNum + "</td>";
                 body += "</tr>";
 
-                body += "<tr>";
-                body += "<td style='align:left;'>Memo </td>";
-                body += "<td>:</td>";
-                body += "<td style='align:left;'>" + memo + "</td>";
-                body += "</tr>";
+                
             
                 body += "<tr>";
                 body += "<td style='align:left; font-weight: bold;'>Payment Detail</td>";
@@ -747,9 +750,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     if (item.discLine && item.discLine != 0) {
                         html += `<tr>
                                     <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                                    <td class='tg-b_body' style='background-color:#e7eb07'>[Discount - ${item.prosDiscLine}%]</td>
+                                    <td class='tg-b_body' style=''>[Discount - ${item.prosDiscLine}%]</td>
                                     <td class='tg-b_body' colspan="2"></td>
-                                    <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>(${numberWithCommas(item.discLine)})</td>
+                                    <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>Rp. (${numberWithCommas(item.discLine)})</td>
                                 </tr>`;
                     }
           
@@ -864,9 +867,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                           if (item.discLine && item.discLine != 0) {
                               html += `<tr>
                                               <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                                              <td class='tg-b_body' style='background-color:#e7eb07'>[Discount - ${item.prosDiscLine}%]</td>
+                                              <td class='tg-b_body' style=''>[Discount - ${item.prosDiscLine}%]</td>
                                               <td class='tg-b_body' colspan="3"></td>
-                                              <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>(${numberWithCommas(item.discLine)})</td>
+                                              <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>Rp. (${numberWithCommas(item.discLine)})</td>
                                           </tr>`;
                           }
             

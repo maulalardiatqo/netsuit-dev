@@ -677,7 +677,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         if (item.discLine && item.discLine != 0) {
             html += `<tr>
                         <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                        <td class='tg-b_body' style='background-color:#e7eb07'>[Discount - ${item.prosDiscLine}%]</td>`;
+                        <td class='tg-b_body' style=''>[Discount - ${item.prosDiscLine}%]</td>`;
             
             if (customForm == 143) {
                 html += `<td class='tg-b_body' colspan="3"></td>`;
@@ -685,7 +685,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
                 html += `<td class='tg-b_body' colspan="2"></td>`;
             }
 
-            html += `<td class='tg-b_body' style='border-right: 1px solid black; align:right;'>(${numberWithCommas(item.discLine)})</td>
+            html += `<td class='tg-b_body' style='border-right: 1px solid black; align:right;'>Rp. (${numberWithCommas(item.discLine)})</td>
                     </tr>`;
         }
 

@@ -944,6 +944,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         var newSummaryData = search.load({
           id: "customsearch807",
         });
+        
         newSummaryData.filters.push(
             search.createFilter({
                 name: "subsidiary",
@@ -951,6 +952,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                 values: subsidiarySelected,
             })
         );
+        
         if (subsidiarySelected) {
             newSummaryData.filters.push(
                 search.createFilter({
@@ -986,10 +988,10 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                 })
             );
         }
+        
         var ResultnewSummaryData = getAllResults(newSummaryData);
         var newsummaryDataArr = [];
         
-        // Fungsi untuk mendapatkan bulan dan tahun dari tanggal
         function getMonthAndYearFromDate(dateString) {
             var dateParts = dateString.split('/');
             var day = dateParts[0];
@@ -998,11 +1000,14 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             return { month: month, year: year };
         }
         
-        var groupedData = {};
-        var uniqueIds = new Set(); // Set to store unique transaction IDs
+        var rawData = [];
+        var uniqueIds = new Set();
         
         ResultnewSummaryData.forEach(function (result) {
-            let item = result.getValue('item')
+            let quoteNumberVal = result.getValue("internalid");
+            let projectVal = result.getValue("class");
+            let deliverablesVal = result.getValue("line.cseg_abjproj_cust_");
+            let item = result.getValue('item');
             let idTran = result.getValue('internalid');
             let trandate = result.getValue("trandate");
             let { month, year } = getMonthAndYearFromDate(trandate);
@@ -1022,8 +1027,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             let amountBefor = result.getValue("amount");
             let amount = Number(amountBefor) - Number(discount);
             if(item == '2880'){
-              amount = 0
+                amount = 0;
             }
+            
             var amntRetainer = 0,
                 amntCF = 0,
                 amntSF = 0,
@@ -1055,12 +1061,86 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                     amntOthers = amount;
                     break;
             }
-        
-            let key = year + '-' + month;
+            
+            rawData.push({
+                quoteNumberVal,
+                projectVal,
+                deliverablesVal,
+                idTran,
+                month,
+                year,
+                billingBeforeVat,
+                amount,
+                amntRetainer,
+                amntCF,
+                amntSF,
+                amntMF,
+                amntIncentive,
+                amntAdditionalCF,
+                amntOthers
+            });
+        });
+        const groupedSummary = rawData.reduce((acc, curr) => {
+          const index = acc.findIndex((item) => item.quoteNumberVal === curr.quoteNumberVal);
+          if (index !== -1) {
+            const accQty = parseInt(acc[index].qty) || 0;
+            const currQty = parseInt(curr.qty) || 0;
+            acc[index].qty = (accQty + currQty).toString();
+            acc[index].amntRetainer = ((parseFloat(acc[index].amntRetainer) || 0) + (parseFloat(curr.amntRetainer) || 0)).toFixed(2);
+            acc[index].amntCF = ((parseFloat(acc[index].amntCF) || 0) + (parseFloat(curr.amntCF) || 0)).toFixed(2);
+            acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
+            acc[index].amntMF = ((parseFloat(acc[index].amntMF) || 0) + (parseFloat(curr.amntMF) || 0)).toFixed(2);
+            acc[index].amntIncentive = ((parseFloat(acc[index].amntIncentive) || 0) + (parseFloat(curr.amntIncentive) || 0)).toFixed(2);
+            acc[index].amntAdditionalCF = ((parseFloat(acc[index].amntAdditionalCF) || 0) + (parseFloat(curr.amntAdditionalCF) || 0)).toFixed(2);
+            acc[index].amntOthers = ((parseFloat(acc[index].amntOthers) || 0) + (parseFloat(curr.amntOthers) || 0)).toFixed(2);
+          } else {
+            acc.push(curr);
+          }
+          return acc;
+        }, []);
+  
+        let mergedSummaryData = [];
+        groupedSummary.forEach((jobDoneItem) => {
+            let matchingPOs = poDataArr.filter((poItem) => {
+                return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
+            });
+            if (matchingPOs.length > 0) {
+                matchingPOs.forEach((matchingPO) => {
+                    let mergedItem = {
+                        ...jobDoneItem,
+                        poNo: matchingPO.poNo || "",
+                        vendorName: matchingPO.vendorName || "",
+                        amountPo: matchingPO.amountPo || "",
+                        total: matchingPO.total || "",
+                        remarks: matchingPO.remarks || "",
+                        paymentStatus: matchingPO.paymentStatus || "",
+                        totalRev: (jobDoneItem.billingBeforeVat - (matchingPO.amountPo ? parseFloat(matchingPO.amountPo) : 0)).toFixed(2)
+                    };
+                    mergedSummaryData.push(mergedItem);
+                });
+            } else {
+                let mergedItem = {
+                    ...jobDoneItem,
+                    poNo: "",
+                    vendorName: "",
+                    amountPo: "",
+                    total: "",
+                    remarks: "",
+                    paymentStatus: "",
+                    totalRev: (jobDoneItem.billingBeforeVat - 0).toFixed(2)
+                };
+                mergedSummaryData.push(mergedItem);
+            }
+        });
+        log.debug('mergedSummaryData', mergedSummaryData)
+   
+        var groupedData = {};
+        mergedSummaryData.forEach(function (data) {
+            let key = data.year + '-' + data.month;
             if (!groupedData[key]) {
                 groupedData[key] = {
-                    month: month,
-                    year: year,
+                    month: data.month,
+                    year: data.year,
                     totalBillingBeforeVat: 0,
                     totalAmountBill: 0,
                     totalAmntRetainer: 0,
@@ -1075,30 +1155,30 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                 };
             }
         
-            if (!uniqueIds.has(idTran)) {
-                groupedData[key].totalBillingBeforeVat += Number(billingBeforeVat);
-                uniqueIds.add(idTran); 
+            if (!uniqueIds.has(data.idTran)) {
+                groupedData[key].totalBillingBeforeVat += Number(data.billingBeforeVat);
+                groupedData[key].totalUse += Number(data.totalRev);
+                uniqueIds.add(data.idTran);
             }
         
-            groupedData[key].totalAmountBill += Number(amount);
-            groupedData[key].totalAmntRetainer += Number(amntRetainer);
-            groupedData[key].totalAmntCF += Number(amntCF);
-            groupedData[key].totalAmntSF += Number(amntSF);
-            groupedData[key].totalAmntMF += Number(amntMF);
-            groupedData[key].totalAmntIncentive += Number(amntIncentive);
-            groupedData[key].totalAmntAdditionalCF += Number(amntAdditionalCF);
-            groupedData[key].totalAmntOthers += Number(amntOthers);
-            groupedData[key].totalCostOfBilling += Number(amount);
-            groupedData[key].totalUse = Number(groupedData[key].totalAmntRetainer) + Number(groupedData[key].totalAmntCF) + Number(groupedData[key].totalAmntSF) + Number(groupedData[key].totalAmntMF) + Number(groupedData[key].totalAmntIncentive) + Number(groupedData[key].totalAmntAdditionalCF) + Number(groupedData[key].totalAmntOthers);
+            groupedData[key].totalAmountBill += Number(data.amount);
+            groupedData[key].totalAmntRetainer += Number(data.amntRetainer);
+            groupedData[key].totalAmntCF += Number(data.amntCF);
+            groupedData[key].totalAmntSF += Number(data.amntSF);
+            groupedData[key].totalAmntMF += Number(data.amntMF);
+            groupedData[key].totalAmntIncentive += Number(data.amntIncentive);
+            groupedData[key].totalAmntAdditionalCF += Number(data.amntAdditionalCF);
+            groupedData[key].totalAmntOthers += Number(data.amntOthers);
+            groupedData[key].totalCostOfBilling += Number(data.amount);
+            
         });
-        
+        log.debug('groupedData', groupedData)
         var newsummaryDataArr = [];
         for (var key in groupedData) {
             newsummaryDataArr.push({
                 month: groupedData[key].month,
                 year: groupedData[key].year,
                 totalBillingBeforeVat: groupedData[key].totalBillingBeforeVat,
-                // totalAmountBill: groupedData[key].totalAmountBill,
                 totalAmountBill: groupedData[key].totalBillingBeforeVat,
                 totalAmntRetainer: groupedData[key].totalAmntRetainer,
                 totalAmntCF: groupedData[key].totalAmntCF,
@@ -1108,10 +1188,10 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                 totalAmntAdditionalCF: groupedData[key].totalAmntAdditionalCF,
                 totalAmntOthers: groupedData[key].totalAmntOthers,
                 totalCostOfBilling: groupedData[key].totalCostOfBilling,
-                totalUse: groupedData[key].totalBillingBeforeVat
-                // totalUse: groupedData[key].totalUse
+                totalUse: groupedData[key].totalUse
             });
         }
+      
         const groupedNewSummaryData = newsummaryDataArr;
         var totalBilling = 0,
             totalTotal = 0,
@@ -1165,7 +1245,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                     month: monthInfo.month,
                     year: monthInfo.year,
                     totalAmountBill: 0,
-                    totalUse: 0,
                     totalAmntRetainer: 0,
                     totalAmntCF: 0,
                     totalAmntSF: 0,

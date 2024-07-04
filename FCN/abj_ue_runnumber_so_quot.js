@@ -10,7 +10,7 @@ define(["N/record", "N/search"], function(
     ) {
     function afterSubmit(context) {
         try {
-            if (context.type == context.UserEventType.CREATE) {
+            if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT) {
     
                 var rec = context.newRecord;
     
@@ -19,6 +19,7 @@ define(["N/record", "N/search"], function(
                     id: rec.id,
                 });
                 var TransType = recordLoad.getValue("type");
+                log.debug('transType', TransType)
                 var dateTrans = recordLoad.getValue("trandate");
                 var date = new Date(dateTrans);
 
@@ -35,6 +36,7 @@ define(["N/record", "N/search"], function(
 
                 var cForm = recordLoad.getValue('customform');
                 var cekTitle = recordLoad.getValue('title');
+                var titleSo = recordLoad.getValue("custbody_abj_sales_order_title");
                 var subsidiary = recordLoad.getValue("subsidiary");
                 var subsidiaryName
                 if(subsidiary){
@@ -45,6 +47,8 @@ define(["N/record", "N/search"], function(
 
                 if (TransType == "estimate") {
                     textSub = "EST"
+                }else if(TransType  == "salesord"){
+                    textSub = "ORDER"
                 }
                 firstFormat = subsidiaryName + " " + textSub + lastTwoDigits + monthFormatted;
                 var formatForCustRecord = lastTwoDigits + monthFormatted
@@ -103,10 +107,22 @@ define(["N/record", "N/search"], function(
                     log.debug("setSavedSearchRunNumber", setSavedSearchRunNumber)
                     var formatSavedSearchNumber 
                     if (TransType == "estimate") {
-                        if(cForm == 143){
+                        if(cForm == 143 || cForm == 150){
                             log.debug('correct form');
                             if(cekTitle && cekTitle != ''){
                                 formatSavedSearchNumber = subsidiaryName + " " + textSub + setSavedSearchRunNumber + " - " + cekTitle
+                            }else{
+                                formatSavedSearchNumber = subsidiaryName + " " + textSub + setSavedSearchRunNumber
+                            }
+                        }else{
+                            formatSavedSearchNumber = subsidiaryName + " " + textSub + setSavedSearchRunNumber
+                        }
+                    }else if(TransType == "salesord"){
+                        log.debug('titleSo', titleSo)
+                        if(cForm == 151 || cForm == 105){
+                            log.debug('correct form');
+                            if(titleSo && titleSo != ''){
+                                formatSavedSearchNumber = subsidiaryName + " " + textSub + setSavedSearchRunNumber + " - " + titleSo
                             }else{
                                 formatSavedSearchNumber = subsidiaryName + " " + textSub + setSavedSearchRunNumber
                             }
@@ -144,10 +160,22 @@ define(["N/record", "N/search"], function(
                 }else{
                     if (TransType == "estimate") {
                         var formatRunningNumber
-                        if(cForm == 143){
+                        if(cForm == 143 || cForm == 150){
                             log.debug('correct form');
                             if(cekTitle && cekTitle != ''){
                                 formatRunningNumber = firstFormat  + '001' + "-" + cekTitle;
+                            }else{
+                                formatRunningNumber = firstFormat  + '001';
+                            }
+                        }else{
+                            formatRunningNumber = firstFormat  + '001'
+                        }
+                    }else if(TransType == "salesord"){
+                        log.debug("masuk sini")
+                        if(cForm == 151 || cForm == 105){
+                            log.debug('correct form');
+                            if(titleSo && titleSo != ''){
+                                formatRunningNumber = firstFormat  + '001' + "-" + titleSo;
                             }else{
                                 formatRunningNumber = firstFormat  + '001';
                             }
@@ -189,8 +217,9 @@ define(["N/record", "N/search"], function(
                         enableSourcing: false,
                         ignoreMandatoryFields: true,
                     });
+                    log.debug('saveRun', saveRun)
                     if (saveRun) {
-                        log.debug("formatRunningNumber", formatRunningNumber);
+                        log.debug("formatRunningNumber before save", formatRunningNumber);
                         recordLoad.setValue({
                             fieldId: "tranid",
                             value: formatRunningNumber,

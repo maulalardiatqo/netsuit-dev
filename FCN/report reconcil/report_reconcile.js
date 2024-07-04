@@ -875,43 +875,43 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         return acc;
       }, []);
 
+      let mergedSummaryData = [];
       groupedSummary.forEach((jobDoneItem) => {
-        let matchingPOs = poDataArr.filter((poItem) => {
-          var nomorPO = poItem.poNo
-          
-          return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
-        });
-        if (matchingPOs.length > 0) {
-          log.debug('matchingPOS', matchingPOs)
-          matchingPOs.forEach((matchingPO) => {
-            let mergedItem = {
-              ...jobDoneItem,
-              poNo: matchingPO.poNo || "",
-              vendorName: matchingPO.vendorName || "",
-              amountPo: matchingPO.amountPo || "",
-              total: matchingPO.total || "",
-              remarks: matchingPO.remarks || "",
-              paymentStatus: matchingPO.paymentStatus || "",
-            };
-            mergedJobDoneArray.push(mergedItem);
+          let matchingPOs = poDataArr.filter((poItem) => {
+              return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
           });
-        } else {
-          let mergedItem = {
-            ...jobDoneItem,
-            poNo: "",
-            vendorName: "",
-            amountPo: "",
-            total: "",
-            remarks: "",
-            paymentStatus: "",
-          };
-          mergedJobDoneArray.push(mergedItem);
-        }
+          if (matchingPOs.length > 0) {
+              matchingPOs.forEach((matchingPO) => {
+                  let mergedItem = {
+                      ...jobDoneItem,
+                      poNo: matchingPO.poNo || "",
+                      vendorName: matchingPO.vendorName || "",
+                      amountPo: matchingPO.amountPo || "",
+                      total: matchingPO.total || "",
+                      remarks: matchingPO.remarks || "",
+                      paymentStatus: matchingPO.paymentStatus || "",
+                      totalRev: (jobDoneItem.billingBeforeVat - (matchingPO.amountPo ? parseFloat(matchingPO.amountPo) : 0)).toFixed(2)
+                  };
+                  mergedSummaryData.push(mergedItem);
+              });
+          } else {
+              let mergedItem = {
+                  ...jobDoneItem,
+                  poNo: "",
+                  vendorName: "",
+                  amountPo: "",
+                  total: "",
+                  remarks: "",
+                  paymentStatus: "",
+                  totalRev: (jobDoneItem.billingBeforeVat - 0).toFixed(2)
+              };
+              mergedSummaryData.push(mergedItem);
+          }
       });
-      log.debug('groupedSummary', groupedSummary)
+      log.debug('mergedSummaryData', mergedSummaryData)
+ 
       var groupedData = {};
-      
-      rawData.forEach(function (data) {
+      mergedSummaryData.forEach(function (data) {
           let key = data.year + '-' + data.month;
           if (!groupedData[key]) {
               groupedData[key] = {
@@ -933,6 +933,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       
           if (!uniqueIds.has(data.idTran)) {
               groupedData[key].totalBillingBeforeVat += Number(data.billingBeforeVat);
+              groupedData[key].totalUse += Number(data.totalRev);
               uniqueIds.add(data.idTran);
           }
       
@@ -945,9 +946,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           groupedData[key].totalAmntAdditionalCF += Number(data.amntAdditionalCF);
           groupedData[key].totalAmntOthers += Number(data.amntOthers);
           groupedData[key].totalCostOfBilling += Number(data.amount);
-          groupedData[key].totalUse = Number(groupedData[key].totalAmntRetainer) + Number(groupedData[key].totalAmntCF) + Number(groupedData[key].totalAmntSF) + Number(groupedData[key].totalAmntMF) + Number(groupedData[key].totalAmntIncentive) + Number(groupedData[key].totalAmntAdditionalCF) + Number(groupedData[key].totalAmntOthers);
+          
       });
-      
+      log.debug('groupedData', groupedData)
       var newsummaryDataArr = [];
       for (var key in groupedData) {
           newsummaryDataArr.push({
@@ -963,7 +964,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
               totalAmntAdditionalCF: groupedData[key].totalAmntAdditionalCF,
               totalAmntOthers: groupedData[key].totalAmntOthers,
               totalCostOfBilling: groupedData[key].totalCostOfBilling,
-              totalUse: groupedData[key].totalBillingBeforeVat
+              totalUse: groupedData[key].totalUse
           });
       }
     
@@ -1020,7 +1021,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                   month: monthInfo.month,
                   year: monthInfo.year,
                   totalAmountBill: 0,
-                  totalUse: 0,
                   totalAmntRetainer: 0,
                   totalAmntCF: 0,
                   totalAmntSF: 0,
@@ -1031,8 +1031,8 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
               };
           }
       });
-      log.debug('totalBawah', totalBawah)
       filledGroupedDataSummary.forEach(function (row) {
+          log.debug('row.totalUse', row.totalUse)
           dContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
           dContent += '            <td class="uir-list-row-cell">' + (getMonthName(parseInt(row.month)) || "") + "</td>";
           dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalBillingBeforeVat || 0) + "</td>";

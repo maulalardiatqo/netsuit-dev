@@ -387,7 +387,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "NPWP : " + taxRegNo + "</p>";
     body += "</td>";
     body += "<td>";
-    body += "<p class='tg-headerrow_legalName'> Sales Quotation # : " + tandId + "<br/>";
+    body += "<p class='tg-headerrow_legalName'> Sales Order # : " + tandId + "<br/>";
     body += "" + InvDate + "</p>";
     body += "<p class='tg-headerrow' style='font-size:11px'> Terms : " + terms + "<br/>";
     body += "Due Date :" + duedate + "</p>";
@@ -682,9 +682,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
           if (item.discLine && item.discLine != 0) {
               html += `<tr>
                           <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                          <td class='tg-b_body' style='background-color:#e7eb07'>[Discount - ${item.prosDiscLine}%]</td>
+                          <td class='tg-b_body' style=''>[Discount - ${item.prosDiscLine}%]</td>
                           <td class='tg-b_body' colspan="2"></td>
-                          <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>(${numberWithCommas(item.discLine)})</td>
+                          <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>Rp. (${numberWithCommas(item.discLine)})</td>
                       </tr>`;
           }
 
@@ -800,9 +800,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
               if (item.discLine && item.discLine != 0) {
                   html += `<tr>
                                   <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                                  <td class='tg-b_body' style='background-color:#e7eb07'>[Discount - ${item.prosDiscLine}%]</td>
+                                  <td class='tg-b_body' style=''>[Discount - ${item.prosDiscLine}%]</td>
                                   <td class='tg-b_body' colspan="3"></td>
-                                  <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>(${numberWithCommas(item.discLine)})</td>
+                                  <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>Rp. (${numberWithCommas(item.discLine)})</td>
                               </tr>`;
               }
 
