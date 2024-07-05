@@ -10,13 +10,14 @@ define(["N/record", "N/search"], function(
     ) {
     function afterSubmit(context) {
         try {
-            if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT) {
+            if (context.type == context.UserEventType.CREATE) {
     
                 var rec = context.newRecord;
     
                 var recordLoad = record.load({
                     type: rec.type,
                     id: rec.id,
+                    isDynamic: true,
                 });
                 var TransType = recordLoad.getValue("type");
                 log.debug('transType', TransType)
@@ -142,21 +143,43 @@ define(["N/record", "N/search"], function(
                         value: setSavedSearchRunNumber,
                         ignoreFieldChange: true,
                     });
-                    loadCustRecord.save({
+                    var saveSaveSearch = loadCustRecord.save({
                         enableSourcing: false,
                         ignoreMandatoryFields: true,
                     });
-                    recordLoad.setValue({
-                        fieldId: "tranid",
-                        value: formatSavedSearchNumber,
-                        ignoreFieldChange: true,
-                    });
-                    var savetrans = recordLoad.save({
-                        enableSourcing: false,
-                        ignoreMandatoryFields: true,
-                    });
-                    log.debug("saveTrans", savetrans);
+                    log.debug('saveSaveSearch', saveSaveSearch)
                     
+                    
+                    if(TransType == "salesord"){
+                        log.debug("formatSavedSearchNumber for SO", formatSavedSearchNumber)
+                        log.debug('rec.id', rec.id)
+                        var recordSo = record.load({
+                            type: "salesorder",
+                            id: rec.id,
+                            isDynamic: true,
+                        });
+                        recordSo.setValue({
+                            fieldId: "tranid",
+                            value: formatSavedSearchNumber,
+                            ignoreFieldChange: true,
+                        });
+                        var savetransSO = recordSo.save({
+                            enableSourcing: false,
+                            ignoreMandatoryFields: true,
+                        });
+                        log.debug("savetransSO", savetransSO);
+                    }else{
+                        recordLoad.setValue({
+                            fieldId: "tranid",
+                            value: formatSavedSearchNumber,
+                            ignoreFieldChange: true,
+                        });
+                        var savetrans = recordLoad.save({
+                            enableSourcing: false,
+                            ignoreMandatoryFields: true,
+                        });
+                        log.debug("saveTrans", savetrans);
+                    }
                 }else{
                     if (TransType == "estimate") {
                         var formatRunningNumber

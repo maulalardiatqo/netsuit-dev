@@ -654,7 +654,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         // qContent += '            <td class="uir-list-row-cell">' + row.project || "" + "</td>";
         qContent += '            <td class="uir-list-row-cell">' + row.status || "" + "</td>";
         qContent += '            <td class="uir-list-row-cell">' + row.pic || "" + "</td>";
-        qContent += '            <td class="uir-list-row-cell">' + row.deliverables || "" + "</td>";
+        // qContent += '            <td class="uir-list-row-cell">' + row.deliverables || "" + "</td>";
         qContent += '            <td class="uir-list-row-cell">' + row.qty || "" + "</td>";
         qContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/custinvc.nl?id=' + row.invoiceNumberVal + '&whence=" target="_blank">' + row.invoiceNumber || "" + "</a></td>";
         qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (row.billingBeforeVat ? numberWithCommas(row.billingBeforeVat) : "") + "</td>";
@@ -696,7 +696,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         // jContent += '            <td class="uir-list-row-cell">' + row.project || "" + "</td>";
         jContent += '            <td class="uir-list-row-cell">' + row.status || "" + "</td>";
         jContent += '            <td class="uir-list-row-cell">' + row.pic || "" + "</td>";
-        jContent += '            <td class="uir-list-row-cell">' + row.deliverables || "" + "</td>";
+        // jContent += '            <td class="uir-list-row-cell">' + row.deliverables || "" + "</td>";
         jContent += '            <td class="uir-list-row-cell">' + row.qty || "" + "</td>";
         jContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/custinvc.nl?id=' + row.invoiceNumberVal + '&whence=" target="_blank">' + row.invoiceNumber || "" + "</a></td>";
         jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (row.billingBeforeVat ? numberWithCommas(row.billingBeforeVat) : "") + "</td>";
@@ -1145,12 +1145,12 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       });
       sContent += "    <table>";
       sContent += '        <tr class="uir-list-headerrow">';
-      sContent += '            <th colspan="8" class="uir-list-header-td" style="text-align: center;font-weight: bold;"></th>';
+      sContent += '            <th colspan="7" class="uir-list-header-td" style="text-align: center;font-weight: bold;"></th>';
       sContent += '            <th colspan="8" class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #ed7c39 !important;">REVENUE</th>';
       sContent += '            <th colspan="6" class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #45a147 !important;">COST OF BILLING</th>';
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
-      sContent += '            <th colspan="23" class="uir-list-header-td" style="text-align: left;font-weight: bold; background-color: #8eaadc !important">WORK IN PROGRESS</th>';
+      sContent += '            <th colspan="22" class="uir-list-header-td" style="text-align: left;font-weight: bold; background-color: #8eaadc !important">WORK IN PROGRESS</th>';
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">SO NUMBER</th>';
@@ -1158,7 +1158,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       // sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">PROJECT</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">STATUS</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">PIC</th>';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">DELIVERABLES</th>';
+      // sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">DELIVERABLES</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">QTY</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">INVOICE NUMBER</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">BILLING<br/>(BEFORE VAT)</th>';
@@ -1184,7 +1184,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       // sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
+      // sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #bdd6ee !important;">' + numberWithCommas(totalWIPBilling) + "</th>";

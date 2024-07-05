@@ -154,6 +154,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     }
     var otehrRefNum = soRecord.getValue("otherrefnum");
     var currency = soRecord.getText("currency");
+    // email content
+    var emailReceipt = soRecord.getValue('custbody_abj_email_recipients');
+    var emailContent = soRecord.getValue('custbody_abj_email_messages')
     var currencyVal = soRecord.getValue("currency");
     currency = currencyVal == 1 ? "IDR" : currency;
     // log.debug("jobNumber", jobNumber);

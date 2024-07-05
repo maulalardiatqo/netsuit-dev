@@ -25,9 +25,26 @@
         newWindow = window.open(createPDFURL);
       }
     }
+    function sendMail() {
+      console.log("test in function");
+      var records = currentRecord.get(); 
+      var id = records.id;
+      var createPDFURL = url.resolveScript({
+          scriptId: 'customscript_abj_sl_send_email_so',
+          deploymentId: 'customdeploy_abj_sl_send_email_so',
+          returnExternalUrl: false
+      });
+      console.log("id", id);
+      console.log("urlpdf", createPDFURL);
+      createPDFURL += '&id=' + id;
+      if (createPDFURL) {
+          window.location.href = createPDFURL;
+      }
+  }
 
     return {
       pageInit: pageInit,
       printPDF: printPDF,
+      sendMail : sendMail
     };
   });
