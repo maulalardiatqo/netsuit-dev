@@ -170,6 +170,8 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       var startDateSelected = contextRequest.parameters.custpage_f_start_date;
       var endDateSelected = contextRequest.parameters.custpage_f_end_date;
       var customerSelected = contextRequest.parameters.custpage_f_customer;
+      var userObj = runtime.getCurrentUser();
+      log.debug('Internal ID of current user subsidiary: ' + userObj.subsidiary);
       subsidiaryField.defaultValue = subsidiarySelected;
       if (customerSelected) {
         customerField.defaultValue = customerSelected;

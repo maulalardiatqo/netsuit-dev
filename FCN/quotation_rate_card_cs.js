@@ -39,7 +39,6 @@ define(["N/currentRecord", "N/search", "N/url"], function (currentRecord, search
         var rateTotal = 0;
         customrecord_abj_ratecard_hoursinputSearchObj.run().each(function (result) {
           rateTotal += parseFloat(result.getValue("custrecord_abj_ratecard_hours_total") || 0);
-          console.log('rateTotal', rateTotal)
           return true;
         });
         console.log("rateTotal", rateTotal);
@@ -105,9 +104,26 @@ define(["N/currentRecord", "N/search", "N/url"], function (currentRecord, search
       newWindow = window.open(createPDFURL);
     }
   }
+  function sendMail() {
+    console.log("test in function");
+    var records = currentRecord.get(); 
+    var id = records.id;
+    var createPDFURL = url.resolveScript({
+        scriptId: 'customscript_abj_sl_send_email_quotation',
+        deploymentId: 'customdeploy_abj_sl_send_email_quotation',
+        returnExternalUrl: false
+    });
+    console.log("id", id);
+    console.log("urlpdf", createPDFURL);
+    createPDFURL += '&id=' + id;
+    if (createPDFURL) {
+        window.location.href = createPDFURL;
+    }
+  }
 
   exports.pageInit = pageInit;
   exports.fieldChanged = fieldChanged;
   exports.printPDF = printPDF;
+  exports.sendMail = sendMail;
   return exports;
 });

@@ -780,15 +780,14 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           "<Column ss:Index='13' ss:AutoFitWidth='0' ss:Width='200' />" +
           "<Column ss:Index='14' ss:AutoFitWidth='0' ss:Width='200' />" +
           "<Column ss:Index='15' ss:AutoFitWidth='0' ss:Width='200' />" +
-          "<Column ss:Index='16' ss:AutoFitWidth='0' ss:Width='200' />" +
+          "<Column ss:Index='18' ss:AutoFitWidth='0' ss:Width='200' />" +
           "<Column ss:Index='19' ss:AutoFitWidth='0' ss:Width='200' />" +
           "<Column ss:Index='20' ss:AutoFitWidth='0' ss:Width='200' />" +
-          "<Column ss:Index='21' ss:AutoFitWidth='0' ss:Width='200' />" +
-          "<Column ss:Index='22' ss:AutoFitWidth='0' ss:Width='500' />" +
+          "<Column ss:Index='21' ss:AutoFitWidth='0' ss:Width='500' />" +
+          "<Column ss:Index='22' ss:AutoFitWidth='0' ss:Width='200' />" +
           "<Column ss:Index='23' ss:AutoFitWidth='0' ss:Width='200' />" +
           "<Column ss:Index='24' ss:AutoFitWidth='0' ss:Width='200' />" +
           "<Column ss:Index='25' ss:AutoFitWidth='0' ss:Width='200' />" +
-          "<Column ss:Index='26' ss:AutoFitWidth='0' ss:Width='200' />" +
           "<Row ss:Index='1' ss:Height='20'>" +
           '<Cell><Data ss:Type="String">SUBSIDIARY</Data></Cell>' +
           '<Cell><Data ss:Type="String">' +
@@ -820,7 +819,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           '<Cell ss:MergeDown="1" ss:StyleID="HGREY"><Data ss:Type="String">Job No</Data></Cell>' +
           '<Cell ss:MergeDown="1" ss:StyleID="HGREY"><Data ss:Type="String">Status</Data></Cell>' +
           '<Cell ss:MergeDown="1" ss:StyleID="HGREY"><Data ss:Type="String">PIC</Data></Cell>' +
-          '<Cell ss:MergeDown="1" ss:StyleID="HGREY"><Data ss:Type="String">Deliverables</Data></Cell>' +
           '<Cell ss:MergeDown="1" ss:StyleID="HGREY"><Data ss:Type="String">Qty</Data></Cell>' +
           '<Cell ss:MergeDown="1" ss:StyleID="HGREY"><Data ss:Type="String">Invoice Number</Data></Cell>' +
           '<Cell ss:MergeDown="1" ss:StyleID="HBLUE"><Data ss:Type="String">BILLING&#10;(BEFORE VAT)</Data></Cell>' +
@@ -833,17 +831,17 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           '<Cell ss:MergeDown="1" ss:StyleID="HBLUE"><Data ss:Type="String">REMARKS</Data></Cell>' +
           "</Row>" +
           "<Row ss:Index='6' ss:Height='20'>" +
-          '<Cell ss:Index="9" ss:StyleID="HTOTAL"><Data ss:Type="String">TOTAL</Data></Cell>' +
-          '<Cell ss:Index="10" ss:StyleID="HORANGE"><Data ss:Type="String">Retainer</Data></Cell>' +
-          '<Cell ss:Index="11" ss:StyleID="HORANGE"><Data ss:Type="String">Agency Commission/Creative Fee</Data></Cell>' +
-          '<Cell ss:Index="12" ss:StyleID="HORANGE"><Data ss:Type="String">Supervision Fee</Data></Cell>' +
-          '<Cell ss:Index="13" ss:StyleID="HORANGE"><Data ss:Type="String">Media Fee</Data></Cell>' +
-          '<Cell ss:Index="14" ss:StyleID="HORANGE"><Data ss:Type="String">3rd Party Production</Data></Cell>' +
-          '<Cell ss:Index="15" ss:StyleID="HORANGE"><Data ss:Type="String">Additional Creative Fee</Data></Cell>' +
-          '<Cell ss:Index="16" ss:StyleID="HORANGE"><Data ss:Type="String">Others</Data></Cell>' +
+          '<Cell ss:Index="8" ss:StyleID="HTOTAL"><Data ss:Type="String">TOTAL</Data></Cell>' +
+          '<Cell ss:Index="9" ss:StyleID="HORANGE"><Data ss:Type="String">Retainer</Data></Cell>' +
+          '<Cell ss:Index="10" ss:StyleID="HORANGE"><Data ss:Type="String">Agency Commission/Creative Fee</Data></Cell>' +
+          '<Cell ss:Index="11" ss:StyleID="HORANGE"><Data ss:Type="String">Supervision Fee</Data></Cell>' +
+          '<Cell ss:Index="12" ss:StyleID="HORANGE"><Data ss:Type="String">Media Fee</Data></Cell>' +
+          '<Cell ss:Index="13" ss:StyleID="HORANGE"><Data ss:Type="String">3rd Party Production</Data></Cell>' +
+          '<Cell ss:Index="14" ss:StyleID="HORANGE"><Data ss:Type="String">Additional Creative Fee</Data></Cell>' +
+          '<Cell ss:Index="15" ss:StyleID="HORANGE"><Data ss:Type="String">Others</Data></Cell>' +
           "</Row>" +
           "<Row ss:Index='7' ss:Height='20'>" +
-          '<Cell ss:StyleID="HPENDING" ss:MergeAcross="21" ><Data ss:Type="String">WORK IN PROGRESS</Data></Cell>' +
+          '<Cell ss:StyleID="HPENDING" ss:MergeAcross="20" ><Data ss:Type="String">WORK IN PROGRESS</Data></Cell>' +
           "</Row>";
         mergedPendingBillArray.forEach((row) => {
           var totalRev = Number(row.billingBeforeVat || 0) - Number(row.total || 0);
@@ -853,7 +851,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           <Cell ss:StyleID="NB"><Data ss:Type="String">${row.jobNumber || ""}</Data></Cell>
           <Cell ss:StyleID="NB"><Data ss:Type="String">${row.status || ""}</Data></Cell>
           <Cell ss:StyleID="NB"><Data ss:Type="String">${row.pic || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.deliverables || ""}</Data></Cell>
           <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.qty || ""}</Data></Cell>
           <Cell ss:StyleID="NB"><Data ss:Type="String">${row.invoiceNumber || ""}</Data></Cell>
           <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.billingBeforeVat || ""}</Data></Cell>
@@ -892,7 +889,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           <Cell ss:StyleID="HTOTALWIP"/>
           <Cell ss:StyleID="HTOTALWIP"/>
           <Cell ss:StyleID="HTOTALWIP"/>
-          <Cell ss:StyleID="HTOTALWIP"/>
           <Cell ss:StyleID="HTOTALWIP"><Data ss:Type="Number">${totalWIPBilling || ""}</Data></Cell>
           <Cell ss:StyleID="HTOTALWIP"><Data ss:Type="Number">${totalWIPTotal || ""}</Data></Cell>
           <Cell ss:StyleID="HTOTALWIP"><Data ss:Type="Number">${totalWIIPRetainer || ""}</Data></Cell>
@@ -910,7 +906,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           <Cell ss:StyleID="HTOTALWIP"/>
           </Row>
         `;
-        xmlStr += "<Row>" + '<Cell ss:StyleID="HJOBDONE" ss:MergeAcross="21" ><Data ss:Type="String">JOB DONE</Data></Cell>' + "</Row>";
+        xmlStr += "<Row>" + '<Cell ss:StyleID="HJOBDONE" ss:MergeAcross="20" ><Data ss:Type="String">JOB DONE</Data></Cell>' + "</Row>";
         mergedJobDoneArray.forEach((row) => {
           var totalRev = Number(row.billingBeforeVat || 0) - Number(row.total || 0);
           xmlStr += `
@@ -919,7 +915,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           <Cell ss:StyleID="NB"><Data ss:Type="String">${row.jobNumber || ""}</Data></Cell>
           <Cell ss:StyleID="NB"><Data ss:Type="String">${row.status || ""}</Data></Cell>
           <Cell ss:StyleID="NB"><Data ss:Type="String">${row.pic || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.deliverables || ""}</Data></Cell>
           <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.qty || ""}</Data></Cell>
           <Cell ss:StyleID="NB"><Data ss:Type="String">${row.invoiceNumber || ""}</Data></Cell>
           <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.billingBeforeVat || ""}</Data></Cell>

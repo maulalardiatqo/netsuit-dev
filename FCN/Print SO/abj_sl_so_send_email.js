@@ -644,6 +644,7 @@
             var pdfFiletoEmail = render.xmlToPdf({
                 xmlString: xml
             });
+            pdfFiletoEmail.name = 'SalesOrder_' + tandId + '.pdf';
             var html = '<html> <body><h2>Process Email SO Result</h2>';
             var err_msg = '';
             var subJectMail = 'Sales Order #' +  tandId
