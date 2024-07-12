@@ -318,7 +318,7 @@
                 if(itemId != '2880'){
                     var itemPrice = dataRec.getSublistValue({
                     sublistId: "item",
-                    fieldId: "rate",
+                    fieldId: "amount",
                     line: index,
                     }) || 0;
                     totalCost += parseFloat(itemPrice)

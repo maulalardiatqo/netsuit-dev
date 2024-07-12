@@ -133,419 +133,438 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         startDateSelected: startDateSelected,
         endDateSelected: endDateSelected,
       });
+      var userObj = runtime.getCurrentUser();
+      var userRole = userObj.role;
+      log.debug('userRole', userRole)
+        var roleRecord = record.load({
+            type: 'role',
+            id: userRole,
+        });
+      var selectedSubsidiary = roleRecord.getValue('subsidiaryoption');
+      log.debug('selectedSubsidiary', selectedSubsidiary)
+      var subsRestrection = roleRecord.getValue('subsidiaryrestriction');
+      log.debug('subsRestrection', subsRestrection)
+      var isProcessed = true;
+      if(selectedSubsidiary != 'ALL'){
+          log.debug('tidak sama dengan all')
+          if (!subsRestrection.includes(subsidiarySelected)) {
+            log.debug('subsidiarySelected tidak ada di subsRestrection');
+            isProcessed = false
+          }
+      }
+      log.debug('isProcessed', isProcessed)
       // search data pending billing
-      var pendingBillData = search.load({
-        id: "customsearch660",
-      });
-      pendingBillData.filters.push(
-        search.createFilter({
-          name: "subsidiary",
-          operator: search.Operator.IS,
-          values: subsidiarySelected,
-        })
-      );
-      if (customerSelected) {
+      if(isProcessed == true){
+        var pendingBillData = search.load({
+          id: "customsearch660",
+        });
         pendingBillData.filters.push(
           search.createFilter({
-            name: "entity",
+            name: "subsidiary",
             operator: search.Operator.IS,
-            values: customerSelected,
+            values: subsidiarySelected,
           })
         );
-      }
-      if (startDateSelected && endDateSelected) {
-        pendingBillData.filters.push(
-          search.createFilter({
-            name: "trandate",
-            operator: search.Operator.ONORAFTER,
-            values: startDateSelected,
-          })
-        );
-        pendingBillData.filters.push(
-          search.createFilter({
-            name: "trandate",
-            operator: search.Operator.ONORBEFORE,
-            values: endDateSelected,
-          })
-        );
-      }
-      // end search data pending billing
-      // search data job done
-      var jobDoneData = search.load({
-        id: "customsearch666",
-      });
-      jobDoneData.filters.push(
-        search.createFilter({
-          name: "subsidiary",
-          operator: search.Operator.IS,
-          values: subsidiarySelected,
-        })
-      );
-      if (customerSelected) {
+        if (customerSelected) {
+          pendingBillData.filters.push(
+            search.createFilter({
+              name: "entity",
+              operator: search.Operator.IS,
+              values: customerSelected,
+            })
+          );
+        }
+        if (startDateSelected && endDateSelected) {
+          pendingBillData.filters.push(
+            search.createFilter({
+              name: "trandate",
+              operator: search.Operator.ONORAFTER,
+              values: startDateSelected,
+            })
+          );
+          pendingBillData.filters.push(
+            search.createFilter({
+              name: "trandate",
+              operator: search.Operator.ONORBEFORE,
+              values: endDateSelected,
+            })
+          );
+        }
+        // end search data pending billing
+        // search data job done
+        var jobDoneData = search.load({
+          id: "customsearch666",
+        });
         jobDoneData.filters.push(
           search.createFilter({
-            name: "entity",
+            name: "subsidiary",
             operator: search.Operator.IS,
-            values: customerSelected,
+            values: subsidiarySelected,
           })
         );
-      }
-      if (startDateSelected && endDateSelected) {
-        jobDoneData.filters.push(
+        if (customerSelected) {
+          jobDoneData.filters.push(
+            search.createFilter({
+              name: "entity",
+              operator: search.Operator.IS,
+              values: customerSelected,
+            })
+          );
+        }
+        if (startDateSelected && endDateSelected) {
+          jobDoneData.filters.push(
+            search.createFilter({
+              name: "trandate",
+              operator: search.Operator.ONORAFTER,
+              values: startDateSelected,
+            })
+          );
+          jobDoneData.filters.push(
+            search.createFilter({
+              name: "trandate",
+              operator: search.Operator.ONORBEFORE,
+              values: endDateSelected,
+            })
+          );
+        }
+        // end search data job done
+        // search data PO
+        var poData = search.load({
+          id: "customsearch665",
+        });
+        poData.filters.push(
           search.createFilter({
-            name: "trandate",
-            operator: search.Operator.ONORAFTER,
-            values: startDateSelected,
+            name: "subsidiary",
+            operator: search.Operator.IS,
+            values: subsidiarySelected,
           })
         );
-        jobDoneData.filters.push(
-          search.createFilter({
-            name: "trandate",
-            operator: search.Operator.ONORBEFORE,
-            values: endDateSelected,
-          })
-        );
-      }
-      // end search data job done
-      // search data PO
-      var poData = search.load({
-        id: "customsearch665",
-      });
-      poData.filters.push(
-        search.createFilter({
-          name: "subsidiary",
-          operator: search.Operator.IS,
-          values: subsidiarySelected,
-        })
-      );
-      // end search data PO
-      var myResults = getAllResults(pendingBillData);
-      var pendingBillDataArr = [];
-      myResults.forEach(function (result) {
-        let item = result.getValue('item');
-        log.debug('item', item)
-        let quoteNumber = result.getValue("tranid");
-        let jobNumber = result.getValue("custbody_abj_custom_jobnumber");
-        let project = result.getText("class");
-        let status = result.getText("statusref");
-        let pic = result.getText("custbody_so_pic");
-        let deliverables = result.getText("line.cseg_abjproj_cust_");
-        let qty = result.getValue("quantity");
-        let invoiceNumber = result.getValue({
-          name: "tranid",
-          join: "applyingTransaction",
+        // end search data PO
+        var myResults = getAllResults(pendingBillData);
+        var pendingBillDataArr = [];
+        myResults.forEach(function (result) {
+          let item = result.getValue('item');
+          let quoteNumber = result.getValue("tranid");
+          let jobNumber = result.getValue("custbody_abj_custom_jobnumber");
+          let project = result.getText("class");
+          let status = result.getText("statusref");
+          let pic = result.getText("custbody_so_pic");
+          let deliverables = result.getText("line.cseg_abjproj_cust_");
+          let qty = result.getValue("quantity");
+          let invoiceNumber = result.getValue({
+            name: "tranid",
+            join: "applyingTransaction",
+          });
+          let invoiceNumberVal = result.getValue({
+            name: "internalid",
+            join: "applyingTransaction",
+          });
+          let billingBeforeVat = result.getValue({
+            name: "formulacurrency",
+            formula: "{totalamount}-{taxtotal}",
+          });
+          var discount = 0;
+          let discLine = result.getValue('custcol_abj_disc_line');
+          let discBody = result.getValue('discountamount');
+          if(discLine && discLine != 0){
+            discount = discLine
+          }else if(discBody && discBody != 0){
+            discount = discBody 
+          }
+          let revenue = result.getText("line.cseg_abjproj_cust_");
+          let amountBefor = result.getValue("amount");
+          let amount = Number(amountBefor) - Number(discount)
+          if(item == '2880'){
+            amount = 0
+          }
+          var amntRetainer,
+            amntCF,
+            amntSF,
+            amntMF,
+            amntIncentive,
+            amntAdditionalCF,
+            amntOthers = "";
+            // selain 6 masuk ke others
+          switch (revenue) {
+            case "Retainer":
+              amntRetainer = amount;
+              break;
+            case "Agency Commission/Creative Fee":
+              amntCF = amount;
+              break;
+            case "Supervision Fee":
+              amntSF = amount;
+              break;
+            case "Media Fee":
+              amntMF = amount;
+              break;
+            case "3rd Party Production":
+              amntIncentive = amount;
+              break;
+            case "Additional Creative Fee":
+              amntAdditionalCF = amount;
+              break;
+  
+            default:
+              amntOthers = amount;
+              break;
+          }
+          let quoteNumberVal = result.getValue("internalid");
+          let projectVal = result.getValue("class");
+          let deliverablesVal = result.getValue("line.cseg_abjproj_cust_");
+          pendingBillDataArr.push({
+            quoteNumber: quoteNumber,
+            jobNumber: jobNumber,
+            project: project,
+            status: status,
+            pic: pic,
+            deliverables: deliverables,
+            qty: qty,
+            invoiceNumber: invoiceNumber,
+            invoiceNumberVal: invoiceNumberVal,
+            billingBeforeVat: billingBeforeVat,
+            amountBill: amount,
+            amntRetainer: amntRetainer || "",
+            amntCF: amntCF || "",
+            amntSF: amntSF || "",
+            amntMF: amntMF || "",
+            amntIncentive: amntIncentive || "",
+            amntAdditionalCF : amntAdditionalCF || "",
+            amntOthers: amntOthers || "",
+            costOfBilling: amount,
+            quoteNumberVal: quoteNumberVal,
+            projectVal: projectVal,
+            deliverablesVal: deliverablesVal,
+          });
         });
-        let invoiceNumberVal = result.getValue({
-          name: "internalid",
-          join: "applyingTransaction",
+  
+  
+        var myResultsJob = getAllResults(jobDoneData);
+        var jobDoneDataArr = [];
+        myResultsJob.forEach(function (result) {
+          let item = result.getValue('item');
+          let quoteNumber = result.getValue("tranid");
+          let jobNumber = result.getValue("custbody_abj_custom_jobnumber");
+          let project = result.getText("class");
+          let status = result.getText("statusref");
+          let pic = result.getText("custbody_so_pic");
+          let deliverables = result.getText("line.cseg_abjproj_cust_");
+          let qty = result.getValue("quantity");
+          let invoiceNumber = result.getValue({
+            name: "tranid",
+            join: "applyingTransaction",
+          });
+          let invoiceNumberVal = result.getValue({
+            name: "internalid",
+            join: "applyingTransaction",
+          });
+          let billingBeforeVat = result.getValue({
+            name: "formulacurrency",
+            formula: "{totalamount}-{taxtotal}",
+          });
+          let revenue = result.getText("line.cseg_abjproj_cust_");
+          var discount = 0;
+          let discLine = result.getValue('custcol_abj_disc_line');
+          let discBody = result.getValue('discountamount');
+          if(discLine && discLine != 0){
+            discount = discLine
+          }else if(discBody && discBody != 0){
+            discount = discBody 
+          }
+          let amountBefor = result.getValue("amount");
+          let amount = Number(amountBefor) - Number(discount)
+          if(item == '2880'){
+            amount = 0
+          }
+          var amntRetainer,
+            amntCF,
+            amntSF,
+            amntMF,
+            amntIncentive,
+            amntAdditionalCF,
+            amntOthers = "";
+          switch (revenue) {
+            case "Retainer":
+              amntRetainer = amount;
+              break;
+            case "Agency Commission/Creative Fee":
+              amntCF = amount;
+              break;
+            case "Supervision Fee":
+              amntSF = amount;
+              break;
+            case "Media Fee":
+              amntMF = amount;
+              break;
+            case "3rd Party Production":
+              amntIncentive = amount;
+              break;
+            case "Additional Creative Fee":
+              amntAdditionalCF = amount;
+              break;
+            default:
+              amntOthers = amount;
+              break;
+          }
+          let quoteNumberVal = result.getValue("internalid");
+          let projectVal = result.getValue("class");
+          let deliverablesVal = result.getValue("line.cseg_abjproj_cust_");
+          jobDoneDataArr.push({
+            quoteNumber: quoteNumber,
+            jobNumber: jobNumber,
+            project: project,
+            status: status,
+            pic: pic,
+            deliverables: deliverables,
+            qty: qty,
+            invoiceNumber: invoiceNumber,
+            invoiceNumberVal: invoiceNumberVal,
+            billingBeforeVat: billingBeforeVat,
+            amountBill: amount,
+            amntRetainer: amntRetainer || "",
+            amntCF: amntCF || "",
+            amntSF: amntSF || "",
+            amntMF: amntMF || "",
+            amntIncentive: amntIncentive || "",
+            amntAdditionalCF : amntAdditionalCF || "",
+            amntOthers: amntOthers || "",
+            costOfBilling: amount,
+            quoteNumberVal: quoteNumberVal,
+            projectVal: projectVal,
+            deliverablesVal: deliverablesVal,
+          });
         });
-        let billingBeforeVat = result.getValue({
-          name: "formulacurrency",
-          formula: "{totalamount}-{taxtotal}",
+  
+        var myResultsPO = getAllResults(poData);
+        var poDataArr = [];
+        myResultsPO.forEach(function (result) {
+          let poNo = result.getValue("tranid");
+          let vendorName = result.getValue({
+            name: "companyname",
+            join: "vendor",
+          });
+          let memo = result.getValue("memomain");
+          let amount = result.getValue("amount");
+          let quoteNumber = result.getValue("custbody_po_so_no_project");
+          let project = result.getValue("class");
+          let deliverables = result.getValue("line.cseg_abjproj_cust_");
+          let paymentStatus = result.getText("statusref");
+          poDataArr.push({
+            poNo: poNo,
+            vendorName: vendorName,
+            amountPo: amount,
+            total: amount,
+            remarks: memo,
+            paymentStatus: paymentStatus,
+            quoteNumberVal: quoteNumber,
+            projectVal: project,
+            deliverablesVal: deliverables,
+          });
         });
-        var discount = 0;
-        let discLine = result.getValue('custcol_abj_disc_line');
-        let discBody = result.getValue('discountamount');
-        if(discLine && discLine != 0){
-          discount = discLine
-        }else if(discBody && discBody != 0){
-          discount = discBody 
-        }
-        let revenue = result.getText("line.cseg_abjproj_cust_");
-        let amountBefor = result.getValue("amount");
-        let amount = Number(amountBefor) - Number(discount)
-        if(item == '2880'){
-          amount = 0
-        }
-        var amntRetainer,
-          amntCF,
-          amntSF,
-          amntMF,
-          amntIncentive,
-          amntAdditionalCF,
-          amntOthers = "";
-          // selain 6 masuk ke others
-        switch (revenue) {
-          case "Retainer":
-            amntRetainer = amount;
-            break;
-          case "Agency Commission/Creative Fee":
-            amntCF = amount;
-            break;
-          case "Supervision Fee":
-            amntSF = amount;
-            break;
-          case "Media Fee":
-            amntMF = amount;
-            break;
-          case "3rd Party Production":
-            amntIncentive = amount;
-            break;
-          case "Additional Creative Fee":
-            amntAdditionalCF = amount;
-            break;
-
-          default:
-            amntOthers = amount;
-            break;
-        }
-        let quoteNumberVal = result.getValue("internalid");
-        let projectVal = result.getValue("class");
-        let deliverablesVal = result.getValue("line.cseg_abjproj_cust_");
-        pendingBillDataArr.push({
-          quoteNumber: quoteNumber,
-          jobNumber: jobNumber,
-          project: project,
-          status: status,
-          pic: pic,
-          deliverables: deliverables,
-          qty: qty,
-          invoiceNumber: invoiceNumber,
-          invoiceNumberVal: invoiceNumberVal,
-          billingBeforeVat: billingBeforeVat,
-          amountBill: amount,
-          amntRetainer: amntRetainer || "",
-          amntCF: amntCF || "",
-          amntSF: amntSF || "",
-          amntMF: amntMF || "",
-          amntIncentive: amntIncentive || "",
-          amntAdditionalCF : amntAdditionalCF || "",
-          amntOthers: amntOthers || "",
-          costOfBilling: amount,
-          quoteNumberVal: quoteNumberVal,
-          projectVal: projectVal,
-          deliverablesVal: deliverablesVal,
-        });
-      });
-
-
-      var myResultsJob = getAllResults(jobDoneData);
-      var jobDoneDataArr = [];
-      myResultsJob.forEach(function (result) {
-        let item = result.getValue('item');
-        log.debug('item', item)
-        let quoteNumber = result.getValue("tranid");
-        let jobNumber = result.getValue("custbody_abj_custom_jobnumber");
-        let project = result.getText("class");
-        let status = result.getText("statusref");
-        let pic = result.getText("custbody_so_pic");
-        let deliverables = result.getText("line.cseg_abjproj_cust_");
-        let qty = result.getValue("quantity");
-        let invoiceNumber = result.getValue({
-          name: "tranid",
-          join: "applyingTransaction",
-        });
-        let invoiceNumberVal = result.getValue({
-          name: "internalid",
-          join: "applyingTransaction",
-        });
-        let billingBeforeVat = result.getValue({
-          name: "formulacurrency",
-          formula: "{totalamount}-{taxtotal}",
-        });
-        let revenue = result.getText("line.cseg_abjproj_cust_");
-        var discount = 0;
-        let discLine = result.getValue('custcol_abj_disc_line');
-        let discBody = result.getValue('discountamount');
-        if(discLine && discLine != 0){
-          discount = discLine
-        }else if(discBody && discBody != 0){
-          discount = discBody 
-        }
-        let amountBefor = result.getValue("amount");
-        let amount = Number(amountBefor) - Number(discount)
-        log.debug('penjumlahan', {amount : amount, amountBefor : amountBefor, discount : discount});
-        if(item == '2880'){
-          amount = 0
-        }
-        var amntRetainer,
-          amntCF,
-          amntSF,
-          amntMF,
-          amntIncentive,
-          amntAdditionalCF,
-          amntOthers = "";
-        switch (revenue) {
-          case "Retainer":
-            amntRetainer = amount;
-            break;
-          case "Agency Commission/Creative Fee":
-            amntCF = amount;
-            break;
-          case "Supervision Fee":
-            amntSF = amount;
-            break;
-          case "Media Fee":
-            amntMF = amount;
-            break;
-          case "3rd Party Production":
-            amntIncentive = amount;
-            break;
-          case "Additional Creative Fee":
-            amntAdditionalCF = amount;
-            break;
-          default:
-            amntOthers = amount;
-            break;
-        }
-        let quoteNumberVal = result.getValue("internalid");
-        let projectVal = result.getValue("class");
-        let deliverablesVal = result.getValue("line.cseg_abjproj_cust_");
-        jobDoneDataArr.push({
-          quoteNumber: quoteNumber,
-          jobNumber: jobNumber,
-          project: project,
-          status: status,
-          pic: pic,
-          deliverables: deliverables,
-          qty: qty,
-          invoiceNumber: invoiceNumber,
-          invoiceNumberVal: invoiceNumberVal,
-          billingBeforeVat: billingBeforeVat,
-          amountBill: amount,
-          amntRetainer: amntRetainer || "",
-          amntCF: amntCF || "",
-          amntSF: amntSF || "",
-          amntMF: amntMF || "",
-          amntIncentive: amntIncentive || "",
-          amntAdditionalCF : amntAdditionalCF || "",
-          amntOthers: amntOthers || "",
-          costOfBilling: amount,
-          quoteNumberVal: quoteNumberVal,
-          projectVal: projectVal,
-          deliverablesVal: deliverablesVal,
-        });
-      });
-
-      var myResultsPO = getAllResults(poData);
-      var poDataArr = [];
-      myResultsPO.forEach(function (result) {
-        let poNo = result.getValue("tranid");
-        let vendorName = result.getValue({
-          name: "companyname",
-          join: "vendor",
-        });
-        let memo = result.getValue("memomain");
-        let amount = result.getValue("amount");
-        let quoteNumber = result.getValue("custbody_po_so_no_project");
-        let project = result.getValue("class");
-        let deliverables = result.getValue("line.cseg_abjproj_cust_");
-        let paymentStatus = result.getText("statusref");
-        poDataArr.push({
-          poNo: poNo,
-          vendorName: vendorName,
-          amountPo: amount,
-          total: amount,
-          remarks: memo,
-          paymentStatus: paymentStatus,
-          quoteNumberVal: quoteNumber,
-          projectVal: project,
-          deliverablesVal: deliverables,
-        });
-      });
-      log.debug("poDataArr", poDataArr.length);
-      const groupedPendingBillArray = pendingBillDataArr.reduce((acc, curr) => {
-        const index = acc.findIndex((item) => item.quoteNumberVal === curr.quoteNumberVal);
-        if (index !== -1) {
-          const accQty = parseInt(acc[index].qty) || 0;
-          const currQty = parseInt(curr.qty) || 0;
-          acc[index].qty = (accQty + currQty).toString();
-          acc[index].amntRetainer = ((parseFloat(acc[index].amntRetainer) || 0) + (parseFloat(curr.amntRetainer) || 0)).toFixed(2);
-          acc[index].amntCF = ((parseFloat(acc[index].amntCF) || 0) + (parseFloat(curr.amntCF) || 0)).toFixed(2);
-          acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
-          acc[index].amntMF = ((parseFloat(acc[index].amntMF) || 0) + (parseFloat(curr.amntMF) || 0)).toFixed(2);
-          acc[index].amntIncentive = ((parseFloat(acc[index].amntIncentive) || 0) + (parseFloat(curr.amntIncentive) || 0)).toFixed(2);
-          acc[index].amntAdditionalCF = ((parseFloat(acc[index].amntAdditionalCF) || 0) + (parseFloat(curr.amntAdditionalCF) || 0)).toFixed(2);
-          acc[index].amntOthers = ((parseFloat(acc[index].amntOthers) || 0) + (parseFloat(curr.amntOthers) || 0)).toFixed(2);
-        } else {
-          acc.push(curr);
-        }
-        return acc;
-      }, []);
-      const groupedJobDoneArray = jobDoneDataArr.reduce((acc, curr) => {
-        const index = acc.findIndex((item) => item.quoteNumberVal === curr.quoteNumberVal);
-        if (index !== -1) {
-          const accQty = parseInt(acc[index].qty) || 0;
-          const currQty = parseInt(curr.qty) || 0;
-          acc[index].qty = (accQty + currQty).toString();
-          acc[index].amntRetainer = ((parseFloat(acc[index].amntRetainer) || 0) + (parseFloat(curr.amntRetainer) || 0)).toFixed(2);
-          acc[index].amntCF = ((parseFloat(acc[index].amntCF) || 0) + (parseFloat(curr.amntCF) || 0)).toFixed(2);
-          acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
-          acc[index].amntMF = ((parseFloat(acc[index].amntMF) || 0) + (parseFloat(curr.amntMF) || 0)).toFixed(2);
-          acc[index].amntIncentive = ((parseFloat(acc[index].amntIncentive) || 0) + (parseFloat(curr.amntIncentive) || 0)).toFixed(2);
-          acc[index].amntAdditionalCF = ((parseFloat(acc[index].amntAdditionalCF) || 0) + (parseFloat(curr.amntAdditionalCF) || 0)).toFixed(2);
-          acc[index].amntOthers = ((parseFloat(acc[index].amntOthers) || 0) + (parseFloat(curr.amntOthers) || 0)).toFixed(2);
-        } else {
-          acc.push(curr);
-        }
-        return acc;
-      }, []);
-      let mergedPendingBillArray = [];
-      groupedPendingBillArray.forEach((pendingBillItem) => {
-        let matchingPOs = poDataArr.filter((poItem) => {
-          var nomorPO = poItem.poNo
-          
-          
-          return poItem.quoteNumberVal === pendingBillItem.quoteNumberVal && poItem.projectVal === pendingBillItem.projectVal && poItem.deliverablesVal === pendingBillItem.deliverablesVal;
-        });
-        if (matchingPOs.length > 0) {
-          matchingPOs.forEach((matchingPO) => {
+        const groupedPendingBillArray = pendingBillDataArr.reduce((acc, curr) => {
+          const index = acc.findIndex((item) => item.quoteNumberVal === curr.quoteNumberVal);
+          if (index !== -1) {
+            const accQty = parseInt(acc[index].qty) || 0;
+            const currQty = parseInt(curr.qty) || 0;
+            acc[index].qty = (accQty + currQty).toString();
+            acc[index].amntRetainer = ((parseFloat(acc[index].amntRetainer) || 0) + (parseFloat(curr.amntRetainer) || 0)).toFixed(2);
+            acc[index].amntCF = ((parseFloat(acc[index].amntCF) || 0) + (parseFloat(curr.amntCF) || 0)).toFixed(2);
+            acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
+            acc[index].amntMF = ((parseFloat(acc[index].amntMF) || 0) + (parseFloat(curr.amntMF) || 0)).toFixed(2);
+            acc[index].amntIncentive = ((parseFloat(acc[index].amntIncentive) || 0) + (parseFloat(curr.amntIncentive) || 0)).toFixed(2);
+            acc[index].amntAdditionalCF = ((parseFloat(acc[index].amntAdditionalCF) || 0) + (parseFloat(curr.amntAdditionalCF) || 0)).toFixed(2);
+            acc[index].amntOthers = ((parseFloat(acc[index].amntOthers) || 0) + (parseFloat(curr.amntOthers) || 0)).toFixed(2);
+          } else {
+            acc.push(curr);
+          }
+          return acc;
+        }, []);
+        const groupedJobDoneArray = jobDoneDataArr.reduce((acc, curr) => {
+          const index = acc.findIndex((item) => item.quoteNumberVal === curr.quoteNumberVal);
+          if (index !== -1) {
+            const accQty = parseInt(acc[index].qty) || 0;
+            const currQty = parseInt(curr.qty) || 0;
+            acc[index].qty = (accQty + currQty).toString();
+            acc[index].amntRetainer = ((parseFloat(acc[index].amntRetainer) || 0) + (parseFloat(curr.amntRetainer) || 0)).toFixed(2);
+            acc[index].amntCF = ((parseFloat(acc[index].amntCF) || 0) + (parseFloat(curr.amntCF) || 0)).toFixed(2);
+            acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
+            acc[index].amntMF = ((parseFloat(acc[index].amntMF) || 0) + (parseFloat(curr.amntMF) || 0)).toFixed(2);
+            acc[index].amntIncentive = ((parseFloat(acc[index].amntIncentive) || 0) + (parseFloat(curr.amntIncentive) || 0)).toFixed(2);
+            acc[index].amntAdditionalCF = ((parseFloat(acc[index].amntAdditionalCF) || 0) + (parseFloat(curr.amntAdditionalCF) || 0)).toFixed(2);
+            acc[index].amntOthers = ((parseFloat(acc[index].amntOthers) || 0) + (parseFloat(curr.amntOthers) || 0)).toFixed(2);
+          } else {
+            acc.push(curr);
+          }
+          return acc;
+        }, []);
+        var mergedPendingBillArray = [];
+        groupedPendingBillArray.forEach((pendingBillItem) => {
+          let matchingPOs = poDataArr.filter((poItem) => {
+            var nomorPO = poItem.poNo
+            
+            
+            return poItem.quoteNumberVal === pendingBillItem.quoteNumberVal && poItem.projectVal === pendingBillItem.projectVal && poItem.deliverablesVal === pendingBillItem.deliverablesVal;
+          });
+          if (matchingPOs.length > 0) {
+            matchingPOs.forEach((matchingPO) => {
+              let mergedItem = {
+                ...pendingBillItem,
+                poNo: matchingPO.poNo || "",
+                vendorName: matchingPO.vendorName || "",
+                amountPo: matchingPO.amountPo || "",
+                total: matchingPO.total || "",
+                remarks: matchingPO.remarks || "",
+                paymentStatus: matchingPO.paymentStatus || "",
+              };
+              mergedPendingBillArray.push(mergedItem);
+            });
+          } else {
             let mergedItem = {
               ...pendingBillItem,
-              poNo: matchingPO.poNo || "",
-              vendorName: matchingPO.vendorName || "",
-              amountPo: matchingPO.amountPo || "",
-              total: matchingPO.total || "",
-              remarks: matchingPO.remarks || "",
-              paymentStatus: matchingPO.paymentStatus || "",
+              poNo: "",
+              vendorName: "",
+              amountPo: "",
+              total: "",
+              remarks: "",
+              paymentStatus: "",
             };
             mergedPendingBillArray.push(mergedItem);
-          });
-        } else {
-          let mergedItem = {
-            ...pendingBillItem,
-            poNo: "",
-            vendorName: "",
-            amountPo: "",
-            total: "",
-            remarks: "",
-            paymentStatus: "",
-          };
-          mergedPendingBillArray.push(mergedItem);
-        }
-      });
-
-      let mergedJobDoneArray = [];
-      groupedJobDoneArray.forEach((jobDoneItem) => {
-        let matchingPOs = poDataArr.filter((poItem) => {
-          return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
+          }
         });
-        if (matchingPOs.length > 0) {
-          matchingPOs.forEach((matchingPO) => {
+  
+        var mergedJobDoneArray = [];
+        groupedJobDoneArray.forEach((jobDoneItem) => {
+          let matchingPOs = poDataArr.filter((poItem) => {
+            return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
+          });
+          if (matchingPOs.length > 0) {
+            matchingPOs.forEach((matchingPO) => {
+              let mergedItem = {
+                ...jobDoneItem,
+                poNo: matchingPO.poNo || "",
+                vendorName: matchingPO.vendorName || "",
+                amountPo: matchingPO.amountPo || "",
+                total: matchingPO.total || "",
+                remarks: matchingPO.remarks || "",
+                paymentStatus: matchingPO.paymentStatus || "",
+              };
+              mergedJobDoneArray.push(mergedItem);
+            });
+          } else {
             let mergedItem = {
               ...jobDoneItem,
-              poNo: matchingPO.poNo || "",
-              vendorName: matchingPO.vendorName || "",
-              amountPo: matchingPO.amountPo || "",
-              total: matchingPO.total || "",
-              remarks: matchingPO.remarks || "",
-              paymentStatus: matchingPO.paymentStatus || "",
+              poNo: "",
+              vendorName: "",
+              amountPo: "",
+              total: "",
+              remarks: "",
+              paymentStatus: "",
             };
             mergedJobDoneArray.push(mergedItem);
-          });
-        } else {
-          let mergedItem = {
-            ...jobDoneItem,
-            poNo: "",
-            vendorName: "",
-            amountPo: "",
-            total: "",
-            remarks: "",
-            paymentStatus: "",
-          };
-          mergedJobDoneArray.push(mergedItem);
-        }
-      });
+          }
+        });
+      }
+      
       var totalWIPBilling = 0,
         totalWIPTotal = 0,
         totalWIIPRetainer = 0,
@@ -843,43 +862,46 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           "<Row ss:Index='7' ss:Height='20'>" +
           '<Cell ss:StyleID="HPENDING" ss:MergeAcross="20" ><Data ss:Type="String">WORK IN PROGRESS</Data></Cell>' +
           "</Row>";
-        mergedPendingBillArray.forEach((row) => {
-          var totalRev = Number(row.billingBeforeVat || 0) - Number(row.total || 0);
-          xmlStr += `
-          <Row>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.quoteNumber || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.jobNumber || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.status || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.pic || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.qty || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.invoiceNumber || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.billingBeforeVat || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${totalRev || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntRetainer || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntCF || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntSF || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntMF || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntIncentive || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntAdditionalCF || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntOthers || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.paymentStatus || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.poNo || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.vendorName || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amountPo || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.total || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.remarks || ""}</Data></Cell>
-          </Row>
-          `;
-          totalWIPBilling += Number(row.billingBeforeVat || 0);
-          totalWIPTotal += Number(row.amountBill || 0);
-          totalWIIPRetainer += Number(row.amntRetainer || 0);
-          totalWIPCF += Number(row.amntCF || 0);
-          totalWIPSf += Number(row.amntSF || 0);
-          totalWIPMf += Number(row.amntMF || 0);
-          totalWIPIf += Number(row.amntIncentive || 0);
-          totalWIPadditionalCF += Number(row.amntAdditionalCF);
-          totalWIPOthers += Number(row.amntOthers || 0);
-        });
+          if(isProcessed == true){
+            mergedPendingBillArray.forEach((row) => {
+              var totalRev = Number(row.billingBeforeVat || 0) - Number(row.total || 0);
+              xmlStr += `
+              <Row>
+              <Cell ss:StyleID="NB"><Data ss:Type="String">${row.quoteNumber || ""}</Data></Cell>
+              <Cell ss:StyleID="NB"><Data ss:Type="String">${row.jobNumber || ""}</Data></Cell>
+              <Cell ss:StyleID="NB"><Data ss:Type="String">${row.status || ""}</Data></Cell>
+              <Cell ss:StyleID="NB"><Data ss:Type="String">${row.pic || ""}</Data></Cell>
+              <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.qty || ""}</Data></Cell>
+              <Cell ss:StyleID="NB"><Data ss:Type="String">${row.invoiceNumber || ""}</Data></Cell>
+              <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.billingBeforeVat || ""}</Data></Cell>
+              <Cell ss:StyleID="NBN"><Data ss:Type="Number">${totalRev || ""}</Data></Cell>
+              <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntRetainer || ""}</Data></Cell>
+              <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntCF || ""}</Data></Cell>
+              <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntSF || ""}</Data></Cell>
+              <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntMF || ""}</Data></Cell>
+              <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntIncentive || ""}</Data></Cell>
+              <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntAdditionalCF || ""}</Data></Cell>
+              <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntOthers || ""}</Data></Cell>
+              <Cell ss:StyleID="NB"><Data ss:Type="String">${row.paymentStatus || ""}</Data></Cell>
+              <Cell ss:StyleID="NB"><Data ss:Type="String">${row.poNo || ""}</Data></Cell>
+              <Cell ss:StyleID="NB"><Data ss:Type="String">${row.vendorName || ""}</Data></Cell>
+              <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amountPo || ""}</Data></Cell>
+              <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.total || ""}</Data></Cell>
+              <Cell ss:StyleID="NB"><Data ss:Type="String">${row.remarks || ""}</Data></Cell>
+              </Row>
+              `;
+              totalWIPBilling += Number(row.billingBeforeVat || 0);
+              totalWIPTotal += Number(row.amountBill || 0);
+              totalWIIPRetainer += Number(row.amntRetainer || 0);
+              totalWIPCF += Number(row.amntCF || 0);
+              totalWIPSf += Number(row.amntSF || 0);
+              totalWIPMf += Number(row.amntMF || 0);
+              totalWIPIf += Number(row.amntIncentive || 0);
+              totalWIPadditionalCF += Number(row.amntAdditionalCF);
+              totalWIPOthers += Number(row.amntOthers || 0);
+            });
+          }
+        
   
         xmlStr += `
         <Row>
@@ -907,349 +929,350 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           </Row>
         `;
         xmlStr += "<Row>" + '<Cell ss:StyleID="HJOBDONE" ss:MergeAcross="20" ><Data ss:Type="String">JOB DONE</Data></Cell>' + "</Row>";
-        mergedJobDoneArray.forEach((row) => {
-          var totalRev = Number(row.billingBeforeVat || 0) - Number(row.total || 0);
-          xmlStr += `
-          <Row>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.quoteNumber || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.jobNumber || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.status || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.pic || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.qty || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.invoiceNumber || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.billingBeforeVat || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${totalRev || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntRetainer || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntCF || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntSF || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntMF || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntIncentive || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntAdditionalCF || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntOthers || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.paymentStatus || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.poNo || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.vendorName || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amountPo || ""}</Data></Cell>
-          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.total || ""}</Data></Cell>
-          <Cell ss:StyleID="NB"><Data ss:Type="String">${row.remarks || ""}</Data></Cell>
-          </Row>
-          `;
-        });
-
-        var newSummaryData = search.load({
-          id: "customsearch807",
-        });
-        
-        newSummaryData.filters.push(
-            search.createFilter({
-                name: "subsidiary",
-                operator: search.Operator.IS,
-                values: subsidiarySelected,
-            })
-        );
-        
-        if (subsidiarySelected) {
-            newSummaryData.filters.push(
-                search.createFilter({
-                    name: "subsidiary",
-                    operator: search.Operator.IS,
-                    values: subsidiarySelected,
-                })
-            );
-        }
-        
-        if (customerSelected) {
-            newSummaryData.filters.push(
-                search.createFilter({
-                    name: "entity",
-                    operator: search.Operator.IS,
-                    values: customerSelected,
-                })
-            );
-        }
-        if (startDateSelected && endDateSelected) {
-            newSummaryData.filters.push(
-                search.createFilter({
-                    name: "trandate",
-                    operator: search.Operator.ONORAFTER,
-                    values: startDateSelected,
-                })
-            );
-            newSummaryData.filters.push(
-                search.createFilter({
-                    name: "trandate",
-                    operator: search.Operator.ONORBEFORE,
-                    values: endDateSelected,
-                })
-            );
-        }
-        
-        var ResultnewSummaryData = getAllResults(newSummaryData);
-        var newsummaryDataArr = [];
-        
-        function getMonthAndYearFromDate(dateString) {
-            var dateParts = dateString.split('/');
-            var day = dateParts[0];
-            var month = dateParts[1];
-            var year = dateParts[2];
-            return { month: month, year: year };
-        }
-        
-        var rawData = [];
-        var uniqueIds = new Set();
-        
-        ResultnewSummaryData.forEach(function (result) {
-            let quoteNumberVal = result.getValue("internalid");
-            let projectVal = result.getValue("class");
-            let deliverablesVal = result.getValue("line.cseg_abjproj_cust_");
-            let item = result.getValue('item');
-            let idTran = result.getValue('internalid');
-            let trandate = result.getValue("trandate");
-            let { month, year } = getMonthAndYearFromDate(trandate);
-            let billingBeforeVat = parseFloat(result.getValue({
-                name: "formulacurrency",
-                formula: "{totalamount}-{taxtotal}",
-            })) || 0;
-            let revenue = result.getText("line.cseg_abjproj_cust_");
-            var discount = 0;
-            let discLine = result.getValue('custcol_abj_disc_line');
-            let discBody = result.getValue('discountamount');
-            if (discLine && discLine != 0) {
-                discount = discLine;
-            } else if (discBody && discBody != 0) {
-                discount = discBody;
-            }
-            let amountBefor = result.getValue("amount");
-            let amount = Number(amountBefor) - Number(discount);
-            if(item == '2880'){
-                amount = 0;
-            }
-            
-            var amntRetainer = 0,
-                amntCF = 0,
-                amntSF = 0,
-                amntMF = 0,
-                amntIncentive = 0,
-                amntAdditionalCF = 0,
-                amntOthers = 0;
-        
-            switch (revenue) {
-                case "Retainer":
-                    amntRetainer = amount;
-                    break;
-                case "Agency Commission/Creative Fee":
-                    amntCF = amount;
-                    break;
-                case "Supervision Fee":
-                    amntSF = amount;
-                    break;
-                case "Media Fee":
-                    amntMF = amount;
-                    break;
-                case "3rd Party Production":
-                    amntIncentive = amount;
-                    break;
-                case "Additional Creative Fee":
-                    amntAdditionalCF = amount;
-                    break;
-                default:
-                    amntOthers = amount;
-                    break;
-            }
-            
-            rawData.push({
-                quoteNumberVal,
-                projectVal,
-                deliverablesVal,
-                idTran,
-                month,
-                year,
-                billingBeforeVat,
-                amount,
-                amntRetainer,
-                amntCF,
-                amntSF,
-                amntMF,
-                amntIncentive,
-                amntAdditionalCF,
-                amntOthers
-            });
-        });
-        const groupedSummary = rawData.reduce((acc, curr) => {
-          const index = acc.findIndex((item) => item.quoteNumberVal === curr.quoteNumberVal);
-          if (index !== -1) {
-            const accQty = parseInt(acc[index].qty) || 0;
-            const currQty = parseInt(curr.qty) || 0;
-            acc[index].qty = (accQty + currQty).toString();
-            acc[index].amntRetainer = ((parseFloat(acc[index].amntRetainer) || 0) + (parseFloat(curr.amntRetainer) || 0)).toFixed(2);
-            acc[index].amntCF = ((parseFloat(acc[index].amntCF) || 0) + (parseFloat(curr.amntCF) || 0)).toFixed(2);
-            acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
-            acc[index].amntMF = ((parseFloat(acc[index].amntMF) || 0) + (parseFloat(curr.amntMF) || 0)).toFixed(2);
-            acc[index].amntIncentive = ((parseFloat(acc[index].amntIncentive) || 0) + (parseFloat(curr.amntIncentive) || 0)).toFixed(2);
-            acc[index].amntAdditionalCF = ((parseFloat(acc[index].amntAdditionalCF) || 0) + (parseFloat(curr.amntAdditionalCF) || 0)).toFixed(2);
-            acc[index].amntOthers = ((parseFloat(acc[index].amntOthers) || 0) + (parseFloat(curr.amntOthers) || 0)).toFixed(2);
-          } else {
-            acc.push(curr);
-          }
-          return acc;
-        }, []);
+        if(isProcessed == true){
+          mergedJobDoneArray.forEach((row) => {
+            var totalRev = Number(row.billingBeforeVat || 0) - Number(row.total || 0);
+            xmlStr += `
+            <Row>
+            <Cell ss:StyleID="NB"><Data ss:Type="String">${row.quoteNumber || ""}</Data></Cell>
+            <Cell ss:StyleID="NB"><Data ss:Type="String">${row.jobNumber || ""}</Data></Cell>
+            <Cell ss:StyleID="NB"><Data ss:Type="String">${row.status || ""}</Data></Cell>
+            <Cell ss:StyleID="NB"><Data ss:Type="String">${row.pic || ""}</Data></Cell>
+            <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.qty || ""}</Data></Cell>
+            <Cell ss:StyleID="NB"><Data ss:Type="String">${row.invoiceNumber || ""}</Data></Cell>
+            <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.billingBeforeVat || ""}</Data></Cell>
+            <Cell ss:StyleID="NBN"><Data ss:Type="Number">${totalRev || ""}</Data></Cell>
+            <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntRetainer || ""}</Data></Cell>
+            <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntCF || ""}</Data></Cell>
+            <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntSF || ""}</Data></Cell>
+            <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntMF || ""}</Data></Cell>
+            <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntIncentive || ""}</Data></Cell>
+            <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntAdditionalCF || ""}</Data></Cell>
+            <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amntOthers || ""}</Data></Cell>
+            <Cell ss:StyleID="NB"><Data ss:Type="String">${row.paymentStatus || ""}</Data></Cell>
+            <Cell ss:StyleID="NB"><Data ss:Type="String">${row.poNo || ""}</Data></Cell>
+            <Cell ss:StyleID="NB"><Data ss:Type="String">${row.vendorName || ""}</Data></Cell>
+            <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.amountPo || ""}</Data></Cell>
+            <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.total || ""}</Data></Cell>
+            <Cell ss:StyleID="NB"><Data ss:Type="String">${row.remarks || ""}</Data></Cell>
+            </Row>
+            `;
+          });
   
-        let mergedSummaryData = [];
-        groupedSummary.forEach((jobDoneItem) => {
-            let matchingPOs = poDataArr.filter((poItem) => {
-                return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
-            });
-            if (matchingPOs.length > 0) {
-                matchingPOs.forEach((matchingPO) => {
-                    let mergedItem = {
-                        ...jobDoneItem,
-                        poNo: matchingPO.poNo || "",
-                        vendorName: matchingPO.vendorName || "",
-                        amountPo: matchingPO.amountPo || "",
-                        total: matchingPO.total || "",
-                        remarks: matchingPO.remarks || "",
-                        paymentStatus: matchingPO.paymentStatus || "",
-                        totalRev: (jobDoneItem.billingBeforeVat - (matchingPO.amountPo ? parseFloat(matchingPO.amountPo) : 0)).toFixed(2)
-                    };
-                    mergedSummaryData.push(mergedItem);
-                });
+          var newSummaryData = search.load({
+            id: "customsearch807",
+          });
+          
+          newSummaryData.filters.push(
+              search.createFilter({
+                  name: "subsidiary",
+                  operator: search.Operator.IS,
+                  values: subsidiarySelected,
+              })
+          );
+          
+          if (subsidiarySelected) {
+              newSummaryData.filters.push(
+                  search.createFilter({
+                      name: "subsidiary",
+                      operator: search.Operator.IS,
+                      values: subsidiarySelected,
+                  })
+              );
+          }
+          
+          if (customerSelected) {
+              newSummaryData.filters.push(
+                  search.createFilter({
+                      name: "entity",
+                      operator: search.Operator.IS,
+                      values: customerSelected,
+                  })
+              );
+          }
+          if (startDateSelected && endDateSelected) {
+              newSummaryData.filters.push(
+                  search.createFilter({
+                      name: "trandate",
+                      operator: search.Operator.ONORAFTER,
+                      values: startDateSelected,
+                  })
+              );
+              newSummaryData.filters.push(
+                  search.createFilter({
+                      name: "trandate",
+                      operator: search.Operator.ONORBEFORE,
+                      values: endDateSelected,
+                  })
+              );
+          }
+          
+          var ResultnewSummaryData = getAllResults(newSummaryData);
+          var newsummaryDataArr = [];
+          
+          function getMonthAndYearFromDate(dateString) {
+              var dateParts = dateString.split('/');
+              var day = dateParts[0];
+              var month = dateParts[1];
+              var year = dateParts[2];
+              return { month: month, year: year };
+          }
+          
+          var rawData = [];
+          var uniqueIds = new Set();
+          
+          ResultnewSummaryData.forEach(function (result) {
+              let quoteNumberVal = result.getValue("internalid");
+              let projectVal = result.getValue("class");
+              let deliverablesVal = result.getValue("line.cseg_abjproj_cust_");
+              let item = result.getValue('item');
+              let idTran = result.getValue('internalid');
+              let trandate = result.getValue("trandate");
+              let { month, year } = getMonthAndYearFromDate(trandate);
+              let billingBeforeVat = parseFloat(result.getValue({
+                  name: "formulacurrency",
+                  formula: "{totalamount}-{taxtotal}",
+              })) || 0;
+              let revenue = result.getText("line.cseg_abjproj_cust_");
+              var discount = 0;
+              let discLine = result.getValue('custcol_abj_disc_line');
+              let discBody = result.getValue('discountamount');
+              if (discLine && discLine != 0) {
+                  discount = discLine;
+              } else if (discBody && discBody != 0) {
+                  discount = discBody;
+              }
+              let amountBefor = result.getValue("amount");
+              let amount = Number(amountBefor) - Number(discount);
+              if(item == '2880'){
+                  amount = 0;
+              }
+              
+              var amntRetainer = 0,
+                  amntCF = 0,
+                  amntSF = 0,
+                  amntMF = 0,
+                  amntIncentive = 0,
+                  amntAdditionalCF = 0,
+                  amntOthers = 0;
+          
+              switch (revenue) {
+                  case "Retainer":
+                      amntRetainer = amount;
+                      break;
+                  case "Agency Commission/Creative Fee":
+                      amntCF = amount;
+                      break;
+                  case "Supervision Fee":
+                      amntSF = amount;
+                      break;
+                  case "Media Fee":
+                      amntMF = amount;
+                      break;
+                  case "3rd Party Production":
+                      amntIncentive = amount;
+                      break;
+                  case "Additional Creative Fee":
+                      amntAdditionalCF = amount;
+                      break;
+                  default:
+                      amntOthers = amount;
+                      break;
+              }
+              
+              rawData.push({
+                  quoteNumberVal,
+                  projectVal,
+                  deliverablesVal,
+                  idTran,
+                  month,
+                  year,
+                  billingBeforeVat,
+                  amount,
+                  amntRetainer,
+                  amntCF,
+                  amntSF,
+                  amntMF,
+                  amntIncentive,
+                  amntAdditionalCF,
+                  amntOthers
+              });
+          });
+          const groupedSummary = rawData.reduce((acc, curr) => {
+            const index = acc.findIndex((item) => item.quoteNumberVal === curr.quoteNumberVal);
+            if (index !== -1) {
+              const accQty = parseInt(acc[index].qty) || 0;
+              const currQty = parseInt(curr.qty) || 0;
+              acc[index].qty = (accQty + currQty).toString();
+              acc[index].amntRetainer = ((parseFloat(acc[index].amntRetainer) || 0) + (parseFloat(curr.amntRetainer) || 0)).toFixed(2);
+              acc[index].amntCF = ((parseFloat(acc[index].amntCF) || 0) + (parseFloat(curr.amntCF) || 0)).toFixed(2);
+              acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
+              acc[index].amntMF = ((parseFloat(acc[index].amntMF) || 0) + (parseFloat(curr.amntMF) || 0)).toFixed(2);
+              acc[index].amntIncentive = ((parseFloat(acc[index].amntIncentive) || 0) + (parseFloat(curr.amntIncentive) || 0)).toFixed(2);
+              acc[index].amntAdditionalCF = ((parseFloat(acc[index].amntAdditionalCF) || 0) + (parseFloat(curr.amntAdditionalCF) || 0)).toFixed(2);
+              acc[index].amntOthers = ((parseFloat(acc[index].amntOthers) || 0) + (parseFloat(curr.amntOthers) || 0)).toFixed(2);
             } else {
-                let mergedItem = {
-                    ...jobDoneItem,
-                    poNo: "",
-                    vendorName: "",
-                    amountPo: "",
-                    total: "",
-                    remarks: "",
-                    paymentStatus: "",
-                    totalRev: (jobDoneItem.billingBeforeVat - 0).toFixed(2)
-                };
-                mergedSummaryData.push(mergedItem);
+              acc.push(curr);
             }
-        });
-        log.debug('mergedSummaryData', mergedSummaryData)
-   
-        var groupedData = {};
-        mergedSummaryData.forEach(function (data) {
-            let key = data.year + '-' + data.month;
-            if (!groupedData[key]) {
-                groupedData[key] = {
-                    month: data.month,
-                    year: data.year,
-                    totalBillingBeforeVat: 0,
-                    totalAmountBill: 0,
-                    totalAmntRetainer: 0,
-                    totalAmntCF: 0,
-                    totalAmntSF: 0,
-                    totalAmntMF: 0,
-                    totalAmntIncentive: 0,
-                    totalAmntAdditionalCF: 0,
-                    totalAmntOthers: 0,
-                    totalCostOfBilling: 0,
-                    totalUse: 0
-                };
-            }
+            return acc;
+          }, []);
+    
+          let mergedSummaryData = [];
+          groupedSummary.forEach((jobDoneItem) => {
+              let matchingPOs = poDataArr.filter((poItem) => {
+                  return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
+              });
+              if (matchingPOs.length > 0) {
+                  matchingPOs.forEach((matchingPO) => {
+                      let mergedItem = {
+                          ...jobDoneItem,
+                          poNo: matchingPO.poNo || "",
+                          vendorName: matchingPO.vendorName || "",
+                          amountPo: matchingPO.amountPo || "",
+                          total: matchingPO.total || "",
+                          remarks: matchingPO.remarks || "",
+                          paymentStatus: matchingPO.paymentStatus || "",
+                          totalRev: (jobDoneItem.billingBeforeVat - (matchingPO.amountPo ? parseFloat(matchingPO.amountPo) : 0)).toFixed(2)
+                      };
+                      mergedSummaryData.push(mergedItem);
+                  });
+              } else {
+                  let mergedItem = {
+                      ...jobDoneItem,
+                      poNo: "",
+                      vendorName: "",
+                      amountPo: "",
+                      total: "",
+                      remarks: "",
+                      paymentStatus: "",
+                      totalRev: (jobDoneItem.billingBeforeVat - 0).toFixed(2)
+                  };
+                  mergedSummaryData.push(mergedItem);
+              }
+          });
+     
+          var groupedData = {};
+          mergedSummaryData.forEach(function (data) {
+              let key = data.year + '-' + data.month;
+              if (!groupedData[key]) {
+                  groupedData[key] = {
+                      month: data.month,
+                      year: data.year,
+                      totalBillingBeforeVat: 0,
+                      totalAmountBill: 0,
+                      totalAmntRetainer: 0,
+                      totalAmntCF: 0,
+                      totalAmntSF: 0,
+                      totalAmntMF: 0,
+                      totalAmntIncentive: 0,
+                      totalAmntAdditionalCF: 0,
+                      totalAmntOthers: 0,
+                      totalCostOfBilling: 0,
+                      totalUse: 0
+                  };
+              }
+          
+              if (!uniqueIds.has(data.idTran)) {
+                  groupedData[key].totalBillingBeforeVat += Number(data.billingBeforeVat);
+                  groupedData[key].totalUse += Number(data.totalRev);
+                  uniqueIds.add(data.idTran);
+              }
+          
+              groupedData[key].totalAmountBill += Number(data.amount);
+              groupedData[key].totalAmntRetainer += Number(data.amntRetainer);
+              groupedData[key].totalAmntCF += Number(data.amntCF);
+              groupedData[key].totalAmntSF += Number(data.amntSF);
+              groupedData[key].totalAmntMF += Number(data.amntMF);
+              groupedData[key].totalAmntIncentive += Number(data.amntIncentive);
+              groupedData[key].totalAmntAdditionalCF += Number(data.amntAdditionalCF);
+              groupedData[key].totalAmntOthers += Number(data.amntOthers);
+              groupedData[key].totalCostOfBilling += Number(data.amount);
+              
+          });
+          var newsummaryDataArr = [];
+          for (var key in groupedData) {
+              newsummaryDataArr.push({
+                  month: groupedData[key].month,
+                  year: groupedData[key].year,
+                  totalBillingBeforeVat: groupedData[key].totalBillingBeforeVat,
+                  totalAmountBill: groupedData[key].totalBillingBeforeVat,
+                  totalAmntRetainer: groupedData[key].totalAmntRetainer,
+                  totalAmntCF: groupedData[key].totalAmntCF,
+                  totalAmntSF: groupedData[key].totalAmntSF,
+                  totalAmntMF: groupedData[key].totalAmntMF,
+                  totalAmntIncentive: groupedData[key].totalAmntIncentive,
+                  totalAmntAdditionalCF: groupedData[key].totalAmntAdditionalCF,
+                  totalAmntOthers: groupedData[key].totalAmntOthers,
+                  totalCostOfBilling: groupedData[key].totalCostOfBilling,
+                  totalUse: groupedData[key].totalUse
+              });
+          }
         
-            if (!uniqueIds.has(data.idTran)) {
-                groupedData[key].totalBillingBeforeVat += Number(data.billingBeforeVat);
-                groupedData[key].totalUse += Number(data.totalRev);
-                uniqueIds.add(data.idTran);
-            }
-        
-            groupedData[key].totalAmountBill += Number(data.amount);
-            groupedData[key].totalAmntRetainer += Number(data.amntRetainer);
-            groupedData[key].totalAmntCF += Number(data.amntCF);
-            groupedData[key].totalAmntSF += Number(data.amntSF);
-            groupedData[key].totalAmntMF += Number(data.amntMF);
-            groupedData[key].totalAmntIncentive += Number(data.amntIncentive);
-            groupedData[key].totalAmntAdditionalCF += Number(data.amntAdditionalCF);
-            groupedData[key].totalAmntOthers += Number(data.amntOthers);
-            groupedData[key].totalCostOfBilling += Number(data.amount);
-            
-        });
-        log.debug('groupedData', groupedData)
-        var newsummaryDataArr = [];
-        for (var key in groupedData) {
-            newsummaryDataArr.push({
-                month: groupedData[key].month,
-                year: groupedData[key].year,
-                totalBillingBeforeVat: groupedData[key].totalBillingBeforeVat,
-                totalAmountBill: groupedData[key].totalBillingBeforeVat,
-                totalAmntRetainer: groupedData[key].totalAmntRetainer,
-                totalAmntCF: groupedData[key].totalAmntCF,
-                totalAmntSF: groupedData[key].totalAmntSF,
-                totalAmntMF: groupedData[key].totalAmntMF,
-                totalAmntIncentive: groupedData[key].totalAmntIncentive,
-                totalAmntAdditionalCF: groupedData[key].totalAmntAdditionalCF,
-                totalAmntOthers: groupedData[key].totalAmntOthers,
-                totalCostOfBilling: groupedData[key].totalCostOfBilling,
-                totalUse: groupedData[key].totalUse
-            });
+          const groupedNewSummaryData = newsummaryDataArr;
+          var totalBilling = 0,
+              totalTotal = 0,
+              totalRetainer = 0,
+              totalCF = 0,
+              totalSf = 0,
+              totalMf = 0,
+              totalIf = 0,
+              totalAdditionalFC = 0,
+              totalOthers = 0;
+          var startDate = new Date(startDateSelected.split('/').reverse().join('-'));
+          var endDate = new Date(endDateSelected.split('/').reverse().join('-'));
+          var filterYear = endDate.getFullYear().toString();
+          
+          function getMonthName(month) { 
+              var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+              return monthNames[month - 1];
+          }
+          
+          function getMonthsInRange(startDate, endDate) {
+              var months = [];
+              var currentDate = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), 1));
+          
+              while (currentDate <= endDate) {
+                  var month = ('0' + (currentDate.getUTCMonth() + 1)).slice(-2);
+                  var year = currentDate.getUTCFullYear().toString();
+          
+                  months.push({
+                      month: month,
+                      year: year
+                  });
+                  currentDate.setUTCMonth(currentDate.getUTCMonth() + 1);
+                  if (currentDate > endDate) {
+                      break;
+                  }
+              }
+          
+              return months;
+          }
+          
+          var monthsInRange = getMonthsInRange(startDate, endDate);
+          var filledGroupedDataSummary = monthsInRange.map(function (monthInfo) {
+              var existingData = groupedNewSummaryData.find(function (row) {
+                  return row.month === monthInfo.month && row.year === monthInfo.year;
+              });
+          
+              if (existingData) {
+                  return existingData;
+              } else {
+                  return {
+                      month: monthInfo.month,
+                      year: monthInfo.year,
+                      totalAmountBill: 0,
+                      totalAmntRetainer: 0,
+                      totalAmntCF: 0,
+                      totalAmntSF: 0,
+                      totalAmntMF: 0,
+                      totalAmntIncentive: 0,
+                      totalAmntAdditionalCF: 0,
+                      totalAmntOthers: 0
+                  };
+              }
+          });
         }
-      
-        const groupedNewSummaryData = newsummaryDataArr;
-        var totalBilling = 0,
-            totalTotal = 0,
-            totalRetainer = 0,
-            totalCF = 0,
-            totalSf = 0,
-            totalMf = 0,
-            totalIf = 0,
-            totalAdditionalFC = 0,
-            totalOthers = 0;
-        var startDate = new Date(startDateSelected.split('/').reverse().join('-'));
-        var endDate = new Date(endDateSelected.split('/').reverse().join('-'));
-        var filterYear = endDate.getFullYear().toString();
-        
-        function getMonthName(month) {
-            var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            return monthNames[month - 1];
-        }
-        
-        function getMonthsInRange(startDate, endDate) {
-            var months = [];
-            var currentDate = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), 1));
-        
-            while (currentDate <= endDate) {
-                var month = ('0' + (currentDate.getUTCMonth() + 1)).slice(-2);
-                var year = currentDate.getUTCFullYear().toString();
-        
-                months.push({
-                    month: month,
-                    year: year
-                });
-                currentDate.setUTCMonth(currentDate.getUTCMonth() + 1);
-                if (currentDate > endDate) {
-                    break;
-                }
-            }
-        
-            return months;
-        }
-        
-        var monthsInRange = getMonthsInRange(startDate, endDate);
-        var filledGroupedDataSummary = monthsInRange.map(function (monthInfo) {
-            var existingData = groupedNewSummaryData.find(function (row) {
-                return row.month === monthInfo.month && row.year === monthInfo.year;
-            });
-        
-            if (existingData) {
-                return existingData;
-            } else {
-                return {
-                    month: monthInfo.month,
-                    year: monthInfo.year,
-                    totalAmountBill: 0,
-                    totalAmntRetainer: 0,
-                    totalAmntCF: 0,
-                    totalAmntSF: 0,
-                    totalAmntMF: 0,
-                    totalAmntIncentive: 0,
-                    totalAmntAdditionalCF: 0,
-                    totalAmntOthers: 0
-                };
-            }
-        });
+       
       xmlStr += `
         <Row>
             <Cell />
@@ -1282,111 +1305,116 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             <Cell ss:StyleID="HORANGE"><Data ss:Type="String">Others</Data></Cell>
         </Row>
       `;
-      filledGroupedDataSummary.forEach(function (row) {
-        xmlStr += `
-        <Row>
-        <Cell ss:StyleID="NB"><Data ss:Type="String">${getMonthName(parseInt(row.month)) || ""}</Data></Cell>
-        <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalBillingBeforeVat || ""}</Data></Cell>
-        <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalUse || ""}</Data></Cell>
-        <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntRetainer || ""}</Data></Cell>
-        <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntCF || ""}</Data></Cell>
-        <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntSF || ""}</Data></Cell>
-        <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntMF || ""}</Data></Cell>
-        <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntIncentive || ""}</Data></Cell>
-        <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntAdditionalCF || ""}</Data></Cell>
-        <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntOthers || ""}</Data></Cell>
-        </Row>
-        `;
-        totalBilling += Number(row.totalBillingBeforeVat || 0);
-        totalTotal += Number(row.totalUse || 0);
-        totalRetainer += Number(row.totalAmntRetainer || 0);
-        totalCF += Number(row.totalAmntCF || 0);
-        totalSf += Number(row.totalAmntSF || 0);
-        totalMf += Number(row.totalAmntMF || 0);
-        totalIf += Number(row.totalAmntIncentive || 0);
-        totalAdditionalFC += Number(row.totalAmntAdditionalCF || 0);
-        totalOthers += Number(row.totalAmntOthers || 0);
-      });
-
-      var periodName = 'FY ' + filterYear;
-      var periodSearch = search.create({
-          type: "accountingperiod",
-          filters: [
-              ["periodname", "is", periodName]
-          ],
-          columns: ["internalid"]
-      });
-
-      var periodId;
-      periodSearch.run().each(function(result) {
-          periodId = result.getValue({ name: 'internalid' });
-          return false;
-      });
-      // budget
-      var sales = search.load({
-        id: "customsearch808",
-      });
-      if(subsidiarySelected){
-          sales.filters.push(
-            search.createFilter({
-                name: "subsidiary",
-                operator: search.Operator.IS,
-                values: subsidiarySelected,
-            })
-        );
+      var budgetYear = 0;
+      var balanceToGO = 0;
+      if(isProcessed == true){
+        filledGroupedDataSummary.forEach(function (row) {
+          xmlStr += `
+          <Row>
+          <Cell ss:StyleID="NB"><Data ss:Type="String">${getMonthName(parseInt(row.month)) || ""}</Data></Cell>
+          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalBillingBeforeVat || ""}</Data></Cell>
+          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalUse || ""}</Data></Cell>
+          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntRetainer || ""}</Data></Cell>
+          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntCF || ""}</Data></Cell>
+          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntSF || ""}</Data></Cell>
+          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntMF || ""}</Data></Cell>
+          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntIncentive || ""}</Data></Cell>
+          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntAdditionalCF || ""}</Data></Cell>
+          <Cell ss:StyleID="NBN"><Data ss:Type="Number">${row.totalAmntOthers || ""}</Data></Cell>
+          </Row>
+          `;
+          totalBilling += Number(row.totalBillingBeforeVat || 0);
+          totalTotal += Number(row.totalUse || 0);
+          totalRetainer += Number(row.totalAmntRetainer || 0);
+          totalCF += Number(row.totalAmntCF || 0);
+          totalSf += Number(row.totalAmntSF || 0);
+          totalMf += Number(row.totalAmntMF || 0);
+          totalIf += Number(row.totalAmntIncentive || 0);
+          totalAdditionalFC += Number(row.totalAmntAdditionalCF || 0);
+          totalOthers += Number(row.totalAmntOthers || 0);
+        });
+  
+        var periodName = 'FY ' + filterYear;
+        var periodSearch = search.create({
+            type: "accountingperiod",
+            filters: [
+                ["periodname", "is", periodName]
+            ],
+            columns: ["internalid"]
+        });
+  
+        var periodId;
+        periodSearch.run().each(function(result) {
+            periodId = result.getValue({ name: 'internalid' });
+            return false;
+        });
+        // budget
+        var sales = search.load({
+          id: "customsearch808",
+        });
+        if(subsidiarySelected){
+            sales.filters.push(
+              search.createFilter({
+                  name: "subsidiary",
+                  operator: search.Operator.IS,
+                  values: subsidiarySelected,
+              })
+          );
+        }
+        if(periodId){
+            sales.filters.push(
+              search.createFilter({
+                  name: "year",
+                  operator: search.Operator.IS,
+                  values: periodId,
+              })
+          );
+        }
+        var resultSales = getAllResults(sales);
+        var salesData = 0;
+        resultSales.forEach(function (result) {
+            let amount = result.getValue({
+              name: "amount",
+              summary: "SUM"
+            });
+            salesData = amount || 0;
+        });
+  
+        var costOfSales = search.load({
+          id: "customsearch809",
+        });
+        if(subsidiarySelected){
+          costOfSales.filters.push(
+              search.createFilter({
+                  name: "subsidiary",
+                  operator: search.Operator.IS,
+                  values: subsidiarySelected,
+              })
+          );
+        }
+        if(periodId){
+          costOfSales.filters.push(
+              search.createFilter({
+                  name: "year",
+                  operator: search.Operator.IS,
+                  values: periodId,
+              })
+          );
+        }
+        var resultcostOfSales = getAllResults(costOfSales);
+        var costOfSalesData = 0;
+        resultcostOfSales.forEach(function (result) {
+            let amount = result.getValue({
+              name: "amount",
+              summary: "SUM"
+            });
+            costOfSalesData = amount || 0;
+        });
+        
+        budgetYear = Number(salesData) - Number(costOfSalesData);
+        balanceToGO = Number(budgetYear) - Number(totalTotal)
       }
-      if(periodId){
-          sales.filters.push(
-            search.createFilter({
-                name: "year",
-                operator: search.Operator.IS,
-                values: periodId,
-            })
-        );
-      }
-      var resultSales = getAllResults(sales);
-      var salesData = 0;
-      resultSales.forEach(function (result) {
-          let amount = result.getValue({
-            name: "amount",
-            summary: "SUM"
-          });
-          salesData = amount || 0;
-      });
-
-      var costOfSales = search.load({
-        id: "customsearch809",
-      });
-      if(subsidiarySelected){
-        costOfSales.filters.push(
-            search.createFilter({
-                name: "subsidiary",
-                operator: search.Operator.IS,
-                values: subsidiarySelected,
-            })
-        );
-      }
-      if(periodId){
-        costOfSales.filters.push(
-            search.createFilter({
-                name: "year",
-                operator: search.Operator.IS,
-                values: periodId,
-            })
-        );
-      }
-      var resultcostOfSales = getAllResults(costOfSales);
-      var costOfSalesData = 0;
-      resultcostOfSales.forEach(function (result) {
-          let amount = result.getValue({
-            name: "amount",
-            summary: "SUM"
-          });
-          costOfSalesData = amount || 0;
-      });
       
-      var budgetYear = Number(salesData) - Number(costOfSalesData);
-      var balanceToGO = Number(budgetYear) - Number(totalTotal)
 
       xmlStr += `
       <Row>

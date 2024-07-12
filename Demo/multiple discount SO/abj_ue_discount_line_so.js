@@ -38,12 +38,11 @@ define(["N/record", "N/search"], function(
                             line: i
                         });
                         log.debug('itemId', itemId);
-                        if (itemId == "1552" || itemId == "1553") {
+                        if (itemId == "1545" || itemId == "1546") {
                             lineToRemove.push(i);
                         }
                     }
                     
-                    // Hapus baris yang telah ditandai untuk dihapus
                     for (var i = lineToRemove.length - 1; i >= 0; i--) {
                         recordTRans.removeLine({
                             sublistId: 'item',
@@ -59,7 +58,7 @@ define(["N/record", "N/search"], function(
                     recordTRans.setCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "item",
-                        value: "1552",
+                        value: "1546",
                     });
                     recordTRans.setCurrentSublistValue({
                         sublistId: "item",
@@ -84,7 +83,7 @@ define(["N/record", "N/search"], function(
                     recordTRans.setCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "item",
-                        value: "1553",
+                        value: "1545",
                     });
                     recordTRans.setCurrentSublistValue({
                         sublistId: "item",

@@ -23,7 +23,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         for (var i = 0; i < itemCount; i++) {
             var amount = records.getSublistValue({ sublistId: 'item', fieldId: 'amount', line: i });
             var totalDiscline = records.getSublistValue({ sublistId: 'item', fieldId: 'custcol_abj_total_line_disc_so', line: i });
-            var discInLine = records.getSublistValue({sublistId : 'item', fieldId : 'custcol_abj_sales_item', line : i});
+            var discInLine = records.getSublistValue({sublistId : 'item', fieldId : 'custcol_abj_disc1_so', line : i});
             var afterDiscLineSo = records.getSublistValue({sublistId : 'item', fieldId : 'custcol_abj_after_disc_line_so', line : i});
             if(params == "line"){
                 if(discInLine == ''){
@@ -84,14 +84,14 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 var totalHead = Number(head1) + Number(head2) + Number(head3)
                 totalHead = roundToTwoDigits(totalHead)
                 records.setValue({
-                    fieldId : 'custbody_abj_total_head_after_disc',
+                    fieldId : 'custbody_total_header_disc',
                     value : totalHead,
                     ignoreFieldChange: true
                 });
                 totalAfterDisc = roundToTwoDigits(totalAfterDisc)
                 var totalAfterDiscHead = Number(totalAfterDisc) - Number(totalHead)
                 records.setValue({
-                    fieldId : 'custbody_total_header_disc',
+                    fieldId : 'custbody_abj_total_head_after_disc',
                     value : totalAfterDiscHead,
                     ignoreFieldChange: true
                 });
@@ -107,7 +107,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var sublistName = context.sublistId;
         var totalLineDisc = 0;
         if (sublistName == "item") {
-            if (sublistFieldName == "custcol_abj_sales_item") {
+            if (sublistFieldName == "custcol_abj_disc1_so") {
                 console.log('change sublist')
                 var amountLine = records.getCurrentSublistValue({
                     sublistId: "item",
@@ -115,7 +115,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 })
                 var disCount1 = records.getCurrentSublistValue({
                     sublistId: "item",
-                    fieldId: "custcol_abj_sales_item",
+                    fieldId: "custcol_abj_disc1_so",
                 })
                 console.log('amountLine', amountLine)
                 console.log('disCount1', disCount1)

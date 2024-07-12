@@ -308,7 +308,7 @@
                 if(itemId != '2880'){
                     var itemPrice = soRecord.getSublistValue({
                     sublistId: "item",
-                    fieldId: "rate",
+                    fieldId: "amount",
                     line: index,
                     }) || 0;
                     totalCost += parseFloat(itemPrice)
