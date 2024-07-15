@@ -95,7 +95,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       var custName;
       var isperson = custRecord.getValue("isperson");
       if (isperson == "T") {
-        var firstname = custRecord.getValue("firstname") || "";
+        var firstname = custRecord.getValue("firstname") || ""; 
         var middleName = custRecord.getValue("middlename") || "";
         var lastname = custRecord.getValue("lastname") || "";
         custName = firstname + " " + middleName + " " + lastname;
@@ -118,6 +118,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       var count = custRecord.getLineCount({
         sublistId: "submachine",
       });
+      var contPerson = dataRec.getValue('custbody_abj_cp_name');
+      var cpEmail = dataRec.getValue('custbody_abj_cp_email');
+      var cpPhone = dataRec.getValue('custbody_abj_cp_phone');
       for (var i = 0; i < count; i++) {
         var subsidiary = custRecord.getSublistValue({
           sublistId: "submachine",
@@ -434,17 +437,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
 
     body += "<tr>";
     body += "<td>CONTACT PERSON</td>"
-    body += "<td>"+custPhone+"</td>"
+    body += "<td>"+contPerson+"</td>"
     body += "</tr>";
 
     body += "<tr>";
     body += "<td>EMAIL</td>"
-    body += "<td>"+custEmail+"</td>"
+    body += "<td>"+cpEmail+"</td>"
     body += "</tr>";
 
     body += "<tr>";
     body += "<td>PHONE</td>"
-    body += "<td>"+custPhone+"</td>"
+    body += "<td>"+cpPhone+"</td>"
     body += "</tr>";
 
     body += "<tr style='hight:30px;'>";

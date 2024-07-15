@@ -326,7 +326,9 @@
                 
                 }
             }
-            
+            var contPerson = dataRec.getValue('custbody_abj_cp_name');
+            var cpEmail = dataRec.getValue('custbody_abj_cp_email');
+            var cpPhone = dataRec.getValue('custbody_abj_cp_phone');
             var discountHeader = dataRec.getValue("discountrate")||0;
             totalDiscount = parseFloat(totalDiscount) + parseFloat(discountHeader)
             log.debug('totalDiscount', totalDiscount);
@@ -434,17 +436,17 @@
         
             body += "<tr>";
             body += "<td>CONTACT PERSON</td>"
-            body += "<td>"+custPhone+"</td>"
+            body += "<td>"+contPerson+"</td>"
             body += "</tr>";
         
             body += "<tr>";
             body += "<td>EMAIL</td>"
-            body += "<td>"+custEmail+"</td>"
+            body += "<td>"+cpEmail+"</td>"
             body += "</tr>";
         
             body += "<tr>";
             body += "<td>PHONE</td>"
-            body += "<td>"+custPhone+"</td>"
+            body += "<td>"+cpPhone+"</td>"
             body += "</tr>";
         
             body += "<tr style='hight:30px;'>";

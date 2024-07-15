@@ -8,25 +8,25 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
         try{
             function decimalRemove(number) {
                 if (number != 0) {
-                  return number.substring(0, number.length - 3);
+                    return number.substring(0, number.length - 3);
                 } else {
-                  return "0.00";
+                    return "0.00";
                 }
-              }
-              function removeDecimalFormat(number) {
+            }
+            function removeDecimalFormat(number) {
                 return number.toString().substring(0, number.toString().length - 3);
-              }
-              function removeDuplicates(array) {
+            }
+            function removeDuplicates(array) {
                 return array.filter((value, index, self) => {
-                  return self.indexOf(value) === index;
+                    return self.indexOf(value) === index;
                 });
-              }
-              function numberWithCommas(x) {
+            }
+            function numberWithCommas(x) {
                 x = x.toString();
                 var pattern = /(-?\d+)(\d{3})/;
                 while (pattern.test(x)) x = x.replace(pattern, "$1,$2");
                 return x;
-              }
+            }
             function pembulatan(angka) {
                 if (angka >= 0) {
                     var bulat = Math.floor(angka);
@@ -404,6 +404,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         jobNumber = jobNumber.replace(/&/g, '&amp;');
                     }
                 }
+
+                var contPerson = invoiceRecord.getValue('custbody_abj_cp_name');
+                var cpEmail = invoiceRecord.getValue('custbody_abj_cp_email');
+                var cpPhone = invoiceRecord.getValue('custbody_abj_cp_phone');
+
                 
                 style += "<style type='text/css'>";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
@@ -447,8 +452,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tr>";
                 body+= "<td>";
                 body+= "<p class='tg-headerrow_left'>"+ custName + "<br/>"
-                body+= "<span>"+custAddres+"</span><br/>"
-                body+= "<span>"+custEmail+"</span><br/>"
                 body+= "NPWP : "+ taxRegNo + "</p>"
                 body+= "</td>"
                 body+= "<td>"
@@ -459,6 +462,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // body+= "<p class='tg-headerrow_Total'> Rp."+ balance + "</p>"
                 body+= "</td>"
                 body+= "</tr>"
+                body += "<tr>";
+                body += "<td>CONTACT PERSON : "+contPerson+"</td>"
+                body += "</tr>";
+            
+                body += "<tr>";
+                body += "<td>EMAIL : "+cpEmail+"</td>"
+                body += "</tr>";
+            
+                body += "<tr>";
+                body += "<td>PHONE : "+cpPhone+"</td>"
+                body += "</tr>";
                 body+= "<tr style='height:10px;'>";
                 body+= "</tr>";
                 body+= "</tbody>";

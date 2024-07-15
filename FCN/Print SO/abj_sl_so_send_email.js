@@ -323,7 +323,11 @@
         
             var customForm = soRecord.getValue('customform');
         
-            var createdFrom = soRecord.getText('createdfrom')
+            var createdFrom = soRecord.getText('createdfrom');
+            var contPerson = soRecord.getValue('custbody_abj_cp_name');
+            var cpEmail = soRecord.getValue('custbody_abj_cp_email');
+            var cpPhone = soRecord.getValue('custbody_abj_cp_phone');
+
         
             var response = context.response;
             var xml = "";
@@ -372,8 +376,6 @@
             body += "<tr>";
             body += "<td>";
             body += "<p class='tg-headerrow_left'>" + custName + "<br/>";
-            body += "<span>" + custAddres + "</span><br/>";
-            body += "<span>" + custEmail + "</span><br/>";
             body += "NPWP : " + taxRegNo + "</p>";
             body += "</td>";
             body += "<td>";
@@ -383,6 +385,18 @@
             body += "Due Date :" + duedate + "</p>";
             body += "</td>";
             body += "</tr>";
+            body += "<tr>";
+            body += "<td>CONTACT PERSON : "+contPerson+"</td>"
+            body += "</tr>";
+        
+            body += "<tr>";
+            body += "<td>EMAIL : "+cpEmail+"</td>"
+            body += "</tr>";
+        
+            body += "<tr>";
+            body += "<td>PHONE : "+cpPhone+"</td>"
+            body += "</tr>";
+
             body += "<tr style='height:10px;'>";
             body += "</tr>";
             body += "</tbody>";

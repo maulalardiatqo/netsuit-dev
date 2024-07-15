@@ -333,6 +333,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     var customForm = soRecord.getValue('customform');
     log.debug('customForm', customForm);
 
+    var contPerson = soRecord.getValue('custbody_abj_cp_name');
+    var cpEmail = soRecord.getValue('custbody_abj_cp_email');
+    var cpPhone = soRecord.getValue('custbody_abj_cp_phone');
+
     var createdFrom = soRecord.getText('createdfrom')
 
     var response = context.response;
@@ -382,8 +386,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "<tr>";
     body += "<td>";
     body += "<p class='tg-headerrow_left'>" + custName + "<br/>";
-    body += "<span>" + custAddres + "</span><br/>";
-    body += "<span>" + custEmail + "</span><br/>";
     body += "NPWP : " + taxRegNo + "</p>";
     body += "</td>";
     body += "<td>";
@@ -393,6 +395,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "Due Date :" + duedate + "</p>";
     body += "</td>";
     body += "</tr>";
+
+    body += "<tr>";
+    body += "<td>CONTACT PERSON : "+contPerson+"</td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td>EMAIL : "+cpEmail+"</td>"
+    body += "</tr>";
+
+    body += "<tr>";
+    body += "<td>PHONE : "+cpPhone+"</td>"
+    body += "</tr>";
+
     body += "<tr style='height:10px;'>";
     body += "</tr>";
     body += "</tbody>";
