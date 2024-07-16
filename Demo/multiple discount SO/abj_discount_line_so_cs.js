@@ -50,7 +50,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 fieldId: 'custbody_abj_disc3_so',
             });
             
-            if(disc1 == '' || disc2 == '' || disc3 == ''){
+            if(disc1 == '' && disc2 == '' && disc3 == ''){
                 console.log('masuk if')
             }else{
                 console.log('afterDiscLine', totalAfterDisc);
