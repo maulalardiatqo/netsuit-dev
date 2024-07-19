@@ -211,18 +211,6 @@ define([
                             return months[index - 1];
                         }
                     }
-                    function getNextMonth(month) {
-                        const months = [
-                            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                        ];
-                        const index = months.indexOf(month);
-                        if (index === 0) {
-                            return 'Dec';
-                        } else {
-                            return months[index + 1];
-                        }
-                    }
                     
                     function getPeriodBeforeName(periodName) {
                         const parts = periodName.split(' ');
@@ -238,23 +226,8 @@ define([
                     
                         return `${month} ${year}`;
                     }
-                    function getPeriodAfterName(periodName) {
-                        const parts = periodName.split(' ');
-                        let month = parts[0];
-                        let year = parseInt(parts[1]);
-                    
-                        if (month === 'Dec') {
-                            month = 'Jan';
-                            year++;
-                        } else {
-                            month = getNextMonth(month);
-                        }
-                    
-                        return `${month} ${year}`;
-                    }
 
                     const periodBeforeName = getPeriodBeforeName(periodName);
-                    const periodAfterName = getPeriodAfterName(periodName);
 
                     function getPeriodIdByName(periodName) {
                         var periodSearch = search.create({
@@ -275,20 +248,25 @@ define([
                     
                     var idPeriod = getPeriodIdByName(periodName);
                     var idPeriodBef = getPeriodIdByName(periodBeforeName);
-                    var idPeriodPrev = getPeriodIdByName(periodAfterName)
                     
                     var beginningBalance;
-                    var beginningBalanceSearch = search.load({ id: "customsearch821" });
-                    if (idPeriod) beginningBalanceSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
-                    if (subsId) beginningBalanceSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
+                    log.debug('isCount', isCount)
+                    if(isCount == false){
+                        var beginningBalanceSearch = search.load({ id: "customsearch821" });
+                        if (idPeriod) beginningBalanceSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
+                        if (subsId) beginningBalanceSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
+                        
                     
-                
-                    var beginningBalanceSearchReturn = beginningBalanceSearch.run().getRange({ start: 0, end: 1 });
-                    beginningBalance = beginningBalanceSearchReturn[0].getValue({
-                        name: "amount",
-                        summary: "SUM",
-                    }) || 0;
-
+                        var beginningBalanceSearchReturn = beginningBalanceSearch.run().getRange({ start: 0, end: 1 });
+                        beginningBalance = beginningBalanceSearchReturn[0].getValue({
+                            name: "amount",
+                            summary: "SUM",
+                        }) || 0;
+                    }else{
+                        beginningBalance = prevEndingBalance
+                    }
+                    
+                   
                     var beginningBalancetoCOunt = beginningBalance;
                     if (beginningBalance) {
                         beginningBalance = convertCurr(beginningBalance);
@@ -297,22 +275,6 @@ define([
                     allIdPeriod.push({ idPeriod: idPeriod, periodToset: periodToset });
                     dataToSet.push(periodToset);
                     allBeginningBalance.push({ beginningBalance: beginningBalance, periodToset: periodToset });
-
-                   
-                    var endingBalanceSearch = search.load({ id: "customsearch821" });
-                    if (idPeriodPrev) endingBalanceSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriodPrev }));
-                    if (subsId) endingBalanceSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    
-                
-                    var endingBalanceSearchReturn = endingBalanceSearch.run().getRange({ start: 0, end: 1 });
-                    var endingBalance = endingBalanceSearchReturn[0].getValue({
-                        name: "amount",
-                        summary: "SUM",
-                    }) || 0;
-                    if(endingBalance){
-                        endingBalance = convertCurr(endingBalance)
-                    }
-                    allEndingBalance.push({endingBalance : endingBalance, periodToset : periodToset})
 
                     var outstandingSearch = search.load({
                         id : "customsearch795"
@@ -507,7 +469,14 @@ define([
                     }
                     alloprasionalExp.push({ oprasionalExp: oprasionalExp, periodToset: periodToset });
                 
-                   
+                    var countEnding = Number(beginningBalancetoCOunt) + Number(outstandingToCount) + Number(wipToCount) - Number(outstandingPayableToCount) - Number(cobToCount) - (oprasionalExpToCount)
+                    var endingBalance = countEnding
+                    prevEndingBalance = endingBalance
+                    if(endingBalance){
+                        endingBalance = convertCurr(endingBalance)
+                    }
+                    allEndingBalance.push({endingBalance : endingBalance, periodToset : periodToset})
+                    isCount = true
                 });
                 var setList = createList("custpage_sublist_item", form, dataToSet)
                 // set beginning

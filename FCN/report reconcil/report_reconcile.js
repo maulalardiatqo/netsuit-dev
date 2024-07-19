@@ -297,7 +297,8 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           let jobNumber = result.getValue("custbody_abj_custom_jobnumber");
           let project = result.getText("class");
           let status = result.getText("statusref");
-          let pic = result.getText("custbody_so_pic");
+          let pic = result.getValue("custbody_so_pic");
+          log.debug('pic', pic)
           let deliverables = result.getText("line.cseg_abjproj_cust_");
           let qty = result.getValue("quantity");
           let invoiceNumber = result.getValue({
@@ -395,7 +396,8 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           let jobNumber = result.getValue("custbody_abj_custom_jobnumber");
           let project = result.getText("class");
           let status = result.getText("statusref");
-          let pic = result.getText("custbody_so_pic");
+          let pic = result.getValue("custbody_so_pic");
+          log.debug('pic', pic)
           let deliverables = result.getText("line.cseg_abjproj_cust_");
           let qty = result.getValue("quantity");
           let invoiceNumber = result.getValue({
@@ -669,6 +671,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             row.amntOthers = "";
             row.billingBeforeVat = "";
           }
+          log.debug('row.pic', row.pic)
           qContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
           qContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/salesord.nl?id=' + row.quoteNumberVal + '&whence=" target="_blank" >' + row.quoteNumber || "" + "</a></td>";
           qContent += '            <td class="uir-list-row-cell">' + row.jobNumber || "" + "</td>";

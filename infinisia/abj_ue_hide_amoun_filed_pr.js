@@ -112,7 +112,7 @@ define(["N/runtime", "N/log", "N/ui/serverWidget"], (runtime, log, serverWidget)
             }
             if(recType == 'salesorder'){
                 log.debug('recSO');
-                if(currentRole == 1025 || currentRole == 1026 || currentRole == 1005 || currentRole == 1024 || currentRole == 3){
+                if(currentRole == 1025 || currentRole == 1026 || currentRole == 1005 || currentRole == 1024){
                     hideField(form);
                     var discountTotal = form.getField({
                         id: 'discounttotal',

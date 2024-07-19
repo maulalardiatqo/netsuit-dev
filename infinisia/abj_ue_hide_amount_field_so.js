@@ -102,6 +102,7 @@ define(["N/runtime", "N/log", "N/ui/serverWidget"], (runtime, log, serverWidget)
         if ( context.type === context.UserEventType.EDIT || context.type === context.UserEventType.CREATE || context.type === context.UserEventType.VIEW) {
             var cekFrom = rec.getValue('customform');
             log.debug('cekFrom', cekFrom)
+            log.debug('currentRole', currentRole)
             if(currentRole == 1016 || currentRole == 1004 || currentRole == 1013 || currentRole == 1025 || currentRole == 1026 || currentRole == 1005 || currentRole == 1024){
                 hideField(form);
             }

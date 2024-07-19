@@ -16,6 +16,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             if(sublistFieldName == 'custcol_abj_sales_rep_line'){
                 var currentRecordObj = context.currentRecord;
                 var formId = currentRecordObj.getValue('customform');
+                console.log('formId', formId)
                 if(formId == 138){
                     console.log('masuk change')
                     var itemId = currentRecordObj.getCurrentSublistValue({
@@ -49,7 +50,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                 "AND", 
                                 ["item","anyof",itemId], 
                                 "AND", 
-                                ["salesrep","anyof",salesRep], 
+                                ["custcol_abj_sales_rep_line","anyof",salesRep], 
                                 "AND", 
                                 ["formulatext: {custcol_abj_sales_rep_line}","isnotempty",""]
                             ],
@@ -83,8 +84,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                 })
                             ]
                         });
-                        var incoimngStock
+                        var incoimngStock = 0
                         var searchResultCount = purchaseorderSearchObj.runPaged().count;
+                        console.log('sampaisini?')
                         log.debug("purchaseorderSearchObj result count",searchResultCount);
                         purchaseorderSearchObj.run().each(function(result){
                             var qtyIncomingStock = result.getValue({
@@ -92,6 +94,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                 summary: "SUM",
                                 formula: "{quantity}-{quantityshiprecv}",
                             })
+                            console.log('qtyIncomingStock', qtyIncomingStock)
                             if(qtyIncomingStock){
                                 incoimngStock = qtyIncomingStock
                             }
@@ -99,13 +102,14 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         });
                         console.log('incomingStock', incoimngStock)
                         if(incoimngStock){
+                            console.log('masuk incoming stock')
                             currentRecordObj.setCurrentSublistValue({
                                 sublistId: "item",
                                 fieldId: "custcol5",
                                 value: incoimngStock,
                             });
                         }
-                        var onHand
+                        var onHand = 0
                         var inventorynumberSearchObj = search.create({
                             type: "inventorynumber",
                             filters:
@@ -153,13 +157,12 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             }
                         return true;
                         });
-                        if(onHand){
                             currentRecordObj.setCurrentSublistValue({
                                 sublistId: "item",
                                 fieldId: "custcol_abj_onhand",
-                                value: onHand,
+                                value: onHand || 0,
                             });
-                        }
+                        
                     }
                 }
 
