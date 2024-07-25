@@ -91,12 +91,13 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let salesRepID = prToPO[i].getValue({
             name: prToPOSet.columns[4],
           });
-          let customerName = prToPO[i].getValue({
-            name: prToPOSet.columns[5],
+          let customerName = prToPO[i].getText({
+            name: prToPOSet.columns[26],
           });
           let customerID = prToPO[i].getValue({
-            name: prToPOSet.columns[14],
+            name: prToPOSet.columns[26],
           });
+          log.debug('customerID', customerID)
           let forecastBusdev = prToPO[i].getValue({
             name: prToPOSet.columns[6],
           });
@@ -149,189 +150,218 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let soNumber = prToPO[i].getValue({
             name: prToPOSet.columns[24],
           });
+          let soNumberText = prToPO[i].getText({
+            name: prToPOSet.columns[24],
+          });
+          let qty = prToPO[i].getValue({
+            name : prToPOSet.columns[28]
+          })
+          let qtyPO = prToPO[i].getValue({
+            name : prToPOSet.columns[27]
+          })
+          let lineId = prToPO[i].getValue({
+            name : prToPOSet.columns[29]
+          })
           let cek1 =  prToPO[i].getValue({
             name: prToPOSet.columns[25],
           });
-          let totalOrder = parseFloat(currentStock || 0) + parseFloat(incomingStock || 0) - (parseFloat(osPO || 0) + parseFloat(forecastBusdev || 0));
+          let totalOrder = parseFloat(qty || 0) - parseFloat(qtyPO || 0)
           var itemRate
-          log.debug('cek1', cek1);
-          log.debug('cek2', cek2)
-          if(cek1 || cek1 != ''){
-            itemRate = cek1
-          }else{
-            itemRate = cek2
+          if(totalOrder > 0){
+            if(cek1 || cek1 != ''){
+              itemRate = cek1
+            }else{
+              itemRate = cek2
+            }
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_view_link",
+              value: `https://9274135.app.netsuite.com/app/accounting/transactions/purchord.nl?id=${internalID}&whence=`,
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_item_name",
+              value: itemName || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_vendor",
+              value: vendorName || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_current_stock",
+              value: currentStock || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_incoming_stock",
+              value: incomingStock || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_sales_rep",
+              value: salesRep || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_customer",
+              value: customerName || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_forecast_busdev",
+              value: forecastBusdev || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_forecast_perhitungan",
+              value: forecastPerhitungan || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_avg_busdev",
+              value: avgBusdev || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_avg_accounting",
+              value: avgAccounting || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_total_order",
+              value: Math.abs(totalOrder),
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_qty_po",
+              value: Math.abs(qtyPO),
+              line: i,
+            });
+            
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_note",
+              value: note || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_os_po",
+              value: osPO || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_internalid",
+              value: internalID,
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_item_internalid",
+              value: itemID || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_salesrep_internalid",
+              value: salesRepID || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_customer_internalid",
+              value: customerID || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_rate",
+              value: itemRate || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_lead_time_kirim",
+              value: leadTimeKirim || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_units",
+              value: units || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_doc_number",
+              value: docNumber || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_taxitem",
+              value: taxItem || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_taxrate",
+              value: taxItemRate || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_so_no",
+              value: soNO || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_tanggal_kirim",
+              value: tanggalKirim || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_packsize",
+              value: packSize || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_sonumber",
+              value: soNumber || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_sonumber_text",
+              value: soNumberText || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_line_id",
+              value: lineId || " ",
+              line: i,
+            });
           }
-          log.debug('itemRate', itemRate)
-          log.debug("taxItemRate", taxItemRate);
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_view_link",
-            value: `https://9274135.app.netsuite.com/app/accounting/transactions/purchord.nl?id=${internalID}&whence=`,
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_item_name",
-            value: itemName || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_vendor",
-            value: vendorName || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_current_stock",
-            value: currentStock || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_incoming_stock",
-            value: incomingStock || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_sales_rep",
-            value: salesRep || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_customer",
-            value: customerName || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_forecast_busdev",
-            value: forecastBusdev || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_forecast_perhitungan",
-            value: forecastPerhitungan || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_avg_busdev",
-            value: avgBusdev || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_avg_accounting",
-            value: avgAccounting || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_total_order",
-            value: Math.abs(totalOrder),
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_note",
-            value: note || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_os_po",
-            value: osPO || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_internalid",
-            value: internalID,
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_item_internalid",
-            value: itemID || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_salesrep_internalid",
-            value: salesRepID || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_customer_internalid",
-            value: customerID || " ",
-            line: i,
-          });
-          log.debug('itemRate', itemRate)
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_rate",
-            value: itemRate || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_lead_time_kirim",
-            value: leadTimeKirim || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_units",
-            value: units || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_doc_number",
-            value: docNumber || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_taxitem",
-            value: taxItem || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_taxrate",
-            value: taxItemRate || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_so_no",
-            value: soNO || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_tanggal_kirim",
-            value: tanggalKirim || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_packsize",
-            value: packSize || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_sonumber",
-            value: soNumber || " ",
-            line: i,
-          });
+         
         }
       }
       context.response.writePage(form);
@@ -402,12 +432,13 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let salesRepID = prToPO[i].getValue({
             name: prToPOSet.columns[4],
           });
-          let customerName = prToPO[i].getValue({
-            name: prToPOSet.columns[5],
+          let customerName = prToPO[i].getText({
+            name: prToPOSet.columns[26],
           });
           let customerID = prToPO[i].getValue({
-            name: prToPOSet.columns[14],
+            name: prToPOSet.columns[26],
           });
+          log.debug('customerID', customerID)
           let forecastBusdev = prToPO[i].getValue({
             name: prToPOSet.columns[6],
           });
@@ -457,187 +488,221 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             name: prToPOSet.columns[23],
           });
           let soNumber = prToPO[i].getValue({
-            name: prToPOSet.columns[24],
+            name: prToPOSet.columns[19],
           });
+          let soNumberText = prToPO[i].getText({
+            name: prToPOSet.columns[19],
+          });
+          let qty = prToPO[i].getValue({
+            name: prToPOSet.columns[28],
+          })
+          let qtyPO = prToPO[i].getValue({
+            name: prToPOSet.columns[27],
+          })
+          let lineId = prToPO[i].getValue({
+            name : prToPOSet.columns[29]
+          })
+          log.debug('soNumber', soNumber);
+          log.debug('soNumberText', soNumberText);
           let cek1 = prToPO[i].getValue({
             name: prToPOSet.columns[25],
           });
-          let totalOrder = parseFloat(currentStock || 0) + parseFloat(incomingStock || 0) - (parseFloat(osPO || 0) + parseFloat(forecastBusdev || 0));
+          let totalOrder = parseFloat(qty || 0) - parseFloat(qtyPO || 0) 
           var itemRate
-          if(cek1 || cek1 != ''){
-            itemRate = cek1
-          }else{
-            itemRate = cek2
+          if(totalOrder > 0){
+            if(cek1 || cek1 != ''){
+              itemRate = cek1
+            }else{
+              itemRate = cek2
+            }
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_view_link",
+              value: `https://9274135.app.netsuite.com/app/accounting/transactions/purchord.nl?id=${internalID}&whence=`,
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_item_name",
+              value: itemName || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_vendor",
+              value: vendorName || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_current_stock",
+              value: currentStock || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_incoming_stock",
+              value: incomingStock || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_sales_rep",
+              value: salesRep || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_customer",
+              value: customerName || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_forecast_busdev",
+              value: forecastBusdev || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_forecast_perhitungan",
+              value: forecastPerhitungan || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_avg_busdev",
+              value: avgBusdev || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_avg_accounting",
+              value: avgAccounting || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_total_order",
+              value: Math.abs(totalOrder),
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_qty_po",
+              value: Math.abs(qtyPO),
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_note",
+              value: note || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_os_po",
+              value: osPO || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_internalid",
+              value: internalID,
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_item_internalid",
+              value: itemID || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_salesrep_internalid",
+              value: salesRepID || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_customer_internalid",
+              value: customerID || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_rate",
+              value: itemRate || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_lead_time_kirim",
+              value: leadTimeKirim || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_units",
+              value: units || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_doc_number",
+              value: docNumber || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_taxitem",
+              value: taxItem || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_taxrate",
+              value: taxItemRate || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_so_no",
+              value: soNO || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_tanggal_kirim",
+              value: tanggalKirim || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_packsize",
+              value: packSize || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_sonumber",
+              value: soNumber || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_sonumber_text",
+              value: soNumberText || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_line_id",
+              value: lineId || " ",
+              line: i,
+            });
           }
-          log.debug("taxItemRate", taxItemRate);
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_view_link",
-            value: `https://9274135.app.netsuite.com/app/accounting/transactions/purchord.nl?id=${internalID}&whence=`,
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_item_name",
-            value: itemName || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_vendor",
-            value: vendorName || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_current_stock",
-            value: currentStock || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_incoming_stock",
-            value: incomingStock || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_sales_rep",
-            value: salesRep || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_customer",
-            value: customerName || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_forecast_busdev",
-            value: forecastBusdev || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_forecast_perhitungan",
-            value: forecastPerhitungan || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_avg_busdev",
-            value: avgBusdev || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_avg_accounting",
-            value: avgAccounting || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_total_order",
-            value: Math.abs(totalOrder),
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_note",
-            value: note || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_os_po",
-            value: osPO || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_internalid",
-            value: internalID,
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_item_internalid",
-            value: itemID || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_salesrep_internalid",
-            value: salesRepID || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_customer_internalid",
-            value: customerID || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_rate",
-            value: itemRate || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_lead_time_kirim",
-            value: leadTimeKirim || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_units",
-            value: units || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_doc_number",
-            value: docNumber || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_taxitem",
-            value: taxItem || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_taxrate",
-            value: taxItemRate || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_so_no",
-            value: soNO || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_tanggal_kirim",
-            value: tanggalKirim || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_packsize",
-            value: packSize || " ",
-            line: i,
-          });
-          currentRecord.setSublistValue({
-            sublistId: "custpage_sublist_item",
-            id: "custpage_sublist_sonumber",
-            value: soNumber || " ",
-            line: i,
-          });
+          
         }
       }
       context.response.writePage(form);
@@ -752,6 +817,11 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       label: "TOTAL ORDER",
       type: serverWidget.FieldType.TEXT,
     });
+    sublist_in.addField({
+      id: "custpage_sublist_qty_po",
+      label: "QTY PO",
+      type: serverWidget.FieldType.TEXT,
+    });
 
     sublist_in.addField({
       id: "custpage_sublist_note",
@@ -764,11 +834,25 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       label: "PACK SIZE",
       type: serverWidget.FieldType.TEXT,
     });
+    sublist_in.addField({
+      id: "custpage_sublist_sonumber_text",
+      label: "SO NUMBER",
+      type: serverWidget.FieldType.TEXT,
+    });
 
     sublist_in.addField({
       id: "custpage_sublist_sonumber",
       label: "SO NUMBER",
       type: serverWidget.FieldType.TEXT,
+    }).updateDisplayType({
+      displayType: serverWidget.FieldDisplayType.HIDDEN,
+    });
+    sublist_in.addField({
+      id: "custpage_sublist_line_id",
+      label: "Line Id",
+      type: serverWidget.FieldType.TEXT,
+    }).updateDisplayType({
+      displayType: serverWidget.FieldDisplayType.HIDDEN,
     });
 
     sublist_in

@@ -77,6 +77,11 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               fieldId: "custpage_sublist_total_order",
               line: j,
             });
+            var quantityPO = records.getSublistValue({
+              sublistId: "custpage_sublist_item",
+              fieldId: "custpage_sublist_qty_po",
+              line: j,
+            });
             var salesRepID = records.getSublistValue({
               sublistId: "custpage_sublist_item",
               fieldId: "custpage_sublist_salesrep_internalid",
@@ -87,6 +92,7 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               fieldId: "custpage_sublist_customer_internalid",
               line: j,
             });
+            console.log('customerID', customerID)
             var forecastBusdev = records.getSublistValue({
               sublistId: "custpage_sublist_item",
               fieldId: "custpage_sublist_forecast_busdev",
@@ -152,6 +158,11 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               fieldId: "custpage_sublist_internalid",
               line: j,
             });
+            var lineId = records.getSublistValue({
+              sublistId: "custpage_sublist_item",
+              fieldId: "custpage_sublist_line_id",
+              line: j,
+            });
 
             dataLine.push({
               itemID: itemID,
@@ -175,7 +186,9 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               packSize: packSize,
               soNumber: soNumber,
               internalIDPR: internalIDPR,
-              employyeId : employyeId
+              employyeId : employyeId,
+              quantityPO : quantityPO,
+              lineId : lineId
             });
           }
         }

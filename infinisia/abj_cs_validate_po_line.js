@@ -26,11 +26,26 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: 'custcol_abj_no_so',
                         line: index
                     });
+                    var forCase = currentRecordObj.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol9',
+                        line: index
+                    })
                     console.log('soNo', soNo);
-                    allSoInPO.push({
-                        currentId : currentId,
-                        soNo : soNo
-                    });
+                    console.log('forCase', forCase);
+                    if(!soNo && forCase == 0 || !forCase){
+                        alert('Please fill in the Forecast Buffer Busdev field if the No SO field is empty');
+                        return false;
+                    }
+                    if(!soNo && forCase > 0 || forCase){
+                        console.log('lolos validasi')
+                    }else{
+                        allSoInPO.push({
+                            currentId : currentId,
+                            soNo : soNo
+                        });
+                    }
+                    
                 }
                 console.log('allSOinPO', allSoInPO);
     

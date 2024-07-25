@@ -4,6 +4,7 @@
  */
 
 define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", "N/redirect", "N/format"], function (record, search, serverWidget, runtime, currency, redirect, format) {
+  
   function beforeLoad(context) {
     function remove_duplicates_in_list(arr) {
       var uniques = [];
@@ -26,7 +27,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         if (context.request) {
           if (context.request.parameters) {
             vendorID = context.request.parameters.vendorID;
-            log.debug("vendorID", vendorID);
             var POlinesStr = context.request.parameters.PO_lines;
             PO_lines = JSON.parse(POlinesStr);
             log.debug("PO_lines", PO_lines);
@@ -58,32 +58,32 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             fieldId: "entity",
             value: vendorID,
           });
+          poData.setValue({
+            fieldId: "customform",
+            value: 104,
+          });
           var line_idx = 0;
           var arrayPR = [];
           for (var i in PO_lines) {
             var POLine = PO_lines[i];
             var poItem = POLine.itemID;
             var poTanggalKirim = POLine.tanggalKirim;
-            log.debug('poTanggalKirim', poTanggalKirim)
             var dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
             if (typeof poTanggalKirim === 'string' && dateRegex.test(poTanggalKirim)) {
                 poTanggalKirim = convertToDate(poTanggalKirim);
             }
             
-            log.debug('poTanggalKirim', poTanggalKirim);
             
             function convertToDate(dateString) {
                 var parts = dateString.split("/");
                 var day = parseInt(parts[0], 10);
-                var month = parseInt(parts[1], 10) - 1; // months are zero based
+                var month = parseInt(parts[1], 10) - 1; 
                 var year = parseInt(parts[2], 10);
                 return new Date(year, month, day);
             }
-            
-            
-            log.debug('poTanggalKirim after', poTanggalKirim)
             var poSalesRep = POLine.salesRepID;
             var poCustomerID = POLine.customerID;
+            log.debug('poCustomerID', poCustomerID)
             var incomingStock = POLine.incomingStock;
             var currentStock = POLine.currentStock;
             var quantity = POLine.quantity;
@@ -101,9 +101,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             var poPackSize = POLine.packSize;
             var poSoNumber = POLine.soNumber;
             var internalIDPR = POLine.internalIDPR;
+            var lineId = POLine.lineId
             arrayPR.push(internalIDPR);
-            log.debug("poItem", poItem);
-            log.debug('currentStock', currentStock)
             if (poItem) {
               poData.insertLine({
                 sublistId: "item",
@@ -115,11 +114,24 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 line: line_idx,
                 value: poItem,
               });
+              log.debug('internalIDPR', internalIDPR)
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_abj_pr_number",
+                line: line_idx,
+                value: internalIDPR,
+              });
               poData.setSublistValue({
                 sublistId: "item",
                 fieldId: "custcol_abj_onhand",
                 line: line_idx,
                 value: currentStock,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_msa_id_line_from_pr",
+                line: line_idx,
+                value: lineId,
               });
               poData.setSublistValue({
                 sublistId: "item",
@@ -165,7 +177,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
               });
               poData.setSublistValue({
                 sublistId: "item",
-                fieldId: "customer",
+                fieldId: "custcol_abj_customer_line",
                 line: line_idx,
                 value: poCustomerID,
               });
@@ -234,12 +246,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             fieldId: "custbody_convert_from_prid",
             value: arrayPR,
           });
-          log.debug('arrayPR', arrayPR)
           var dataTerakhir = arrayPR[arrayPR.length - 1];
-          log.debug('dataTerakhir', dataTerakhir)
-           poData.setValue({
-            fieldId: "custbody_abj_pr_number",
-            value: dataTerakhir,
+            poData.setValue({
+              fieldId: "custbody_abj_pr_number",
+              value: dataTerakhir,
           });
        
           
@@ -273,6 +283,44 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
       var fromPRID = dataRec.getValue("custbody_convert_from_prid");
       log.debug("fromPRID", fromPRID);
       if (isConvertPR && fromPRID) {
+        var dataLineCount = dataRec.getLineCount({
+          sublistId : "item"
+        });
+        var dataFromPR = []
+        if(dataLineCount > 0){
+          for(var i = 0; i < dataLineCount; i++){
+            var itemIdData = dataRec.getSublistValue({
+              sublistId : "item",
+              fieldId : "item",
+              line : i
+            });
+            var qtyData = dataRec.getSublistValue({
+              sublistId : "item",
+              fieldId : "quantity",
+              line : i
+            })
+            var internalidPR = dataRec.getSublistValue({
+              sublistId : "item",
+              fieldId : "custcol_abj_pr_number",
+              line : i
+            })
+            var lineId = dataRec.getSublistValue({
+                sublistId : "item",
+                fieldId : "custcol_msa_id_line_from_pr",
+                line : i
+            })
+            log.debug('internalidPR', internalidPR)
+            dataFromPR.push(
+              {
+                itemIdData : itemIdData,
+                qtyData : qtyData,
+                internalidPR : internalidPR,
+                lineId : lineId
+              }
+            )
+          }
+        }
+        log.debug('dataFromPR', dataFromPR)
         fromPRID.forEach(function (internalid) {
           log.debug("internalid", internalid);
           var prData = record.load({
@@ -285,6 +333,48 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             value: dataRecID,
             ignoreFieldChange: true,
           });
+          var lineinPr = prData.getLineCount({
+            sublistId : "item"
+          });
+          if(lineinPr > 0){
+            for(var i = 0; i < lineinPr; i++){
+              var itemId = prData.getSublistValue({
+                  sublistId : "item",
+                  fieldId : "item",
+                  line : i
+              });
+              var line_id = prData.getSublistValue({
+                sublistId : "item",
+                fieldId : "line",
+                line : i
+              });
+              var currntQtyPO = prData.getSublistValue({
+                sublistId : "item",
+                fieldId : "custcol_abj_qty_po",
+                line : i
+              }) || 0;
+              log.debug('currntQtyPO', currntQtyPO)
+              log.debug('line_id', line_id)
+              var matchingData = dataFromPR.find(function (data) {
+                log.debug('data.lineId', data.lineId)
+                return data.internalidPR === internalid && data.itemIdData === itemId && data.lineId == line_id;
+              });
+
+              if (matchingData) {
+                log.debug('matchingDataqty', matchingData.qtyData)
+                var qtyPo  = Number(currntQtyPO) + Number(matchingData.qtyData)
+                
+                log.debug('qtyPo', qtyPo)
+                prData.setSublistValue({
+                  sublistId: "item",
+                  fieldId: "custcol_abj_qty_po",
+                  line: i,
+                  value: qtyPo
+                });
+              }
+            }
+          }
+         
           prData.save({
             enableSourcing: true,
             ignoreMandatoryFields: true,

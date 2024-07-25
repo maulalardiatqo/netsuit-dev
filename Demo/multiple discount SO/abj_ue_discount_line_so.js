@@ -199,52 +199,60 @@ define(["N/record", "N/search"], function(
                             line: lineToRemove[i]
                         });
                     }
-                    totalLineDisc *= -1;
-
-                    recordTRans.selectNewLine({
-                        sublistId: "item",
-                    });
-                    recordTRans.setCurrentSublistValue({
-                        sublistId: "item",
-                        fieldId: "item",
-                        value: "1546",
-                    });
-                    recordTRans.setCurrentSublistValue({
-                        sublistId: "item",
-                        fieldId: "price",
-                        value: "-1",
-                    });
-                    recordTRans.setCurrentSublistValue({
-                        sublistId: "item",
-                        fieldId: "amount",
-                        value: totalLineDisc,
-                    });
-                    recordTRans.commitLine("item");
+                    
+                    if(totalLineDisc > 0){
+                        totalLineDisc *= -1;
+                        recordTRans.selectNewLine({
+                            sublistId: "item",
+                        });
+                        recordTRans.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "item",
+                            value: "1546",
+                        });
+                        recordTRans.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "price",
+                            value: "-1",
+                        });
+                        recordTRans.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "amount",
+                            value: totalLineDisc,
+                        });
+                        recordTRans.commitLine("item");
+                    }
+                   
 
                     var head1 = recordTRans.getValue('custbody_abj_total_disc1_so') || 0
                     var head2 = recordTRans.getValue('custbody_abj_total_disc2_so') || 0
                     var head3 = recordTRans.getValue('custbody_abj_total_disc3_so') || 0
-                    var totalHead = Number(head1) + Number(head2) + Number(head3)
-                    totalHead *= -1;
-                    recordTRans.selectNewLine({
-                        sublistId: "item",
-                    });
-                    recordTRans.setCurrentSublistValue({
-                        sublistId: "item",
-                        fieldId: "item",
-                        value: "1545",
-                    });
-                    recordTRans.setCurrentSublistValue({
-                        sublistId: "item",
-                        fieldId: "price",
-                        value: "-1",
-                    });
-                    recordTRans.setCurrentSublistValue({
-                        sublistId: "item",
-                        fieldId: "amount",
-                        value: totalHead,
-                    });
-                    recordTRans.commitLine("item");
+                    var totalHead = 0
+                    totalHead = Number(head1) + Number(head2) + Number(head3)
+                    if(totalHead > 0){
+                        totalHead *= -1;
+                    
+                        recordTRans.selectNewLine({
+                            sublistId: "item",
+                        });
+                        recordTRans.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "item",
+                            value: "1545",
+                        });
+                        recordTRans.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "price",
+                            value: "-1",
+                        });
+                        recordTRans.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "amount",
+                            value: totalHead,
+                        });
+                        recordTRans.commitLine("item");
+                    }
+                    
                 }
                 var recId = recordTRans.save({
                     enableSourcing: true,
