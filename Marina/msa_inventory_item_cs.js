@@ -128,15 +128,27 @@ define(["N/error", "N/log", "N/search", "N/record"],
                                     fieldId : "custrecord_msa_gpq_profit_percent",
                                     line : i
                                 })
+                                var harga = newRec.getSublistValue({
+                                    sublistId : "recmachcustrecord_msa_priceqty_item_id",
+                                    fieldId : "custrecord_msa_gpq_harga",
+                                    line : i
+                                })
                                 console.log('profitProcent', profitProcent)
-                                if(profitProcent){
+                                if(profitProcent && harga){
                                     var newHarga = Number(hpp) + ((Number(profitProcent) / 100 ) * Number(hpp))
                                     console.log('newHarga', newHarga);
-                                    newRec.setSublistValue({
+                                    newRec.selectLine({
+                                        sublistId : "recmachcustrecord_msa_priceqty_item_id",
+                                        line : i
+                                    })
+                                    newRec.setCurrentSublistValue({
                                         sublistId : "recmachcustrecord_msa_priceqty_item_id",
                                         fieldId : "custrecord_msa_gpq_harga",
                                         value : newHarga,
-                                        line : i
+                                        ignoreFieldChange: true
+                                    });
+                                    newRec.commitLine({
+                                        sublistId : "recmachcustrecord_msa_priceqty_item_id"
                                     })
                                 }
                             }
