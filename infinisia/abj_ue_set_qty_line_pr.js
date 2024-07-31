@@ -23,24 +23,28 @@ define(['N/record', 'N/search', 'N/error'], function(record, search, error) {
                         for (var i = 0; i < lineCount; i++) {
                             var onHand = recLoad.getSublistValue({
                                 sublistId : 'item',
-                                fieldId : 'quantityonhand',
+                                fieldId : 'custcol_abj_onhand',
                                 line : i
                             }) || 0;
+                            log.debug('onHand', onHand)
                             var incomingStock = recLoad.getSublistValue({
                                 sublistId : 'item',
                                 fieldId : 'custcol5',
                                 line : i
                             }) || 0;
+                            log.debug('incomingStock', incomingStock)
                             var osPo = recLoad.getSublistValue({
                                 sublistId : 'item',
                                 fieldId : 'custcol6',
                                 line : i
                             }) || 0;
+                            log.debug('osPo', osPo)
                             var forecash = recLoad.getSublistValue({
                                 sublistId : 'item',
                                 fieldId : 'custcol9',
                                 line : i
                             }) || 0;
+                            log.debug('forecash', forecash)
                             var qtyToset = (Number(onHand) + Number(incomingStock)) - (Number(osPo) + Number(forecash))
                             log.debug('qtyToset', qtyToset)
                             if(qtyToset){
