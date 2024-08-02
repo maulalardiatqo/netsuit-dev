@@ -28,11 +28,53 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
   
       return data
   }
+    function getMonthYear(dateStr) {
+        let dateParts = dateStr.split('/');
+        return `${dateParts[1]}/${dateParts[2]}`;
+    }
+
+    function parseActualSales(actualSales) {
+        return actualSales ? parseInt(actualSales, 10) : 0;
+    }
+
+    function groupAndSumSalesByMonth(inventoryData) {
+        let groupedData = {};
+
+        inventoryData.forEach(function(entry) {
+            let monthYear = getMonthYear(entry.transDate);
+            let key = `${entry.item}-${monthYear}`;
+
+            if (!groupedData[key]) {
+                groupedData[key] = {
+                    item: entry.item,
+                    itemName : entry.itemName,
+                    monthYear: monthYear,
+                    totalSales: 0
+                };
+            }
+
+            groupedData[key].totalSales += parseActualSales(entry.actualSales);
+        });
+
+        return Object.values(groupedData);
+    }
     function numberWithCommas(x) {
-      x = x.toString();
-      var pattern = /(-?\d+)(\d{3})/;
-      while (pattern.test(x)) x = x.replace(pattern, "$1,$2");
-      return x;
+        x = x.toString();
+        var pattern = /(-?\d+)(\d{3})/;
+        while (pattern.test(x)) x = x.replace(pattern, "$1,$2");
+        return x;
+    }
+    function convertNumberToMonth(number) {
+        const months = [
+            "Jan", "Feb", "Ar", "Apr", "Mei", "Jun",
+            "Jul", "Agu", "Sep", "Okt", "Nov", "Des"
+        ];
+        
+        if (number < 1 || number > 12) {
+            return "Nomor bulan tidak valid";
+        }
+        
+        return months[number - 1];
     }
     function getStartAndEndDateMonth() {
         const today = new Date();
@@ -46,15 +88,33 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       }
       var { startMtd, endMtd } = getStartAndEndDateMonth();
       
-      function getMonthsBefore(startDateSelected) {
-        var startDate = new Date(startDateSelected);
+    function parseDateDDMMYYYY(dateString) {
+        var parts = dateString.split('/');
+        if (parts.length !== 3) {
+            throw new Error('Invalid date format. Expected DD/MM/YYYY.');
+        }
+        var day = parseInt(parts[0], 10);
+        var month = parseInt(parts[1], 10) - 1; 
+        var year = parseInt(parts[2], 10);
+    
+        return new Date(year, month, day);
+    }
+    function getMonthsBeforeAfter(startDateSelected) {
+        var startDate = parseDateDDMMYYYY(startDateSelected);
         
+        if (isNaN(startDate.getTime())) {
+            log.error('Invalid Date', 'The provided startDateSelected is invalid: ' + startDateSelected);
+            return { startDate: null, endDate: null };
+        }
+    
         var year = startDate.getFullYear();
-        var month = startDate.getMonth(); 
+        var month = startDate.getMonth();
+        
     
-        var startDateOfYear = new Date(year, 0, 1);
+        var startDateOfYear = new Date(year, month, 0);
     
-        var endDate = new Date(year, month, 0); 
+        var endDate = new Date(year, month + 2, 0);
+    
         if (endDate.getFullYear() !== year) {
             endDate = new Date(year, 6, 0); 
         }
@@ -63,6 +123,35 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             startDate: startDateOfYear,
             endDate: endDate
         };
+    }
+    function getMonthsBefore(startDateSelected) {
+        var startDate = parseDateDDMMYYYY(startDateSelected);
+        
+        if (isNaN(startDate.getTime())) {
+            log.error('Invalid Date', 'The provided startDateSelected is invalid: ' + startDateSelected);
+            return { startDate: null, endDate: null };
+        }
+    
+        var year = startDate.getFullYear();
+        var month = startDate.getMonth();
+    
+        var startDateOfYear = new Date(year, 0, 1);
+    
+        var endDate = new Date(year, month - 1, 0);
+    
+        if (endDate.getFullYear() !== year) {
+            endDate = new Date(year, 6, 0); 
+        }
+    
+        return {
+            startDate: startDateOfYear,
+            endDate: endDate
+        };
+    }
+    function getMonthFromDate(dateString) {
+        const dateParts = dateString.split('/');
+        const month = dateParts[1];
+        return month;
     }
     function onRequest(context) {
         var contextRequest = context.request;
@@ -134,24 +223,17 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                 locationField.defaultValue = locationSelected
                 startDate.defaultValue = startDateSelected;
                 endDate.defaultValue = endDateSelected;
-    
-                log.debug('startDateSelected', startDateSelected)
-                var dateRange = getMonthsBefore(startDateSelected);
-                function formatDate(dateString, format) {
-                    var date = new Date(dateString);
-                    var year = date.getFullYear();
-                    var month = (date.getMonth() + 1).toString();
-                    var day = date.getDate().toString();
+                var motnhSelected = getMonthFromDate(startDateSelected)
+                var monthSelectedBefore = Number(motnhSelected) - 1
+                var monthSelectedAfter = Number(motnhSelected) + 1
+
+                var motnhSelectedConvert = convertNumberToMonth(motnhSelected)
+                var monthSelectedBeforeConvert = convertNumberToMonth(monthSelectedBefore)
+                var monthSelectedAfterConvert = convertNumberToMonth(monthSelectedAfter)
                 
-                    if (format === 'D/M/YYYY') {
-                        return parseInt(day) + '/' + parseInt(month) + '/' + year;
-                    } else if (format === 'DD/MM/YYYY') {
-                        return day.padStart(2, '0') + '/' + month.padStart(2, '0') + '/' + year;
-                    } else {
-                        // Default format if no or unknown format specified
-                        return year + '-' + month.padStart(2, '0') + '-' + day.padStart(2, '0');
-                    }
-                }
+                log.debug('startDateSelected', startDateSelected)
+                log.debug('endDateSelected', endDateSelected)
+                var dateRange = getMonthsBefore(startDateSelected);
                 var dateRangeStart = dateRange.startDate
                 var dateRangeEnd = dateRange.endDate
                 if(dateRangeStart){
@@ -166,8 +248,44 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                         type: format.Type.DATE
                     });
                 }
-                log.debug('Start Date', dateRangeStart);
-                log.debug('End Date', dateRangeEnd);
+                // get two week
+                var dateSelectedStart = format.parse({
+                    value: startDateSelected,
+                    type: format.Type.DATE
+                });
+                var dateSelectedEnd = format.parse({
+                    value: endDateSelected,
+                    type: format.Type.DATE
+                });
+                function getDateWithOffset(date, offsetDays) {
+                    var newDate = new Date(date);
+                    newDate.setDate(newDate.getDate() + offsetDays);
+                    return format.format({
+                        value: newDate,
+                        type: format.Type.DATE
+                    });
+                }
+                
+                var twoWeeksBeforeStart = getDateWithOffset(dateSelectedStart, -14);
+                var twoWeeksAfterEnd = getDateWithOffset(dateSelectedEnd, 14);
+                log.debug('twoWeeksBeforeStart', twoWeeksBeforeStart);
+                log.debug('twoWeeksAfterEnd', twoWeeksAfterEnd)
+                var dateRangeForBeAf = getMonthsBeforeAfter(startDateSelected)
+                var dateRangeForBeAfStart = dateRangeForBeAf.startDate
+                var dateRangeForBeAfEnd = dateRangeForBeAf.endDate
+               
+                if(dateRangeForBeAfStart){
+                    dateRangeForBeAfStart = format.format({
+                        value: dateRangeForBeAfStart,
+                        type: format.Type.DATE
+                    });
+                }
+                if(dateRangeForBeAfEnd){
+                    dateRangeForBeAfEnd = format.format({
+                        value: dateRangeForBeAfEnd,
+                        type: format.Type.DATE
+                    });
+                }
     
                 var demandPlanSearch = search.load({
                     id: "customsearch_atlas_item_demand_pln_rpt_2",
@@ -179,19 +297,19 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                         values: locationSelected,
                     })
                 );
-                if (startDateSelected && endDateSelected) {
+                if (dateRangeForBeAfStart && dateRangeForBeAfEnd) {
                     demandPlanSearch.filters.push(
                         search.createFilter({
                             name: "demanddate",
                             operator: search.Operator.ONORAFTER,
-                            values: startDateSelected,
+                            values: dateRangeForBeAfStart,
                         })
                     );
                     demandPlanSearch.filters.push(
                         search.createFilter({
                             name: "demanddate",
                             operator: search.Operator.ONORBEFORE,
-                            values: endDateSelected,
+                            values: dateRangeForBeAfEnd,
                         })
                     );
                 }
@@ -207,13 +325,22 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                         name: "quantity",
                         summary: "SUM",
                     });
+                    let units = result.getText({
+                        name: "units",
+                        summary: "GROUP",
+                    });
+                    var demandDate = result.getValue({
+                        name: "demanddate",
+                        summary: "GROUP",
+                    })
                     demandData.push({
                         item: item,
-                        forecast : forecast
+                        forecast : forecast,
+                        units : units,
+                        demandDate : demandDate
                     })
                     allItem.push(item)
                 })
-                log.debug('demandData', demandData);
     
                 var inventorySearch = search.load({
                     id: "customsearch_atlas_inv_forecast_rpt_3",
@@ -250,17 +377,41 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                         name: "internalid",
                         summary: "GROUP",
                     });
-                    var actualSales = result.getValue({
+                    let actualSales = result.getValue({
                         name: "formulanumeric",
                         summary: "SUM",
                         formula: "CASE WHEN {transaction.type} IN ('Invoice','Cash Sales','Credit Memo') THEN {transaction.quantity} END"
                     })
+                    let beginningStock = result.getValue({
+                        name: "formulanumeric",
+                        summary: "MAX",
+                        formula: "nvl({locationquantityonhand},0)",
+                    });
+                    let orderTransit = result.getValue({
+                        name: "formulanumeric",
+                        summary: "MAX",
+                        formula: "nvl({locationquantityintransit},0)"
+                    })
+                    let orderTambahan = result.getValue({
+                        name: "formulanumeric",
+                        summary: "MAX",
+                        formula: "nvl({locationquantityonorder},0)",
+                    });
+                    let dateTrans = result.getValue({
+                        name: "trandate",
+                        join: "transaction",
+                        summary: "GROUP",
+                    })
                     inventoryData.push({
                         item: item,
-                        actualSales : actualSales
+                        actualSales : actualSales || 0,
+                        beginningStock : beginningStock || 0,
+                        orderTransit : orderTransit || 0,
+                        orderTambahan : orderTambahan || 0,
+                        dateTrans : dateTrans
                     })
                 })
-                log.debug('inventoryData', inventoryData);
+
                 var mergedData = demandData.map(function(demandItem) {
                     var matchedInventoryItem = inventoryData.find(function(inventoryItem) {
                         return inventoryItem.item === demandItem.item;
@@ -269,13 +420,25 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                         return {
                             item: demandItem.item,
                             forecast: demandItem.forecast,
-                            actualSales: matchedInventoryItem.actualSales
+                            units : demandItem.units,
+                            demandDate : demandItem.demandDate,
+                            actualSales: matchedInventoryItem.actualSales,
+                            beginningStock: matchedInventoryItem.beginningStock,
+                            orderTransit: matchedInventoryItem.orderTransit,
+                            orderTambahan: matchedInventoryItem.orderTambahan,
+                            dateTrans: matchedInventoryItem.dateTrans
                         };
                     } else {
                         return {
                             item: demandItem.item,
                             forecast: demandItem.forecast,
-                            actualSales: null
+                            units : null,
+                            demandDate : null,
+                            actualSales: 0,
+                            beginningStock: 0,
+                            orderTransit: 0,
+                            orderTambahan: 0,
+                            dateTrans: null
                         };
                     }
                 });
@@ -308,7 +471,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                     );
                 }
                 log.debug('allItem', allItem)
-                if(allItem){
+                if (allItem && allItem.length > 0) {
                     inventorySearch2.filters.push(
                         search.createFilter({
                             name: "internalid",
@@ -316,8 +479,8 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                             values: allItem,
                         })
                     );
-                    
                 }
+                
                 var myResultInventory2 = getAllResults(inventorySearch2);
                 var inventoryData2 = [];
                 myResultInventory2.forEach(function (result) {
@@ -325,18 +488,316 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                         name: "internalid",
                         summary: "GROUP",
                     });
+                    let itemName = result.getValue({
+                        name: "itemid",
+                        summary: "GROUP",
+                    })
                     var actualSales = result.getValue({
                         name: "formulanumeric",
                         summary: "SUM",
                         formula: "CASE WHEN {transaction.type} IN ('Invoice','Cash Sales','Credit Memo') THEN {transaction.quantity} END"
                     })
+                    var transDate = result.getValue({
+                        name: "trandate",
+                        join: "transaction",
+                        summary: "GROUP",
+                    })
                     inventoryData2.push({
                         item: item,
-                        actualSales : actualSales
+                        itemName : itemName,
+                        actualSales : actualSales,
+                        transDate : transDate
                     })
                 })
-                log.debug('mergedData', mergedData);
-                log.debug('inventoryData2', inventoryData2)
+
+                var inventoryTwoWeek = search.load({
+                    id: "customsearch_atlas_inv_forecast_rpt_3",
+                });
+                inventoryTwoWeek.filters.push(
+                    search.createFilter({
+                        name: "inventorylocation",
+                        operator: search.Operator.IS,
+                        values: locationSelected,
+                    })
+                );
+                if (twoWeeksBeforeStart) {
+                    inventoryTwoWeek.filters.push(
+                        search.createFilter({
+                            name: "trandate",
+                            join: "transaction",
+                            operator: search.Operator.ON,
+                            values: twoWeeksBeforeStart,
+                        })
+                    );
+                    
+                }
+                if (allItem && allItem.length > 0) {
+                    inventoryTwoWeek.filters.push(
+                        search.createFilter({
+                            name: "internalid",
+                            operator: search.Operator.ANYOF,
+                            values: allItem,
+                        })
+                    );
+                }
+                var myResultTwoWeek = getAllResults(inventoryTwoWeek);
+                var inventoryDataTwoWeek = [];
+                myResultTwoWeek.forEach(function (result) {
+                    let item = result.getValue({
+                        name: "internalid",
+                        summary: "GROUP",
+                    });
+                    let itemName = result.getValue({
+                        name: "itemid",
+                        summary: "GROUP",
+                    })
+                    var actualSales = result.getValue({
+                        name: "formulanumeric",
+                        summary: "SUM",
+                        formula: "CASE WHEN {transaction.type} IN ('Invoice','Cash Sales','Credit Memo') THEN {transaction.quantity} END"
+                    })
+                    var transDate = result.getValue({
+                        name: "trandate",
+                        join: "transaction",
+                        summary: "GROUP",
+                    })
+                    inventoryDataTwoWeek.push({
+                        item: item,
+                        itemName : itemName,
+                        actualSalesTwoWeekBefore : actualSales,
+                        transDateTwoWeekBefore : transDate
+                    })
+                })
+                log.debug('inventoryDataTwoWeek', inventoryDataTwoWeek)
+                function groupInventoryData(data) {
+                    var grouped = {};
+                    data.forEach(function (entry) {
+                        var key = entry.item + '-' + entry.transDateTwoWeekBefore;
+                        if (!grouped[key]) {
+                            grouped[key] = {
+                                item: entry.item,
+                                itemName: entry.itemName,
+                                transDateTwoWeekBefore: entry.transDateTwoWeekBefore,
+                                actualSalesTwoWeekBefore: 0
+                            };
+                        }
+                        grouped[key].actualSalesTwoWeekBefore += Number(entry.actualSalesTwoWeekBefore);
+                    });
+                    return Object.values(grouped);
+                }
+                
+                var groupedInventoryData = groupInventoryData(inventoryDataTwoWeek);
+                
+                var groupedData = groupAndSumSalesByMonth(inventoryData2);
+
+                function getUniqueMonths(data) {
+                    var months = [];
+                    data.forEach(function(entry) {
+                        if (!months.includes(entry.monthYear)) {
+                            months.push(entry.monthYear);
+                        }
+                    });
+                    return months.sort();
+                }
+                
+                function groupDataByItem(data) {
+                    var grouped = {};
+                    data.forEach(function(entry) {
+                        if (!grouped[entry.item]) {
+                            grouped[entry.item] = {
+                                itemName: entry.itemName,
+                                salesData: {},
+                                totalSales: 0
+                            };
+                        }
+                        grouped[entry.item].salesData[entry.monthYear] = entry.totalSales;
+                        grouped[entry.item].totalSales += entry.totalSales;
+                    });
+                    return grouped;
+                }
+                
+                function convertMonthYear(monthYear) {
+                    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    var parts = monthYear.split('/');
+                    var month = months[parseInt(parts[0]) - 1];
+                    var year = parts[1].slice(2); 
+                    return month + ' ' + year;
+                }
+                
+                var months = getUniqueMonths(groupedData);
+                var dataByItem = groupDataByItem(groupedData);
+                var combinedData = {};
+                
+                function getMonthFromDemandDate(demandDate) {
+                    var parts = demandDate.split('/');
+                    return parts[1]; 
+                }
+
+                var monthSelected = getMonthFromDate(startDateSelected);
+                var monthSelectedBefore = Number(monthSelected) - 1;
+                var monthSelectedAfter = Number(monthSelected) + 1;
+
+                var monthSelectedConvert = convertNumberToMonth(monthSelected);
+                var monthSelectedBeforeConvert = convertNumberToMonth(monthSelectedBefore);
+                var monthSelectedAfterConvert = convertNumberToMonth(monthSelectedAfter);
+
+                mergedData.forEach(function(entry) {
+                    var itemId = entry.item;
+                    if (itemId && dataByItem[itemId]) {
+                        combinedData[itemId] = {
+                            units: entry.units || "",
+                            demandDate: entry.demandDate || "",
+                            forecast: entry.forecast || 0,
+                            actualSales: entry.actualSales || 0,
+                            beginningStock: entry.beginningStock || 0,
+                            orderTransit: entry.orderTransit || 0,
+                            orderTambahan: entry.orderTambahan || 0,
+                            itemName: dataByItem[itemId] ? dataByItem[itemId].itemName : 'Unknown',
+                            salesData: dataByItem[itemId] ? dataByItem[itemId].salesData : {},
+                            totalSales: dataByItem[itemId] ? dataByItem[itemId].totalSales : 0
+                        };
+                    }
+                });
+                
+                groupedInventoryData.forEach(function (entry) {
+                    var itemId = entry.item;
+                    if (!combinedData[itemId]) {
+                        combinedData[itemId] = {
+                            units: "",
+                            demandDate: entry.transDateTwoWeekBefore,
+                            forecast: 0,
+                            actualSales: 0,
+                            beginningStock: 0,
+                            orderTransit: 0,
+                            orderTambahan: 0,
+                            itemName: entry.itemName,
+                            salesData: {},
+                            totalSales: 0
+                        };
+                    }
+                    combinedData[itemId].actualSalesTwoWeekBefore = entry.actualSalesTwoWeekBefore;
+                    combinedData[itemId].transDateTwoWeekBefore = entry.transDateTwoWeekBefore;
+                });
+                log.debug('combinedata', combinedData)
+                fldTable = form.addField({
+                    id: "custpage_htmlfield",
+                    type: serverWidget.FieldType.INLINEHTML,
+                    label: "HTML Image",
+                    container: FLDGRP_TABLE,
+                });
+
+                var sContent = "";
+                sContent += "    <table>";
+                sContent += '        <tr class="uir-list-headerrow">';
+                sContent += '            <th class="uir-list-header-td" style="text-align: center; width:30px; font-weight: bold; background: #09AA4C !important;">Product</th>';
+                sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #09AA4C !important;">Kemasan</th>';
+
+                months.forEach(function(month) {
+                    sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #09F17D !important;">' + convertMonthYear(month) + '</th>';
+                });
+
+                sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #09F17D !important;">Average</th>';
+                sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #E5FC17 !important;">FC ' + monthSelectedBeforeConvert + '</th>';
+                sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #E5FC17 !important;">Beginning Stock</th>';
+                sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #E5FC17 !important;">Order Transit</th>';
+                sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #E5FC17 !important;">Order Tambahan</th>';
+                sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #E5FC17 !important;">Actual Sales 2 Minggu</th>';
+                sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #E5FC17 !important;">Estimasi Sales s/d akhir bulan</th>';
+                sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #E5FC17 !important;">Est. Ending Stock</th>';
+                sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #FC9917 !important;">FC ' + monthSelectedConvert + '</th>';
+                sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #FC9917 !important;">Estimasi Sales Bln Dpn</th>';
+                sContent += "        </tr>";
+
+                var totalSalesPerMonth = {};
+                var totalAverageSales = 0;
+                var totalForecast = 0;
+                var totalActualSales = 0;
+                var totalBeginningStock = 0;
+                var totalOrderTransit = 0;
+                var totalOrderTambahan = 0;
+                var totalActualSalesTwoWeekBefore = 0;
+                var totalActualSalesTwoWeekAfter = 0
+                var totalEndingStock = 0
+                var totalFcMonthAfter = 0
+
+                Object.keys(combinedData).forEach(function(item) {
+                    var itemData = combinedData[item];
+                    var salesData = itemData.salesData;
+                    var totalSales = itemData.totalSales;
+                    var averageSales = totalSales / months.length;
+
+                    var fcMonthBefore = 0;
+                    if (getMonthFromDemandDate(itemData.demandDate) == monthSelectedBefore) {
+                        fcMonthBefore = itemData.forecast;
+                    }
+                    var fcMonthAfter = 0;
+                    if (getMonthFromDemandDate(itemData.demandDate) == monthSelectedAfter) {
+                        fcMonthAfter = itemData.forecast;
+                    }
+                    var actualSalesEndOfMonth = 0;
+                    if (itemData.demandDate === twoWeeksAfterEnd) {
+                        actualSalesEndOfMonth = itemData.actualSales;
+                    }
+
+                    sContent += "        <tr>";
+                    sContent += '            <td class="uir-list-row-cell" style="text-align: left;">' + itemData.itemName + '</td>';
+                    sContent += '            <td class="uir-list-row-cell" style="text-align: center;">' + itemData.units + '</td>';
+                    var totalSalesCount = 0
+                    months.forEach(function(month) {
+                        var sales = salesData[month] || 0;
+                        sContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + sales + '</td>';
+                        totalSalesCount += Number(sales || 0)
+                        totalSalesPerMonth[month] = (totalSalesPerMonth[month] || 0) + sales;
+                    });
+
+                    sContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + averageSales.toFixed(2) + '</td>';
+                    sContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + fcMonthBefore + '</td>';
+                    sContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + itemData.beginningStock + '</td>';
+                    sContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + itemData.orderTransit + '</td>';
+                    sContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + itemData.orderTambahan + '</td>';
+                    sContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (itemData.actualSalesTwoWeekBefore || 0) + '</td>';
+                    sContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + actualSalesEndOfMonth || 0 + '</td>';
+                    var endingStock = Number(itemData.beginningStock) + Number(itemData.orderTransit) + Number(itemData.orderTambahan) - (Number(itemData.actualSalesTwoWeekBefore || 0) - Number(actualSalesEndOfMonth || 0));
+                    sContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + endingStock + '</td>';
+                    sContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + itemData.actualSales + '</td>';
+                    sContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + fcMonthAfter + '</td>';
+                    sContent += "        </tr>";
+                    totalEndingStock += Number(endingStock)
+                    totalAverageSales += Number(averageSales);
+                    totalForecast += Number(fcMonthBefore);
+                    totalActualSales += Number(itemData.actualSales);
+                    totalBeginningStock += Number(itemData.beginningStock);
+                    totalOrderTransit += Number(itemData.orderTransit);
+                    totalOrderTambahan += Number(itemData.orderTambahan);
+                    totalActualSalesTwoWeekBefore += Number((itemData.actualSalesTwoWeekBefore) || 0);
+                    totalActualSalesTwoWeekAfter += Number(actualSalesEndOfMonth || 0)
+                    totalFcMonthAfter += Number(fcMonthAfter)
+                });
+
+                sContent += '        <tr class="uir-list-headerrow">';
+                sContent += '            <td class="uir-list-row-cell" style="text-align: left; font-weight: bold; background: #B6B6B6"></td>';
+                sContent += '            <td class="uir-list-row-cell" style="text-align: center; background: #B6B6B6"></td>';
+
+                months.forEach(function(month) {
+                    sContent += '            <td class="uir-list-row-cell" style="text-align: right; font-weight: bold; background: #B6B6B6">' + (totalSalesPerMonth[month] || 0) + '</td>';
+                });
+                
+                sContent += '            <td class="uir-list-row-cell" style="text-align: right; font-weight: bold; background: #B6B6B6">' + totalAverageSales.toFixed(2) + '</td>';
+                sContent += '            <td class="uir-list-row-cell" style="text-align: right; font-weight: bold; background: #B6B6B6">' + totalForecast + '</td>';
+                sContent += '            <td class="uir-list-row-cell" style="text-align: right; font-weight: bold; background: #B6B6B6">' + totalBeginningStock + '</td>';
+                sContent += '            <td class="uir-list-row-cell" style="text-align: right; font-weight: bold; background: #B6B6B6">' + totalOrderTransit + '</td>';
+                sContent += '            <td class="uir-list-row-cell" style="text-align: right; font-weight: bold; background: #B6B6B6">' + totalOrderTambahan + '</td>';
+                sContent += '            <td class="uir-list-row-cell" style="text-align: right; font-weight: bold; background: #B6B6B6">' + totalActualSalesTwoWeekBefore + '</td>';
+                sContent += '            <td class="uir-list-row-cell" style="text-align: right; font-weight: bold; background: #B6B6B6">' + totalActualSalesTwoWeekAfter + '</td>';
+                sContent += '            <td class="uir-list-row-cell" style="text-align: right; font-weight: bold; background: #B6B6B6">' + totalEndingStock + '</td>';
+                sContent += '            <td class="uir-list-row-cell" style="text-align: right; font-weight: bold; background: #B6B6B6">' + totalActualSales + '</td>';
+                sContent += '            <td class="uir-list-row-cell" style="text-align: right; font-weight: bold; background: #B6B6B6">' + totalFcMonthAfter + '</td>';
+                sContent += "        </tr>";
+                
+                sContent += "    </table>";
+                
+                fldTable.defaultValue = sContent;
+                context.response.writePage(form);
             }catch(e){
                 log.debug('error', e)
             }

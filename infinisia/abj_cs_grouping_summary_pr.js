@@ -1,0 +1,233 @@
+/**
+ * @NApiVersion 2.1
+ * @NScriptType ClientScript
+ * @NModuleScope SameAccount
+ */
+
+define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message"], function (runtime, log, url, currentRecord, currency, record, search, message) {
+    var records = currentRecord.get();
+    function pageInit(context) {
+        console.log('init masuk')
+    }
+    
+    function calculate(context){
+        var currentRecordObj = records;
+        var countLine = currentRecordObj.getLineCount({
+            sublistId: 'item'
+        });
+        if (countLine > 0) {
+            var allData = []
+            for (var index = 0; index < countLine; index++) {
+                var item = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'item',
+                    line : index
+                })
+                console.log('item', item)
+                var salesRep = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol_abj_sales_rep_line',
+                    line : index
+                })
+                var customerId = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol_abj_customer_line',
+                    line : index
+                })
+                var onHand = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol_abj_onhand',
+                    line : index
+                })
+                var incomingStock = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol5',
+                    line : index
+                })
+                var osPo = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol6',
+                    line : index
+                })
+                var foreCastBuffer = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol9',
+                    line : index
+                })
+                var totalOrder = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol_pr_total_order',
+                    line : index
+                })
+                allData.push({
+                    item : item,
+                    salesRep : salesRep,
+                    customerId : customerId,
+                    onHand : onHand,
+                    incomingStock : incomingStock,
+                    osPo : osPo,
+                    foreCastBuffer : foreCastBuffer,
+                    totalOrder : totalOrder
+                })
+            }
+            console.log('allData', allData)
+            var groupedData = {};
+
+            allData.forEach(function(data) {
+                var groupKey = data.item + '-' + data.salesRep + '-' + data.customerId;
+            
+                if (!groupedData[groupKey]) {
+                    groupedData[groupKey] = {
+                        item: data.item,
+                        salesRep: data.salesRep,
+                        customerId: data.customerId,
+                        onHand: 0,
+                        incomingStock: 0,
+                        osPo: 0,
+                        foreCastBuffer: 0,
+                        totalOrder: 0
+                    };
+                }
+            
+                groupedData[groupKey].onHand += data.onHand;
+                groupedData[groupKey].incomingStock += data.incomingStock;
+                groupedData[groupKey].osPo += data.osPo;
+                groupedData[groupKey].foreCastBuffer += Number(data.foreCastBuffer);
+                groupedData[groupKey].totalOrder += data.totalOrder;
+            });
+            
+            console.log('groupedData', groupedData);
+            
+            var result = Object.keys(groupedData).map(function(key) {
+                return groupedData[key];
+            });
+            if (result.length > 0) {
+                result.forEach(function (data) {
+                    var item = data.item;
+                    var salesRep = data.salesRep;
+                    var customerId = data.customerId;
+                    var onHand = data.onHand;
+                    var incomingStock = data.incomingStock;
+                    var osPo = data.osPo;
+                    var foreCastBuffer = data.foreCastBuffer;
+                    var totalOrder = data.totalOrder;
+                    var keyItem = item + "-" + salesRep + "-" + customerId;
+                    var countLineInCustom = currentRecordObj.getLineCount({
+                        sublistId: "recmachcustrecord_iss_pr_parent"
+                    });
+            
+                    var found = false;
+            
+                    if (countLineInCustom > 0) {
+                        for (var i = 0; i < countLineInCustom; i++) {
+                            var itemPr = currentRecordObj.getSublistValue({
+                                sublistId: 'recmachcustrecord_iss_pr_parent',
+                                fieldId: 'custrecord_iss_pr_item',
+                                line: i
+                            });
+                            var salesRepPr = currentRecordObj.getSublistValue({
+                                sublistId: 'recmachcustrecord_iss_pr_parent',
+                                fieldId: 'custrecord_prsum_salesrep',
+                                line: i
+                            });
+                            var customerPr = currentRecordObj.getSublistValue({
+                                sublistId: 'recmachcustrecord_iss_pr_parent',
+                                fieldId: 'custrecord_prsum_customer',
+                                line: i
+                            });
+            
+                            var keyCustom = itemPr + "-" + salesRepPr + "-" + customerPr;
+            
+                            if (keyItem === keyCustom) {
+                                currentRecordObj.selectLine({
+                                    sublistId: "recmachcustrecord_iss_pr_parent",
+                                    line: i
+                                });
+                                currentRecordObj.setCurrentSublistValue({
+                                    sublistId: 'recmachcustrecord_iss_pr_parent',
+                                    fieldId: 'custrecord_iss_pr_stock',
+                                    value: onHand
+                                });
+                                currentRecordObj.setCurrentSublistValue({
+                                    sublistId: 'recmachcustrecord_iss_pr_parent',
+                                    fieldId: 'custrecord_iss_pr_incoming_stock',
+                                    value: incomingStock
+                                });
+                                currentRecordObj.setCurrentSublistValue({
+                                    sublistId: 'recmachcustrecord_iss_pr_parent',
+                                    fieldId: 'custrecord_iss_os_po',
+                                    value: osPo
+                                });
+                                currentRecordObj.setCurrentSublistValue({
+                                    sublistId: 'recmachcustrecord_iss_pr_parent',
+                                    fieldId: 'custrecord_iss_total_order',
+                                    value: totalOrder
+                                });
+                                currentRecordObj.setCurrentSublistValue({
+                                    sublistId: 'recmachcustrecord_iss_pr_parent',
+                                    fieldId: 'custrecord_iss_forecast_buffer',
+                                    value: foreCastBuffer
+                                });
+                                currentRecordObj.commitLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+            
+                    if (!found) {
+                        currentRecordObj.selectNewLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_iss_pr_item',
+                            value: item
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_prsum_salesrep',
+                            value: salesRep
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_prsum_customer',
+                            value: customerId
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_iss_pr_stock',
+                            value: onHand
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_iss_pr_incoming_stock',
+                            value: incomingStock
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_iss_os_po',
+                            value: osPo
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_iss_total_order',
+                            value: totalOrder
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_iss_forecast_buffer',
+                            value: foreCastBuffer
+                        });
+                        currentRecordObj.commitLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
+                    }
+                });
+            }
+            
+            console.log('result', result);
+        }
+    }
+    return {
+        pageInit: pageInit,
+        calculate : calculate
+    };
+}); 
+     
