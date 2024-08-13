@@ -6,103 +6,125 @@
 
 define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message"], function (runtime, log, url, currentRecord, currency, record, search, message) {
     var records = currentRecord.get();
+    
     function pageInit(context) {
-        console.log('init masuk')
+        console.log('init masuk');
     }
     
-    function calculate(context){
+    function calculate(context) {
         var currentRecordObj = records;
         var countLine = currentRecordObj.getLineCount({
             sublistId: 'item'
         });
         if (countLine > 0) {
-            var allData = []
+            var allData = [];
             for (var index = 0; index < countLine; index++) {
                 var item = currentRecordObj.getSublistValue({
                     sublistId: 'item',
-                    fieldId : 'item',
-                    line : index
-                })
-                console.log('item', item)
+                    fieldId: 'item',
+                    line: index
+                });
                 var salesRep = currentRecordObj.getSublistValue({
                     sublistId: 'item',
-                    fieldId : 'custcol_abj_sales_rep_line',
-                    line : index
-                })
+                    fieldId: 'custcol_abj_sales_rep_line',
+                    line: index
+                });
                 var customerId = currentRecordObj.getSublistValue({
                     sublistId: 'item',
-                    fieldId : 'custcol_abj_customer_line',
-                    line : index
-                })
+                    fieldId: 'custcol_abj_customer_line',
+                    line: index
+                });
                 var onHand = currentRecordObj.getSublistValue({
                     sublistId: 'item',
-                    fieldId : 'custcol_abj_onhand',
-                    line : index
-                })
+                    fieldId: 'custcol_abj_onhand',
+                    line: index
+                });
                 var incomingStock = currentRecordObj.getSublistValue({
                     sublistId: 'item',
-                    fieldId : 'custcol5',
-                    line : index
-                })
+                    fieldId: 'custcol5',
+                    line: index
+                });
                 var osPo = currentRecordObj.getSublistValue({
                     sublistId: 'item',
-                    fieldId : 'custcol6',
-                    line : index
-                })
+                    fieldId: 'custcol6',
+                    line: index
+                });
                 var foreCastBuffer = currentRecordObj.getSublistValue({
                     sublistId: 'item',
-                    fieldId : 'custcol9',
-                    line : index
-                })
+                    fieldId: 'custcol9',
+                    line: index
+                });
                 var totalOrder = currentRecordObj.getSublistValue({
                     sublistId: 'item',
-                    fieldId : 'custcol_pr_total_order',
-                    line : index
-                })
+                    fieldId: 'custcol_pr_total_order',
+                    line: index
+                });
+                var poCustomer = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'custcol_abj_po_customer',
+                    line: index
+                });
+                var units = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'units',
+                    line: index
+                });
+                
                 allData.push({
-                    item : item,
-                    salesRep : salesRep,
-                    customerId : customerId,
-                    onHand : onHand,
-                    incomingStock : incomingStock,
-                    osPo : osPo,
-                    foreCastBuffer : foreCastBuffer,
-                    totalOrder : totalOrder
-                })
+                    item: item,
+                    salesRep: salesRep,
+                    customerId: customerId,
+                    onHand: onHand,
+                    incomingStock: incomingStock,
+                    osPo: osPo,
+                    foreCastBuffer: foreCastBuffer,
+                    totalOrder: totalOrder,
+                    poCustomer: poCustomer,
+                    units : units
+                });
             }
-            console.log('allData', allData)
+            console.log('allData', allData);
+
             var groupedData = {};
 
             allData.forEach(function(data) {
                 var groupKey = data.item + '-' + data.salesRep + '-' + data.customerId;
-            
+                
                 if (!groupedData[groupKey]) {
                     groupedData[groupKey] = {
                         item: data.item,
                         salesRep: data.salesRep,
                         customerId: data.customerId,
+                        units : data.units,
                         onHand: 0,
                         incomingStock: 0,
                         osPo: 0,
                         foreCastBuffer: 0,
-                        totalOrder: 0
+                        totalOrder: 0,
+                        poCustomer: []
                     };
                 }
-            
+
                 groupedData[groupKey].onHand += data.onHand;
                 groupedData[groupKey].incomingStock += data.incomingStock;
                 groupedData[groupKey].osPo += data.osPo;
                 groupedData[groupKey].foreCastBuffer += Number(data.foreCastBuffer);
                 groupedData[groupKey].totalOrder += data.totalOrder;
+                if (data.poCustomer && data.poCustomer.trim() !== "") {
+                    groupedData[groupKey].poCustomer.push(data.poCustomer);
+                }
             });
-            
+
             console.log('groupedData', groupedData);
             
             var result = Object.keys(groupedData).map(function(key) {
-                return groupedData[key];
+                var data = groupedData[key];
+                data.poCustomer = data.poCustomer.join(', ');
+                return data;
             });
+            
             if (result.length > 0) {
-                result.forEach(function (data) {
+                result.forEach(function(data) {
                     var item = data.item;
                     var salesRep = data.salesRep;
                     var customerId = data.customerId;
@@ -111,13 +133,14 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     var osPo = data.osPo;
                     var foreCastBuffer = data.foreCastBuffer;
                     var totalOrder = data.totalOrder;
+                    var poCustomer = data.poCustomer;
                     var keyItem = item + "-" + salesRep + "-" + customerId;
                     var countLineInCustom = currentRecordObj.getLineCount({
                         sublistId: "recmachcustrecord_iss_pr_parent"
                     });
-            
+                    
                     var found = false;
-            
+
                     if (countLineInCustom > 0) {
                         for (var i = 0; i < countLineInCustom; i++) {
                             var itemPr = currentRecordObj.getSublistValue({
@@ -135,9 +158,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                 fieldId: 'custrecord_prsum_customer',
                                 line: i
                             });
-            
+
                             var keyCustom = itemPr + "-" + salesRepPr + "-" + customerPr;
-            
+
                             if (keyItem === keyCustom) {
                                 currentRecordObj.selectLine({
                                     sublistId: "recmachcustrecord_iss_pr_parent",
@@ -168,13 +191,23 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                     fieldId: 'custrecord_iss_forecast_buffer',
                                     value: foreCastBuffer
                                 });
+                                currentRecordObj.setCurrentSublistValue({
+                                    sublistId: 'recmachcustrecord_iss_pr_parent',
+                                    fieldId: 'custrecord_prsum_po_customer',
+                                    value: poCustomer
+                                });
+                                currentRecordObj.setCurrentSublistValue({
+                                    sublistId: 'recmachcustrecord_iss_pr_parent',
+                                    fieldId: 'custrecord_iss_pack_size',
+                                    value: poCustomer
+                                });
                                 currentRecordObj.commitLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
                                 found = true;
                                 break;
                             }
                         }
                     }
-            
+
                     if (!found) {
                         currentRecordObj.selectNewLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
                         currentRecordObj.setCurrentSublistValue({
@@ -217,6 +250,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             fieldId: 'custrecord_iss_forecast_buffer',
                             value: foreCastBuffer
                         });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_prsum_po_customer',
+                            value: poCustomer
+                        });
                         currentRecordObj.commitLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
                     }
                 });
@@ -227,7 +265,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     }
     return {
         pageInit: pageInit,
-        calculate : calculate
+        calculate: calculate
     };
-}); 
-     
+});

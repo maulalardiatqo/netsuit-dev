@@ -7,7 +7,6 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
     function onRequest(context) {
         var dataBarcodeString = context.request.parameters.custscript_list_item_to_print;
         var dataBarcode = JSON.parse(dataBarcodeString);
-        log.debug("dataBarcode", dataBarcode);
         function removeDecimalFormat(number) {
             return number.toString().substring(0, number.toString().length - 3);
         }
@@ -18,40 +17,51 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
         
         dataBarcode.forEach(function (item) {
             var countLine = item.countLabel;
-            log.debug('countLine', countLine);
+            var itemName = item.itemName
+            log.debug('itemName', itemName)
+            if (itemName.includes('&')) {
+                log.debug('masuk sini')
+                itemName = itemName.replace(/&/g, '&amp;');
+            }
+            var charCount = itemName.length;
+            if (charCount > 25) {
+                itemName = itemName.substring(0, 25); 
+                log.debug('Trimmed itemName', itemName);
+            }
             for (var i = 0; i < countLine; i++) {
                 xml += '<pdf>';
                 xml += '<head>';
                 xml += '<style type="text/css">';
-                xml += 'body {font-family: sans-serif; margin: 0; padding: 1mm 1mm 2mm 20mm; width: 91mm; height: 60mm;}';
+                xml += 'body {font-family: sans-serif; margin: 0; padding: 1mm 1mm 2mm 7mm; width: 91mm; height: 60mm;}';
                 xml += 'table {border-collapse: collapse;}'; 
                 xml += 'td {padding: 0; vertical-align: middle;}'; 
                 xml += '.green {/* green */ height: 28.57%; font-size: 10pt; text-align: center; font-weight:bold;}';
                 xml += '.yellow { /* yellow */ height: 71.43%; font-size: 14pt; padding: 0mm; font-weight:bold;}';
-                xml += '.itemName {font-size: 10pt; font-weight:bold;}';
+                xml += '.itemName {font-size: 12pt; font-weight:bold;}';
                 xml += '</style>';
                 xml += '</head>';
-                xml += '<body padding="1mm 2mm 0mm 20mm" size="custom" width="91mm" height="60mm">';
+                xml += '<body padding="1mm 2mm 0mm 7mm" size="custom" width="91mm" height="60mm">';
                 
                 xml += '<table width="100%" height="28.57%;" cellpadding="0" cellspacing="0">';
                 xml += '<tr style="">';
                 xml += '<td class="green" style="align:center;">';
-                xml += item.internalID + ' / ' + item.upcCode + ' / ' + formatDate(new Date()) + ' <br/>'; 
-                xml += '<span class="itemName">' + item.itemName + '</span>';
+                xml += item.internalID + ' / ' + item.upcCode + ' / ' + formatDate(new Date()) + ' <br/>';
                 xml += '</td>';
+                xml += '</tr>';
+                xml += '<tr>'
+                xml += '<td class="green" style="align:center; font-size:12pt; font-weight:bold;">' + itemName + '</td>';
                 xml += '</tr>';
                 xml += '<tr style="height:5%">';
                 xml += '</tr>';
                 xml += '<tr style="height:15%">';
                 xml += '<td class="yellow">';
                 item.rangeHarga.forEach(function (hargaItem) {
-                    log.debug('batasVolume bef', hargaItem.batasVolume);
+                    
                     var batasVolume = hargaItem.batasVolume == 0 ? 1 : hargaItem.batasVolume;
-                    log.debug('batasVolume', batasVolume);
                     xml += '<table width="100%" height="71.43%" cellpadding="0" cellspacing="0">';
                     xml += '<tr>';
                     xml += '<td style="width:5%; "></td>';
-                    xml += '<td style="width:45%; align:right;"> Rp. ' + removeDecimalFormat(hargaItem.harga) + '</td>';
+                    xml += '<td style="width:45%; align:Left;"> Rp. ' + removeDecimalFormat(hargaItem.harga) + '</td>';
                     xml += '<td style="width:15%;"></td>';
                     xml += '<td style="width:30%; padding-left:3mm; font-size:14pt">' + batasVolume + ' PCS</td>';
                     xml += '<td style="width:5%;"></td>';

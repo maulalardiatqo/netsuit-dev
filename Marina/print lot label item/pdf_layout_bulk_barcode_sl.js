@@ -38,21 +38,41 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       var formattedPrice = isNaN(itemPrice) ? "0" : numberWithCommas(itemPrice);
       var displayID = internalID
       var barcodeValue = internalID
+      log.debug('itemName', itemName)
+      var charCount = itemName.length;
+      if (itemName.includes('&')) {
+        log.debug('masuk sini')
+        itemName = itemName.replace(/&/g, '&amp;');
+    }
+      if (charCount > 25) {
+        itemName = itemName.substring(0, 25); 
+        log.debug('Trimmed itemName', itemName);
+    }
+
+log.debug('Character Count', charCount);
       return `
-          <table height="15mm" width="33mm">
-              <tr>
-                  <td colspan="2"><span style="font-size: 7pt; text-transform: uppercase; font-weight: bold;">${itemName}</span></td>
-              </tr>
-              <tr>
-                  <td colspan="2">
-                      <barcode bar-width="1" height="15" codetype="code128" showtext="false" value="${barcodeValue}" />
-                  </td>
-              </tr>
-              <tr>
-                  <td style="font-size: 6pt; text-align: left; font-weight: bold;">${displayID}</td>
-                  <td style="font-size: 6pt; text-align: right; font-weight: bold;">Rp. ${formattedPrice}</td>
-              </tr>
-          </table>
+    <table height="15mm" width="33mm" style="border-collapse: collapse;">
+    <tr>
+        <td colspan="2" style="padding: 0; width: 100%;">
+            <span style="font-size: 7pt; text-transform: uppercase; font-weight: bold; display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${itemName}
+            </span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2" style="text-align: center; padding: 0;">
+            <barcode bar-width="1" height="15" codetype="code128" showtext="false" value="${barcodeValue}" />
+        </td>
+    </tr>
+    <tr>
+        <td style="font-size: 6pt; text-align: left; font-weight: bold; padding: 0; width: 50%;">
+            ${displayID}
+        </td>
+        <td style="font-size: 6pt; text-align: right; font-weight: bold; padding: 0; width: 50%;">
+            Rp. ${formattedPrice}
+        </td>
+    </tr>
+</table>
       `;
   }
 
@@ -72,6 +92,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
 
     for (var i = 0; i < dataBarcode.length; i++) {
       var item = dataBarcode[i];
+      log.debug('item', item)
       var count = parseInt(item.countLabel);
 
       while (count > 0) {
@@ -99,11 +120,11 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             <head>
                 ${style}
             </head>
-            <body padding="0mm 0mm 0mm 4mm" size="custom" width="72mm" height="15mm">
+            <body padding="0mm 0mm 0mm 1mm" size="custom" width="72mm" height="15mm">
                 <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="padding: 0; margin: 0;">${pageRow1}</td>
-                        <td style="padding: 0; margin: 0;">${pageRow2}</td>
+                        <td style="padding: 1mm; margin: 0;">${pageRow1}</td>
+                        <td style="padding-left: 4mm; margin-left: 1mm;">${pageRow2}</td>
                     </tr>
                 </table>
             </body>

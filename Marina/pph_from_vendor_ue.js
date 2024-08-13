@@ -22,6 +22,19 @@ define(["N/record", "N/search"], function (record, search) {
           var lineTotal = rec.getLineCount({
             sublistId: "item",
           });
+          var vendorSearchObj = search.create({
+            type: "vendor",
+            filters: [["internalid", "anyof", vendorID]],
+            columns: ["entityid", "altname", "custentity_abj_ppn_type"],
+          });
+          var ppnType = "";
+          var ppnTypeText = "";
+          var searchResultCount = vendorSearchObj.runPaged().count;
+          vendorSearchObj.run().each(function (result) {
+            ppnType = result.getValue("custentity_abj_ppn_type");
+            ppnTypeText = result.getText("custentity_abj_ppn_type");
+            return true;
+          });
           for (var i = 0; i < lineTotal; i++) {
             let itemID = rec.getSublistValue({
               sublistId: "item",
@@ -33,22 +46,9 @@ define(["N/record", "N/search"], function (record, search) {
                 fieldId: "custcol_msa_ppn_include_update",
                 line: i,
             })
-            log.debug('isSet', isSet)
+            log.debug('item id - isset', {itemID : itemID, isSet : isSet})
             if(isSet == true){
-              var vendorSearchObj = search.create({
-                type: "vendor",
-                filters: [["internalid", "anyof", vendorID]],
-                columns: ["entityid", "altname", "custentity_abj_ppn_type"],
-              });
-              var ppnType = "";
-              var ppnTypeText = "";
-              var searchResultCount = vendorSearchObj.runPaged().count;
-              log.debug("vendorSearchObj result count", searchResultCount);
-              vendorSearchObj.run().each(function (result) {
-                ppnType = result.getValue("custentity_abj_ppn_type");
-                ppnTypeText = result.getText("custentity_abj_ppn_type");
-                return true;
-              });
+              
               rec.selectLine({
                 sublistId: "item",
                 line: i,
@@ -58,6 +58,7 @@ define(["N/record", "N/search"], function (record, search) {
                 fieldId: "taxcode",
                 value: ppnType,
               });
+              log.debug('ppnType', ppnType)
               if (ppnType != "5" && ppnType != "6") {
                 let rate =
                   rec.getSublistValue({
@@ -76,7 +77,6 @@ define(["N/record", "N/search"], function (record, search) {
                   columns: ["custrecord_abj_rate_ppn_include"],
                 });
                 var percentRate = Number(rateOfPpn.custrecord_abj_rate_ppn_include);
-                log.debug("percentRate", percentRate);
                 if (percentRate) {
                   var persentasePajak = percentRate / 100;
                   var totalBelanja = parseFloat(rate);
@@ -84,12 +84,7 @@ define(["N/record", "N/search"], function (record, search) {
                   var PPN = parseFloat(DPP * persentasePajak).toFixed(2);
                   var amount = parseFloat(DPP) * parseFloat(quantity);
                   var grossAmount = parseFloat(amount) + parseFloat(PPN);
-                  log.debug("DPP", {
-                    DPP: DPP,
-                    PPN: PPN,
-                    amount: amount,
-                    grossAmount: grossAmount,
-                  });
+                  
                   rec.setCurrentSublistValue({
                     sublistId: "item",
                     fieldId: "rate",
@@ -123,9 +118,21 @@ define(["N/record", "N/search"], function (record, search) {
         }
       }else{
         if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT) {
-          log.debug('masuk sini')
           var lineTotal = rec.getLineCount({
             sublistId: "item",
+          });
+          var vendorSearchObj = search.create({
+            type: "vendor",
+            filters: [["internalid", "anyof", vendorID]],
+            columns: ["entityid", "altname", "custentity_abj_ppn_type"],
+          });
+          var ppnType = "";
+          var ppnTypeText = "";
+          var searchResultCount = vendorSearchObj.runPaged().count;
+          vendorSearchObj.run().each(function (result) {
+              ppnType = result.getValue("custentity_abj_ppn_type");
+              ppnTypeText = result.getText("custentity_abj_ppn_type");
+              return true;
           });
           for (var i = 0; i < lineTotal; i++) {
             let itemID = rec.getSublistValue({
@@ -133,20 +140,8 @@ define(["N/record", "N/search"], function (record, search) {
               fieldId: "item",
               line: i,
             });
-            var vendorSearchObj = search.create({
-              type: "vendor",
-              filters: [["internalid", "anyof", vendorID]],
-              columns: ["entityid", "altname", "custentity_abj_ppn_type"],
-            });
-            var ppnType = "";
-            var ppnTypeText = "";
-            var searchResultCount = vendorSearchObj.runPaged().count;
-            log.debug("vendorSearchObj result count", searchResultCount);
-            vendorSearchObj.run().each(function (result) {
-              ppnType = result.getValue("custentity_abj_ppn_type");
-              ppnTypeText = result.getText("custentity_abj_ppn_type");
-              return true;
-            });
+            
+            log.debug('ppntype i', i)
             rec.selectLine({
               sublistId: "item",
               line: i,
@@ -174,7 +169,6 @@ define(["N/record", "N/search"], function (record, search) {
                 columns: ["custrecord_abj_rate_ppn_include"],
               });
               var percentRate = Number(rateOfPpn.custrecord_abj_rate_ppn_include);
-              log.debug("percentRate", percentRate);
               if (percentRate) {
                 var persentasePajak = percentRate / 100;
                 var totalBelanja = parseFloat(rate);
@@ -182,12 +176,7 @@ define(["N/record", "N/search"], function (record, search) {
                 var PPN = parseFloat(DPP * persentasePajak).toFixed(2);
                 var amount = parseFloat(DPP) * parseFloat(quantity);
                 var grossAmount = parseFloat(amount) + parseFloat(PPN);
-                log.debug("DPP", {
-                  DPP: DPP,
-                  PPN: PPN,
-                  amount: amount,
-                  grossAmount: grossAmount,
-                });
+                
                 rec.setCurrentSublistValue({
                   sublistId: "item",
                   fieldId: "rate",

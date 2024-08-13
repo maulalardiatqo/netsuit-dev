@@ -7,16 +7,17 @@
 define(["N/runtime", "N/log"], (runtime, log) => {
     function beforeLoad(context) {
         if (context.type === context.UserEventType.VIEW) {
-        var form = context.form;
-        var rec = context.newRecord;
-        var currentUserRole = runtime.getCurrentUser().role;
+            log.debug('tertrigger')
+            var form = context.form;
+            var rec = context.newRecord;
+            var currentUserRole = runtime.getCurrentUser().role;
 
-        form.addButton({
-            id: 'custpage_button_po',
-            label: "Print Surat Jalan",
-            functionName: "printPDF()"
-        });
-        context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_surat_jalan.js "
+            form.addButton({
+                id: 'custpage_button_po',
+                label: "Print Surat Jalan",
+                functionName: "printPDF()"
+            });
+            context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_surat_jalan.js "
         }
 }
 return {

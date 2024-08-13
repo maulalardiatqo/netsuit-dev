@@ -34,8 +34,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var companyInfo = config.load({
                 type: config.Type.COMPANY_INFORMATION
             });
-            var compAddress = companyInfo.getValue('mainaddress_text');
-            log.debug('compAddress', compAddress)
             var legalName = companyInfo.getValue("legalname");
 
             log.debug('legalName', legalName);
@@ -83,6 +81,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     venAddres = vendorRecord.getValue('defaultaddress');
                 }
                 if(venAddres){
+                    log.debug('vendAderss', venAddres);
                     if(venAddres.includes('&')){
                         log.debug('includes &')
                         venAddres = venAddres.replace(/&/g, ' dan ')
@@ -91,9 +90,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 vendLeadTime =  vendorRecord.getValue('custentity1');
 
             }
+            log.debug('venName', venName)
             // PO data
             var tandId = poRecord.getValue('tranid');
             var POdate = poRecord.getValue('trandate');
+            log.debug('podate', POdate);
+            log.debug('tandId', tandId)
             var busdev = poRecord.getValue('employee');
             var busdevName 
             if(busdev){
@@ -125,15 +127,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             style += "<style type='text/css'>";
             style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
             style += ".tg .tg-headerlogo{align:center; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
-            style += ".tg .tg-img-logo{width:210px; height:60px; object-vit:cover;}";
-            style += ".tg .tg-headerrow{align: right;font-size:9px;}";
-            style += ".tg .tg-headerrow_legalName{align: right;font-size:10px;word-break:break-all; font-weight: bold;}";
-            style += ".tg .tg-headerrow_Total{align: right;font-size:10px;word-break:break-all; font-weight: bold;}";
-            style += ".tg .tg-headerrow_left{align: left;font-size:9px;}";
-            style += ".tg .tg-head_body{align: center;font-size:6px;font-weight: bold; border: 1px solid black;}";
-            style += ".tg .tg-b_body{align: left;font-size:6px; border: 1px solid black;}";
-            style += ".tg .tg-f_body{align: right;font-size:6px;border-bottom: solid black 2px;}";
-            style += ".tg .tg-foot{font-size:9px; color: #808080; position: absolute; bottom: 0;}";
+            style += ".tg .tg-img-logo{width:120px; height:70px; object-vit:cover;}";
+            style += ".tg .tg-headerrow{align: right;font-size:12px;}";
+            style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
+            style += ".tg .tg-headerrow_Total{align: right;font-size:16px;word-break:break-all; font-weight: bold;}";
+            style += ".tg .tg-headerrow_left{align: left;font-size:12px;}";
+            style += ".tg .tg-head_body{align: center;font-size:8px;font-weight: bold; border: 1px solid black;}";
+            style += ".tg .tg-b_body{align: left;font-size:8px; border: 1px solid black;}";
+            style += ".tg .tg-f_body{align: right;font-size:14px;border-bottom: solid black 2px;}";
+            style += ".tg .tg-foot{font-size:11px; color: #808080; position: absolute; bottom: 0;}";
             style += "</style>";
 
 
@@ -146,25 +148,25 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<tbody>";
             body += "<tr>";
             if (urlLogo) {
-                body += "<td class='tg-headerlogo' style='width:100%;vertical-align:center; align:center;'><div style='display: flex; height:60px; width:210px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+                body += "<td class='tg-headerlogo' style='width:100%;vertical-align:center; align:center;'><div style='display: flex; height:80px; width:120px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
             }
             body += "</tr>";
             body += "<tr>";
-            body += "<td style='align:right; font-size:9px; font-weight: bold;'>No. Form : </td>"
+            body += "<td style='align:right; font-size:12px; font-weight: bold;'>No. Form : </td>"
             body += "</tr>";
             body += "<tr>";
-            body += "<td style='align:center; font-size:9px;'>"+compAddress+" </td>"
+            body += "<td style='align:center; font-size:11px;'>"+venAddres+" </td>"
             body += "</tr>";
             body += "<tr>";
             body += "<td style='align:center; border-bottom:1px solid black; border-top:1px solid black'></td>"
             body += "</tr>";
             body += "<tr>";
-            body += "<td style='align:center; font-size:9px; font-weight: bold;'>PURCHASE REQUEST ("+venName+") </td>"
+            body += "<td style='align:center; font-size:11px; font-weight: bold;'>PURCHASE REQUEST ("+venName+") </td>"
             body += "</tr>";
             body += "</tbody>";
             body += "</table>";
 
-            body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:7px;\">";
+            body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
             body += "<tbody>";
             body += "<tr>";
             body += "<td style='width:17%'></td>"
@@ -182,7 +184,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "</tr>";
 
             body += "<tr>";
-            body += "<td style='font-weight: bold;'>NO. PURCHASE REQUEST</td>"
+            body += "<td style='font-weight: bold;'>NO. PURCHASE</td>"
             body += "<td style=''>: "+tandId+"</td>"
             body += "</tr>";
 
@@ -217,33 +219,33 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "</tr>";
 
             body += "<tr>";
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> NO </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> INVENTORY ID </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> INVENTORY NAME </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> CURRENT STOCK </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> INCOMING STOCK </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> SALES </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> CUSTOMER </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> OS.PO </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> NO. PO </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> TANGGAL KIRIM </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; align:center; border-right:none;' colspan='2'> FORECAST  BUFFER STOCK </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; align:center; border-right:none;' colspan='2'> RATA RATA PENGIRIMAN </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> TOTAL ORDER </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; align:center' rowspan='2'> NOTE </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> NO </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> INVENTORY ID </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> INVENTORY NAME </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> CURRENT STOCK </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> INCOMING STOCK </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> SALES </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> CUSOTMER </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> OS.PO </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> NO. PO </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> TANGGAL KIRIM </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA;' colspan='2'> FORECAST  BUFFER STOCK </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA;' colspan='2'> RATA RATA PENGIRIMAN </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> TOTAL ORDER </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center;' rowspan='2'> NOTE </td>"
             body += "</tr>";
 
             body += "<tr>";
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; border-right:none;'> BUSDEV </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; border-right:none;'> RUMUS <br/> PEHITUNGAN </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; border-right:none;'> BUSDEV </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; border-right:none;'> ACCOUNTING </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA;'> BUSDEV </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA;'> RUMUS PEHITUNGAN </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA;'> BUSDEV </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA;'> ACCOUNTING </td>"
             body += "</tr>";
             body += getPOItem(context, poRecord);
             body += "</tbody>";
             body += "</table>";
 
-            body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:7px;\">";
+            body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:9px;\">";
             body += "<tbody>";
             body += "<tr>"
             body += "<td style='width:5%'></td>"
@@ -345,7 +347,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             xml += "</macro>";
             xml += "</macrolist>";
             xml += "</head>"
-            xml += "<body font-size='8' style='font-family: Tahoma,sans-serif;height: 21cm; width: 29.7cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='3%'>";
+            xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 21cm; width: 29.7cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='3%'>";
             xml += body;
             xml += "\n</body>\n</pdf>";
 
@@ -371,45 +373,45 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             dataItem.items.forEach((item, index) => {
                 if(index === 0){
                     html += `<tr>
-                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;" rowspan="${lengthDataItem}">${nomor}</td>
-                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;" rowspan="${lengthDataItem}">${itemId}</td>
-                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;" rowspan="${lengthDataItem}">${itemName}</td>`;
+                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center;" rowspan="${lengthDataItem}">${nomor}</td>
+                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center;" rowspan="${lengthDataItem}">${itemId}</td>
+                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center;" rowspan="${lengthDataItem}">${itemName}</td>`;
                 } else {
                     html += `<tr>`;
                 }
         
                 html += `
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.onHand}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.inComingStock}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.salesRepCode}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.customer}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.osPO}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.noSO}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.tglKirim}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.forecase}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.leadTimeKirim}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.avgpengBusdev}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.avgpengAcc}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.qty}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.onHand}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.inComingStock}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.salesRepCode}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.customer}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.osPO}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.noSO}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.tglKirim}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.forecase}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.leadTimeKirim}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.avgpengBusdev}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.avgpengAcc}</td>
+                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.qty}</td>
                     <td class='tg-b_body' style="border-right: 1px solid black;">${item.notes}</td>
                 </tr>`;
             });
             html += `<tr>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalOnHand}</td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalInComingStock}</td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalOsPO}</td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalForecase}</td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalQty}</td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;">${dataItem.totalOnHand}</td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;">${dataItem.totalInComingStock}</td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;">${dataItem.totalOsPO}</td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;">${dataItem.totalForecase}</td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow;"></td>
+            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;">${dataItem.totalQty}</td>
             <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;"></td>>
             </tr>`;
             return html;
@@ -418,20 +420,20 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
         var dataItem = []
         function getPOItem(context, poRecord){
             var itemCount = poRecord.getLineCount({
-                sublistId: 'recmachcustrecord_iss_pr_parent'
+                sublistId: 'item'
             });
             // log.debug('itemCount', itemCount);
             if(itemCount > 0){
                 var body = "";
                 for(var index = 0; index < itemCount; index++){
                     var itemId = poRecord.getSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_pr_item',
+                        sublistId: 'item',
+                        fieldId: 'item',
                         line: index
                     });
                     var itemText = poRecord.getSublistText({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_pr_item',
+                        sublistId: 'item',
+                        fieldId: 'item',
                         line: index
                     });
                     // var onHand = poRecord.getSublistText({
@@ -440,20 +442,20 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     //     line: index
                     // });
                     var onHand = parseFloat(poRecord.getSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_pr_stock',
+                        sublistId: 'item',
+                        fieldId: 'custcol_abj_onhand',
                         line: index
                     })) || 0;
                     log.debug('onHand', onHand)
                     var inComingStock = parseFloat(poRecord.getSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_pr_incoming_stock',
+                        sublistId: 'item',
+                        fieldId: 'custcol5',
                         line: index
                     })) || 0;
                     var salesRepCode
                     var salesId = poRecord.getSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_prsum_salesrep',
+                        sublistId: 'item',
+                        fieldId: 'custcol_abj_sales_rep_line',
                         line: index
                     });
                     if(salesId){
@@ -468,23 +470,23 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         }
                     }
                     var customer = poRecord.getSublistText({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_prsum_customer',
+                        sublistId: 'item',
+                        fieldId: 'customer',
                         line: index
                     });
                     var osPO = parseFloat(poRecord.getSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_os_po',
+                        sublistId: 'item',
+                        fieldId: 'custcol6',
                         line: index
                     })) || 0;
                     var noSO = poRecord.getSublistText({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_prsum_po_customer',
+                        sublistId: 'item',
+                        fieldId: 'custcol_abj_no_so',
                         line: index
                     });
                     var tglKirim = poRecord.getSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_tgl_kirim',
+                        sublistId: 'item',
+                        fieldId: 'custcol14',
                         line: index
                     });
                     if(tglKirim){
@@ -494,33 +496,33 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         });
                     }
                     var forecase = parseFloat(poRecord.getSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_forecast_buffer',
+                        sublistId: 'item',
+                        fieldId: 'custcol9',
                         line: index
                     })) || 0;
                     var leadTimeKirim = poRecord.getSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_lead_time',
+                        sublistId: 'item',
+                        fieldId: 'custcol9',
                         line: index
                     });
                     var avgpengBusdev = poRecord.getSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_avg_busdev',
+                        sublistId: 'item',
+                        fieldId: 'custcol10',
                         line: index
                     });
                     var avgpengAcc = poRecord.getSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_avg_accounting',
+                        sublistId: 'item',
+                        fieldId: 'custcol11',
                         line: index
                     });
                     var qty = parseFloat(poRecord.getSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_total_order',
+                        sublistId: 'item',
+                        fieldId: 'quantity',
                         line: index
                     })) || 0;
                     var notes = poRecord.getSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_note',
+                        sublistId: 'item',
+                        fieldId: 'custcol13',
                         line: index
                     });
                     dataItem.push({

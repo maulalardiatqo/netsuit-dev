@@ -114,19 +114,20 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             xml += '<pdf>';
             xml += '<head>';
             xml += '<style type="text/css">';
-            xml += 'body {font-family: sans-serif; width: 210mm; height: 140mm;}';
+            xml += 'body {font-family: "Calibri Light", sans-serif; width: 210mm; height: 140mm; padding-top: 20; margin: 0; padding-bottom: 0;}';
             xml += 'table {border-collapse: collapse;}'; 
-            xml += 'td {padding: 0; vertical-align: middle;}'; 
+            xml += 'td {padding: 0; margin: 0; vertical-align: middle; font-size: 8;}'; 
             xml += '</style>';
             xml += '</head>';
-            xml += '<body  size="custom" width="210mm" height="140mm">';
+            xml += '<body size="custom" width="210mm" height="140mm">';
+            
 
             xml += '<table cellpadding="0" cellspacing="0" width="100%">'
             xml += '<tr>';
-            xml += '<td style="font-size:11pt; font-weight:bold; align:center;"><u>FAKTUR PENJUALAN</u></td>'
+            xml += '<td style="font-size:10pt; font-weight:bold; align:center;"><u>FAKTUR PENJUALAN</u></td>'
             xml += '</tr>';
 
-            xml += '<tr style="height:20px">';
+            xml += '<tr style="height:2px">';
             xml += '</tr>';
             xml += '</table>';
 
@@ -138,29 +139,29 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             xml += '</tr>';
 
             xml += '<tr>';
-            xml += '<td style="font-size:11; font-weight:bold">'+legalName+'</td>'
+            xml += '<td style="font-size:10; font-weight:bold">'+legalName+'</td>'
             xml += '<td style="">No. Faktur </td>'
             xml += '<td style="">:'+tranId+'</td>'
             xml += '</tr>';
 
             xml += '<tr>';
-            xml += '<td style="font-size:11;">'+addres+'</td>'
+            xml += '<td style="font-size:9;">'+addres+'</td>'
             xml += '<td style="">Tgl. Faktur </td>'
             xml += '<td style="">:'+tranDate+'</td>'
             xml += '</tr>';
 
             xml += '<tr>';
-            xml += '<td style="font-size:11; font-weight:bold"></td>'
+            xml += '<td style="font-size:9; font-weight:bold"></td>'
             xml += '<td style="">Tgl. Tempo</td>'
             xml += '<td style="">:'+jatuhTempo+'</td>'
             xml += '</tr>';
 
             xml += '<tr>';
-            xml += '<td style="font-size:11; font-weight:bold"></td>'
+            xml += '<td style="font-size:9; font-weight:bold"></td>'
             xml += '<td style="">Pelanggan</td>'
             xml += '<td style="">:'+custName+'</td>'
             xml += '</tr>';
-            xml += '<tr style="height:20px">';
+            xml += '<tr style="height:2px">';
             xml += '</tr>';
             xml += '</table>';
 
@@ -168,23 +169,23 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             xml += '<tr>';
             xml += '<td style="width:5%"></td>'
             xml += '<td style="width:10%"></td>'
-            xml += '<td style="width:30%"></td>'
+            xml += '<td style="width:35%"></td>'
             xml += '<td style="width:15%"></td>'
             xml += '<td style="width:5%"></td>'
+            xml += '<td style="width:8%"></td>'
             xml += '<td style="width:10%"></td>'
-            xml += '<td style="width:10%"></td>'
-            xml += '<td style="width:15%"></td>'
+            xml += '<td style="width:12%"></td>'
             xml += '</tr>';
 
             xml += '<tr>';
-            xml += '<td style="font-size:10pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">No</td>'
-            xml += '<td style="font-size:10pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">Kode</td>'
-            xml += '<td style="font-size:10pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">Nama Barang</td>'
-            xml += '<td style="font-size:10pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">Harga Satuan</td>'
-            xml += '<td style="font-size:10pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">QTY</td>'
-            xml += '<td style="font-size:10pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">Satuan</td>'
-            xml += '<td style="font-size:10pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">Disc[%]</td>'
-            xml += '<td style="font-size:10pt; font-weight:bold; align:center; border:1px solid black;">Jumlah</td>'
+            xml += '<td style="font-size:8pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">No</td>'
+            xml += '<td style="font-size:8pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">Kode</td>'
+            xml += '<td style="font-size:8pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">Nama Barang</td>'
+            xml += '<td style="font-size:8pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">Harga Satuan</td>'
+            xml += '<td style="font-size:8pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">QTY</td>'
+            xml += '<td style="font-size:8pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">Satuan</td>'
+            xml += '<td style="font-size:8pt; font-weight:bold; align:center; border:1px solid black; border-right:none;">Disc[%]</td>'
+            xml += '<td style="font-size:8pt; font-weight:bold; align:center; border:1px solid black;">Jumlah</td>'
             xml += '</tr>';
 
             xml += getPOItem(context, ifRec, soId, employeeName);
@@ -335,10 +336,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "<td style='width:3%'></td>"
                 xml += "<td style='width:17%'></td>"
                 xml += "<td style='width:3%'></td>"
-                xml += "<td style='width:18%'></td>"
-                xml += "<td style='width:3%'></td>"
                 xml += "<td style='width:20%'></td>"
-                xml += "<td style='width:15%'></td>"
+                xml += "<td style='width:4%'></td>"
+                xml += "<td style='width:20%'></td>"
+                xml += "<td style='width:12%'></td>"
                 xml += "</tr>"
 
                 xml += "<tr>"
@@ -388,6 +389,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "<td style='align:right; padding:1mm; border-left:1px solid black; border-bottom:1px solid black;'>Total</td>"
                 xml += "<td style='align:right; padding:1mm;  border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black; '>"+removeDecimalFormat(subtotal)+"</td>"
                 xml += "</tr>"
+
+                xml += '<tr style="height:5px">';
+                xml += '</tr>';
 
                 xml += "<tr>"
                 xml += "<td></td>"

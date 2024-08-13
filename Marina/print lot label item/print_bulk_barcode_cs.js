@@ -1,324 +1,134 @@
 /**
  * @NApiVersion 2.1
- * @NScriptType ClientScript
- * @NModuleScope SameAccount
+ * @NScriptType Suitelet
  */
 
-define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/dialog", "N/runtime", "N/ui/message", "N/url"], function (search, currentRecord, query, record, format, dialog, runtime, message, url) {
-  var exports = {};
-  var recordCurrent = currentRecord.get();
+define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/currency", "N/error", "N/config", "N/render"], function (serverWidget, search, record, url, runtime, currency, error, config, render) {
+  function onRequest(context) {
+    var dataBarcodeString = context.request.parameters.custscript_list_item_to_print;
+    var dataBarcode = JSON.parse(dataBarcodeString);
+    log.debug("dataBarcode", dataBarcode);
+    function numberWithCommas(x) {
+      x = x.toString();
+      var pattern = /(-?\d+)(\d{3})/;
+      while (pattern.test(x)) x = x.replace(pattern, "$1,$2");
+      return x;
+    }
 
-  function getAllResults(s) {
-    var results = s.run();
-    var searchResults = [];
-    var searchid = 0;
-    do {
-      var resultslice = results.getRange({
-        start: searchid,
-        end: searchid + 1000,
-      });
-      resultslice.forEach(function (slice) {
-        searchResults.push(slice);
-        searchid++;
-      });
-    } while (resultslice.length >= 1000);
-    return searchResults;
+    // function getItemDetails(internalID, itemPrice, itemName, lotNumber) {
+    //   var formattedPrice = isNaN(itemPrice) ? "0" : numberWithCommas(itemPrice);
+    //   return `
+    //     <table height="15mm" width="33mm">
+    //         <tr>
+    //             <td colspan="2"><span style="font-size: 7pt; text-transform: uppercase; font-weight: bold;">${itemName}</span></td>
+    //         </tr>
+    //         <tr>
+    //             <td colspan="2">
+    //                 <barcode bar-width="1" height="15" codetype="code128" showtext="false" value="${internalID}" />
+    //             </td>
+    //         </tr>
+    //         <tr>
+    //             <td style="font-size: 6pt; text-align: left; font-weight: bold;">${internalID}</td>
+    //             <td style="font-size: 6pt; text-align: right; font-weight: bold;">Rp. ${formattedPrice}</td>
+    //         </tr>
+    //     </table>
+    // `;
+    // }
+    function getItemDetails(internalID, itemPrice, itemName, lotNumber) {
+      var formattedPrice = isNaN(itemPrice) ? "0" : numberWithCommas(itemPrice);
+      var displayID = internalID
+      var barcodeValue = internalID
+      return `
+     <table height="15mm" width="33mm">
+        <tr>
+            <td colspan="2">
+                <span style="font-size: 7pt; text-transform: uppercase; font-weight: bold; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${itemName}</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <barcode bar-width="1" height="15" codetype="code128" showtext="false" value="${barcodeValue}" />
+            </td>
+        </tr>
+        <tr>
+            <td style="font-size: 6pt; text-align: left; font-weight: bold;">${displayID}</td>
+            <td style="font-size: 6pt; text-align: right; font-weight: bold;">Rp. ${formattedPrice}</td>
+        </tr>
+    </table>
+
+      `;
   }
 
-  function pdfPrintURL() {}
+    var response = context.response;
+    var xml = "";
+    var style = "";
+    style += `
+    <style type="text/css">
+        * { font-family: Arial, sans-serif; }
+        table { font-size: 9pt; table-layout: fixed; width: 100%; border: none; border-collapse: collapse; }
+        b { font-weight: bold; color: #333333; }
+    </style>
+`;
 
-  function pageInit(scriptContext) {}
+    var pages = [];
+    var currentPage = [];
 
-  function printLabel(context) {
-    var records = currentRecord.get();
-    try {
-      var dataBarcode = [];
-      var count = records.getLineCount({
-        sublistId: "custpage_sublist_item",
-      });
-      console.log("count", count);
+    for (var i = 0; i < dataBarcode.length; i++) {
+      var item = dataBarcode[i];
+      log.debug('item', item)
+      var count = parseInt(item.countLabel);
 
-      for (var j = 0; j < count; j++) {
-        var selected = records.getSublistValue({
-          sublistId: "custpage_sublist_item",
-          fieldId: "custpage_sublist_item_select",
-          line: j,
-        });
-        if (selected) {
-          var internalID = records.getSublistValue({
-            sublistId: "custpage_sublist_item",
-            fieldId: "custpage_sublist_item_internalid",
-            line: j,
-          });
-          log.debug("internalID", internalID);
-          var itemName = records.getSublistValue({
-            sublistId: "custpage_sublist_item",
-            fieldId: "custpage_sublist_item_name",
-            line: j,
-          });
-          var lotNumber = records.getSublistValue({
-            sublistId: "custpage_sublist_item",
-            fieldId: "custpage_sublist_lotnumber",
-            line: j,
-          });
-          var countLabel = records.getSublistValue({
-            sublistId: "custpage_sublist_item",
-            fieldId: "custpage_sublist_item_no_of_labels",
-            line: j,
-          });
-          var itemPrice = 0;
-          // get item price
-          var customrecord_msa_group_price_qtySearchObj = search.create({
-            type: "customrecord_msa_group_price_qty",
-            filters: [["custrecord_msa_priceqty_item_id", "anyof", internalID], "AND", ["custrecord_msa_gpq_price_barcode", "is", "T"]],
-            columns: ["custrecord_msa_gpq_volume", "custrecord_msa_gpq_harga", "custrecord_msa_gpq_profit_percent"],
-          });
-          customrecord_msa_group_price_qtySearchObj.run().each(function (result) {
-            itemPrice = result.getValue("custrecord_msa_gpq_harga");
-          });
-          // end get item price
-          dataBarcode.push({
-            internalID: internalID,
-            itemName: itemName,
-            countLabel: countLabel,
-            itemPrice: itemPrice,
-            lotNumber : lotNumber
-          });
+      while (count > 0) {
+        if (currentPage.length < 2) {
+          currentPage.push(getItemDetails(item.internalID, item.itemPrice, item.itemName, item.lotNumber));
+        } else {
+          pages.push(currentPage);
+          currentPage = [getItemDetails(item.internalID, item.itemPrice, item.itemName, item.lotNumber)];
         }
+        count--;
       }
-      console.log("dataBarcode", dataBarcode);
-      var dataBarcodeString = JSON.stringify(dataBarcode);
-      var createURL = url.resolveScript({
-        scriptId: "customscript822",
-        deploymentId: "customdeploy1",
-        params: { custscript_list_item_to_print: dataBarcodeString },
-        returnExternalUrl: false,
-      });
-      window.open(createURL, "_blank");
-    } catch (error) {
-      console.log("error", error.message);
     }
-  }
-  function printRakPDF(centex){
-    var records = currentRecord.get();
-    try {
-      var dataBarcode = [];
-      var count = records.getLineCount({
-        sublistId: "custpage_sublist_item",
-      });
-      console.log("count", count);
 
-      for (var j = 0; j < count; j++) {
-        var selected = records.getSublistValue({
-          sublistId: "custpage_sublist_item",
-          fieldId: "custpage_sublist_item_select",
-          line: j,
-        });
-        console.log('selected', selected)
-        if (selected) {
-          var internalID = records.getSublistValue({
-            sublistId: "custpage_sublist_item",
-            fieldId: "custpage_sublist_item_internalid",
-            line: j,
-          });
-          console.log("internalID", internalID);
-          var itemName = records.getSublistValue({
-            sublistId: "custpage_sublist_item",
-            fieldId: "custpage_sublist_item_name",
-            line: j,
-          });
-          var upcCode = records.getSublistValue({
-            sublistId: "custpage_sublist_item",
-            fieldId: "custpage_sublist_upccode",
-            line: j,
-          });
-          var countLabel = records.getSublistValue({
-            sublistId: "custpage_sublist_item",
-            fieldId: "custpage_sublist_item_no_of_labels",
-            line: j,
-          });
-          var rangeHarga = [];
-          var itemSearchObj = search.create({
-            type: "item",
-            filters:
-            [
-                ["internalid","anyof",internalID]
-            ],
-            columns:
-            [
-                search.createColumn({name: "itemid", label: "Name"}),
-                search.createColumn({name: "displayname", label: "Display Name"}),
-                search.createColumn({
-                    name: "custrecord_msa_gpq_volume",
-                    join: "CUSTRECORD_MSA_PRICEQTY_ITEM_ID",
-                    label: "Batas Volume &gt;="
-                }),
-                search.createColumn({
-                    name: "custrecord_msa_gpq_harga",
-                    join: "CUSTRECORD_MSA_PRICEQTY_ITEM_ID",
-                    label: "Harga"
-                })
-            ]
-          });
-          var searchResultCount = itemSearchObj.runPaged().count;
-          log.debug("itemSearchObj result count",searchResultCount);
-          itemSearchObj.run().each(function(result){
-            var batasVolume = result.getValue({
-                name: "custrecord_msa_gpq_volume",
-                join: "CUSTRECORD_MSA_PRICEQTY_ITEM_ID",
-            })
-            var harga = result.getValue({
-              name: "custrecord_msa_gpq_harga",
-              join: "CUSTRECORD_MSA_PRICEQTY_ITEM_ID",
-            })
-            rangeHarga.push({
-              batasVolume : batasVolume,
-              harga : harga
-            })
-            return true;
-          });
-          
-        }
-        rangeHarga.sort(function (a, b) {
-          return parseFloat(a.batasVolume) - parseFloat(b.batasVolume);
-        });
-        dataBarcode.push({
-          internalID : internalID,
-          upcCode : upcCode,
-          countLabel : countLabel,
-          itemName : itemName,
-          rangeHarga : rangeHarga
-        })
-        var dataBarcodeString = JSON.stringify(dataBarcode);
-        var createURL = url.resolveScript({
-          scriptId: "customscript_abj_sl_print_out_label_rak",
-          deploymentId: "customdeploy_abj_sl_print_out_label_rak",
-          params: { custscript_list_item_to_print: dataBarcodeString },
-          returnExternalUrl: false,
-        });
-        window.open(createURL, "_blank");
-      }
-      console.log('dataBarcode', dataBarcode)
-    }catch(e){
-      console.log('error', e.message)
+    if (currentPage.length > 0) {
+      pages.push(currentPage);
     }
-  }
-  function fieldChanged(context) {
-    var vrecord = currentRecord.get();
-    if (context.fieldId == "custpage_item_name") {
-      try {
-        console.log("item changed", vrecord.getValue("custpage_item_name"));
-        var countsublist = vrecord.getLineCount({
-          sublistId: "custpage_sublist_item",
-        });
-        console.log("countsublist", countsublist);
-        for (var i = countsublist - 1; i >= 0; i--) {
-          vrecord.removeLine({
-            sublistId: "custpage_sublist_item",
-            line: i,
-            ignoreRecalc: true,
-          });
-        }
-        console.log("search", true);
-        var itemSearchObj = search.create({
-          type: "item",
-          filters: [["name", "contains", vrecord.getValue("custpage_item_name")]],
-          columns: [
-            "internalid",
-            "displayname",
-            search.createColumn({
-              name: "itemid",
-              sort: search.Sort.ASC,
-            }),
-            "upccode",
-          ],
-        });
-        var resultSet = getAllResults(itemSearchObj);
-        var i = 0;
-        console.log("end search", resultSet);
-        /*
-        resultSet.forEach(function (row) {
-          vrecord.selectNewLine({ sublistId: "custpage_sublist_item" });
-          vrecord.setCurrentSublistValue({
-            sublistId: "custpage_sublist_item",
-            fieldId: "custpage_sublist_item_internalid",
-            value: row.getValue("internalid") || " ",
-            ignoreFieldChange: true,
-          });
-          vrecord.setCurrentSublistValue({
-            sublistId: "custpage_sublist_item",
-            fieldId: "custpage_sublist_item_name",
-            value:
-              row.getValue({
-                name: "itemid",
-                sort: search.Sort.ASC,
-              }) || " ",
-            ignoreFieldChange: true,
-          });
-          vrecord.setCurrentSublistValue({
-            sublistId: "custpage_sublist_item",
-            fieldId: "custpage_sublist_upccode",
-            value: row.getValue("upccode") || " ",
-            ignoreFieldChange: true,
-          });
-          vrecord.setCurrentSublistValue({
-            sublistId: "custpage_sublist_item",
-            fieldId: "custpage_sublist_item_no_of_labels",
-            value: 1,
-            ignoreFieldChange: true,
-          });
-          vrecord.commitLine({
-            sublistId: "custpage_sublist_item",
-            ignoreRecalc: true,
-          });
-          i++;
-          return true;
-        });
-        */
-      } catch (error) {
-        console.log("error", error);
-      }
-    }
-    if (context.fieldId == "custpage_item_select_all"){
-      try {
-        var checkBoxAll = vrecord.getValue('custpage_item_select_all');
-        console.log('checkBoxAll', checkBoxAll);
-        let lineTotal = vrecord.getLineCount({
-          sublistId: "custpage_sublist_item",
-      });
-      console.log('lineTotal', lineTotal);
-      var valuetoSet
-      if(checkBoxAll == true){
-        valuetoSet = true
-      }else{
-        valuetoSet = false
-      }
-      for (let i = 0; i < lineTotal; i++) {
-        var lineNum = vrecord.selectLine({
-          sublistId : 'custpage_sublist_item',
-          line : i
-        });
-        console.log('lineNum', lineNum)
-        vrecord.setCurrentSublistValue({
-          sublistId : 'custpage_sublist_item',
-          fieldId : 'custpage_sublist_item_select',
-          value : valuetoSet,
-          ignoreFieldChange: true,
-        });
-        vrecord.commitLine({
-          sublistId: 'custpage_sublist_item'
-        });
-      }
-      }catch(e){
-        console.log('error', e)
-      }
-    }
+
+    var pageContent = pages
+      .map((page) => {
+        var pageRow1 = page[0] || "";
+        var pageRow2 = page[1] || "";
+
+        return `
+        <pdf>
+            <head>
+                ${style}
+            </head>
+            <body padding="0mm 0mm 0mm 1mm" size="custom" width="72mm" height="15mm">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="padding: 1mm; margin: 0;">${pageRow1}</td>
+                        <td style="padding-left: 4mm; margin-left: 1mm;">${pageRow2}</td>
+                    </tr>
+                </table>
+            </body>
+        </pdf>
+    `;
+      })
+      .join("");
+
+    var xml = `<?xml version="1.0"?>
+    <!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
+    <pdfset>
+        ${pageContent}
+    </pdfset>`;
+
+    xml = xml.replace(/ & /g, " &amp; ");
+    response.renderPdf({
+      xmlString: xml,
+    });
   }
 
-  exports.printLabel = printLabel;
-  exports.fieldChanged = fieldChanged;
-  exports.pageInit = pageInit;
-  exports.printRakPDF = printRakPDF;
-
-  return exports;
+  return {
+    onRequest: onRequest,
+  };
 });

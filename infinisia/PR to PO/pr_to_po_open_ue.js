@@ -21,7 +21,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
     }
     try {
       if (context.type == context.UserEventType.CREATE) {
-        log.debug("Debug", "Before Load");
         var poData = context.newRecord;
         var PO_lines, vendorID;
         if (context.request) {
@@ -29,7 +28,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             vendorID = context.request.parameters.vendorID;
             var POlinesStr = context.request.parameters.PO_lines;
             PO_lines = JSON.parse(POlinesStr);
-            log.debug("PO_lines", PO_lines);
           }
         }
         if (vendorID) {
@@ -39,7 +37,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
           });
 
           var currentEmployee = runtime.getCurrentUser();
-          log.debug("currentEmployee", currentEmployee.id);
           poData.setValue({
             fieldId: "employee",
             value: currentEmployee.id,
@@ -83,7 +80,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             }
             var poSalesRep = POLine.salesRepID;
             var poCustomerID = POLine.customerID;
-            log.debug('poCustomerID', poCustomerID)
             var incomingStock = POLine.incomingStock;
             var currentStock = POLine.currentStock;
             var quantity = POLine.quantity;
@@ -114,8 +110,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 line: line_idx,
                 value: poItem,
               });
-              log.debug('internalIDPR', internalIDPR)
-              poData.setSublistValue({
+               poData.setSublistValue({
                 sublistId: "item",
                 fieldId: "custcol_abj_pr_number",
                 line: line_idx,
@@ -273,6 +268,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         });
       }
     }
+   
   }
 
   function afterSubmit(context) {
@@ -322,7 +318,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         }
         log.debug('dataFromPR', dataFromPR)
         fromPRID.forEach(function (internalid) {
-          log.debug("internalid", internalid);
           var prData = record.load({
             type: "purchaseorder",
             id: internalid,
@@ -334,40 +329,43 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             ignoreFieldChange: true,
           });
           var lineinPr = prData.getLineCount({
-            sublistId : "item"
+            sublistId : "recmachcustrecord_iss_pr_parent"
           });
           if(lineinPr > 0){
             for(var i = 0; i < lineinPr; i++){
               var itemId = prData.getSublistValue({
-                  sublistId : "item",
-                  fieldId : "item",
+                  sublistId : "recmachcustrecord_iss_pr_parent",
+                  fieldId : "custrecord_iss_pr_item",
                   line : i
               });
               var line_id = prData.getSublistValue({
-                sublistId : "item",
-                fieldId : "line",
+                sublistId : "recmachcustrecord_iss_pr_parent",
+                fieldId : "id",
                 line : i
               });
               var currntQtyPO = prData.getSublistValue({
-                sublistId : "item",
-                fieldId : "custcol_abj_qty_po",
+                sublistId : "recmachcustrecord_iss_pr_parent",
+                fieldId : "custrecord_prsum_qtypo",
                 line : i
               }) || 0;
-              log.debug('currntQtyPO', currntQtyPO)
-              log.debug('line_id', line_id)
+              
               var matchingData = dataFromPR.find(function (data) {
-                log.debug('data.lineId', data.lineId)
+                log.debug('data.internalidPR', data.internalidPR)
+                log.debug('internalid', internalid);
+                log.debug('data.itemIdData', data.itemIdData);
+                log.debug('itemId', itemId)
+                log.debug('data.lineId', data.lineId);
+                log.debug('line_id', line_id)
                 return data.internalidPR === internalid && data.itemIdData === itemId && data.lineId == line_id;
               });
-
               if (matchingData) {
                 log.debug('matchingDataqty', matchingData.qtyData)
                 var qtyPo  = Number(currntQtyPO) + Number(matchingData.qtyData)
                 
                 log.debug('qtyPo', qtyPo)
                 prData.setSublistValue({
-                  sublistId: "item",
-                  fieldId: "custcol_abj_qty_po",
+                  sublistId: "recmachcustrecord_iss_pr_parent",
+                  fieldId: "custrecord_prsum_qtypo",
                   line: i,
                   value: qtyPo
                 });
@@ -382,6 +380,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         });
       }
     }
+    
   }
 
   return {

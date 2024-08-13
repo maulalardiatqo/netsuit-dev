@@ -63,7 +63,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       var currentRecord = createSublist("custpage_sublist_item", form);
 
       var prToPO = search.load({
-        id: "customsearch_pr_to_po",
+        id: "customsearch1021",
       });
       var prToPOSet = prToPO.run();
       var prToPO = prToPOSet.getRange(0, 50);
@@ -165,7 +165,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let cek1 =  prToPO[i].getValue({
             name: prToPOSet.columns[25],
           });
-          let totalOrder = parseFloat(qty || 0) - parseFloat(qtyPO || 0)
+          let totalOrder = Math.abs(parseFloat(qty || 0)) - parseFloat(qtyPO || 0);
           var itemRate
           if(totalOrder > 0){
             if(cek1 || cek1 != ''){
@@ -315,7 +315,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_taxitem",
-              value: taxItem || " ",
+              value: 5,
               line: i,
             });
             currentRecord.setSublistValue({
@@ -380,7 +380,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       });
 
       var prToPO = search.load({
-        id: "customsearch_pr_to_po",
+        id: "customsearch1021",
       });
       if (filterVendor) {
         prToPO.filters.push(
@@ -502,13 +502,12 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let lineId = prToPO[i].getValue({
             name : prToPOSet.columns[29]
           })
-          log.debug('soNumber', soNumber);
-          log.debug('soNumberText', soNumberText);
+          log.debug('qty', qty)
+          let totalOrder = Math.abs(parseFloat(qty || 0)) - parseFloat(qtyPO || 0);
+          var itemRate
           let cek1 = prToPO[i].getValue({
             name: prToPOSet.columns[25],
           });
-          let totalOrder = parseFloat(qty || 0) - parseFloat(qtyPO || 0) 
-          var itemRate
           if(totalOrder > 0){
             if(cek1 || cek1 != ''){
               itemRate = cek1
@@ -656,7 +655,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_taxitem",
-              value: taxItem || " ",
+              value: 5,
               line: i,
             });
             currentRecord.setSublistValue({
@@ -774,6 +773,8 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       id: "custpage_sublist_customer",
       label: "CUSTOMER",
       type: serverWidget.FieldType.TEXT,
+    }).updateDisplayType({
+      displayType: serverWidget.FieldDisplayType.HIDDEN,
     });
 
     sublist_in.addField({
@@ -838,6 +839,9 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       id: "custpage_sublist_sonumber_text",
       label: "SO NUMBER",
       type: serverWidget.FieldType.TEXT,
+    })
+    .updateDisplayType({
+      displayType: serverWidget.FieldDisplayType.HIDDEN,
     });
 
     sublist_in.addField({
@@ -949,7 +953,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       .addField({
         id: "custpage_sublist_taxrate",
         label: "TAX RATE",
-        type: serverWidget.FieldType.PERCENT,
+        type: serverWidget.FieldType.TEXT,
       })
       .updateDisplayType({
         displayType: serverWidget.FieldDisplayType.HIDDEN,
