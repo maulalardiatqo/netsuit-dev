@@ -80,6 +80,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             }
             var poSalesRep = POLine.salesRepID;
             var poCustomerID = POLine.customerID;
+            log.debug('poCustomerID', poCustomerID)
             var incomingStock = POLine.incomingStock;
             var currentStock = POLine.currentStock;
             var quantity = POLine.quantity;
@@ -93,9 +94,11 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             var itemRate = POLine.itemRate;
             var taxItem = POLine.taxItem;
             var soNO = POLine.soNO;
+            log.debug('soNO', soNO)
             var taxItemRate = POLine.taxItemRate;
             var poPackSize = POLine.packSize;
             var poSoNumber = POLine.soNumber;
+            log.debug('poSoNumber', poSoNumber)
             var internalIDPR = POLine.internalIDPR;
             var lineId = POLine.lineId
             arrayPR.push(internalIDPR);
@@ -169,6 +172,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 fieldId: "custcol6",
                 line: line_idx,
                 value: osPO,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "customer",
+                line: line_idx,
+                value: poCustomerID,
               });
               poData.setSublistValue({
                 sublistId: "item",

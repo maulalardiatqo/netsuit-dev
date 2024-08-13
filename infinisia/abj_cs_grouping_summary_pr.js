@@ -199,7 +199,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                 currentRecordObj.setCurrentSublistValue({
                                     sublistId: 'recmachcustrecord_iss_pr_parent',
                                     fieldId: 'custrecord_iss_pack_size',
-                                    value: poCustomer
+                                    value: units
                                 });
                                 currentRecordObj.commitLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
                                 found = true;
@@ -254,6 +254,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             sublistId: 'recmachcustrecord_iss_pr_parent',
                             fieldId: 'custrecord_prsum_po_customer',
                             value: poCustomer
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_iss_pack_size',
+                            value: units
                         });
                         currentRecordObj.commitLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
                     }
