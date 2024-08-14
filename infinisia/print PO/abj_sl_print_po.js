@@ -393,7 +393,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             style += "<style type='text/css'>";
             style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
             style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
-            style += ".tg .tg-img-logo{width:150px; height:90px; object-vit:cover;}";
+            style += ".tg .tg-img-logo{width:280px; height:90px; object-vit:cover;}";
             style += ".tg .tg-headerrow{align: right;font-size:12px;}";
             style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
             style += ".tg .tg-headerrow_Total{align: right;font-size:16px;word-break:break-all; font-weight: bold;}";
@@ -429,14 +429,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<tr>";
             body += "<td>";
             body += "<p class='tg-headerrow_left'>"+ venName+ "<br/>"
-            body += ""+ venAddres + "<br/>"
-            body += "NPWP : "+ taxRegNo + "</p>"
+            body += ""+ venAddres + "<br/></p>"
             body += "</td>"
             body += "<td>"
             body += "<p class='tg-headerrow_legalName'> Purchase Order # : "+ tandId + "<br/>"
             body += ""+ POdate + "</p>"
-            body += "<p class='tg-headerrow' style='font-size:11px'> Terms : "+ terms + "<br/>"
-            body += "Due Date :"+duedate+ "</p>"
+            body += "<p class='tg-headerrow' style='font-size:11px'> Terms : "+ terms + "<br/></p>"
             body += "</td>"
             body += "</tr>"
             body += "<tr style='height:30px;'>";
@@ -509,6 +507,49 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>"+jobNumber+"</td>"
             body += "</tr>"
             body += "</tbody>";
+            body += "</table>";
+
+            body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
+            body += "<tr>"
+            body += "<td style='width:15%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:20%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:30%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:20%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:15%'></td>"
+            body += "</tr>"
+
+            body += "<tr>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style='align:center'>Vendor</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style='align:center'>Purchasing</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "</tr>"
+
+            body += "<tr>"
+            body += "<td style='height:40px' colspan='9'></td>"
+            body += "</tr>"
+
+            body += "<tr>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style='align:center; border-bottom:1px solid black;'></td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style='align:center; border-bottom:1px solid black;'></td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "</tr>"
+
             body += "</table>";
 
             footer += "<table class='tg' style='table-layout: fixed;'>";

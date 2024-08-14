@@ -69,6 +69,31 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     fieldId: 'units',
                     line: index
                 });
+                var tanggalKirim = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol14',
+                    line: index
+                })
+                var rumusPerhitungan = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol_pr_rumus_perhitungan',
+                    line: index
+                })
+                var avgPengBusdev = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol10',
+                    line: index
+                })
+                var avgPengAcc = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol11',
+                    line: index
+                })
+                var leadTimeKirim = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol8',
+                    line: index
+                })
                 
                 allData.push({
                     item: item,
@@ -80,7 +105,12 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     foreCastBuffer: foreCastBuffer,
                     totalOrder: totalOrder,
                     poCustomer: poCustomer,
-                    units : units
+                    units : units,
+                    tanggalKirim : tanggalKirim,
+                    rumusPerhitungan : rumusPerhitungan,
+                    avgPengBusdev : avgPengBusdev,
+                    avgPengAcc : avgPengAcc,
+                    leadTimeKirim : leadTimeKirim
                 });
             }
             console.log('allData', allData);
@@ -96,6 +126,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         salesRep: data.salesRep,
                         customerId: data.customerId,
                         units : data.units,
+                        tanggalKirim : data.tanggalKirim,
+                        rumusPerhitungan : 0,
+                        avgPengBusdev : 0,
+                        avgPengAcc : 0,
+                        leadTimeKirim : data.leadTimeKirim,
                         onHand: 0,
                         incomingStock: 0,
                         osPo: 0,
@@ -110,6 +145,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 groupedData[groupKey].osPo += data.osPo;
                 groupedData[groupKey].foreCastBuffer += Number(data.foreCastBuffer);
                 groupedData[groupKey].totalOrder += data.totalOrder;
+                groupedData[groupKey].avgPengAcc += data.avgPengAcc;
+                groupedData[groupKey].avgPengBusdev += data.avgPengBusdev;
+                groupedData[groupKey].rumusPerhitungan += data.rumusPerhitungan;
                 if (data.poCustomer && data.poCustomer.trim() !== "") {
                     groupedData[groupKey].poCustomer.push(data.poCustomer);
                 }
@@ -134,6 +172,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     var foreCastBuffer = data.foreCastBuffer;
                     var totalOrder = data.totalOrder;
                     var poCustomer = data.poCustomer;
+                    var leadTimeKirim = data.leadTimeKirim
+                    var rumusPerhitungan = data.rumusPerhitungan
+                    var avgPengBusdev = data.avgPengBusdev
+                    var avgPengAcc = data.avgPengAcc
+                    var tanggalKirim = data.tanggalKirim
                     var keyItem = item + "-" + salesRep + "-" + customerId;
                     var countLineInCustom = currentRecordObj.getLineCount({
                         sublistId: "recmachcustrecord_iss_pr_parent"
@@ -201,6 +244,31 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                     fieldId: 'custrecord_iss_pack_size',
                                     value: units
                                 });
+                                currentRecordObj.setCurrentSublistValue({
+                                    sublistId: 'recmachcustrecord_iss_pr_parent',
+                                    fieldId: 'custrecord_iss_lead_time',
+                                    value: leadTimeKirim
+                                });
+                                currentRecordObj.setCurrentSublistValue({
+                                    sublistId: 'recmachcustrecord_iss_pr_parent',
+                                    fieldId: 'custrecord_iss_rumus_perhitungan',
+                                    value: rumusPerhitungan
+                                });
+                                currentRecordObj.setCurrentSublistValue({
+                                    sublistId: 'recmachcustrecord_iss_pr_parent',
+                                    fieldId: 'custrecord_iss_avg_busdev',
+                                    value: avgPengBusdev
+                                });
+                                currentRecordObj.setCurrentSublistValue({
+                                    sublistId: 'recmachcustrecord_iss_pr_parent',
+                                    fieldId: 'custrecord_iss_avg_accounting',
+                                    value: avgPengAcc
+                                });
+                                currentRecordObj.setCurrentSublistValue({
+                                    sublistId: 'recmachcustrecord_iss_pr_parent',
+                                    fieldId: 'custrecord_iss_tgl_kirim',
+                                    value: tanggalKirim
+                                });
                                 currentRecordObj.commitLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
                                 found = true;
                                 break;
@@ -259,6 +327,31 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             sublistId: 'recmachcustrecord_iss_pr_parent',
                             fieldId: 'custrecord_iss_pack_size',
                             value: units
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_iss_lead_time',
+                            value: leadTimeKirim
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_iss_rumus_perhitungan',
+                            value: rumusPerhitungan
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_iss_avg_busdev',
+                            value: avgPengBusdev
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_iss_avg_accounting',
+                            value: avgPengAcc
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_iss_pr_parent',
+                            fieldId: 'custrecord_iss_tgl_kirim',
+                            value: tanggalKirim
                         });
                         currentRecordObj.commitLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
                     }

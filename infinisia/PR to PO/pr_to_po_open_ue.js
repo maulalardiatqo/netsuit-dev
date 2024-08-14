@@ -207,7 +207,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
               });
               poData.setSublistValue({
                 sublistId: "item",
-                fieldId: "custcol12",
+                fieldId: "units",
                 line: line_idx,
                 value: poPackSize,
               });
@@ -381,11 +381,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
               }
             }
           }
-         
-          prData.save({
-            enableSourcing: true,
-            ignoreMandatoryFields: true,
-          });
         });
       }
     }

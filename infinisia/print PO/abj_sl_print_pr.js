@@ -248,23 +248,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<tr>"
             body += "<td style='width:5%'></td>"
             body += "<td style='width:1%'></td>"
-            body += "<td style='width:10%'></td>"
+            body += "<td style='width:17%'></td>"
             body += "<td style='width:1%'></td>"
             body += "<td style='width:5%'></td>"
             body += "<td style='width:1%'></td>"
-            body += "<td style='width:10%'></td>"
+            body += "<td style='width:17%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:17%'></td>"
             body += "<td style='width:1%'></td>"
             body += "<td style='width:5%'></td>"
             body += "<td style='width:1%'></td>"
             body += "<td style='width:16%'></td>"
-            body += "<td style='width:1%'></td>"
-            body += "<td style='width:5%'></td>"
-            body += "<td style='width:1%'></td>"
-            body += "<td style='width:12%'></td>"
-            body += "<td style='width:1%'></td>"
-            body += "<td style='width:5%'></td>"
-            body += "<td style='width:1%'></td>"
-            body += "<td style='width:12%'></td>"
             body += "<td style='width:1%'></td>"
             body += "<td style='width:5%'></td>"
             body += "</tr>";
@@ -284,15 +280,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td style=''></td>"
             body += "<td style=''></td>"
             body += "<td style=''></td>"
-            body += "<td style='align:center;'>DIPROSES OLEH,</td>"
-            body += "<td style=''></td>"
-            body += "<td style=''></td>"
-            body += "<td style=''></td>"
             body += "<td style='align:center;'>DIKETAHUI OLEH,</td>"
             body += "<td style=''></td>"
             body += "<td style=''></td>"
             body += "</tr>";
-
             body += "<tr>"
             body += "<td style='height:40px' colspan='20'></td>"
             body += "</tr>";
@@ -309,10 +300,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td style=''></td>"
             body += "<td style=''>(</td>"
             body += "<td style='align:center;'>OPERATIONAL DIRECTOR</td>"
-            body += "<td style=''>)</td>"
-            body += "<td style=''></td>"
-            body += "<td style=''>(</td>"
-            body += "<td style='align:center;'>PURCHASING</td>"
             body += "<td style=''>)</td>"
             body += "<td style=''></td>"
             body += "<td style=''>(</td>"
@@ -364,6 +351,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             });
             var itemName = fieldLookUpSection.itemid;
             log.debug('itemName', itemName)
+            var itemParts = itemName.split(' ', 2);
+            var itemCode = itemParts[0]; // BN-S004
+            var itemDescription = itemName.substring(itemCode.length + 1); // SUNCAT MTA
             var lengthDataItem = dataItem.items.length;
             log.debug('lengthDataItem', lengthDataItem)
             let html = "";
@@ -372,8 +362,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if(index === 0){
                     html += `<tr>
                         <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;" rowspan="${lengthDataItem}">${nomor}</td>
-                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;" rowspan="${lengthDataItem}">${itemId}</td>
-                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;" rowspan="${lengthDataItem}">${itemName}</td>`;
+                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;" rowspan="${lengthDataItem}">${itemCode}</td>
+                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;" rowspan="${lengthDataItem}">${itemDescription}</td>`;
                 } else {
                     html += `<tr>`;
                 }
@@ -434,6 +424,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fieldId: 'custrecord_iss_pr_item',
                         line: index
                     });
+                    log.debug('itemText', itemText)
+                    var itemParts = itemText.split(' ', 2);
+                    var itemCode = itemParts[0]; // BN-S004
+                    var itemDescription = itemText.substring(itemCode.length + 1); // SUNCAT MTA
+
+                    log.debug('Item Code', itemCode);
+                    log.debug('Item Description', itemDescription);
                     // var onHand = poRecord.getSublistText({
                     //     sublistId: 'item',
                     //     fieldId: 'quantityonhand',
@@ -450,23 +447,27 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fieldId: 'custrecord_iss_pr_incoming_stock',
                         line: index
                     })) || 0;
-                    var salesRepCode
-                    var salesId = poRecord.getSublistValue({
+                    var salesRepCode = poRecord.getSublistText({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
                         fieldId: 'custrecord_prsum_salesrep',
                         line: index
                     });
-                    if(salesId){
-                        var empRec = record.load({
-                            type: "employee",
-                            id: salesId,
-                            isDynamic: false,
-                        });
-                        var employeeId = empRec.getValue('entityid');
-                        if(employeeId){
-                            salesRepCode = employeeId
-                        }
-                    }
+                    // var salesId = poRecord.getSublistValue({
+                    //     sublistId: 'recmachcustrecord_iss_pr_parent',
+                    //     fieldId: 'custrecord_prsum_salesrep',
+                    //     line: index
+                    // });
+                    // if(salesId){
+                    //     var empRec = record.load({
+                    //         type: "employee",
+                    //         id: salesId,
+                    //         isDynamic: false,
+                    //     });
+                    //     var employeeId = empRec.getValue('entityid');
+                    //     if(employeeId){
+                    //         salesRepCode = employeeId
+                    //     }
+                    // }
                     var customer = poRecord.getSublistText({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
                         fieldId: 'custrecord_prsum_customer',
@@ -482,12 +483,27 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fieldId: 'custrecord_prsum_po_customer',
                         line: index
                     });
-                    var tglKirim = poRecord.getSublistValue({
+                    var noSOId = poRecord.getSublistValue({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_tgl_kirim',
+                        fieldId: 'custrecord_iss_no_po',
                         line: index
                     });
-                    if(tglKirim){
+                    log.debug('noSOId', noSOId)
+                    var tglKirim = ""
+                    if(noSOId){
+                        recSo = record.load({
+                            type: "salesorder",
+                            id: noSOId,
+                            isDynamic: false,
+                        });
+                        var shipDate = recSo.getValue('shipdate');
+                        log.debug('shipdate', shipDate)
+                        if(shipDate){
+                            tglKirim = shipDate
+                        }
+                    }
+                    
+                    if(tglKirim != ""){
                         tglKirim = format.format({
                             value: tglKirim,
                             type: format.Type.DATE
@@ -526,6 +542,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     dataItem.push({
                         itemId : itemId,
                         itemText : itemText,
+                        itemDescription : itemDescription,
+                        itemCode : itemCode,
                         onHand : onHand,
                         inComingStock : inComingStock,
                         salesRepCode : salesRepCode,

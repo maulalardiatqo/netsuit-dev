@@ -129,6 +129,11 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let units = prToPO[i].getValue({
             name: prToPOSet.columns[17],
           });
+          log.debug('units', units)
+          let unitsText = prToPO[i].getText({
+            name: prToPOSet.columns[17],
+          });
+          log.debug('unitText', unitsText)
           let docNumber = prToPO[i].getValue({
             name: prToPOSet.columns[18],
           });
@@ -145,6 +150,9 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             name: prToPOSet.columns[22],
           });
           let packSize = prToPO[i].getValue({
+            name: prToPOSet.columns[23],
+          });
+          let packSizeText = prToPO[i].getText({
             name: prToPOSet.columns[23],
           });
           let soNumber = prToPO[i].getValue({
@@ -344,6 +352,12 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             });
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_packsize_text",
+              value: packSizeText || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
               id: "custpage_sublist_sonumber",
               value: soNumber || " ",
               line: i,
@@ -469,6 +483,9 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let units = prToPO[i].getValue({
             name: prToPOSet.columns[17],
           });
+          let unitsText = prToPO[i].getText({
+            name: prToPOSet.columns[17],
+          });
           let docNumber = prToPO[i].getValue({
             name: prToPOSet.columns[18],
           });
@@ -485,6 +502,9 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             name: prToPOSet.columns[22],
           });
           let packSize = prToPO[i].getValue({
+            name: prToPOSet.columns[23],
+          });
+          let packSizeText = prToPO[i].getText({
             name: prToPOSet.columns[23],
           });
           let soNumber = prToPO[i].getValue({
@@ -684,6 +704,12 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             });
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_packsize_text",
+              value: packSizeText || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
               id: "custpage_sublist_sonumber",
               value: soNumber || " ",
               line: i,
@@ -832,6 +858,13 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
 
     sublist_in.addField({
       id: "custpage_sublist_packsize",
+      label: "PACK SIZE",
+      type: serverWidget.FieldType.TEXT,
+    }) .updateDisplayType({
+      displayType: serverWidget.FieldDisplayType.HIDDEN,
+    });
+    sublist_in.addField({
+      id: "custpage_sublist_packsize_text",
       label: "PACK SIZE",
       type: serverWidget.FieldType.TEXT,
     });
