@@ -12,13 +12,13 @@ define(["N/record", "N/search", "N/config"], function(
         function afterSubmit(context) {
             try {
                 if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT ) {
-                    log.debug('masuk')
                     var rec = context.newRecord;
                     var dataRec = record.load({
                         type: rec.type,
                         id: rec.id,
                         isDynamic: false
                     })
+                    var idRec = rec.id
                     var cForm =  dataRec.getValue('customform');
                     log.debug('cForm', cForm)
                     if(cForm != 138){
@@ -26,6 +26,7 @@ define(["N/record", "N/search", "N/config"], function(
                             sublistId : "item"
                         });
                         log.debug('dataLineCount', dataLineCount)
+                        var allDataPr = []
                         if(dataLineCount > 0){
                             for(var i = 0; i < dataLineCount; i++){
                                 var itemIdData = dataRec.getSublistValue({
@@ -38,9 +39,24 @@ define(["N/record", "N/search", "N/config"], function(
                                     fieldId : "custcol_msa_id_line_from_pr",
                                     line : i
                                 })
+                                var quantity = dataRec.getSublistValue({
+                                    sublistId : "item",
+                                    fieldId : "quantity",
+                                    line : i
+                                })
                                 var internalidPR = dataRec.getSublistValue({
                                     sublistId : "item",
                                     fieldId : "custcol_abj_pr_number",
+                                    line : i
+                                });
+                                var rate = dataRec.getSublistValue({
+                                    sublistId : "item",
+                                    fieldId : "rate",
+                                    line : i
+                                });
+                                var taxCode = dataRec.getSublistValue({
+                                    sublistId : "item",
+                                    fieldId : "taxcode",
                                     line : i
                                 });
                                 log.debug('internalidPR', internalidPR)
@@ -103,8 +119,107 @@ define(["N/record", "N/search", "N/config"], function(
                                         value:packSize
                                     });
                                 }
+                                log.debug('data',{
+                                    rate:rate,
+                                    taxCode:taxCode
+                                })
+                                dataRec.setSublistValue({
+                                    sublistId:'item',
+                                    fieldId:'rate',
+                                    line:i,
+                                    value:rate
+                                });
+                                dataRec.setSublistValue({
+                                    sublistId:'item',
+                                    fieldId:'taxcode',
+                                    line:i,
+                                    value:taxCode
+                                });
+                                log.debug('quantity', quantity)
+                                dataRec.setSublistValue({
+                                    sublistId:'item',
+                                    fieldId:'quantity',
+                                    line:i,
+                                    value:quantity
+                                });
+                                var prId = dataRec.getSublistValue({
+                                    sublistId : "item",
+                                    fieldId : "custcol_abj_pr_number",
+                                    line : i
+                                });
+                                var lineIdPr = dataRec.getSublistValue({
+                                    sublistId : "item",
+                                    fieldId : "custcol_abj_customer_line",
+                                    line : i
+                                });
+                                allDataPr.push({
+                                    idRec : idRec,
+                                    prId:prId,
+                                    lineIdPr:lineIdPr,
+                                    itemIdData: itemIdData,
+                                    quantity : quantity
+                                })
                                 
                             }
+                            allDataPr.forEach(function(prData) {
+                                var prId = prData.prId;
+                                var lineIdPr = prData.lineIdPr
+                                var itemIdData = prData.itemIdData
+                                var idRec = prData.idRec
+                                var quantity = prData.quantity
+
+                                var prData = record.load({
+                                    type: "purchaseorder",
+                                    id: prId,
+                                    isDynamic: false,
+                                });
+                                prData.setValue({
+                                    fieldId: "custbody_po_converted",
+                                    value: idRec,
+                                    ignoreFieldChange: true,
+                                });
+                                var lineinPr = prData.getLineCount({
+                                    sublistId : "recmachcustrecord_iss_pr_parent"
+                                });
+                                log.debug('lineinPr', lineinPr)
+                                if(lineinPr > 0){
+                                    for(var i = 0; i < lineinPr; i++){
+                                        var itemId = prData.getSublistValue({
+                                            sublistId : "recmachcustrecord_iss_pr_parent",
+                                            fieldId : "custrecord_iss_pr_item",
+                                            line : i
+                                        });
+                                        log.debug('itemId', itemId)
+                                        var line_id = prData.getSublistValue({
+                                            sublistId : "recmachcustrecord_iss_pr_parent",
+                                            fieldId : "custrecord_prsum_customer",
+                                            line : i
+                                        });
+                                        log.debug('line_id', line_id)
+                                        var currntQtyPO = prData.getSublistValue({
+                                            sublistId : "recmachcustrecord_iss_pr_parent",
+                                            fieldId : "custrecord_prsum_qtypo",
+                                            line : i
+                                        }) || 0;
+                                        
+                                        if (itemId === itemIdData && lineIdPr === line_id) {
+                                            var qtyPo  = Number(currntQtyPO) + Number(quantity)
+                                            log.debug('qtyPo', qtyPo)
+                                            prData.setSublistValue({
+                                                sublistId: "recmachcustrecord_iss_pr_parent",
+                                                fieldId: "custrecord_prsum_qtypo",
+                                                line: i,
+                                                value: qtyPo
+                                            });
+                                        }
+                                    }
+                                }
+                                var savePr = prData.save({
+                                    enableSourcing: true,
+                                    ignoreMandatoryFields: true,
+                                });
+                                log.debug('savePr', savePr)
+                            })
                             var savePo = dataRec.save({
                                 enableSourcing: true,
                                 ignoreMandatoryFields: true,

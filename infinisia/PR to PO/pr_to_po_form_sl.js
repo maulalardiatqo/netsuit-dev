@@ -67,7 +67,6 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       });
       var prToPOSet = prToPO.run();
       var prToPO = prToPOSet.getRange(0, 50);
-      log.debug("prToPO", prToPO);
       if (prToPO.length > 0) {
         for (let i = 0; i < prToPO.length; i++) {
           let itemName = prToPO[i].getText({
@@ -97,7 +96,6 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let customerID = prToPO[i].getValue({
             name: prToPOSet.columns[26],
           });
-          log.debug('customerID', customerID)
           let forecastBusdev = prToPO[i].getValue({
             name: prToPOSet.columns[6],
           });
@@ -129,11 +127,9 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let units = prToPO[i].getValue({
             name: prToPOSet.columns[17],
           });
-          log.debug('units', units)
           let unitsText = prToPO[i].getText({
             name: prToPOSet.columns[17],
           });
-          log.debug('unitText', unitsText)
           let docNumber = prToPO[i].getValue({
             name: prToPOSet.columns[18],
           });
@@ -170,6 +166,10 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let lineId = prToPO[i].getValue({
             name : prToPOSet.columns[29]
           })
+          let currency = prToPO[i].getValue({
+            name : prToPOSet.columns[31]
+          })
+          log.debug('currency', currency)
           let cek1 =  prToPO[i].getValue({
             name: prToPOSet.columns[25],
           });
@@ -374,6 +374,12 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               value: lineId || " ",
               line: i,
             });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_currency",
+              value: currency || " ",
+              line: i,
+            });
           }
          
         }
@@ -422,7 +428,6 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       var prToPO = prToPOSet.getRange(0, 1000);
 
       var currentRecord = createSublist("custpage_sublist_item", form);
-      log.debug("prToPO", prToPO);
       if (prToPO.length > 0) {
         for (let i = 0; i < prToPO.length; i++) {
           let itemName = prToPO[i].getText({
@@ -452,7 +457,6 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let customerID = prToPO[i].getValue({
             name: prToPOSet.columns[26],
           });
-          log.debug('customerID', customerID)
           let forecastBusdev = prToPO[i].getValue({
             name: prToPOSet.columns[6],
           });
@@ -522,7 +526,10 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let lineId = prToPO[i].getValue({
             name : prToPOSet.columns[29]
           })
-          log.debug('qty', qty)
+          let currency = prToPO[i].getValue({
+            name : prToPOSet.columns[31]
+          })
+          log.debug('currency', currency)
           let totalOrder = Math.abs(parseFloat(qty || 0)) - parseFloat(qtyPO || 0);
           var itemRate
           let cek1 = prToPO[i].getValue({
@@ -726,6 +733,12 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               value: lineId || " ",
               line: i,
             });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_currency",
+              value: currency || " ",
+              line: i,
+            });
           }
           
         }
@@ -855,6 +868,13 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       label: "NOTE",
       type: serverWidget.FieldType.TEXT,
     });
+    sublist_in.addField({
+      id: "custpage_sublist_currency",
+      label: "Currency",
+      type: serverWidget.FieldType.TEXT,
+    }).updateDisplayType({
+      displayType: serverWidget.FieldDisplayType.HIDDEN,
+    });
 
     sublist_in.addField({
       id: "custpage_sublist_packsize",
@@ -863,6 +883,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
     }) .updateDisplayType({
       displayType: serverWidget.FieldDisplayType.HIDDEN,
     });
+   
     sublist_in.addField({
       id: "custpage_sublist_packsize_text",
       label: "PACK SIZE",

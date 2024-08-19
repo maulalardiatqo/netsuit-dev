@@ -38,6 +38,7 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
       });
       var vendorID = records.getValue("custpage_vendor");
       var employyeId = records.getValue("employee")
+      var currencySet = ""
       console.log("count", count);
       if (vendorID) {
         for (var j = 0; j < count; j++) {
@@ -163,7 +164,15 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               fieldId: "custpage_sublist_line_id",
               line: j,
             });
-
+            var currency = records.getSublistValue({
+              sublistId: "custpage_sublist_item",
+              fieldId: "custpage_sublist_currency",
+              line: j,
+            });
+            if(currency){
+              currencySet = currency
+            }
+            
             dataLine.push({
               itemID: itemID,
               currentStock: currentStock,
@@ -188,7 +197,8 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               internalIDPR: internalIDPR,
               employyeId : employyeId,
               quantityPO : quantityPO,
-              lineId : lineId
+              lineId : lineId,
+              currency : currency
             });
           }
         }
@@ -200,7 +210,7 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
         var createURL = url.resolveRecord({
           recordType: "purchaseorder",
           isEditMode: true,
-          params: { vendorID: vendorID, PO_lines: dataLineString },
+          params: { vendorID: vendorID, PO_lines: dataLineString, currencySet : currencySet },
         });
         window.open(createURL, "_blank");
       } else {

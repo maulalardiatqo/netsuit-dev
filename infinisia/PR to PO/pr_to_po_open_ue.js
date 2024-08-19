@@ -22,10 +22,11 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
     try {
       if (context.type == context.UserEventType.CREATE) {
         var poData = context.newRecord;
-        var PO_lines, vendorID;
+        var PO_lines, vendorID, currencySet;
         if (context.request) {
           if (context.request.parameters) {
             vendorID = context.request.parameters.vendorID;
+            currencySet = context.request.parameters.currencySet;
             var POlinesStr = context.request.parameters.PO_lines;
             PO_lines = JSON.parse(POlinesStr);
           }
@@ -35,7 +36,13 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             fieldId: "customform",
             value: 104,
           });
-
+          log.debug('currencySet', currencySet)
+          if(currencySet){
+            poData.setValue({
+              fieldId: "currency",
+              value: currencySet,
+            });
+          }
           var currentEmployee = runtime.getCurrentUser();
           poData.setValue({
             fieldId: "employee",
@@ -80,7 +87,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             }
             var poSalesRep = POLine.salesRepID;
             var poCustomerID = POLine.customerID;
-            log.debug('poCustomerID', poCustomerID)
             var incomingStock = POLine.incomingStock;
             var currentStock = POLine.currentStock;
             var quantity = POLine.quantity;
@@ -94,11 +100,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             var itemRate = POLine.itemRate;
             var taxItem = POLine.taxItem;
             var soNO = POLine.soNO;
-            log.debug('soNO', soNO)
             var taxItemRate = POLine.taxItemRate;
             var poPackSize = POLine.packSize;
             var poSoNumber = POLine.soNumber;
-            log.debug('poSoNumber', poSoNumber)
             var internalIDPR = POLine.internalIDPR;
             var lineId = POLine.lineId
             arrayPR.push(internalIDPR);
@@ -268,7 +272,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
     if (context.type == context.UserEventType.CREATE) {
       var dataRec = context.newRecord;
       var isConvertPR = dataRec.getValue("custbody_convert_from_pr");
-      log.debug("isConvertPR", isConvertPR);
       if (isConvertPR) {
         dataRec.setValue({
           fieldId: "customform",
@@ -286,7 +289,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
       var dataRecID = context.newRecord.id;
       var isConvertPR = dataRec.getValue("custbody_convert_from_pr");
       var fromPRID = dataRec.getValue("custbody_convert_from_prid");
-      log.debug("fromPRID", fromPRID);
       if (isConvertPR && fromPRID) {
         var dataLineCount = dataRec.getLineCount({
           sublistId : "item"

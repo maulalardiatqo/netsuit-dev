@@ -489,19 +489,23 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         line: index
                     });
                     log.debug('noSOId', noSOId)
-                    var tglKirim = ""
-                    if(noSOId){
-                        recSo = record.load({
-                            type: "salesorder",
-                            id: noSOId,
-                            isDynamic: false,
-                        });
-                        var shipDate = recSo.getValue('shipdate');
-                        log.debug('shipdate', shipDate)
-                        if(shipDate){
-                            tglKirim = shipDate
-                        }
-                    }
+                    var tglKirim = poRecord.getSublistValue({
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_tgl_kirim',
+                        line: index
+                    });
+                    // if(noSOId){
+                    //     recSo = record.load({
+                    //         type: "salesorder",
+                    //         id: noSOId,
+                    //         isDynamic: false,
+                    //     });
+                    //     var shipDate = recSo.getValue('shipdate');
+                    //     log.debug('shipdate', shipDate)
+                    //     if(shipDate){
+                    //         tglKirim = shipDate
+                    //     }
+                    // }
                     
                     if(tglKirim != ""){
                         tglKirim = format.format({

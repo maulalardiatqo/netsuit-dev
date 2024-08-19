@@ -177,7 +177,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var totalWhTaxamountItem = 0;
                 var whtaxammountItem = 0;
                 var whTaxCodetoPrint = ''
-    
+                var otherComment = ""
                 var countItem = invoiceRecord.getLineCount({
                     sublistId: 'item'
                 });
@@ -204,6 +204,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId : 'amount',
                             line : i
                         });
+                        var project = invoiceRecord.getSublistText({
+                            sublistId : 'item',
+                            fieldId : 'class',
+                            line : i
+                        });
+                        if(project){
+                            otherComment = project
+                        }
                         var whTaxCodeI = invoiceRecord.getSublistValue({
                             sublistId : 'item',
                             fieldId : 'custcol_4601_witaxcode',
@@ -245,7 +253,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 // log.debug('taxtotal', taxtotal)
                 var whtaxToCount = whtaxammountItem;
-                var otherComment = invoiceRecord.getValue('custbody3');
+                
+              
+                
                 totalWhTaxamount = totalWhTaxamountItem;
                 if (taxpphList.length > 0) {
                     var taxpphToPrint = taxpphList.join(' & ');
@@ -356,7 +366,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     jobNumber = jobNumber.replace(/&/g, '&amp;');
                 }
                 style += "<style type='text/css'>";
-                style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%; font-family: Times New Roman, serif;}";
+                style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%; font-family: Arial, Helvetica, sans-serif;}";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
                 if(subsidiari == 1){
                     style += ".tg .tg-img-logo{width:150px; height:111px; object-vit:cover;}";
@@ -392,7 +402,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<td style='font-size:25px; font-weight: bold; '>"+legalName+"</td>"
                 body+= "<td></td>"
                 body+= "<td></td>"
-                body+= "<td style='font-size:20px; align:right; color:#e46161; font-weight: bold;'>INVOICE</td>"
+                body+= "<td style='font-size:20px; align:right; color:#EC3333; font-weight: bold;'>INVOICE</td>"
                 body+= "</tr>";
 
                 body+= "<tr>"
@@ -435,7 +445,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                body += "<td style='align:center; width:60%; font-size:15px; font-weight:bold; background-color:#949393'>Bill To :</td>"
+                body += "<td style='align:center; width:60%; font-size:15px; font-weight:bold; background-color:#868686; color:#FCF8F8;'>Bill To :</td>"
                 body += "<td style='align:left; width:40%;'></td>"
                 body+= "</tr>";
                 body+= "</tbody>";
@@ -477,8 +487,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#949393; border:1px solid black;'>Description</td>"
-                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#949393; border:1px solid black;' colspan='3'>AMOUNT</td>"
+                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#868686; color:#FCF8F8; border:1px solid black;'>Description</td>"
+                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#868686; color:#FCF8F8; border:1px solid black;' colspan='3'>AMOUNT</td>"
                 body+= "</tr>";
 
                 body+= "<tr>";
@@ -648,6 +658,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId: 'grossamt',
                             line: index
                         });
+                        var itemText = invoiceRecord.getSublistText({
+                            sublistId: 'item',
+                            fieldId: 'item',
+                            line: index
+                        });
                         if(ammount){
                             ammount = pembulatan(ammount);
                             ammount = format.format({
@@ -659,14 +674,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         
 
                         body += "<tr>";
-                        body += "<td  style='border-left:1px solid black'>"+no+" . "+description+ "</td>";
+                        body += "<td  style='border-left:1px solid black'>"+no+" . "+itemText+ "</td>";
                         body += "<td  style='align:right; border-left:1px solid black;'></td>";
-                        body += "<td  style='align:right;'>IDR</td>";
+                        body += "<td  style='align:left;'>IDR</td>";
                         body += "<td  style='align:right; border-right:1px solid black'>"+ammount+"</td>";
                         body += "</tr>";
                         no++
                     }
-                    var allLine = 75
+                    var allLine = 70
                     var cekLine = 1
                     for (var i=0 ; i < allLine - (no*4) + 1; i++) {
                         body += "<tr>";
