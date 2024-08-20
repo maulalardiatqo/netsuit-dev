@@ -26,21 +26,37 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             function onRequest(context) {
                 var recid = context.request.parameters.id;
                 log.debug('recid', recid);
-                var poRec = record.load({
-                    type: "salesorder",
-                    id: recid,
-                    isDynamic: false,
+                var poSavedLoad = search.load({
+                    id: "customsearch_so_body_for_print",
+                });
+                if(recid){
+                    poSavedLoad.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
+                }
+                var poSavedLoadSet = poSavedLoad.run();
+                var result = poSavedLoadSet.getRange(0, 1);
+                var poRec = result[0];
+
+                var poDate = poRec.getValue({
+                    name: "trandate"
                 });
 
-                var poDate = poRec.getValue("trandate");
+                var tranid = poRec.getValue({name : "tranid"});
+                var employeId = poRec.getValue({ name : "custbody_abj_sales_rep_fulfillment"});
 
-                    var tranid = poRec.getValue("tranid");
-                var employeId = poRec.getValue("custbody_fcn_sales_employee");
+                var subTotal = poRec.getValue({
+                    name: "formulanumeric",
+                    formula: "{amount} - nvl({taxtotal},0) - nvl({shippingamount},0)"
+                });
+                var taxTotal = poRec.getValue({
+                    name: "taxtotal"
+                });
+                var total = poRec.getValue({
+                    name: "total"
+                })
 
-                var subTotal = poRec.getValue("subtotal");
-                var taxTotal = poRec.getValue("taxtotal");
-                var total = poRec.getValue("total")
-
+                var kurs = poRec.getValue({
+                    name: "exchangerate"
+                });
                 var employeeName = '';
                 if(employeId){
                     var empRec = record.load({
@@ -52,7 +68,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var lastName = empRec.getValue("lastname");
                     employeeName = firstName + ' ' + lastName
                 }
-                var vendorId = poRec.getValue("entity");
+                var vendorId =  poRec.getValue({
+                    name: "internalid",
+                    join: "customer"
+                });
                 var vendorName = '';
                 var vendorAddress = '';
                 if(vendorId){
@@ -268,8 +287,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<td class='tg-head_body' style='width:15%; border: 1px solid black;'> AMOUNT </td>"
                 body += "</tr>"
 
-                body += getPOItem(context, poRec);
-                body += getPOExpense(context, poRec);
+                body += getPOItem(context, recid, kurs);
                 
                 body += "</tbody>";
                 body += "</table>";
@@ -394,39 +412,35 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 
                 
             }
-            function getPOItem(context, poRec){
-                var itemCount = poRec.getLineCount({
-                    sublistId: 'item'
+            function getPOItem(context, recid, kurs){
+                var itemSearch =  search.load({
+                    id: "customsearch_so_line_for_print_out",
                 });
-                log.debug('itemCount', itemCount);
-                
-                if(itemCount > 0){
+                var kurs = kurs
+                if(recid){
+                    itemSearch.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
+                }
+                var itemSearchSet = itemSearch.run();
+                var itemCount = itemSearchSet.getRange(0, 100);
+                if(itemCount.length > 0){
                     var body = "";
-                    for(var index = 0; index < itemCount; index++){
-                        var qty = poRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'quantity',
-                            line: index
-                        });
-                        var description = poRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'description',
-                            line: index
-                        });
-                        var rate = poRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'rate',
-                            line: index
-                        });
-                        var uom = poRec.getSublistText({
-                            sublistId: 'item',
-                            fieldId: 'units',
-                            line: index
-                        });
-                        var shippingDate = poRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'expectedreceiptdate',
-                            line: index
+                    for(var index = 0; index < itemCount.length; index++){
+                        var poRecord = itemCount[index]
+                        var qty = poRecord.getValue({
+                            name: "quantity"
+                        })
+                        var description = poRecord.getValue({
+                            name: "salesdescription",
+                            join: "item",
+                        })
+                        var rate = poRecord.getValue({
+                            name: "rate"
+                        })
+                        var uom = poRecord.getValue({
+                            name: "unit"
+                        })
+                        var shippingDate = poRecord.getValue({
+                            name: "shipdate"
                         });
                         if(shippingDate){
                             shippingDate = format.format({
@@ -434,12 +448,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 type: format.Type.DATE
                             });
                         }
-                        var kurs = poRec.getValue("exchangerate");
-                        var amount = poRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'amount',
-                            line: index
-                        });
+                        var amount = poRecord.getValue({
+                            name: "amount"
+                        })
                         var idr = Number(rate) * Number(kurs)
                         log.debug('idr', idr);
 
@@ -480,73 +491,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     return body;
                 }
             }
-            function getPOExpense(context, poRec){
-                var expenseCount = poRec.getLineCount({
-                    sublistId: 'expense'
-                });
-                log.debug('expenseCount', expenseCount);
-                
-                if(expenseCount > 0){
-                    var body = "";
-                    for(var index = 0; index < expenseCount; index++){
-                        var qty = 1
-                        var description = poRec.getSublistValue({
-                            sublistId: 'expense',
-                            fieldId: 'memo',
-                            line: index
-                        });
-                        var rate = poRec.getSublistValue({
-                            sublistId: 'expense',
-                            fieldId: 'amount',
-                            line: index
-                        });;
-                        var uom = '-'
-                        var shippingDate = '-';
-                        var kurs = poRec.getValue("exchangerate");
-                        var amount = poRec.getSublistValue({
-                            sublistId: 'expense',
-                            fieldId: 'amount',
-                            line: index
-                        });
-                        var idr = Number(rate) * Number(kurs)
-                        log.debug('idr', idr);
-
-                        if(rate){
-                            rate = pembulatan(rate)
-                            rate = format.format({
-                                value: rate,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        if(idr){
-                            idr = pembulatan(idr)
-                            idr = format.format({
-                                value: idr,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        if(amount){
-                            amount = pembulatan(amount)
-                            amount = format.format({
-                                value: amount,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        body += "<tr>";
-                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+qty+"</td>";
-                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+uom+"</td>";
-                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+description+"</td>";
-                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+shippingDate+"</td>";
-                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>$ "+removeDecimalFormat(rate)+"</td>";
-                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+kurs+"</td>";
-                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>Rp. "+removeDecimalFormat(idr)+"</td>";
-                        body += "<td style='font-size:10px; border: 1px solid black; background-color: #EBF7FC;'>IDR. "+removeDecimalFormat(amount)+"</td>";
-                        body += "</tr>";
-                        
-                    }
-                    return body;
-                }
-            }
+            
         }catch(e){
             log.debug('error',e)
         }

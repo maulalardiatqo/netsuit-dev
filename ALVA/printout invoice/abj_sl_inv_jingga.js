@@ -77,8 +77,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     if(addresSubsidiaries.includes("<br>")){
                         addresSubsidiaries = addresSubsidiaries.replace(/<br>/g, "");
                     }
-                    if(name){
-                        addresSubsidiaries = addresSubsidiaries.replace(name, "");
+                    log.debug('name', name)
+                    if (name) {
+                        var regex = new RegExp(name, "i");
+                        addresSubsidiaries = addresSubsidiaries.replace(regex, "");
+                        log.debug('addresSubsidiaries', addresSubsidiaries);
                     }
                 }
                 
@@ -394,8 +397,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tbody>";
                 body+= "<tr>";
                 body += "<td style='align:left; width:60%;'></td>"
-                body += "<td style='align:left; width:10%;'></td>"
-                body += "<td style='align:left; width:10%;'></td>"
+                body += "<td style='align:left; width:8%;'></td>"
+                body += "<td style='align:left; width:12%;'></td>"
                 body += "<td style='align:left; width:20%;'></td>"
                 body+= "</tr>";
                 body+= "<tr>"
@@ -482,18 +485,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tr>";
                 body += "<td style='width:60%;'></td>"
                 body += "<td style='width:10%;'></td>"
-                body += "<td style='width:5%;'></td>"
-                body += "<td style='width:25%;'></td>"
+                body += "<td style='width:10%;'></td>"
+                body += "<td style='width:4%;'></td>"
+                body += "<td style='width:16%;'></td>"
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#868686; color:#FCF8F8; border:1px solid black;'>Description</td>"
-                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#868686; color:#FCF8F8; border:1px solid black;' colspan='3'>AMOUNT</td>"
+                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#868686; color:#FCF8F8; border:1px solid black;' colspan='3'>Description</td>"
+                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#868686; color:#FCF8F8; border:1px solid black;' colspan='2'>AMOUNT</td>"
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body += "<td style='border: 1px solid black; border-bottom:none;'>"+otherComment+"</td>"
-                body += "<td style='border: 1px solid black; border-bottom:none;' colspan='3'></td>"
+                body += "<td style='border: 1px solid black; border-bottom:none;' colspan='3'>"+otherComment+"</td>"
+                body += "<td style='border: 1px solid black; border-bottom:none;' colspan='2'></td>"
                 body+= "</tr>";
                 body += getPOItem(context, invoiceRecord);
                 body+= "</tbody>";
@@ -674,10 +678,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         
 
                         body += "<tr>";
-                        body += "<td  style='border-left:1px solid black'>"+no+" . "+itemText+ "</td>";
-                        body += "<td  style='align:right; border-left:1px solid black;'></td>";
-                        body += "<td  style='align:left;'>IDR</td>";
-                        body += "<td  style='align:right; border-right:1px solid black'>"+ammount+"</td>";
+                        body += "<td  style='border-left:1px solid black; border-right:1px solid black' colspan='3'>"+no+" . "+itemText+ "</td>";
+                        body += "<td style='align:left'>IDR</td>"
+                        body += "<td style='align:right; border-right:1px solid black;'>"+ammount+"</td>"
                         body += "</tr>";
                         no++
                     }
@@ -685,18 +688,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var cekLine = 1
                     for (var i=0 ; i < allLine - (no*4) + 1; i++) {
                         body += "<tr>";
-                        body += "<td  style='border-left:1px solid black'></td>";
-                        body += "<td  style='align:right; border-left:1px solid black;'></td>";
-                        body += "<td  style='align:right;'></td>";
-                        body += "<td  style='align:right; border-right:1px solid black'></td>";
+                        body += "<td  style='border-left:1px solid black; border-right:1px solid black' colspan='3'></td>";
+                        body += "<td  style='align:right; border-right:1px solid black' colspan='2'></td>";
                         body += "</tr>";
                         cekLine++
                     }
                     body += "<tr>";
-                    body += "<td  style='border-top:1px solid black'></td>";
-                    body += "<td  style='align:right; border-top:1px solid black;'></td>";
-                    body += "<td  style='align:right; border-top:1px solid black'></td>";
-                    body += "<td  style='align:right; border-top:1px solid black'></td>";
+                    body += "<td  style='border-top:1px solid black' colspan='3'></td>";
+                    body += "<td  style='align:right; border-top:1px solid black' colspan='2'></td>";
                     body += "</tr>";
                     return body;
                 }

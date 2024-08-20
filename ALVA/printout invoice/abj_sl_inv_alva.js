@@ -177,7 +177,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var totalWhTaxamountItem = 0;
                 var whtaxammountItem = 0;
                 var whTaxCodetoPrint = ''
-    
+                var otherComment = ""
                 var countItem = invoiceRecord.getLineCount({
                     sublistId: 'item'
                 });
@@ -204,6 +204,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId : 'amount',
                             line : i
                         });
+                        var project = invoiceRecord.getSublistText({
+                            sublistId : 'item',
+                            fieldId : 'class',
+                            line : i
+                        });
+                        log.debug('project', project)
+                        if(project){
+                            otherComment = project
+                        }
                         var whTaxCodeI = invoiceRecord.getSublistValue({
                             sublistId : 'item',
                             fieldId : 'custcol_4601_witaxcode',
@@ -245,7 +254,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 // log.debug('taxtotal', taxtotal)
                 var whtaxToCount = whtaxammountItem;
-                var otherComment = invoiceRecord.getValue('custbody3');
                 totalWhTaxamount = totalWhTaxamountItem;
                 if (taxpphList.length > 0) {
                     var taxpphToPrint = taxpphList.join(' & ');
@@ -356,7 +364,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     jobNumber = jobNumber.replace(/&/g, '&amp;');
                 }
                 style += "<style type='text/css'>";
-                style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%; font-family: Times New Roman, serif;}";
+                style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%; font-family: Arial, Helvetica, sans-serif;}";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
                 if(subsidiari == 1){
                     style += ".tg .tg-img-logo{width:150px; height:111px; object-vit:cover;}";
@@ -383,15 +391,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tbody>";
                 body+= "<tr>";
                 body += "<td style='align:left; width:60%;'></td>"
-                body += "<td style='align:left; width:10%;'></td>"
-                body += "<td style='align:left; width:10%;'></td>"
+                body += "<td style='align:left; width:8%;'></td>"
+                body += "<td style='align:left; width:12%;'></td>"
                 body += "<td style='align:left; width:20%;'></td>"
                 body+= "</tr>";
                 body+= "<tr>"
                 body+= "<td style='font-size:25px; font-weight: bold; '>"+legalName+"</td>"
                 body+= "<td></td>"
                 body+= "<td></td>"
-                body+= "<td style='font-size:20px; align:right; color:#5585b5; font-weight: bold;'>INVOICE</td>"
+                body+= "<td style='font-size:20px; align:right; color:#0813AF; font-weight: bold;'>INVOICE</td>"
                 body+= "</tr>";
 
                 body+= "<tr>"
@@ -413,13 +421,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<td style='align:right;'>"+crFrom+"</td>"
                 body+= "</tr>";
 
-                body+= "<tr>"
-                body+= "<td></td>"
-                body+= "<td></td>"
-                body+= "<td>PO No</td>"
-                body+= "<td style='align:right;'>"+otehrRefNum+"</td>"
-                body+= "</tr>";
-
                 body+= "</tbody>";
                 body+= "</table>";
 
@@ -434,7 +435,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                body += "<td style='align:center; width:60%; font-size:15px; font-weight:bold; background-color:#949393'>Bill To :</td>"
+                body += "<td style='align:center; width:60%; font-size:15px; font-weight:bold; background-color:#B9B9B9'>Bill To :</td>"
                 body += "<td style='align:left; width:40%;'></td>"
                 body+= "</tr>";
                 body+= "</tbody>";
@@ -471,18 +472,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tr>";
                 body += "<td style='width:60%;'></td>"
                 body += "<td style='width:10%;'></td>"
-                body += "<td style='width:5%;'></td>"
-                body += "<td style='width:25%;'></td>"
+                body += "<td style='width:10%;'></td>"
+                body += "<td style='width:4%;'></td>"
+                body += "<td style='width:16%;'></td>"
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#949393'>Description</td>"
-                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#949393' colspan='3'>AMOUNT</td>"
+                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#B9B9B9' colspan='3'>Description</td>"
+                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#B9B9B9' colspan='2'>AMOUNT</td>"
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body += "<td>"+otherComment+"</td>"
-                body += "<td colspan='3'></td>"
+                body += "<td colspan='3'>"+otherComment+"</td>"
+                body += "<td colspan='2'></td>"
                 body+= "</tr>";
                 body += getPOItem(context, invoiceRecord);
                 body+= "</tbody>";
@@ -506,7 +508,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "</tr>";
 
                 footer += "<tr style=''>";
-                footer += "<td style='align:center;font-size:15px; font-weight:bold; background-color:#949393'>OTHER COMMENTS</td>"
+                footer += "<td style='align:center;font-size:15px; font-weight:bold; background-color:#B9B9B9'>OTHER COMMENTS</td>"
                 footer += "<td style=''></td>"
                 footer += "<td style=''>Sub Total</td>"
                 footer += "<td style=''>:</td>"
@@ -556,25 +558,25 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<tr>";
                 footer += "<td style=''></td>"
                 footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>"+bankName+"</td>"
+                footer += "<td style='align:center' colspan='4'>Account Name : "+bankName+"</td>"
                 footer += "</tr>";
 
                 footer += "<tr>";
                 footer += "<td style=''></td>"
                 footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>"+accountNo+"</td>"
+                footer += "<td style='align:center' colspan='4'>Account Number : "+accountNo+"</td>"
                 footer += "</tr>";
 
                 footer += "<tr>";
                 footer += "<td style=''></td>"
                 footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>"+Npwp+"</td>"
+                footer += "<td style='align:center' colspan='4'>NPWP : "+Npwp+"</td>"
                 footer += "</tr>";
 
                 footer += "<tr>";
                 footer += "<td style=''></td>"
                 footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>"+swiftCode+"</td>"
+                footer += "<td style='align:center' colspan='4'>Swift Code : "+swiftCode+"</td>"
                 footer += "</tr>";
 
                 footer += "<tr>";
@@ -652,6 +654,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId: 'grossamt',
                             line: index
                         });
+                        var itemText = invoiceRecord.getSublistText({
+                            sublistId: 'item',
+                            fieldId: 'item',
+                            line: index
+                        });
                         if(ammount){
                             ammount = pembulatan(ammount);
                             ammount = format.format({
@@ -663,8 +670,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         
 
                         body += "<tr>";
-                        body += "<td >"+no+" . "+description+ "</td>";
-                        body += "<td  style='align:right'></td>";
+                        body += "<td colspan='3'>"+no+" . "+itemText+ "</td>";
                         body += "<td  style='align:right'>IDR</td>";
                         body += "<td  style='align:right;'>"+ammount+"</td>";
                         body += "</tr>";

@@ -95,7 +95,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       var custName;
       var isperson = custRecord.getValue("isperson");
       if (isperson == "T") {
-        var firstname = custRecord.getValue("firstname") || ""; 
+        var firstname = custRecord.getValue("firstname") || "";
         var middleName = custRecord.getValue("middlename") || "";
         var lastname = custRecord.getValue("lastname") || "";
         custName = firstname + " " + middleName + " " + lastname;
@@ -164,7 +164,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     var whtaxammountItem = 0;
     var whtaxammountExp = 0;
     var whTaxCodetoPrint = "";
-    // log.debug('countSubtotal', {total:total, taxtotal:taxtotal});
     var countItem = dataRec.getLineCount({
       sublistId: "item",
     });
@@ -200,7 +199,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
           if (taxRate != 0 && taxrateList.indexOf(taxRate) === -1) {
             taxrateList.push(parseFloat(taxRate));
           }
-          log.debug("taxRate", taxRate);
           var whTaxCodeI = dataRec.getSublistValue({
             sublistId: "item",
             fieldId: "custcol_4601_witaxcode",
@@ -220,9 +218,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
           }
           // var totalAmount = Number(amount) * Number(qty)
           var totalAmount = amount;
-          log.debug("subtotalcount", { "total amount": totalAmount, amount: amount, qty: qty });
           subTotal += totalAmount;
-          log.debug("subtotal check", subTotal);
           var tamount = whtaxammountItem;
           whtaxammountItem = Math.abs(tamount);
           totalWhTaxamountItem += whtaxammountItem;
@@ -237,7 +233,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     // total = Number(subTotal) + Number(taxtotal);
     var totalReceived = total;
     var subTotal2 = Number(subTotal) + Number(discountTotal);
-    log.debug("subTotal2", subTotal2);
 
     if (totalWhTaxamount) {
       totalWhTaxamount = pembulatan(totalWhTaxamount);
@@ -311,7 +306,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
           fieldId: "custcol_abj_disc_line",
           line: index,
         }) || 0
-        log.debug('discLine atas', discLine)
         totalDiscount += parseFloat(discLine)
         var itemId = dataRec.getSublistValue({
           sublistId: "item",
@@ -332,11 +326,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     
     var discountHeader = dataRec.getValue("discountrate")||0;
     totalDiscount = parseFloat(totalDiscount) + parseFloat(discountHeader)
-    log.debug('totalDiscount', totalDiscount);
     var taxTotalRate = (parseFloat(totalCost) - parseFloat(totalDiscount)) * 11 / 100;
 
     var customForm = dataRec.getValue('customform');
-    log.debug('customForm', customForm);
 
     var response = context.response;
     var xml = "";
@@ -500,18 +492,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
 
     body += "<tr>";
     log.debug('termsCondition', termsCondition)
-    if (termsCondition.includes("Terms & Conditions:")) {
-      termsCondition = termsCondition.replace("Terms & Conditions:", "<strong>Terms & Conditions:</strong><br />");
+    if (termsCondition.includes('\n')) {
+      log.debug('includes newline');
+      termsCondition = termsCondition.replace(/(\r\n|\n)/g, "<br/>");
     }
-    if (termsCondition.includes("Payment & Cancellation Terms:")) {
-      termsCondition = termsCondition.replace("Payment & Cancellation Terms:", "<br /><strong>Payment & Cancellation Terms:</strong><br />");
-    }
-    body += "<td rowspan='10'>"+termsCondition+"</td>"
+    log.debug('termsCondition after', termsCondition)
+    body += "<td rowspan='50'>"+termsCondition+"</td>"
     body += "<td></td>"
     body += "<td style='align:right'>TOTAL COST</td>"
     body += "<td style='align:right'>Rp. "+numberWithCommas(totalCost)+"</td>"
     body += "</tr>";
-    log.debug('totalDiscount', totalDiscount)
     if(totalDiscount != 0 || totalDiscount != '0'){
       body += "<tr>";
       body += "<td></td>"
@@ -632,9 +622,21 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     let html = `<tr><td colspan="6" class='tg-b_body' style="border-right: 1px solid black; border-left: 1px solid black; background-color:#adacac">${sectionName}</td></tr>`;
     var no = 1;
     items.forEach((item, index) => {
-        html += `<tr>
-                    <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
-                    <td class='tg-b_body'>${item.itemText}</td>`;
+      
+        // html += `<tr>
+        //           <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
+        //           <td class='tg-b_body'>${item.itemText}</td>`;
+        //added by kurnia
+        if(customForm == 143){
+          html += `<tr>
+                      <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
+                      <td class='tg-b_body'>${item.itemText}</td>`;
+        } else {
+          html += `<tr>
+                      <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
+                      <td class='tg-b_body'>${item.description}</td>`;
+        }
+        //
         
         if (customForm == 143) {
             html += `<td class='tg-b_body' style='align:center'>${item.complexityLevel}</td>`;
@@ -645,23 +647,33 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
                      <td class='tg-b_body' style='align:center'>${item.quantity}</td>`;
         }
         
-        if (index === 0) {
-            html += `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}">Rp. ${removeDecimalFormat(item.totalCost)}</td>`;
-        } else {
-            html += `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}"></td>`;
-        }
+        //added by kurnia
+        html += `<td class='tg-b_body' style="border-right: 1px solid black; align:right;">Rp. ${removeDecimalFormat(item.totalCost)}</td>`;
+        //
+        //if (index === 0) {
+            //html += `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}">Rp. ${removeDecimalFormat(item.totalCost)}</td>`;
+        //} else {
+            // html += `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}"></td>`;
+        //}
 
-        html += `</tr>
-                 <tr>
+        // html += `</tr>
+        //          <tr>
+        //               <td class='tg-b_body' style='border-left: 1px solid black'></td>
+        //               <td class='tg-b_body'>${item.description}</td>`;
+
+        //added by kurnia
+        if(customForm == 143){
+          html += `</tr>
+                  <tr>
                       <td class='tg-b_body' style='border-left: 1px solid black'></td>
                       <td class='tg-b_body'>${item.description}</td>`;
+        }
+        //
         
         if (customForm == 143) {
-          log.debug('masuk sini')
             html += `<td class='tg-b_body' style='border-right: 1px solid black' colspan="4"></td>`;
         }else{
-          log.debug('masuk else')
-          html += `<td class='tg-b_body' style='border-right: 1px solid black' colspan="3"></td>`;
+          //html += `<td class='tg-b_body' style='border-right: 1px solid black' colspan="3"></td>`;
         }
 
         html += `</tr>
@@ -723,7 +735,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         });
         
         if(itemId != '2880'){
-          log.debug('itemId', itemId)
           if (account) {
             var itemText = dataRec.getSublistText({
               sublistId: "item",
@@ -776,9 +787,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
               line: index,
             }) || 0
             var prosDiscLine =  Number(discLine)/ Number(itemPrice) *100
-            log.debug('itemPrice', itemPrice);
-            log.debug('discLine', discLine);
-            log.debug("prosDiscLine", prosDiscLine);
             dataSection.push(sectionName);
             dataItem.push({
               itemText: itemText,
@@ -797,8 +805,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         
       }
       dataSection = removeDuplicates(dataSection);
-      log.debug("dataSection", dataSection);
-      log.debug('dataItem', dataItem)
       const groupedItems = {};
       dataItem.forEach((item) => {
         if (!groupedItems[item.sectionID]) {

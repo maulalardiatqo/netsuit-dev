@@ -9,8 +9,10 @@ define(["N/runtime", "N/log"], (runtime, log) => {
         if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.EDIT) {
         var form = context.form;
         var rec = context.newRecord;
-        var cForm = rec.getValue('tranid');
-            if(cForm.indexOf('PR') !== -1){
+        var cForm = rec.getValue('customform');
+        log.debug('cForm', cForm)
+            if(cForm == 138){
+                log.debug('masuk sini')
                 form.addButton({
                     id: 'custpage_button_inv',
                     label: "Hitung total order",

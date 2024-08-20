@@ -26,45 +26,91 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             function onRequest(context) {
                 var recid = context.request.parameters.id;
                 log.debug('recid', recid);
-                var poRec = record.load({
-                    type: "salesorder",
-                    id: recid,
-                    isDynamic: false,
+                var poSavedLoad = search.load({
+                    id: "customsearch_so_body_for_print",
                 });
-                var poDate = poRec.getValue("trandate");
-                var tranid = poRec.getValue("tranid");
-                var employeId = poRec.getValue("custbody_abj_sales_rep_fulfillment");
+                if(recid){
+                    poSavedLoad.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
+                }
+                var poSavedLoadSet = poSavedLoad.run();
+                var result = poSavedLoadSet.getRange(0, 1);
+                var poRec = result[0];
+
+                var poDate = poRec.getValue({
+                    name: "trandate"
+                });
+                var tranid = poRec.getValue({name : "tranid"});
+                var employeId = poRec.getValue({ name : "custbody_abj_sales_rep_fulfillment"});
                 var salesrep = poRec.getText("salesrep");
 
-                var subTotal = poRec.getValue("subtotal");
-                var taxTotal = poRec.getValue("taxtotal");
-                var total = poRec.getValue("total")
-
+                var subTotal = poRec.getValue({
+                    name: "formulanumeric",
+                    formula: "{amount} - nvl({taxtotal},0) - nvl({shippingamount},0)"
+                });
+                var taxTotal = poRec.getValue({
+                    name: "taxtotal"
+                });
+                var total = poRec.getValue({
+                    name: "total"
+                })
+                var kurs = poRec.getValue({
+                    name: "exchangerate"
+                });
                 var leadTimeArray = [];
                 var paymentTermsArray = [];
-                var itemCount = poRec.getLineCount({
-                    sublistId: 'item'
+
+                var itemSearch =  search.load({
+                    id: "customsearch_so_line_for_print_out",
                 });
-                log.debug('itemCount', itemCount);
-                
-                if(itemCount > 0){
-                    for(var index = 0; index < itemCount; index++){
-                        var leadTime = poRec.getSublistText({
-                            sublistId : 'item',
-                            fieldId : 'custcol3',
-                            line : index
-                        });
+                if(recid){
+                    itemSearch.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
+                }
+                var itemSearchSet = itemSearch.run();
+                var itemCount = itemSearchSet.getRange(0, 100);
+                var allDataItem = []
+                if(itemCount.length > 0){
+                    for(var index = 0; index < itemCount.length; index++){
+                        var poRecord = itemCount[index]
+                        var leadTime = poRecord.getValue({
+                            name: "custcol8"
+                        })
                         if(leadTime){
                             leadTimeArray.push(leadTime);
                         }
-                        var paymentTerms = poRec.getSublistText({
-                            sublistId : 'item',
-                            fieldId : 'custcol4',
-                            line : index
+                        var paymentTerms = poRecord.getValue({
+                            name: "custcol4"
                         })
                         if(paymentTerms){
                             paymentTermsArray.push(paymentTerms)
                         }
+
+                        var qty = poRecord.getValue({
+                            name: "quantity"
+                        })
+                        var description = poRecord.getValue({
+                            name: "salesdescription",
+                            join: "item",
+                        })
+                        var rate = poRecord.getValue({
+                            name: "rate"
+                        })
+                        var uom = poRecord.getValue({
+                            name: "unit"
+                        })
+                        var amount = poRecord.getValue({
+                            name: "amount"
+                        })
+                        var idr = Number(rate) * Number(kurs)
+                        log.debug('idr', idr);
+                        allDataItem.push({
+                            description : description,
+                            qty : qty,
+                            rate : rate,
+                            uom : uom,
+                            amount : amount,
+                            kurs : kurs,
+                            idr : idr
+                        })
                     }
                 }
 
@@ -94,7 +140,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                  
                 }
                 log.debug('employeeName', employeeName)
-                var vendorId = poRec.getValue("entity");
+                var vendorId = poRec.getValue({
+                    name: "internalid",
+                    join: "customer"
+                });
                 var vendorName = '';
                 var vendorAddress = '';
                 var contactName = [];
@@ -141,8 +190,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     type: config.Type.COMPANY_INFORMATION
                 });
                 var legalName = companyInfo.getValue("legalname");
-                var terms = poRec.getText('terms')
-                var leadTime = poRec.getValue('custbody5');
+                var terms = poRec.getText({
+                    name: "terms"
+                })
+                var leadTime = poRec.getValue({
+                    name: "custbody5"
+                });
                 log.debug('legalName', legalName);
                 var logo = companyInfo.getValue('formlogo');
                         var filelogo;
@@ -155,7 +208,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             urlLogo = filelogo.url.replace(/&/g, "&amp;");
                         }
                 var addres = companyInfo.getValue("mainaddress_text");
-                var statusSo = poRec.getValue("status");
+                var statusSo = poRec.getValue({
+                    name : "statusref"
+                });
                 log.debug('statusSo', statusSo);
                 if(poDate){
                     poDate = format.format({
@@ -187,7 +242,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type: format.Type.CURRENCY
                     });
                 }
-                var tipeKurs = poRec.getValue('custbody4')
                 var response = context.response;
                 var xml = "";
                 var header = "";
@@ -332,7 +386,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<td class='tg-head_body' style='width:20%; border: 1px solid black;'> AMOUNT </td>"
                 body += "</tr>"
 
-                body += getPOItem(context, poRec);
+                body += getPOItem(context, allDataItem);
                 
                 body += "</tbody>";
                 body += "</table>";
@@ -366,7 +420,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>";
                 body += "<td>Kurs</td>"
                 body += "<td>:</td>"
-                body += "<td>"+tipeKurs+"</td>"
+                body += "<td>"+kurs+"</td>"
                 body += "<td style='font-weight:bold; align:right;'>Total :</td>"
                 body += "<td style='font-weight:bold;'>"+total+"</td>"
                 body += "</tr>"
@@ -463,44 +517,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
 
             }
-            function getPOItem(context, poRec){
-                var itemCount = poRec.getLineCount({
-                    sublistId: 'item'
-                });
-                log.debug('itemCount', itemCount);
+            function getPOItem(context, allDataItem){
                 
-                if(itemCount > 0){
+                if(allDataItem.length > 0){
                     var body = "";
-                    for(var index = 0; index < itemCount; index++){
-                        var qty = poRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'quantity',
-                            line: index
-                        });
-                        var description = poRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'description',
-                            line: index
-                        });
-                        var rate = poRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'rate',
-                            line: index
-                        });
-                        var uom = poRec.getSublistText({
-                            sublistId: 'item',
-                            fieldId: 'units',
-                            line: index
-                        });
-                        
-                        var kurs = poRec.getValue("exchangerate");
-                        var amount = poRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'amount',
-                            line: index
-                        });
-                        var idr = Number(rate) * Number(kurs)
-                        log.debug('idr', idr);
+                    for(var i = 0; i < allDataItem.length; i++){
+                        var item = allDataItem[i];
+                        var qty = item.qty;
+                        var description = item.description
+                        var rate = item.rate
+                        var uom = item.uom;
+                        var kurs = item.kurs;
+                        var amount = item.amount;
+                        var idr = item.idr;
 
                         if(rate){
                             rate = pembulatan(rate)
