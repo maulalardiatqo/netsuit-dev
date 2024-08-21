@@ -67,6 +67,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       });
       var prToPOSet = prToPO.run();
       var prToPO = prToPOSet.getRange(0, 50);
+      log.debug('prToPO.length', prToPO.length)
       if (prToPO.length > 0) {
         for (let i = 0; i < prToPO.length; i++) {
           let itemName = prToPO[i].getText({
@@ -169,7 +170,6 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let currency = prToPO[i].getValue({
             name : prToPOSet.columns[31]
           })
-          log.debug('currency', currency)
           let cek1 =  prToPO[i].getValue({
             name: prToPOSet.columns[25],
           });
@@ -181,24 +181,28 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             }else{
               itemRate = cek2
             }
+            log.debug('internalID', internalID)
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_view_link",
-              value: `https://9274135.app.netsuite.com/app/accounting/transactions/purchord.nl?id=${internalID}&whence=`,
+              value: `https://9274135.app.netsuite.com/app/accounting/transactions/purchord.nl?id=${internalID}&whence=` || " ",
               line: i,
             });
+            log.debug('set sampai sini 0', currency)
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_item_name",
               value: itemName || " ",
               line: i,
             });
+            log.debug('set sampai sini', currency)
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_vendor",
               value: vendorName || " ",
               line: i,
             });
+            log.debug('set sampai sini2', currency)
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_current_stock",
@@ -250,13 +254,13 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_total_order",
-              value: Math.abs(totalOrder),
+              value: Math.abs(totalOrder) || 0,
               line: i,
             });
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_qty_po",
-              value: Math.abs(qtyPO),
+              value: Math.abs(qtyPO) || 0,
               line: i,
             });
             
@@ -275,7 +279,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_internalid",
-              value: internalID,
+              value: internalID || " ",
               line: i,
             });
             currentRecord.setSublistValue({
@@ -380,6 +384,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               value: currency || " ",
               line: i,
             });
+            
           }
          
         }
@@ -541,6 +546,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             }else{
               itemRate = cek2
             }
+            log.debug('internalID', internalID)
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_view_link",

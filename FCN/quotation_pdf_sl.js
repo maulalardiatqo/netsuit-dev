@@ -491,13 +491,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     body += "</tr>";
 
     body += "<tr>";
-    log.debug('termsCondition', termsCondition)
-    if (termsCondition.includes('\n')) {
-      log.debug('includes newline');
-      termsCondition = termsCondition.replace(/(\r\n|\n)/g, "<br/>");
-    }
-    log.debug('termsCondition after', termsCondition)
-    body += "<td rowspan='50'>"+termsCondition+"</td>"
+    body += "<td></td>"
     body += "<td></td>"
     body += "<td style='align:right'>TOTAL COST</td>"
     body += "<td style='align:right'>Rp. "+numberWithCommas(totalCost)+"</td>"
@@ -505,55 +499,58 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     if(totalDiscount != 0 || totalDiscount != '0'){
       body += "<tr>";
       body += "<td></td>"
+      body += "<td></td>"
       body += "<td style='align:right'>TOTAL DISCOUNT</td>"
       body += "<td style='align:right'>Rp. ("+numberWithCommas(Math.abs(totalDiscount))+")</td>"
       body += "</tr>";
 
       body += "<tr>";
       body += "<td></td>"
+      body += "<td></td>"
       body += "<td style='align:right'>SUB TOTAL</td>"
-      
-      // var subtotalcount = parseFloat(totalCost) + parseFloat(totalDiscount)
-      // log.debug('subtotalcount', {subtotalcount : subtotalcount, totalCost : totalCost, totalDiscount : totalDiscount})
       body += "<td style='align:right'>Rp. "+removeDecimalFormat(subTotal2)+"</td>"
       body += "</tr>";
     }
-    
-
-  
-
     body += "<tr>";
+    body += "<td></td>"
     body += "<td></td>"
     body += "<td style='align:right'>VAT 11%</td>"
     body += "<td style='align:right'>Rp. "+removeDecimalFormat(taxtotal)+"</td>"
-    // body += "<td style='align:right'>Rp. "+numberWithCommas(taxTotalRate)+"</td>"
     body += "</tr>";
 
     body += "<tr>";
+    body += "<td></td>"
     body += "<td></td>"
     body += "<td style='align:right'>GRAND TOTAL</td>"
     body += "<td style='align:right'>Rp. "+removeDecimalFormat(total)+"</td>"
     body += "</tr>";
 
     body += "<tr>";
-    body += "<td colspan='4'></td>"
-    body += "</tr>";
-    body += "<tr>";
-    body += "<td colspan='4'></td>"
-    body += "</tr>";
-    body += "<tr>";
-    body += "<td colspan='4'></td>"
-    body += "</tr>";
-    body += "<tr>";
-    body += "<td colspan='4'></td>"
-    body += "</tr>";
-    body += "<tr>";
-    body += "<td colspan='4' style='height:30px'></td>"
+    body += "<td style='height:20px' colspan='4'></td>"
     body += "</tr>";
 
     body += "</tbody>";
     body += "</table>";
-   
+
+    body += '<table class=\'tg\' width="100%" style="table-layout:fixed;">';
+    body += "<tbody>";
+
+    body += "<tr>";
+    log.debug('termsCondition', termsCondition)
+    if (termsCondition.includes('\n')) {
+      log.debug('includes newline');
+      termsCondition = termsCondition.replace(/(\r\n|\n)/g, "<br/>");
+    }
+    log.debug('termsCondition after', termsCondition)
+    body += "<td>"+termsCondition+"</td>"
+    body += "</tr>"
+    body += "<tr>";
+    body += "<td style='height:60px'></td>"
+    body += "</tr>";
+
+    body += "</tbody>";
+    body += "</table>";
+
     body += '<table class=\'tg\' width="100%" style="table-layout:fixed;">';
     body += "<tbody>";
     body += "<tr>";

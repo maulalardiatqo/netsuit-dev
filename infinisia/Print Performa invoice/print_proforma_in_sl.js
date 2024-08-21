@@ -25,20 +25,41 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
     function onRequest(context) {
       var recid = context.request.parameters.id;
       log.debug("recid", recid);
-      var invRec = record.load({
-        type: "salesorder",
-        id: recid,
-        isDynamic: false,
+      var poSavedLoad = search.load({
+        id: "customsearch_so_proforma_inv",
       });
-      var trandId = invRec.getValue("custbodyiss_proforma_invoice_num");
-      var trandate = invRec.getValue("trandate");
-      var duedate = invRec.getValue("duedate");
-      var noPo = invRec.getText("custbody_iss_cus_deposit_num");
-      var salesRep = invRec.getValue("salesrep");
-      var idCust = invRec.getValue("entity");
-      var bankName = invRec.getValue('custbody_iss_inv_branch_name');
-      var bankNumber = invRec.getValue('custbody_iss_inv_bank_number');
-      var accName = invRec.getValue('custbody_iss_inv_account_name')
+      if(recid){
+          poSavedLoad.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
+      }
+      var poSavedLoadSet = poSavedLoad.run();
+      var result = poSavedLoadSet.getRange(0, 1);
+      var invRec = result[0];
+
+      var trandId = invRec.getValue({
+        name: "custbodyiss_proforma_invoice_num"
+      });
+      var trandate = invRec.getValue({
+        name: "trandate"
+      });
+      var duedate = invRec.getValue({
+        name: "duedate"
+      });
+      var salesRep = invRec.getValue({
+        name: "salesrep"
+      });
+      var idCust = invRec.getValue({
+         name: "internalid",
+         join: "customer"
+      });
+      var bankName = invRec.getValue({
+        name: "custbody_iss_inv_branch_name"
+      });
+      var bankNumber = invRec.getValue({
+        name: "custbody_iss_inv_bank_number"
+      });
+      var accName = invRec.getValue({
+        name: "custbody_iss_inv_account_name"
+      })
       if (idCust) {
         var recCust = record.load({
           type: "customer",
@@ -54,13 +75,22 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         }
         var custAdders = recCust.getValue("defaultaddress");
       }
-      var subTotal = invRec.getValue("subtotal");
-      var discount = invRec.getValue("discounttotal") || 0;
-      var taxTotal = invRec.getValue("taxtotal") || 0;
+      var subTotal = invRec.getValue({
+        name: "formulacurrency",
+        formula: "{amount} - nvl({taxtotal},0) - nvl({shippingamount},0)",
+      });
+      var discount = invRec.getValue({
+        name: "discountamount"
+      }) || 0;
+      var taxTotal = invRec.getValue({
+        name: "taxtotal"
+      }) || 0;
       if (taxTotal == "") {
         taxTotal = 0;
       }
-      var total = invRec.getValue("total");
+      var total = invRec.getValue({
+        name: "total"
+      });
 
       var discProsent = 0.0;
       if (discount) {
@@ -89,24 +119,51 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       }
       var addres = companyInfo.getValue("mainaddress_text");
       // log.debug('statusSo', statusSo);
-
-      var itemCount = invRec.getLineCount({
-        sublistId: "item",
-      });
-      log.debug("itemCount", itemCount);
       var taxPros = [];
       var uniqueTaxRates = {};
-      if (itemCount > 0) {
-        for (var index = 0; index < itemCount; index++) {
-          var taxRate = invRec.getSublistValue({
-            sublistId: "item",
-            fieldId: "taxrate1",
-            line: index,
+      var itemSearch =  search.load({
+        id: "customsearch_so_for_proforma_inv_line",
+      });
+      if(recid){
+          itemSearch.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
+      }
+      var itemSearchSet = itemSearch.run();
+      var itemCount = itemSearchSet.getRange(0, 100);
+      var allDataItem = []
+      if (itemCount.length > 0) {
+        for (var index = 0; index < itemCount.length; index++) {
+          var poRecord = itemCount[index]
+          var taxRate = poRecord.getValue({
+              name: "rate",
+              join: "taxItem",
           });
           if (!uniqueTaxRates.hasOwnProperty(taxRate)) {
             uniqueTaxRates[taxRate] = true;
             taxPros.push(taxRate);
           }
+          var qty = poRecord.getValue({
+            name: "quantity"
+          });
+          var namaBarang = poRecord.getText({
+              name: "item"
+          });
+          var rate = poRecord.getValue({
+            name: "rate"
+          });
+          var unit = poRecord.getValue({
+            name: "unit"
+          });
+
+          var amount = poRecord.getValue({
+            name: "amount"
+          });
+          allDataItem.push({
+            qty : qty,
+            namaBarang : namaBarang,
+            rate : rate,
+            unit : unit,
+            amount : amount
+          })
         }
       }
       if (trandate) {
@@ -306,7 +363,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       body += "<td class='tg-head_body' style='width:25%; align:center;'>Total</td>";
       body += "</tr>";
 
-      body += getPOItem(context, invRec);
+      body += getPOItem(context, allDataItem);
       body += "</tbody>";
       body += "</table>";
 
@@ -328,14 +385,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       body += "<td>IDR</td>";
       body += "<td style='align:right'>" + removeDecimalFormat(subTotal) + "</td>";
       body += "</tr>";
-
-      body += "<tr>";
-      body += "<td></td>";
-      body += "<td>Discount</td>";
-      body += "<td>" + discProsent + "%</td>";
-      body += "<td>IDR</td>";
-      body += "<td style='align:right'>" + removeDecimalFormat(discount) + "</td>";
-      body += "</tr>";
+      if(discount){
+        body += "<tr>";
+        body += "<td></td>";
+        body += "<td>Discount</td>";
+        body += "<td>" + discProsent + "%</td>";
+        body += "<td>IDR</td>";
+        body += "<td style='align:right'>" + removeDecimalFormat(discount) + "</td>";
+        body += "</tr>";
+      }
+    
 
       body += "<tr>";
       body += "<td></td>";
@@ -637,43 +696,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       return body;
     }
 
-    function getPOItem(context, invRec) {
-      var itemCount = invRec.getLineCount({
-        sublistId: "item",
-      });
-      log.debug("itemCount", itemCount);
-
-      if (itemCount > 0) {
+    function getPOItem(context, allDataItem) {
+      if (allDataItem.length > 0) {
         var body = "";
         var No = 1;
-        for (var index = 0; index < itemCount; index++) {
-          var qty = invRec.getSublistValue({
-            sublistId: "item",
-            fieldId: "quantity",
-            line: index,
-          });
-          var namaBarang = invRec.getSublistText({
-            sublistId: "item",
-            fieldId: "item",
-            line: index,
-          });
-          var rate = invRec.getSublistValue({
-            sublistId: "item",
-            fieldId: "rate",
-            line: index,
-          });
-          var unit = invRec.getSublistValue({
-            sublistId: "item",
-            fieldId: "units_display",
-            line: index,
-          });
-          log.debug("unit", unit);
-
-          var amount = invRec.getSublistValue({
-            sublistId: "item",
-            fieldId: "amount",
-            line: index,
-          });
+        for (var i = 0; i < allDataItem.length; i++) {
+          var item = allDataItem[i];
+          var qty = item.qty;
+          var namaBarang = item.namaBarang
+          var rate = item.rate
+          var unit = item.unit;
+          var amount = item.amount;
 
           if (rate) {
             rate = pembulatan(rate);
