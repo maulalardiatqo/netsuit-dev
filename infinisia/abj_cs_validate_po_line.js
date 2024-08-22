@@ -30,7 +30,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     sublistId: 'item',
                     fieldId: 'id'
                 });
-                console.log('soNumber', soNumber);
+                var cekSORec = soNumber + "-" + itemLine
                 if(soNumber == ''){
                     return true
                 }
@@ -71,13 +71,14 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     if(internalId == currentId){
                         cekValidasi = false
                     }
-                    arrSoNumber.push(numberSO)
+                    var soCekSearch = numberSO + "-" + itemId
+                    arrSoNumber.push(soCekSearch)
                     arrItem.push(itemId)
                     return true;
                 });
                 console.log('arrSoNumber', arrSoNumber);
                 console.log('cekValidasi', cekValidasi)
-                var isSoNumberExist = arrSoNumber.indexOf(soNumber) !== -1;
+                var isSoNumberExist = arrSoNumber.indexOf(cekSORec) !== -1;
                 var isItemExist = arrItem.indexOf(itemLine) !== -1;
                 console.log('Apakah soNumber ada di dalam arrSoNumber?', isSoNumberExist);
                 if (countLine > 0) {
@@ -130,16 +131,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 }
                 if(cekValidasi == true){
                     if (isSoNumberExist) {
-                        if(isItemExist){
                             alert('Duplicated Sales Order Number!');
                             return false;
-                        }else{
+                        } else {
                             return true;
                         }
-                        
-                    } else {
-                        return true;
-                    }
                 }else{
                     return true;
                 }
@@ -161,7 +157,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     sublistId: 'recmachcustrecord_iss_pr_parent',
                     fieldId: 'id'
                 });
-                console.log('soNumber', soNumber);
+                var cekSORec = soNumber + "-" + itemLine
                 if(soNumber == ''){
                     return true
                 }
@@ -212,12 +208,13 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     if(internalId == currentId){
                         cekValidasi = false
                     }
-                    arrSoNumber.push(numberSO)
+                    var soCekSearch = numberSO + "-" + itemId
+                    arrSoNumber.push(soCekSearch)
                     arrItem.push(itemSavedId)
                     return true;
                 });
                 console.log('arrSoNumber', arrSoNumber)
-                var isSoNumberExist = arrSoNumber.indexOf(soNumber) !== -1;
+                var isSoNumberExist = arrSoNumber.indexOf(cekSORec) !== -1;
                 var isItemExist = arrItem.indexOf(itemLine) !== -1;
                 console.log('Apakah soNumber ada di dalam arrSoNumber?', isSoNumberExist);
                 if (countLine > 0) {
@@ -271,11 +268,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 }
                 if(cekValidasi == true){
                     if (isSoNumberExist) {
-                        if(isItemExist){
                             alert('Duplicated Sales Order Number!');
                             return false;
-                        }
-                        
                     } else {
                         return true;
                     }
