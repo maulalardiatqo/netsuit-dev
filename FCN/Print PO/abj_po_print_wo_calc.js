@@ -466,9 +466,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "Due Date :"+duedate+ "</p>"
             }else{
                 log.debug('poNumber', poNumber)
-                body += "<p class='tg-headerrow_legalName'> Purchase Number: " + tandId + "<br/>";
-                body += "PO Date: " + POdate + "<br/><br/>";
-                body += "PO Number: " + poNumber + "</p>";
+                body += "<p class='tg-headerrow_legalName'> PO Number: " + poNumber + "<br/>";
+                body += "PO Date: " + POdate + "<br/></p>";
             }
            
             body += "</td>"
