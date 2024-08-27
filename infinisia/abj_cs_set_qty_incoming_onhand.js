@@ -38,50 +38,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     console.log('customer', customer)
 
                     if(itemId && salesRep && customer){
-                        if(noSO){
-                            var salesorderSearchObj = search.create({
-                                type: "salesorder",
-                                filters:
-                                [
-                                    ["type","anyof","SalesOrd"], 
-                                    "AND", 
-                                    ["internalid","anyof",noSO], 
-                                    "AND", 
-                                    ["item","anyof",itemId]
-                                ],
-                                columns:
-                                [
-                                    search.createColumn({name: "quantity", label: "Quantity"}),
-                                    search.createColumn({name: "quantitypicked", label: "Quantity Picked"}),
-                                    search.createColumn({name: "quantitypacked", label: "Quantity Packed"}),
-                                    search.createColumn({name: "quantityshiprecv", label: "Quantity Fulfilled/Received"})
-                                ]
-                            });
-                            var searchResultCount = salesorderSearchObj.runPaged().count;
-                            var totalQty = 0
-                            salesorderSearchObj.run().each(function(result){
-                                var qty = result.getValue({
-                                    name: "quantity"
-                                }) || 0;
-                                var picked = result.getValue({
-                                    name: "quantitypicked"
-                                }) || 0;
-                                var packed =  result.getValue({
-                                    name: "quantitypacked"
-                                }) || 0;
-                                var fulfilled =  result.getValue({
-                                    name: "quantityshiprecv"
-                                }) || 0;
-                                totalQty = Number(qty)-Number(picked)
-                                return true;
-                            });
-                            console.log('totalQty', totalQty);
-                            currentRecordObj.setCurrentSublistValue({
-                                sublistId: "item",
-                                fieldId: "custcol6",
-                                value: totalQty || 0,
-                            });
-                        }
                         var incoimngStock = 0
                         var research = true
                         if(noSO){
@@ -384,6 +340,122 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     }
                 }
 
+            }
+            if(sublistFieldName == 'custcol_abj_packsize_po'){
+                var currentRecordObj = context.currentRecord;
+                var formId = currentRecordObj.getValue('customform');
+                console.log('formId', formId)
+                if(formId == 138){
+                    console.log('masuk change')
+                    var itemId = currentRecordObj.getCurrentSublistValue({
+                        sublistId: "item",
+                        fieldId: "item",
+                    })
+                    var noSO = currentRecordObj.getCurrentSublistValue({
+                        sublistId: "item",
+                        fieldId : "custcol_abj_no_so"
+                    })
+                    var packSize = currentRecordObj.getCurrentSublistValue({
+                        sublistId: "item",
+                        fieldId: "custcol_abj_packsize_po",
+                    })
+                    if(itemId && noSO && packSize){
+                        var salesorderSearchObj = search.create({
+                            type: "salesorder",
+                            filters:
+                            [
+                                ["type","anyof","SalesOrd"], 
+                                "AND", 
+                                ["internalid","anyof",noSO], 
+                                "AND", 
+                                ["item","anyof",itemId], 
+                                "AND", 
+                                ["unit","anyof",packSize]
+                            ],
+                            columns:
+                            [
+                                search.createColumn({name: "quantity", label: "Quantity"}),
+                                search.createColumn({name: "quantitypicked", label: "Quantity Picked"}),
+                                search.createColumn({name: "quantitypacked", label: "Quantity Packed"}),
+                                search.createColumn({name: "quantityshiprecv", label: "Quantity Fulfilled/Received"})
+                            ]
+                        });
+                        var searchResultCount = salesorderSearchObj.runPaged().count;
+                        console.log('searchResultCount', searchResultCount)
+                        if(searchResultCount > 0){
+                            var totalQty = 0
+                            salesorderSearchObj.run().each(function(result){
+                                var qty = result.getValue({
+                                    name: "quantity"
+                                }) || 0;
+                                var picked = result.getValue({
+                                    name: "quantitypicked"
+                                }) || 0;
+                                totalQty = Number(qty)-Number(picked)
+                                return true;
+                            });
+                            console.log('totalQty', totalQty);
+                            currentRecordObj.setCurrentSublistValue({
+                                sublistId: "item",
+                                fieldId: "custcol6",
+                                value: totalQty || 0,
+                            });
+                        }else{
+                            alert("Pack Size Not Found")
+                        }
+                            
+                    }
+                }
+            }
+            if(sublistFieldName == 'custcol_abj_pack_size_order'){
+                var currentRecordObj = context.currentRecord;
+                var formId = currentRecordObj.getValue('customform');
+                console.log('formId', formId)
+                if(formId == 138){
+                    var totalOrder = currentRecordObj.getCurrentSublistValue({
+                        sublistId: "item",
+                        fieldId: "custcol_pr_total_order",
+                    });
+                    var packSizeOrder = currentRecordObj.getCurrentSublistText({
+                        sublistId: "item",
+                        fieldId: "custcol_abj_pack_size_order",
+                    });
+                    if(packSizeOrder && totalOrder){
+                        var ratePackSize = 0
+                        var unitstypeSearchObj = search.create({
+                            type: "unitstype",
+                            filters:
+                            [
+                                ["unitname","is",packSizeOrder]
+                            ],
+                            columns:
+                            [
+                                search.createColumn({name: "unitname", label: "Unit Name"}),
+                                search.createColumn({name: "conversionrate", label: "Rate"})
+                            ]
+                        });
+                        var searchResultCount = unitstypeSearchObj.runPaged().count;
+                        log.debug("unitstypeSearchObj result count",searchResultCount);
+                        unitstypeSearchObj.run().each(function(result){
+                            var rate = result.getValue({
+                                name : "conversionrate"
+                            });
+                            if(rate){
+                                ratePackSize = rate;
+                            }
+                        return true;
+                        });
+                        console.log('ratePackSize', ratePackSize)
+                        var conversi = Number(totalOrder) / Number(ratePackSize);
+                        console.log('conversi', conversi);
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "custcol_abj_total_packaging",
+                            value: conversi || 0,
+                        });
+                    }
+
+                }
             }
             
             

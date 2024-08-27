@@ -170,6 +170,31 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let currency = prToPO[i].getValue({
             name : prToPOSet.columns[31]
           })
+          let idSum = prToPO[i].getValue({
+            name : prToPOSet.columns[32]
+          });
+          var totalPackaging = 0
+          var customrecord_pr_summary_customerSearchObj = search.create({
+            type: "customrecord_pr_summary_customer",
+            filters: [
+                ["internalid", "anyof", idSum]
+            ],
+            columns: [
+                search.createColumn({name: "custrecord_pr_sum_total_packaging", label: "Total Packaging"})
+            ]
+          });
+          var searchResult = customrecord_pr_summary_customerSearchObj.run().getRange({
+              start: 0,
+              end: 1
+          });
+          
+          if (searchResult.length > 0) {
+              var package = searchResult[0].getValue("custrecord_pr_sum_total_packaging");
+              if(package){
+                totalPackaging = package
+              }
+          }
+          log.debug('idSum', idSum)
           let cek1 =  prToPO[i].getValue({
             name: prToPOSet.columns[25],
           });
@@ -255,6 +280,18 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_total_order",
               value: Math.abs(totalOrder) || 0,
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_packsize",
+              value: packSize || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_packsize_text",
+              value: packSizeText || " ",
               line: i,
             });
             currentRecord.setSublistValue({
@@ -348,18 +385,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               value: tanggalKirim || " ",
               line: i,
             });
-            currentRecord.setSublistValue({
-              sublistId: "custpage_sublist_item",
-              id: "custpage_sublist_packsize",
-              value: packSize || " ",
-              line: i,
-            });
-            currentRecord.setSublistValue({
-              sublistId: "custpage_sublist_item",
-              id: "custpage_sublist_packsize_text",
-              value: packSizeText || " ",
-              line: i,
-            });
+            
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_sonumber",
@@ -382,6 +408,12 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_currency",
               value: currency || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_total_packaging",
+              value: totalPackaging || " ",
               line: i,
             });
             
@@ -534,6 +566,30 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let currency = prToPO[i].getValue({
             name : prToPOSet.columns[31]
           })
+          let idSum = prToPO[i].getValue({
+            name : prToPOSet.columns[32]
+          });
+          var totalPackaging = 0
+          var customrecord_pr_summary_customerSearchObj = search.create({
+            type: "customrecord_pr_summary_customer",
+            filters: [
+                ["internalid", "anyof", idSum]
+            ],
+            columns: [
+                search.createColumn({name: "custrecord_pr_sum_total_packaging", label: "Total Packaging"})
+            ]
+          });
+          var searchResult = customrecord_pr_summary_customerSearchObj.run().getRange({
+              start: 0,
+              end: 1
+          });
+          
+          if (searchResult.length > 0) {
+              var package = searchResult[0].getValue("custrecord_pr_sum_total_packaging");
+              if(package){
+                totalPackaging = package
+              }
+          }
           log.debug('currency', currency)
           let totalOrder = Math.abs(parseFloat(qty || 0)) - parseFloat(qtyPO || 0);
           var itemRate
@@ -617,6 +673,18 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_total_order",
               value: Math.abs(totalOrder),
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_packsize",
+              value: packSize || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_packsize_text",
+              value: packSizeText || " ",
               line: i,
             });
             currentRecord.setSublistValue({
@@ -709,18 +777,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               value: tanggalKirim || " ",
               line: i,
             });
-            currentRecord.setSublistValue({
-              sublistId: "custpage_sublist_item",
-              id: "custpage_sublist_packsize",
-              value: packSize || " ",
-              line: i,
-            });
-            currentRecord.setSublistValue({
-              sublistId: "custpage_sublist_item",
-              id: "custpage_sublist_packsize_text",
-              value: packSizeText || " ",
-              line: i,
-            });
+           
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_sonumber",
@@ -743,6 +800,12 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_currency",
               value: currency || " ",
+              line: i,
+            });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_total_packaging",
+              value: totalPackaging || " ",
               line: i,
             });
           }
@@ -860,13 +923,33 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
 
     sublist_in.addField({
       id: "custpage_sublist_total_order",
-      label: "TOTAL ORDER",
+      label: "TOTAL ORDER/1KG",
+      type: serverWidget.FieldType.TEXT,
+    });
+    sublist_in.addField({
+      id: "custpage_sublist_packsize",
+      label: "PACK SIZE ORDER",
+      type: serverWidget.FieldType.TEXT,
+    }) .updateDisplayType({
+      displayType: serverWidget.FieldDisplayType.HIDDEN,
+    });
+   
+    sublist_in.addField({
+      id: "custpage_sublist_packsize_text",
+      label: "PACK SIZE ORDER",
+      type: serverWidget.FieldType.TEXT,
+    });
+    sublist_in.addField({
+      id: "custpage_sublist_total_packaging",
+      label: "TOTAL PACKAGING",
       type: serverWidget.FieldType.TEXT,
     });
     sublist_in.addField({
       id: "custpage_sublist_qty_po",
       label: "QTY PO",
       type: serverWidget.FieldType.TEXT,
+    }).updateDisplayType({
+      displayType: serverWidget.FieldDisplayType.HIDDEN,
     });
 
     sublist_in.addField({
@@ -882,19 +965,6 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       displayType: serverWidget.FieldDisplayType.HIDDEN,
     });
 
-    sublist_in.addField({
-      id: "custpage_sublist_packsize",
-      label: "PACK SIZE",
-      type: serverWidget.FieldType.TEXT,
-    }) .updateDisplayType({
-      displayType: serverWidget.FieldDisplayType.HIDDEN,
-    });
-   
-    sublist_in.addField({
-      id: "custpage_sublist_packsize_text",
-      label: "PACK SIZE",
-      type: serverWidget.FieldType.TEXT,
-    });
     sublist_in.addField({
       id: "custpage_sublist_sonumber_text",
       label: "SO NUMBER",

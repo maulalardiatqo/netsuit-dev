@@ -22,6 +22,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 alert('Please Fill The PR Summary By Customer Line with click "Hitung Total Order" Button');
                 return false;
             }
+        }else{
+            return true
         }
     }
     return {

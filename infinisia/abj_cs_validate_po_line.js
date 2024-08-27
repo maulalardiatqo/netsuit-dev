@@ -17,7 +17,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             if(context.sublistId === 'item'){
                 console.log('sublist adalah item');
                 var currentId = currentRecordObj.getValue('id');
-                console.log('currentId', currentId)
+                var currentIdLine = currentRecordObj.getCurrentSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'line'
+                });
+                console.log('currentIdLine', currentIdLine)
                 var soNumber = currentRecordObj.getCurrentSublistValue({
                     sublistId: 'item',
                     fieldId: 'custcol_abj_no_so'
@@ -30,7 +34,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     sublistId: 'item',
                     fieldId: 'id'
                 });
-                var cekSORec = soNumber + "-" + itemLine
+                var packSizeSo = currentRecordObj.getCurrentSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'custcol_abj_packsize_po'
+                });
+                var cekSORec = soNumber + "-" + itemLine + "-" + packSizeSo
                 if(soNumber == ''){
                     return true
                 }
@@ -51,7 +59,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     columns: [
                         search.createColumn({name: "internalid", label: "Internal ID"}),
                         search.createColumn({name: "custcol_abj_no_so", label: "No SO"}),
-                        search.createColumn({name: "item", label: "Item"})
+                        search.createColumn({name: "item", label: "Item"}),
+                        search.createColumn({name: "item", label: "custcol_abj_packsize_po"})
                     ]
                 });
                 var searchResultCount = purchaseorderSearchObj.runPaged().count;
@@ -67,11 +76,14 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     var itemId = result.getValue({
                         name: "item"
                     })
+                    var packSizeSoSearch = result.getValue({
+                        name: "item"
+                    })
                     console.log('internalid', internalId)
                     if(internalId == currentId){
                         cekValidasi = false
                     }
-                    var soCekSearch = numberSO + "-" + itemId
+                    var soCekSearch = numberSO + "-" + itemId + "-" + packSizeSoSearch
                     arrSoNumber.push(soCekSearch)
                     arrItem.push(itemId)
                     return true;
@@ -93,8 +105,13 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             fieldId: 'item',
                             line: i
                         });
-                        var cekSoitem = cekSo + "-" +cekItem
-                        var cekSoItemSearch = soNumber + "-" + itemLine
+                        var cekpackSoLine = currentRecordObj.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_abj_packsize_po',
+                            line: i
+                        });
+                        var cekSoitem = cekSo + "-" + cekItem + "-" + cekpackSoLine
+                        var cekSoItemSearch = soNumber + "-" + itemLine + "-" + packSizeSo
                         console.log('cekSoitem', cekSoitem)
                         console.log('cekSoItemSearch', cekSoItemSearch)
                         if(cekValidasi == false){
