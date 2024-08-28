@@ -93,7 +93,6 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               fieldId: "custpage_sublist_customer_internalid",
               line: j,
             });
-            console.log('customerID', customerID)
             var forecastBusdev = records.getSublistValue({
               sublistId: "custpage_sublist_item",
               fieldId: "custpage_sublist_forecast_busdev",
@@ -169,6 +168,17 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               fieldId: "custpage_sublist_currency",
               line: j,
             });
+            var totalOrder = records.getSublistValue({
+              sublistId: "custpage_sublist_item",
+              fieldId: "custpage_sublist_total_order",
+              line: j,
+            });
+            var totalPackaging = records.getSublistValue({
+              sublistId: "custpage_sublist_item",
+              fieldId: "custpage_sublist_total_packaging",
+              line: j,
+            });
+            console.log('totalPackaging', totalPackaging)
             if(currency){
               currencySet = currency
             }
@@ -198,7 +208,9 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               employyeId : employyeId,
               quantityPO : quantityPO,
               lineId : lineId,
-              currency : currency
+              currency : currency,
+              totalOrder : totalOrder,
+              totalPackaging : totalPackaging
             });
           }
         }

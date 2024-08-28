@@ -359,6 +359,14 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         sublistId: "item",
                         fieldId: "custcol_abj_packsize_po",
                     })
+                    var incoimngStock = currentRecordObj.getCurrentSublistValue({
+                        sublistId: "item",
+                        fieldId: "custcol5"
+                    });
+                    var currnetStock = currentRecordObj.getCurrentSublistValue({
+                        sublistId: "item",
+                        fieldId: "custcol_abj_onhand"
+                    });
                     if(itemId && noSO && packSize){
                         var salesorderSearchObj = search.create({
                             type: "salesorder",
@@ -400,6 +408,12 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                 fieldId: "custcol6",
                                 value: totalQty || 0,
                             });
+                            var totalOrderSet = (Number(incoimngStock)+Number(currnetStock)) - Number(totalQty) 
+                            currentRecordObj.setCurrentSublistValue({
+                                sublistId: "item",
+                                fieldId: "custcol_pr_total_order",
+                                value: totalOrderSet || 0,
+                            });
                         }else{
                             alert("Pack Size Not Found")
                         }
@@ -412,6 +426,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 var formId = currentRecordObj.getValue('customform');
                 console.log('formId', formId)
                 if(formId == 138){
+                   
                     var totalOrder = currentRecordObj.getCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "custcol_pr_total_order",

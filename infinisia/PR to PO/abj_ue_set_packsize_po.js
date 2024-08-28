@@ -41,7 +41,7 @@ define(["N/record", "N/search", "N/config"], function(
                                 })
                                 var quantity = dataRec.getSublistValue({
                                     sublistId : "item",
-                                    fieldId : "quantity",
+                                    fieldId : "custcol_pr_total_order",
                                     line : i
                                 })
                                 var internalidPR = dataRec.getSublistValue({

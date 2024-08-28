@@ -104,6 +104,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             var poPackSize = POLine.packSize;
             var poSoNumber = POLine.soNumber;
             var internalIDPR = POLine.internalIDPR;
+            var totalOrder = POLine.totalOrder;
+            var totalPackaging = POLine.totalPackaging
             var lineId = POLine.lineId
             arrayPR.push(internalIDPR);
             if (poItem) {
@@ -233,11 +235,20 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 line: line_idx,
                 value: itemRate,
               });
+              
+              let positivePackaging = Math.abs(totalPackaging);
               poData.setSublistValue({
                 sublistId: "item",
                 fieldId: "quantity",
                 line: line_idx,
-                value: quantity,
+                value: positivePackaging,
+              });
+              log.debug('totalOrder', totalOrder);
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_pr_total_order",
+                line: line_idx,
+                value: totalOrder,
               });
               poData.setSublistValue({
                 sublistId: "item",
@@ -283,115 +294,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
    
   }
 
-  function afterSubmit(context) {
-    if (context.type == context.UserEventType.CREATE) {
-      var dataRec = context.newRecord;
-      var dataRecID = context.newRecord.id;
-      var isConvertPR = dataRec.getValue("custbody_convert_from_pr");
-      var fromPRID = dataRec.getValue("custbody_convert_from_prid");
-      if (isConvertPR && fromPRID) {
-        var dataLineCount = dataRec.getLineCount({
-          sublistId : "item"
-        });
-        var dataFromPR = []
-        if(dataLineCount > 0){
-          for(var i = 0; i < dataLineCount; i++){
-            var itemIdData = dataRec.getSublistValue({
-              sublistId : "item",
-              fieldId : "item",
-              line : i
-            });
-            var qtyData = dataRec.getSublistValue({
-              sublistId : "item",
-              fieldId : "quantity",
-              line : i
-            })
-            var internalidPR = dataRec.getSublistValue({
-              sublistId : "item",
-              fieldId : "custcol_abj_pr_number",
-              line : i
-            })
-            var lineId = dataRec.getSublistValue({
-                sublistId : "item",
-                fieldId : "custcol_msa_id_line_from_pr",
-                line : i
-            })
-            log.debug('internalidPR', internalidPR)
-            dataFromPR.push(
-              {
-                itemIdData : itemIdData,
-                qtyData : qtyData,
-                internalidPR : internalidPR,
-                lineId : lineId
-              }
-            )
-          }
-        }
-        log.debug('dataFromPR', dataFromPR)
-        fromPRID.forEach(function (internalid) {
-          var prData = record.load({
-            type: "purchaseorder",
-            id: internalid,
-            isDynamic: false,
-          });
-          prData.setValue({
-            fieldId: "custbody_po_converted",
-            value: dataRecID,
-            ignoreFieldChange: true,
-          });
-          var lineinPr = prData.getLineCount({
-            sublistId : "recmachcustrecord_iss_pr_parent"
-          });
-          if(lineinPr > 0){
-            for(var i = 0; i < lineinPr; i++){
-              var itemId = prData.getSublistValue({
-                  sublistId : "recmachcustrecord_iss_pr_parent",
-                  fieldId : "custrecord_iss_pr_item",
-                  line : i
-              });
-              var line_id = prData.getSublistValue({
-                sublistId : "recmachcustrecord_iss_pr_parent",
-                fieldId : "id",
-                line : i
-              });
-              var currntQtyPO = prData.getSublistValue({
-                sublistId : "recmachcustrecord_iss_pr_parent",
-                fieldId : "custrecord_prsum_qtypo",
-                line : i
-              }) || 0;
-              
-              var matchingData = dataFromPR.find(function (data) {
-                log.debug('data.internalidPR', data.internalidPR)
-                log.debug('internalid', internalid);
-                log.debug('data.itemIdData', data.itemIdData);
-                log.debug('itemId', itemId)
-                log.debug('data.lineId', data.lineId);
-                log.debug('line_id', line_id)
-                return data.internalidPR === internalid && data.itemIdData === itemId && data.lineId == line_id;
-              });
-              if (matchingData) {
-                log.debug('matchingDataqty', matchingData.qtyData)
-                var qtyPo  = Number(currntQtyPO) + Number(matchingData.qtyData)
-                
-                log.debug('qtyPo', qtyPo)
-                prData.setSublistValue({
-                  sublistId: "recmachcustrecord_iss_pr_parent",
-                  fieldId: "custrecord_prsum_qtypo",
-                  line: i,
-                  value: qtyPo
-                });
-              }
-            }
-          }
-        });
-      }
-    }
-    
-  }
 
   return {
     beforeLoad: beforeLoad,
     beforeSubmit: beforeSubmit,
-    afterSubmit: afterSubmit,
   };
 });

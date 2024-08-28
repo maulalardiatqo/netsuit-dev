@@ -180,7 +180,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
                 ["internalid", "anyof", idSum]
             ],
             columns: [
-                search.createColumn({name: "custrecord_pr_sum_total_packaging", label: "Total Packaging"})
+                search.createColumn({name: "custrecord_iss_total_order_formula", label: "Total Packaging"})
             ]
           });
           var searchResult = customrecord_pr_summary_customerSearchObj.run().getRange({
@@ -189,7 +189,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           });
           
           if (searchResult.length > 0) {
-              var package = searchResult[0].getValue("custrecord_pr_sum_total_packaging");
+              var package = searchResult[0].getValue("custrecord_iss_total_order_formula");
               if(package){
                 totalPackaging = package
               }
@@ -576,7 +576,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
                 ["internalid", "anyof", idSum]
             ],
             columns: [
-                search.createColumn({name: "custrecord_pr_sum_total_packaging", label: "Total Packaging"})
+                search.createColumn({name: "custrecord_iss_total_order_formula", label: "Total Packaging"})
             ]
           });
           var searchResult = customrecord_pr_summary_customerSearchObj.run().getRange({
@@ -585,7 +585,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           });
           
           if (searchResult.length > 0) {
-              var package = searchResult[0].getValue("custrecord_pr_sum_total_packaging");
+              var package = searchResult[0].getValue("custrecord_iss_total_order_formula");
               if(package){
                 totalPackaging = package
               }

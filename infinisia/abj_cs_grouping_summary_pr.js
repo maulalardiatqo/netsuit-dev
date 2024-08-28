@@ -66,7 +66,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 });
                 var packSizeOrder = currentRecordObj.getSublistValue({
                     sublistId: 'item',
-                    fieldId: 'custcol_abj_packsize_po',
+                    fieldId: 'custcol_abj_pack_size_order',
                     line: index
                 })
                 var poCustomer = currentRecordObj.getSublistValue({
@@ -128,7 +128,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var groupedData = {};
 
             allData.forEach(function(data) {
-                var groupKey = data.item + '-' + data.salesRep + '-' + data.customerId + '-' + data.packSizeOrder;
+                var groupKey = data.item + '-' + data.salesRep + '-' + data.customerId + '-' + data.packSizeOrder + '-' +data.soNo;
                 
                 if (!groupedData[groupKey]) {
                     groupedData[groupKey] = {
@@ -192,7 +192,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     var avgPengAcc = data.avgPengAcc
                     var tanggalKirim = data.tanggalKirim
                     var totalPackaging = data.totalPackaging
-                    var keyItem = item + "-" + salesRep + "-" + customerId + "-" + packSizeOrder;
+                    var keyItem = item + "-" + salesRep + "-" + customerId + "-" + packSizeOrder  + '-' + soNo;
                     var countLineInCustom = currentRecordObj.getLineCount({
                         sublistId: "recmachcustrecord_iss_pr_parent"
                     });
@@ -219,6 +219,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             var packSizeOrderPr = currentRecordObj.getSublistValue({
                                 sublistId: 'recmachcustrecord_iss_pr_parent',
                                 fieldId: 'custrecord_iss_pack_size',
+                                line: i
+                            });
+                            var salesOrderNumber = currentRecordObj.getSublistValue({
+                                sublistId: 'recmachcustrecord_iss_pr_parent',
+                                fieldId: 'custrecord_iss_no_po',
                                 line: i
                             });
             
