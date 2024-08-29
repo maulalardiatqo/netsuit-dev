@@ -39,6 +39,7 @@ define(["N/record", "N/search", "N/config"], function(
                                     fieldId : "custcol_msa_id_line_from_pr",
                                     line : i
                                 })
+                                log.debug('lineId', lineId)
                                 var quantity = dataRec.getSublistValue({
                                     sublistId : "item",
                                     fieldId : "custcol_pr_total_order",
@@ -110,7 +111,6 @@ define(["N/record", "N/search", "N/config"], function(
                                         return true;
                                     });
                                 }
-                                log.debug('packSize', packSize)
                                 if(packSize != ""){
                                     dataRec.setSublistValue({
                                         sublistId:'item',
@@ -119,10 +119,7 @@ define(["N/record", "N/search", "N/config"], function(
                                         value:packSize
                                     });
                                 }
-                                log.debug('data',{
-                                    rate:rate,
-                                    taxCode:taxCode
-                                })
+                               
                                 dataRec.setSublistValue({
                                     sublistId:'item',
                                     fieldId:'rate',
@@ -149,7 +146,7 @@ define(["N/record", "N/search", "N/config"], function(
                                 });
                                 var lineIdPr = dataRec.getSublistValue({
                                     sublistId : "item",
-                                    fieldId : "custcol_abj_customer_line",
+                                    fieldId : "custcol_msa_id_line_from_pr",
                                     line : i
                                 });
                                 allDataPr.push({
@@ -181,7 +178,6 @@ define(["N/record", "N/search", "N/config"], function(
                                 var lineinPr = prData.getLineCount({
                                     sublistId : "recmachcustrecord_iss_pr_parent"
                                 });
-                                log.debug('lineinPr', lineinPr)
                                 if(lineinPr > 0){
                                     for(var i = 0; i < lineinPr; i++){
                                         var itemId = prData.getSublistValue({
@@ -189,22 +185,20 @@ define(["N/record", "N/search", "N/config"], function(
                                             fieldId : "custrecord_iss_pr_item",
                                             line : i
                                         });
-                                        log.debug('itemId', itemId)
                                         var line_id = prData.getSublistValue({
                                             sublistId : "recmachcustrecord_iss_pr_parent",
-                                            fieldId : "custrecord_prsum_customer",
+                                            fieldId : "id",
                                             line : i
                                         });
-                                        log.debug('line_id', line_id)
                                         var currntQtyPO = prData.getSublistValue({
                                             sublistId : "recmachcustrecord_iss_pr_parent",
                                             fieldId : "custrecord_prsum_qtypo",
                                             line : i
                                         }) || 0;
-                                        
-                                        if (itemId === itemIdData && lineIdPr === line_id) {
+                                        log.debug('data cek', {itemId : itemId, itemIdData : itemIdData, lineIdPr : lineIdPr,line_id : line_id })
+                                        if (itemId == itemIdData && lineIdPr == line_id) {
                                             var qtyPo  = Number(currntQtyPO) + Number(quantity)
-                                            log.debug('qtyPo', qtyPo)
+                                            log.debug('masuk set qty from PO',{lineIdPr : lineIdPr,line_id : line_id, qtyPo: qtyPo })
                                             prData.setSublistValue({
                                                 sublistId: "recmachcustrecord_iss_pr_parent",
                                                 fieldId: "custrecord_prsum_qtypo",
