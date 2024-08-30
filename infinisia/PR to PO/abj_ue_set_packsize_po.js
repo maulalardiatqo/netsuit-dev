@@ -42,7 +42,7 @@ define(["N/record", "N/search", "N/config"], function(
                                 log.debug('lineId', lineId)
                                 var quantity = dataRec.getSublistValue({
                                     sublistId : "item",
-                                    fieldId : "custcol_pr_total_order",
+                                    fieldId : "quantity",
                                     line : i
                                 })
                                 var internalidPR = dataRec.getSublistValue({
@@ -132,13 +132,13 @@ define(["N/record", "N/search", "N/config"], function(
                                     line:i,
                                     value:taxCode
                                 });
-                                log.debug('quantity', quantity)
-                                dataRec.setSublistValue({
-                                    sublistId:'item',
-                                    fieldId:'quantity',
-                                    line:i,
-                                    value:quantity
-                                });
+                                // log.debug('quantity', quantity)
+                                // dataRec.setSublistValue({
+                                //     sublistId:'item',
+                                //     fieldId:'quantity',
+                                //     line:i,
+                                //     value:quantity
+                                // });
                                 var prId = dataRec.getSublistValue({
                                     sublistId : "item",
                                     fieldId : "custcol_abj_pr_number",

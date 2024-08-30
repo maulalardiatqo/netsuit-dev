@@ -1,0 +1,11 @@
+for (var i = 0; i < countLineInCustom; i++){
+                            currentRecordObj.selectLine({
+                                sublistId: 'recmachcustrecord_iss_pr_parent',
+                                line: i
+                            });
+                            currentRecordObj.removeLine({
+                                sublistId: 'recmachcustrecord_iss_pr_parent',
+                                line: i
+                            });
+
+                        }

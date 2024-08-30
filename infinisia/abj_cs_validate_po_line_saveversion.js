@@ -14,7 +14,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var cForm = currentRecordObj.getValue('customform');
         console.log('cForm', cForm)
         if (cForm == '138') {
-            console.log('masuk if')
             var countLine = currentRecordObj.getLineCount({ sublistId: 'item' });
             var currentId = currentRecordObj.getValue('id');
             var allDataItem = [];
@@ -24,14 +23,24 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     fieldId: 'custcol_abj_no_so',
                     line: i
                 });
+                var soNumberText = currentRecordObj.getSublistText({
+                    sublistId: 'item',
+                    fieldId: 'custcol_abj_no_so',
+                    line: i
+                });
                 var itemLine = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'item',
+                    line: i
+                });
+                var itemLineText = currentRecordObj.getSublistText({
                     sublistId: 'item',
                     fieldId: 'item',
                     line: i
                 });
                 var packSizeSo = currentRecordObj.getSublistValue({
                     sublistId: 'item',
-                    fieldId: 'custcol_abj_packsize_po',
+                    fieldId: 'custcol_abj_pack_size_order',
                     line: i
                 });
                 var isDuplicateInAllDataItem = allDataItem.some(function (data) {
@@ -39,6 +48,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 });
 
                 if (isDuplicateInAllDataItem) {
+                    console.log('isDuplicateInAllDataItem', {soNumberText : soNumberText, itemLineText : itemLineText})
                     alert('Duplicated Sales Order Number in Item Line');
                     return false;
                 }
@@ -47,6 +57,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     itemLine : itemLine,
                     packSizeSo : packSizeSo
                 })
+                console.log('allDataItem', allDataItem)
                 var cekSORec = soNumber + "-" + itemLine + "-" + packSizeSo;
 
                 if (soNumber === '') {
@@ -69,13 +80,13 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         search.createColumn({ name: "internalid", label: "Internal ID" }),
                         search.createColumn({ name: "custcol_abj_no_so", label: "No SO" }),
                         search.createColumn({ name: "item", label: "Item" }),
-                        search.createColumn({ name: "custcol_abj_packsize_po", label: "Pack Size" })
+                        search.createColumn({ name: "custcol_abj_pack_size_order", label: "Pack Size" })
                     ]
                 });
                 purchaseorderSearchObj.run().each(function (result) {
                     var numberSO = result.getValue({ name: 'custcol_abj_no_so' });
                     var itemId = result.getValue({ name: "item" });
-                    var packSizeSoSearch = result.getValue({ name: "custcol_abj_packsize_po" });
+                    var packSizeSoSearch = result.getValue({ name: "custcol_abj_pack_size_order" });
                     var internalId = result.getValue({
                         name: 'internalid'
                     });
@@ -89,9 +100,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
                     return true;
                 });
-
+                console.log('arrSoNumber', arrSoNumber)
                 var isSoNumberExist = arrSoNumber.indexOf(cekSORec) !== -1;
-
+                console.log('isSoNumberExist', isSoNumberExist)
                 if (isSoNumberExist) {
                     if(cekValidasi == true){
                         alert('Duplicated Sales Order Number In item Line!');

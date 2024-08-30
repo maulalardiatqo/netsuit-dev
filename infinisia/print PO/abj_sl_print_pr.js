@@ -365,7 +365,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var itemParts = itemName.split(' ', 2);
             var itemCode = itemParts[0];
             var itemDescription = itemName.substring(itemCode.length + 1);
-        
+            log.debug('cek so before set', dataItem.noSO)
             let html = `<tr>
                 <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;">${nomor}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;">${itemCode}</td>
@@ -375,7 +375,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.salesRepCode}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.customer}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalOsPO}</td>
-                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.noSO}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.noSO}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.tglKirim}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalForecase}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.leadTimeKirim}</td>
@@ -385,8 +385,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 <td class='tg-b_body' style="border-right: 1px solid black;">${dataItem.lastNotes}</td>
             </tr>`;
             
-            // Baris tambahan untuk subtotal, jika diperlukan
-            html += `<tr>
+            return html;
+        }
+        
+        function generateSummaryRow(dataItem) {
+            return `<tr>
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
@@ -404,8 +407,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalQty}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;"></td>
             </tr>`;
-            
-            return html;
         }
         
         var dataItem = []
@@ -422,7 +423,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 
                 var body = "";
                 for(var index = 0; index < itemCount.length; index++){
-                    var poRecord = itemCount[index]
+                    var poRecord = itemCount[index];
                     var itemId = poRecord.getValue({
                         name: "custrecord_iss_pr_item",
                         join: "CUSTRECORD_ISS_PR_PARENT",
@@ -434,8 +435,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var itemParts = itemText.split(' ', 2);
                     var itemCode = itemParts[0]; 
                     var itemDescription = itemText.substring(itemCode.length + 1); 
-
-                    
+                
                     var onHand = parseFloat(poRecord.getValue({
                         name: "custrecord_iss_pr_stock",
                         join: "CUSTRECORD_ISS_PR_PARENT",
@@ -460,8 +460,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         name: "custrecord_iss_os_po",
                         join: "CUSTRECORD_ISS_PR_PARENT",
                     })) || 0;
-                    var noSO = poRecord.getText({
-                        name: "custrecord_iss_no_po",
+                    var noSO = poRecord.getValue({
+                        name: "custrecord_prsum_po_customer",
                         join: "CUSTRECORD_ISS_PR_PARENT",
                     });
                     var noSOId = poRecord.getValue({
@@ -497,6 +497,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         name: "custrecord_iss_note",
                         join: "CUSTRECORD_ISS_PR_PARENT",
                     });
+                    
                     dataItem.push({
                         itemId : itemId,
                         itemText : itemText,
@@ -516,55 +517,87 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         qty : qty,
                         notes : notes,
                         customerId : customerId
-                    })
+                    });
                 }
-                log.debug('dataItem', dataItem)
-                var dataItemLength = dataItem.length
+                
+                var dataItemLength = dataItem.length;
                 var groupedItems = {};
+                
                 dataItem.forEach((item) => {
                     if (!groupedItems[item.itemId]) {
-                        groupedItems[item.itemId] = {};
-                    }
-                
-                    if (!groupedItems[item.itemId][item.customerId]) {
-                        groupedItems[item.itemId][item.customerId] = {
+                        groupedItems[item.itemId] = {
                             totalOnHand: 0,
                             totalInComingStock: 0,
                             totalOsPO: 0,
                             totalForecase: 0,
                             totalQty: 0,
                             lastNotes: '',
-                            items: []
+                            customers: {}
+                        };
+                    }
+                    groupedItems[item.itemId].totalOnHand += item.onHand;
+                    groupedItems[item.itemId].totalInComingStock += item.inComingStock;
+                    groupedItems[item.itemId].totalOsPO += item.osPO;
+                    groupedItems[item.itemId].totalForecase += item.forecase;
+                    groupedItems[item.itemId].totalQty += item.qty;
+                    groupedItems[item.itemId].lastNotes = item.notes;
+                
+                    if (!groupedItems[item.itemId].customers[item.customerId]) {
+                        groupedItems[item.itemId].customers[item.customerId] = {
+                            items: [],
+                            totalOnHand: 0,
+                            totalInComingStock: 0,
+                            totalOsPO: 0,
+                            totalForecase: 0,
+                            totalQty: 0,
+                            lastNotes: '',
+                            noSO: []
                         };
                     }
                 
-                    groupedItems[item.itemId][item.customerId].totalOnHand += item.onHand;
-                    groupedItems[item.itemId][item.customerId].totalInComingStock += item.inComingStock;
-                    groupedItems[item.itemId][item.customerId].totalOsPO += item.osPO;
-                    groupedItems[item.itemId][item.customerId].totalForecase += item.forecase;
-                    groupedItems[item.itemId][item.customerId].totalQty += item.qty;
-                    groupedItems[item.itemId][item.customerId].lastNotes = item.notes;
+                    const existingCustomerData = groupedItems[item.itemId].customers[item.customerId];
+                    
+                    let noSOArray = item.noSO ? item.noSO.split(',').map(n => n.trim()) : [];
+                    
+                    existingCustomerData.noSO = [...existingCustomerData.noSO, ...noSOArray];
+                    
+                    existingCustomerData.noSO = [...new Set(existingCustomerData.noSO)];
                 
-                    groupedItems[item.itemId][item.customerId].items.push(item);
+                    groupedItems[item.itemId].customers[item.customerId].totalOnHand += item.onHand;
+                    groupedItems[item.itemId].customers[item.customerId].totalInComingStock += item.inComingStock;
+                    groupedItems[item.itemId].customers[item.customerId].totalOsPO += item.osPO;
+                    groupedItems[item.itemId].customers[item.customerId].totalForecase += item.forecase;
+                    groupedItems[item.itemId].customers[item.customerId].totalQty += item.qty;
+                    groupedItems[item.itemId].customers[item.customerId].lastNotes = item.notes;
+                    
+                    groupedItems[item.itemId].customers[item.customerId].items = [item];
                 });
                 
-                log.debug('groupedItems', groupedItems);
+                for (let itemId in groupedItems) {
+                    for (let customerId in groupedItems[itemId].customers) {
+                        groupedItems[itemId].customers[customerId].noSO = groupedItems[itemId].customers[customerId].noSO.join(',<br/>');
+                        log.debug('cek po no group', groupedItems[itemId].customers[customerId].noSO)
+                    }
+                }
                 
-                let tableHTML = "";
                 var nomor = 1;
                 for (const itemId in groupedItems) {
                     if (groupedItems.hasOwnProperty(itemId)) {
-                        for (const customerId in groupedItems[itemId]) {
-                            if (groupedItems[itemId].hasOwnProperty(customerId)) {
-                                const groupData = groupedItems[itemId][customerId];
-                                tableHTML += generateTableHTML(itemId, groupData, nomor, customerId);
+                        const groupData = groupedItems[itemId];
+                
+                        for (const customerId in groupData.customers) {
+                            if (groupData.customers.hasOwnProperty(customerId)) {
+                                const customerData = groupData.customers[customerId];
+                                body += generateTableHTML(itemId, customerData, nomor);
                                 nomor++;
                             }
                         }
+                        body += generateSummaryRow(groupData);
                     }
                 }
-                body += tableHTML;
+                
                 return body;
+                
 
             }
             

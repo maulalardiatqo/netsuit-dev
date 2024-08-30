@@ -57,7 +57,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 name: "internalid",
                 join: "vendor",
             });
-            log.debug('vendor_id', vendor_id)
             if(vendor_id){
                 var vendorRecord = record.load({
                     type: record.Type.VENDOR,
@@ -88,12 +87,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 if(venAddres){
                     if(venAddres.includes('&')){
-                        log.debug('includes &')
                         venAddres = venAddres.replace(/&/g, ' dan ')
                     }
                 }
                 vendLeadTime =  vendorRecord.getValue('custentity1');
-                log.debug('vendLeadTime', vendLeadTime)
 
             }
             // PO data
@@ -106,6 +103,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var busdev = poRecord.getValue({
                 name: "custbody_abj_sales_rep_fulfillment"
             });
+            var noForm = poRecord.getValue({
+                name: "custbody_abj_no_form"
+            }) || ""
             var busdevName = ""
             if(busdev){
                 var empRec = record.load({
@@ -161,7 +161,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             }
             body += "</tr>";
             body += "<tr>";
-            body += "<td style='align:right; font-size:9px; font-weight: bold;'>No. Form : </td>"
+            body += "<td style='align:right; font-size:9px; font-weight: bold;'>No. Form : "+noForm+" </td>"
             body += "</tr>";
             body += "<tr>";
             body += "<td style='align:center; font-size:9px;'>"+compAddress+" </td>"
@@ -353,7 +353,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             });
 
         }
-        function generateTableHTML(itemId, dataItem, nomor){
+        function generateTableHTML(itemId, dataItem, nomor) {
+            // Mengambil item pertama dari grup
+            var firstItem = dataItem.items[0];
             var fieldLookUpSection = search.lookupFields({
                 type: "item",
                 id: itemId,
@@ -361,58 +363,50 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             });
             var itemName = fieldLookUpSection.itemid;
             var itemParts = itemName.split(' ', 2);
-            var itemCode = itemParts[0]; // BN-S004
-            var itemDescription = itemName.substring(itemCode.length + 1); // SUNCAT MTA
-            var lengthDataItem = dataItem.items.length;
-            let html = "";
-    
-            dataItem.items.forEach((item, index) => {
-                if(index === 0){
-                    html += `<tr>
-                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;" rowspan="${lengthDataItem}">${nomor}</td>
-                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;" rowspan="${lengthDataItem}">${itemCode}</td>
-                        <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;" rowspan="${lengthDataItem}">${itemDescription}</td>`;
-                } else {
-                    html += `<tr>`;
-                }
+            var itemCode = itemParts[0];
+            var itemDescription = itemName.substring(itemCode.length + 1);
         
-                html += `
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.onHand}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.inComingStock}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.salesRepCode}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.customer}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.osPO}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.noSO}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.tglKirim}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.forecase}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.leadTimeKirim}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.avgpengBusdev}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.avgpengAcc}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${item.qty}</td>
-                    <td class='tg-b_body' style="border-right: 1px solid black;">${item.notes}</td>
-                </tr>`;
-            });
-            html += `<tr>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalOnHand}</td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalInComingStock}</td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalOsPO}</td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalForecase}</td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalQty}</td>
-            <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;"></td>>
+            let html = `<tr>
+                <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;">${nomor}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;">${itemCode}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;">${itemDescription}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalOnHand}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalInComingStock}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.salesRepCode}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.customer}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalOsPO}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.noSO}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.tglKirim}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalForecase}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.leadTimeKirim}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.avgpengBusdev}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.avgpengAcc}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalQty}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black;">${dataItem.lastNotes}</td>
             </tr>`;
-            return html;
             
+            html += `<tr>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalOnHand}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalInComingStock}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalOsPO}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalForecase}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalQty}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;"></td>
+            </tr>`;
+            
+            return html;
         }
+        
         var dataItem = []
         function getPOItem(context, recid){
             var itemSearch =  search.load({
@@ -457,6 +451,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         name: "custrecord_prsum_customer",
                         join: "CUSTRECORD_ISS_PR_PARENT",
                     });
+                    var customerId = poRecord.getValue({
+                        name: "custrecord_prsum_customer",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    });
                     var osPO = parseFloat(poRecord.getValue({
                         name: "custrecord_iss_os_po",
                         join: "CUSTRECORD_ISS_PR_PARENT",
@@ -474,12 +472,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         join: "CUSTRECORD_ISS_PR_PARENT",
                     });
                     
-                    // if(tglKirim != ""){
-                    //     tglKirim = format.format({
-                    //         value: tglKirim,
-                    //         type: format.Type.DATE
-                    //     });
-                    // }
                     var forecase = parseFloat(poRecord.getValue({
                         name: "custrecord_iss_forecast_buffer",
                         join: "CUSTRECORD_ISS_PR_PARENT",
@@ -521,49 +513,58 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         avgpengBusdev : avgpengBusdev,
                         avgpengAcc : avgpengAcc,
                         qty : qty,
-                        notes : notes
+                        notes : notes,
+                        customerId : customerId
                     })
                 }
                 log.debug('dataItem', dataItem)
                 var dataItemLength = dataItem.length
-                log.debug('dataItemLength', dataItemLength)
-                const groupedItems = {};
+                var groupedItems = {};
                 dataItem.forEach((item) => {
                     if (!groupedItems[item.itemId]) {
-                        groupedItems[item.itemId] = {
+                        groupedItems[item.itemId] = {};
+                    }
+                
+                    if (!groupedItems[item.itemId][item.customerId]) {
+                        groupedItems[item.itemId][item.customerId] = {
                             totalOnHand: 0,
                             totalInComingStock: 0,
                             totalOsPO: 0,
-                            totalForecase :0,
-                            totalQty :0,
-                            lastNotes : '',
+                            totalForecase: 0,
+                            totalQty: 0,
+                            lastNotes: '',
                             items: []
                         };
                     }
-
-                    groupedItems[item.itemId].totalOnHand += item.onHand;
-                    groupedItems[item.itemId].totalInComingStock += item.inComingStock;
-                    groupedItems[item.itemId].totalOsPO += item.osPO;
-                    groupedItems[item.itemId].totalForecase += item.forecase;
-                    groupedItems[item.itemId].totalQty += item.qty;
-                    groupedItems[item.itemId].lastNotes = item.notes;
-
-                    groupedItems[item.itemId].items.push(item);
+                
+                    groupedItems[item.itemId][item.customerId].totalOnHand += item.onHand;
+                    groupedItems[item.itemId][item.customerId].totalInComingStock += item.inComingStock;
+                    groupedItems[item.itemId][item.customerId].totalOsPO += item.osPO;
+                    groupedItems[item.itemId][item.customerId].totalForecase += item.forecase;
+                    groupedItems[item.itemId][item.customerId].totalQty += item.qty;
+                    groupedItems[item.itemId][item.customerId].lastNotes = item.notes;
+                
+                    groupedItems[item.itemId][item.customerId].items.push(item);
                 });
-
-                log.debug('groupedItems', groupedItems)
+                
+                log.debug('groupedItems', groupedItems);
+                
                 let tableHTML = "";
-                var nomor = 1
+                var nomor = 1;
                 for (const itemId in groupedItems) {
-                    log.debug('itemId', itemId)
-                    if(itemId){
-                        tableHTML += generateTableHTML(itemId, groupedItems[itemId], nomor);
-                        nomor++
+                    if (groupedItems.hasOwnProperty(itemId)) {
+                        for (const customerId in groupedItems[itemId]) {
+                            if (groupedItems[itemId].hasOwnProperty(customerId)) {
+                                const groupData = groupedItems[itemId][customerId];
+                                tableHTML += generateTableHTML(itemId, groupData, nomor, customerId);
+                                nomor++;
+                            }
+                        }
                     }
-                    
                 }
                 body += tableHTML;
                 return body;
+
             }
             
         }

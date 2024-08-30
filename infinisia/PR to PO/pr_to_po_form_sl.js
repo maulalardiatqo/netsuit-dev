@@ -152,15 +152,13 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let packSizeText = prToPO[i].getText({
             name: prToPOSet.columns[23],
           });
+         
           let soNumber = prToPO[i].getValue({
             name: prToPOSet.columns[24],
           });
           let soNumberText = prToPO[i].getText({
             name: prToPOSet.columns[24],
           });
-          let qty = prToPO[i].getValue({
-            name : prToPOSet.columns[28]
-          })
           let qtyPO = prToPO[i].getValue({
             name : prToPOSet.columns[27]
           })
@@ -172,6 +170,12 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           })
           let idSum = prToPO[i].getValue({
             name : prToPOSet.columns[32]
+          });
+          let lastPurchise = prToPO[i].getValue({
+            name : prToPOSet.columns[33]
+          });
+          let totalOrder = prToPO[i].getValue({
+            name: prToPOSet.columns[28],
           });
           var totalPackaging = 0
           var customrecord_pr_summary_customerSearchObj = search.create({
@@ -198,21 +202,21 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let cek1 =  prToPO[i].getValue({
             name: prToPOSet.columns[25],
           });
-          let totalOrder = Math.abs(parseFloat(qty || 0)) - parseFloat(qtyPO || 0);
+          totalPackaging = Math.abs(parseFloat(totalPackaging || 0)) - parseFloat(qtyPO || 0);
           var itemRate
-          if(totalOrder > 0){
+          if(totalPackaging > 0){
             if(cek1 || cek1 != ''){
               itemRate = cek1
             }else{
               itemRate = cek2
             }
             log.debug('internalID', internalID)
-            currentRecord.setSublistValue({
-              sublistId: "custpage_sublist_item",
-              id: "custpage_sublist_view_link",
-              value: `https://9274135.app.netsuite.com/app/accounting/transactions/purchord.nl?id=${internalID}&whence=` || " ",
-              line: i,
-            });
+            // currentRecord.setSublistValue({
+            //   sublistId: "custpage_sublist_item",
+            //   id: "custpage_sublist_view_link",
+            //   value: `https://9274135.app.netsuite.com/app/accounting/transactions/purchord.nl?id=${internalID}&whence=` || " ",
+            //   line: i,
+            // });
             log.debug('set sampai sini 0', currency)
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
@@ -416,6 +420,12 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               value: totalPackaging || " ",
               line: i,
             });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_last_purchase",
+              value: lastPurchise || " ",
+              line: i,
+            });
             
           }
          
@@ -554,7 +564,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let soNumberText = prToPO[i].getText({
             name: prToPOSet.columns[19],
           });
-          let qty = prToPO[i].getValue({
+          let totalOrder = prToPO[i].getValue({
             name: prToPOSet.columns[28],
           })
           let qtyPO = prToPO[i].getValue({
@@ -568,6 +578,9 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           })
           let idSum = prToPO[i].getValue({
             name : prToPOSet.columns[32]
+          });
+          let lastPurchise = prToPO[i].getValue({
+            name : prToPOSet.columns[33]
           });
           var totalPackaging = 0
           var customrecord_pr_summary_customerSearchObj = search.create({
@@ -591,24 +604,24 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               }
           }
           log.debug('currency', currency)
-          let totalOrder = Math.abs(parseFloat(qty || 0)) - parseFloat(qtyPO || 0);
+          totalPackaging = Math.abs(parseFloat(totalPackaging || 0)) - parseFloat(qtyPO || 0);
           var itemRate
           let cek1 = prToPO[i].getValue({
             name: prToPOSet.columns[25],
           });
-          if(totalOrder > 0){
+          if(totalPackaging > 0){
             if(cek1 || cek1 != ''){
               itemRate = cek1
             }else{
               itemRate = cek2
             }
             log.debug('internalID', internalID)
-            currentRecord.setSublistValue({
-              sublistId: "custpage_sublist_item",
-              id: "custpage_sublist_view_link",
-              value: `https://9274135.app.netsuite.com/app/accounting/transactions/purchord.nl?id=${internalID}&whence=`,
-              line: i,
-            });
+            // currentRecord.setSublistValue({
+            //   sublistId: "custpage_sublist_item",
+            //   id: "custpage_sublist_view_link",
+            //   value: `https://9274135.app.netsuite.com/app/accounting/transactions/purchord.nl?id=${internalID}&whence=`,
+            //   line: i,
+            // });
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_item_name",
@@ -808,6 +821,12 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               value: totalPackaging || " ",
               line: i,
             });
+            currentRecord.setSublistValue({
+              sublistId: "custpage_sublist_item",
+              id: "custpage_sublist_last_purchase",
+              value: lastPurchise || " ",
+              line: i,
+            });
           }
           
         }
@@ -835,11 +854,11 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
         displayType: serverWidget.FieldDisplayType.ENTRY,
       });
 
-    sublist_in.addField({
-      id: "custpage_sublist_view_link",
-      label: "VIEW",
-      type: serverWidget.FieldType.URL,
-    }).linkText = "View";
+    // sublist_in.addField({
+    //   id: "custpage_sublist_view_link",
+    //   label: "VIEW",
+    //   type: serverWidget.FieldType.URL,
+    // }).linkText = "View";
 
     sublist_in.addField({
       id: "custpage_sublist_doc_number",
@@ -1052,6 +1071,15 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
     sublist_in
       .addField({
         id: "custpage_sublist_units",
+        label: "UNITS",
+        type: serverWidget.FieldType.TEXT,
+      })
+      .updateDisplayType({
+        displayType: serverWidget.FieldDisplayType.HIDDEN,
+      });
+      sublist_in
+      .addField({
+        id: "custpage_sublist_last_purchase",
         label: "UNITS",
         type: serverWidget.FieldType.TEXT,
       })

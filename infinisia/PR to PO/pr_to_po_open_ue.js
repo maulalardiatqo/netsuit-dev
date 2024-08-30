@@ -36,7 +36,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             fieldId: "customform",
             value: 104,
           });
-          log.debug('currencySet', currencySet)
           if(currencySet){
             poData.setValue({
               fieldId: "currency",
@@ -106,6 +105,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             var internalIDPR = POLine.internalIDPR;
             var totalOrder = POLine.totalOrder;
             var totalPackaging = POLine.totalPackaging
+            var lastPurchise = POLine.lastPurchise
             var lineId = POLine.lineId
             arrayPR.push(internalIDPR);
             if (poItem) {
@@ -229,14 +229,16 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 line: line_idx,
                 value: units,
               });
+              log.debug('lastPurchase', lastPurchise)
               poData.setSublistValue({
                 sublistId: "item",
                 fieldId: "rate",
                 line: line_idx,
-                value: itemRate,
+                value: lastPurchise,
               });
               
               let positivePackaging = Math.abs(totalPackaging);
+              log.debug('positivePackaging', positivePackaging)
               poData.setSublistValue({
                 sublistId: "item",
                 fieldId: "quantity",
