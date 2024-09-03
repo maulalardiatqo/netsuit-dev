@@ -168,6 +168,11 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               fieldId: "custpage_sublist_currency",
               line: j,
             });
+            var packSizeText = records.getSublistValue({
+              sublistId: "custpage_sublist_item",
+              fieldId : "custpage_sublist_packsize_text",
+              line : j
+            })
             var totalOrder = records.getSublistValue({
               sublistId: "custpage_sublist_item",
               fieldId: "custpage_sublist_total_order",
@@ -181,6 +186,11 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
             var lastPurchise = records.getSublistValue({
               sublistId: "custpage_sublist_item",
               fieldId: "custpage_sublist_last_purchase",
+              line: j,
+            });
+            var poCust = records.getSublistValue({
+              sublistId: "custpage_sublist_item",
+              fieldId: "custpage_sublist_pocust",
               line: j,
             });
             console.log('totalPackaging', totalPackaging)
@@ -216,7 +226,9 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               currency : currency,
               totalOrder : totalOrder,
               totalPackaging : totalPackaging,
-              lastPurchise : lastPurchise
+              lastPurchise : lastPurchise,
+              poCust:poCust,
+              packSizeText : packSizeText
             });
           }
         }

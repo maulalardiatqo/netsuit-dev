@@ -36,12 +36,33 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             fieldId: "customform",
             value: 104,
           });
+          var exchangerate = 0
           if(currencySet){
+            var currencySearchObj = search.create({
+              type: "currency",
+              filters:
+              [
+                  ["internalid","anyof",currencySet]
+              ],
+              columns:
+              [
+                  search.createColumn({name: "name", label: "Name"}),
+                  search.createColumn({name: "exchangerate", label: "Exchange Rate"})
+              ]
+            });
+            var searchResultCurr = currencySearchObj.run().getRange({start: 0, end: 1});
+            if (searchResultCurr.length > 0) {
+              var exc = searchResultCurr[0].getValue({name: "exchangerate"});
+              if(exc){
+                exchangerate = exc
+              }
+            } 
             poData.setValue({
               fieldId: "currency",
               value: currencySet,
             });
           }
+          log.debug('exchangerate', exchangerate)
           var currentEmployee = runtime.getCurrentUser();
           poData.setValue({
             fieldId: "employee",
@@ -105,14 +126,59 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             var internalIDPR = POLine.internalIDPR;
             var totalOrder = POLine.totalOrder;
             var totalPackaging = POLine.totalPackaging
-            var lastPurchise = POLine.lastPurchise
+            var poCust = POLine.poCust
             var lineId = POLine.lineId
+            var packSizeText = POLine.packSizeText
             arrayPR.push(internalIDPR);
             if (poItem) {
+              var lastPurchase = 0
               poData.insertLine({
                 sublistId: "item",
                 line: line_idx,
               });
+              var itemSearchObj = search.create({
+                type: "item",
+                filters: [
+                    ["internalid", "anyof", poItem]
+                ],
+                columns: [
+                    search.createColumn({name: "lastpurchaseprice", label: "Last Purchase Price"})
+                ]
+              });
+              
+              var searchResult = itemSearchObj.run().getRange({start: 0, end: 1});
+              
+              if (searchResult.length > 0) {
+                  var lastPurchasePrice = searchResult[0].getValue({name: "lastpurchaseprice"});
+                  if(lastPurchasePrice){
+                    lastPurchase = lastPurchasePrice
+                  }
+              } 
+              var rateUnit = 1
+              var unitstypeSearchObj = search.create({
+                type: "unitstype",
+                filters:
+                [
+                    ["unitname","is",packSizeText]
+                ],
+                columns:
+                [
+                    search.createColumn({name: "conversionrate", label: "Rate"})
+                ]
+              });
+              var searchResultUnit = unitstypeSearchObj.run().getRange({start: 0, end: 1});
+              
+              if (searchResultUnit.length > 0) {
+                  var rUnit = searchResultUnit[0].getValue({name: "conversionrate"});
+                  if(rUnit){
+                    rateUnit = rUnit
+                  }
+              } 
+              log.debug('rateUnit', rateUnit)
+              var ratePerPackSize = Number(lastPurchase) / Number(exchangerate) * Number(rateUnit)
+              log.debug('ratePerPackSize', ratePerPackSize)
+              var ratePerKG = Number(lastPurchase) / Number(exchangerate)
+              log.debug('ratePerKG', ratePerKG)
               poData.setSublistValue({
                 sublistId: "item",
                 fieldId: "item",
@@ -225,19 +291,20 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
               });
               poData.setSublistValue({
                 sublistId: "item",
+                fieldId: "custcol_abj_po_customer",
+                line: line_idx,
+                value: poCust,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
                 fieldId: "unit",
                 line: line_idx,
                 value: units,
               });
-              log.debug('lastPurchase', lastPurchise)
-              poData.setSublistValue({
-                sublistId: "item",
-                fieldId: "rate",
-                line: line_idx,
-                value: lastPurchise,
-              });
+             
               
               let positivePackaging = Math.abs(totalPackaging);
+              var amount = Number(lastPurchase) * Number(positivePackaging)
               log.debug('positivePackaging', positivePackaging)
               poData.setSublistValue({
                 sublistId: "item",
@@ -245,6 +312,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 line: line_idx,
                 value: positivePackaging,
               });
+              
+              
               log.debug('totalOrder', totalOrder);
               poData.setSublistValue({
                 sublistId: "item",
@@ -252,11 +321,24 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 line: line_idx,
                 value: totalOrder,
               });
+              log.debug('lastPurchase', lastPurchase)
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "rate",
+                line: line_idx,
+                value: ratePerPackSize,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_abj_purchase_price_per_kg",
+                line: line_idx,
+                value: ratePerKG,
+              });
               poData.setSublistValue({
                 sublistId: "item",
                 fieldId: "amount",
                 line: line_idx,
-                value: parseFloat(quantity || 0) * parseFloat(itemRate || 0),
+                value: amount,
               });
               line_idx++;
             }

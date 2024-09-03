@@ -174,6 +174,10 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           let lastPurchise = prToPO[i].getValue({
             name : prToPOSet.columns[33]
           });
+          let poCust = prToPO[i].getValue({
+            name : prToPOSet.columns[34]
+          });
+          log.debug('poCust', poCust)
           let totalOrder = prToPO[i].getValue({
             name: prToPOSet.columns[28],
           });
@@ -203,21 +207,16 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             name: prToPOSet.columns[25],
           });
           totalPackaging = Math.abs(parseFloat(totalPackaging || 0)) - parseFloat(qtyPO || 0);
+          log.debug('totalPackaging', totalPackaging)
           var itemRate
-          if(totalPackaging > 0){
+
             if(cek1 || cek1 != ''){
               itemRate = cek1
             }else{
               itemRate = cek2
             }
             log.debug('internalID', internalID)
-            // currentRecord.setSublistValue({
-            //   sublistId: "custpage_sublist_item",
-            //   id: "custpage_sublist_view_link",
-            //   value: `https://9274135.app.netsuite.com/app/accounting/transactions/purchord.nl?id=${internalID}&whence=` || " ",
-            //   line: i,
-            // });
-            log.debug('set sampai sini 0', currency)
+            log.debug('set sampai sini', vendorName)
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
               id: "custpage_sublist_item_name",
@@ -420,14 +419,20 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               value: totalPackaging || " ",
               line: i,
             });
+            // currentRecord.setSublistValue({
+            //   sublistId: "custpage_sublist_item",
+            //   id: "custpage_sublist_last_purchase",
+            //   value: lastPurchise || " ",
+            //   line: i,
+            // });
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
-              id: "custpage_sublist_last_purchase",
-              value: lastPurchise || " ",
+              id: "custpage_sublist_pocust",
+              value: poCust || " ",
               line: i,
             });
             
-          }
+          
          
         }
       }
@@ -581,6 +586,9 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
           });
           let lastPurchise = prToPO[i].getValue({
             name : prToPOSet.columns[33]
+          });
+          let poCust = prToPO[i].getValue({
+            name : prToPOSet.columns[34]
           });
           var totalPackaging = 0
           var customrecord_pr_summary_customerSearchObj = search.create({
@@ -821,10 +829,16 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
               value: totalPackaging || " ",
               line: i,
             });
+            // currentRecord.setSublistValue({
+            //   sublistId: "custpage_sublist_item",
+            //   id: "custpage_sublist_last_purchase",
+            //   value: lastPurchise || " ",
+            //   line: i,
+            // });
             currentRecord.setSublistValue({
               sublistId: "custpage_sublist_item",
-              id: "custpage_sublist_last_purchase",
-              value: lastPurchise || " ",
+              id: "custpage_sublist_pocust",
+              value: poCust || " ",
               line: i,
             });
           }
@@ -1111,6 +1125,15 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
       .addField({
         id: "custpage_sublist_taxrate",
         label: "TAX RATE",
+        type: serverWidget.FieldType.TEXT,
+      })
+      .updateDisplayType({
+        displayType: serverWidget.FieldDisplayType.HIDDEN,
+      });
+      sublist_in
+      .addField({
+        id: "custpage_sublist_pocust",
+        label: "POCust",
         type: serverWidget.FieldType.TEXT,
       })
       .updateDisplayType({

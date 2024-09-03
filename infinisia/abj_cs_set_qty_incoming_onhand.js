@@ -417,7 +417,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         }else{
                             alert("Pack Size Not Found")
                         }
-                            
                     }
                 }
             }
