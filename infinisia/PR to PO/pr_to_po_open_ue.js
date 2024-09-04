@@ -304,7 +304,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
              
               
               let positivePackaging = Math.abs(totalPackaging);
-              var amount = Number(lastPurchase) * Number(positivePackaging)
+              var amount = Number(ratePerPackSize) * Number(positivePackaging)
               log.debug('positivePackaging', positivePackaging)
               poData.setSublistValue({
                 sublistId: "item",
