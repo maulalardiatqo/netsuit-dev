@@ -403,7 +403,7 @@ define([
                     summary: "SUM",
                 }) || 0;
 
-                var fyRevty = Number(fyBillty) + Number(fyCostOfBillty);
+                var fyRevty = Number(fyBillty) - Number(fyCostOfBillty);
                 var fyGpty = (fyRevty !== 0 && fyBillty !== 0) ? Number(fyRevty) / Number(fyBillty) : 0;
                 var fyGptyText = fyGpty.toFixed(2) +  '%'
 

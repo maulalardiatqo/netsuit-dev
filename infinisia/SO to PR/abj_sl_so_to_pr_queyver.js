@@ -3,7 +3,7 @@
  * @NScriptType Suitelet
  */
 
-define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/currency", "N/error", "N/config", "N/render"], function (serverWidget, search, record, url, runtime, currency, error, config, render) {
+define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/currency", "N/error", "N/config", "N/render","N/query"], function (serverWidget, search, record, url, runtime, currency, error, config, render, query) {
     try{
         function getAllResults(s) {
             var results = s.run();
@@ -33,83 +33,82 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
                 functionName: "soToPR",
             });
             if (contextRequest.method == "GET") {
-                var currentRecord = createSublist("custpage_sublist_item", form);
-                var soToPR = search.load({
-                    id: "customsearch_abj_so_to_pr",
+                var sqlQuery = `
+             SELECT 
+                    so.entity AS entity_id,
+                    customer.entityid AS entity_name, 
+                customer.companyname AS company_name,
+                            so.tranid AS tranid,
+                            so.otherrefnum AS otherrefnum,
+                            so.custbody_abj_sales_rep_fulfillment AS salesrep_id,
+                            employee.firstname AS salesrep_name,
+                employee.lastname AS sales_last_name,
+                            so.id,
+                            line.transaction,
+                            line.item AS item_id,
+                            item.itemid AS item_name,
+                item.itemtype AS item_type,
+                            line.quantity AS quantity,
+                            line.quantityshiprecv AS quantity_ship_received,
+                            line.units AS unit,
+                    unitsTypeUom.unitName AS unit_name,
+                    unitsTypeUom.conversionRate AS conversion_rate,
+                        FROM 
+                            transaction AS so
+                        JOIN 
+                            transactionline AS line
+                        ON 
+                            so.id = line.transaction
+                        JOIN
+                            customer
+                        ON
+                            so.entity = customer.id 
+                        JOIN
+                            employee
+                        ON
+                            so.custbody_abj_sales_rep_fulfillment = employee.id
+                        JOIN
+                            item
+                        ON
+                            line.item = item.id 
+                JOIN
+                    unitsTypeUom
+                ON
+                    line.units = unitsTypeUom.internalId
+                WHERE 
+                    so.type = 'SalesOrd'
+                AND
+                    line.item IS NOT NULL
+                AND 
+                    line.item IN (SELECT id FROM item)
+            `;
+
+                var resultSet = query.runSuiteQL({
+                    query: sqlQuery
                 });
-                var soToPRSet = soToPR.run();
-                var soToPR = soToPRSet.getRange(0, 100);
-                log.debug('soToPR', soToPR.length)
-                if (soToPR.length > 0) {
-                    for (let i = 0; i < soToPR.length; i++) {
-                        let customerName = soToPR[i].getText({
-                            name: soToPRSet.columns[0],
-                        });
-                        log.debug('customerName', customerName)
-                        let customerId = soToPR[i].getValue({
-                            name: soToPRSet.columns[0],
-                        });
-                        let docNumber = soToPR[i].getValue({
-                            name: soToPRSet.columns[1],
-                        });
-                        let poNumber = soToPR[i].getValue({
-                            name: soToPRSet.columns[2],
-                        });
-                        let salesRepName = soToPR[i].getText({
-                            name: soToPRSet.columns[3],
-                        });
-                        let salesRepId = soToPR[i].getValue({
-                            name: soToPRSet.columns[3],
-                        });
-                        let itemId = soToPR[i].getValue({
-                            name: soToPRSet.columns[4],
-                        });
-                        let itemName = soToPR[i].getText({
-                            name: soToPRSet.columns[4],
-                        });
-                        let totalOrder = soToPR[i].getValue({
-                            name: soToPRSet.columns[5],
-                        });
-                        let osPOKg = soToPR[i].getValue({
-                            name: soToPRSet.columns[6],
-                        });
-                        let units = soToPR[i].getValue({
-                            name: soToPRSet.columns[7],
-                        });
-                       
-                        let poPackag = soToPR[i].getValue({
-                            name: soToPRSet.columns[8],
-                        });
-                        let idSO = soToPR[i].getValue({
-                            name: soToPRSet.columns[8],
-                        });
-                        var rateUnit = 1
-                        log.debug('units', units)
-                        if(units){
-                            var unitstypeSearchObj = search.create({
-                                type: "unitstype",
-                                filters:
-                                [
-                                    ["unitname","is",units]
-                                ],
-                                columns:
-                                [
-                                    search.createColumn({name: "conversionrate", label: "Rate"})
-                                ]
-                            });
-                            var searchResultUnit = unitstypeSearchObj.run().getRange({start: 0, end: 1});
-                            
-                            if (searchResultUnit.length > 0) {
-                                var rUnit = searchResultUnit[0].getValue({name: "conversionrate"});
-                                if(rUnit){
-                                    rateUnit = rUnit
-                                }
-                            } 
-                        }
-                        var osPOperPackag = Number(osPOKg) / Number(rateUnit)
-                        log.debug('osPOperPackag', osPOperPackag)
-                        log.debug('rateUnit', rateUnit)
-                        // search qty onHand
+
+                var results = resultSet.asMappedResults();
+
+                if (results.length > 0) {
+                    var currentRecord = createSublist("custpage_sublist_item", form);
+                    var allData = []
+                    for (var i = 0; i < results.length; i++) {
+                        var result = results[i];
+                        var customer_fName = result.entity_name
+                        var customer_lName = result.company_name
+                        var customerName = customer_fName + " " + customer_lName
+                        var customerId =  result.entity_id
+                        var docNumber = result.tranid
+                        var poNumber = result.otherrefnum
+                        var salesRepName = result.salesrep_name + ' ' + result.sales_last_name
+                        var salesRepId = result.salesrep_id
+                        var itemId = result.item_id
+                        var itemName = result.item_name
+                        var osPOKg = Math.abs(result.quantity)
+                        var units = result.unit_name
+                        var idSO = result.id
+                        var rateUnit = result.conversion_rate
+
                         var currentStock = 0
                         var isReSearch = true
                         var inventorynumberSearchObj = search.create({
@@ -157,7 +156,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
                             }
                         } 
                         if(isReSearch == true){
-                            var inventorynumberSearchObj = search.create({
+                            var inventorynumberSearchObj2 = search.create({
                                 type: "inventorynumber",
                                 filters:
                                 [
@@ -191,7 +190,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
                                 ]
                             });
                            
-                            var searchResult2 = inventorynumberSearchObj.run().getRange({start: 0, end: 1});
+                            var searchResult2 = inventorynumberSearchObj2.run().getRange({start: 0, end: 1});
               
                             if (searchResult2.length > 0) {
                                 var qtyOnhand = searchResult2[0].getValue({ name: "quantityonhand",
@@ -200,6 +199,174 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
                                 if(qtyOnhand){
                                     currentStock = Number(qtyOnhand)
                                     isReSearch = false
+                                }
+                            } 
+                        }
+                        var osPOperPackag = Number(osPOKg) / Number(rateUnit)
+                        var scriptObj = runtime.getCurrentScript();
+                        log.debug("totalEksekusi ", i)
+                        log.debug({ 
+                            title: "Remaining usage units cek in looping: ",
+                            details: scriptObj.getRemainingUsage(),
+                        });
+                        // search incoming stock
+                        var incoimngStock = 0
+                        var research = true
+                        if(idSO){
+                            var purchaseorderSearchObj = search.create({
+                                type: "purchaseorder",
+                                filters:
+                                [
+                                    ["type","anyof","PurchOrd"], 
+                                    "AND", 
+                                    ["customform","anyof","104"], 
+                                    "AND", 
+                                    ["status","anyof","PurchOrd:E","PurchOrd:B"], 
+                                    "AND", 
+                                    ["mainline","is","F"], 
+                                    "AND", 
+                                    ["taxline","is","F"], 
+                                    "AND", 
+                                    ["cogs","is","F"], 
+                                    "AND", 
+                                    ["formulatext: {item}","isnotempty",""], 
+                                    "AND", 
+                                    ["formulatext: {custcol_abj_sales_rep_line}","isnotempty",""], 
+                                    "AND", 
+                                    ["item","anyof", itemId], 
+                                    "AND", 
+                                    ["custcol_abj_sales_rep_line","anyof",salesRepId], 
+                                    "AND", 
+                                    ["custcol_abj_customer_line","anyof",customerId], 
+                                    "AND", 
+                                    ["custcol_abj_no_so","anyof",idSO]
+                                ],
+                                columns:
+                                [
+                                    search.createColumn({
+                                        name: "item",
+                                        summary: "GROUP",
+                                        label: "Item"
+                                    }),
+                                    search.createColumn({
+                                        name: "custcol_abj_sales_rep_line",
+                                        summary: "GROUP",
+                                        label: "Sales Rep"
+                                    }),
+                                    search.createColumn({
+                                        name: "custcol_abj_customer_line",
+                                        summary: "GROUP",
+                                        label: "ABJ - Customer"
+                                    }),
+                                    search.createColumn({
+                                        name: "quantity",
+                                        summary: "SUM",
+                                        label: "Quantity"
+                                    }),
+                                    search.createColumn({
+                                        name: "quantityshiprecv",
+                                        summary: "SUM",
+                                        label: "Quantity Fulfilled/Received"
+                                    }),
+                                    search.createColumn({
+                                        name: "formulanumeric",
+                                        summary: "SUM",
+                                        formula: "{quantity}-{quantityshiprecv}",
+                                        label: "Formula (Numeric)"
+                                    })
+                                ]
+                            });
+                            var searchIncom1 = purchaseorderSearchObj.run().getRange({start: 0, end: 1});
+              
+                            if (searchIncom1.length > 0) {
+                                var qtyIncomingStock = searchIncom1[0].getValue({
+                                    name: "formulanumeric",
+                                    summary: "SUM",
+                                    formula: "{quantity}-{quantityshiprecv}",
+                                })
+                                if(qtyIncomingStock){
+                                    incoimngStock += Number(qtyIncomingStock)
+                                    research = false
+                                }
+                            } 
+                           
+                        }
+                        if(research == true){
+                            var purchaseorderSearchObj2 = search.create({
+                                type: "purchaseorder",
+                                filters:
+                                [
+                                    ["type","anyof","PurchOrd"], 
+                                    "AND", 
+                                    ["customform","anyof","104"], 
+                                    "AND", 
+                                    ["status","anyof","PurchOrd:E","PurchOrd:B"], 
+                                    "AND", 
+                                    ["mainline","is","F"], 
+                                    "AND", 
+                                    ["taxline","is","F"], 
+                                    "AND", 
+                                    ["cogs","is","F"], 
+                                    "AND", 
+                                    ["formulatext: {item}","isnotempty",""], 
+                                    "AND", 
+                                    ["formulatext: {custcol_abj_sales_rep_line}","isnotempty",""], 
+                                    "AND", 
+                                    ["item","anyof", itemId], 
+                                    "AND", 
+                                    ["custcol_abj_sales_rep_line","anyof",salesRepId], 
+                                    "AND", 
+                                    ["custcol_abj_customer_line","anyof",customerId],
+                                    "AND", 
+                                    ["custcol_abj_no_so","anyof","@NONE@"]
+                                ],
+                                columns:
+                                [
+                                    search.createColumn({
+                                        name: "item",
+                                        summary: "GROUP",
+                                        label: "Item"
+                                    }),
+                                    search.createColumn({
+                                        name: "custcol_abj_sales_rep_line",
+                                        summary: "GROUP",
+                                        label: "Sales Rep"
+                                    }),
+                                    search.createColumn({
+                                        name: "custcol_abj_customer_line",
+                                        summary: "GROUP",
+                                        label: "ABJ - Customer"
+                                    }),
+                                    search.createColumn({
+                                        name: "quantity",
+                                        summary: "SUM",
+                                        label: "Quantity"
+                                    }),
+                                    search.createColumn({
+                                        name: "quantityshiprecv",
+                                        summary: "SUM",
+                                        label: "Quantity Fulfilled/Received"
+                                    }),
+                                    search.createColumn({
+                                        name: "formulanumeric",
+                                        summary: "SUM",
+                                        formula: "{quantity}-{quantityshiprecv}",
+                                        label: "Formula (Numeric)"
+                                    })
+                                ]
+                            });
+                           
+                            var searchIncom2 = purchaseorderSearchObj2.run().getRange({start: 0, end: 1});
+              
+                            if (searchIncom2.length > 0) {
+                                var qtyIncomingStock = searchIncom2[0].getValue({
+                                    name: "formulanumeric",
+                                    summary: "SUM",
+                                    formula: "{quantity}-{quantityshiprecv}",
+                                })
+                                if(qtyIncomingStock){
+                                    incoimngStock += Number(qtyIncomingStock)
+                                    research = false
                                 }
                             } 
                         }
@@ -261,13 +428,13 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_current_stock",
-                            value: currentStock || " ",
+                            value: currentStock || 0,
                             line: i,
                         });
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_incoming_stock",
-                            value: " ",
+                            value: incoimngStock || 0,
                             line: i,
                         });
                         currentRecord.setSublistValue({
@@ -325,9 +492,11 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
                             line: i,
                         });
                     }
-                }
+                } 
+            
+                
                 context.response.writePage(form);
-    
+            
                 var scriptObj = runtime.getCurrentScript();
                 log.debug({
                     title: "Remaining usage units: ",
