@@ -42,7 +42,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var tranid = poRec.getValue({name : "tranid"});
                 var employeId = poRec.getValue({ name : "custbody_abj_sales_rep_fulfillment"});
                 var salesrep = poRec.getText("salesrep");
-
+                var excUsd = poRec.getValue('custbody_abj_kurs_usd')
                 var subTotal = poRec.getValue({
                     name: "formulanumeric",
                     formula: "{amount} - nvl({taxtotal},0) - nvl({shippingamount},0)"
@@ -212,12 +212,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     name : "statusref"
                 });
                 log.debug('statusSo', statusSo);
-                if(poDate){
-                    poDate = format.format({
-                        value: poDate,
-                        type: format.Type.DATE
-                    });
-                }
+                // if(poDate){
+                //     poDate = format.format({
+                //         value: poDate,
+                //         type: format.Type.DATE
+                //     });
+                // }
                 if(subTotal){
                     subTotal = pembulatan(subTotal)
                     log.debug('subTotal', subTotal);
@@ -386,7 +386,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<td class='tg-head_body' style='width:20%; border: 1px solid black;'> AMOUNT </td>"
                 body += "</tr>"
 
-                body += getPOItem(context, allDataItem);
+                body += getPOItem(context, allDataItem, excUsd);
                 
                 body += "</tbody>";
                 body += "</table>";
@@ -517,8 +517,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
 
             }
-            function getPOItem(context, allDataItem){
-                
+            function getPOItem(context, allDataItem, excUsd){
+                var dolar = Number(excUsd)
+                var kurs = Number(excUsd)
+                log.debug('dolar', dolar)
                 if(allDataItem.length > 0){
                     var body = "";
                     for(var i = 0; i < allDataItem.length; i++){
@@ -527,12 +529,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var description = item.description
                         var rate = item.rate
                         var uom = item.uom;
-                        var kurs = item.kurs;
                         var amount = item.amount;
                         var idr = item.idr;
-
-                        if(rate){
-                            rate = pembulatan(rate)
+                        log.debug('perhitungan', {rate : rate, dolar : dolar})
+                        rate = Number(rate) / Number(dolar); 
+                        if(kurs){
+                            kurs = format.format({
+                                value: kurs,
+                                type: format.Type.CURRENCY
+                            });
+                        }
+                            log.debug('hasil rate',rate)
+                        if (rate) { 
+                            
                             rate = format.format({
                                 value: rate,
                                 type: format.Type.CURRENCY
@@ -545,6 +554,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 type: format.Type.CURRENCY
                             });
                         }
+                       
                         if(amount){
                             amount = pembulatan(amount)
                             log.debug('amount', amount);
@@ -557,10 +567,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+qty+"</td>";
                         body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+uom+"</td>";
                         body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+description+"</td>";
-                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+removeDecimalFormat(rate)+"</td>";
-                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+kurs+"</td>";
-                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+removeDecimalFormat(idr)+"</td>";
-                        body += "<td style='font-size:10px; border: 1px solid black; background-color: #EBF7FC; '>"+removeDecimalFormat(amount)+"</td>";
+                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none; align:right'>"+removeDecimalFormat(rate)+"</td>";
+                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none; align:right'>"+kurs+"</td>";
+                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none; align:right'>"+removeDecimalFormat(idr)+"</td>";
+                        body += "<td style='font-size:10px; border: 1px solid black; background-color: #EBF7FC; align:right'>"+removeDecimalFormat(amount)+"</td>";
                         body += "</tr>";
                         
                     }

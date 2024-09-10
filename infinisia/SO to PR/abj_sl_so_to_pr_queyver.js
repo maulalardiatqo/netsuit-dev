@@ -35,59 +35,76 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             if (contextRequest.method == "GET") {
                 var sqlQuery = `
              SELECT 
-                    so.entity AS entity_id,
-                    customer.entityid AS entity_name, 
+                so.entity AS entity_id,
+                customer.entityid AS entity_name, 
                 customer.companyname AS company_name,
-                            so.tranid AS tranid,
-                            so.otherrefnum AS otherrefnum,
-                            so.custbody_abj_sales_rep_fulfillment AS salesrep_id,
-                            employee.firstname AS salesrep_name,
+                so.tranid AS tranid,
+                so.otherrefnum AS otherrefnum,
+                so.custbody_abj_sales_rep_fulfillment AS salesrep_id,
+                employee.firstname AS salesrep_name,
                 employee.lastname AS sales_last_name,
-                            so.id,
-                            line.transaction,
-                            line.item AS item_id,
-                            item.itemid AS item_name,
+                so.id,
+                line.transaction,
+                line.item AS item_id,
+                item.itemid AS item_name,
                 item.itemtype AS item_type,
-                            line.quantity AS quantity,
-                            line.quantityshiprecv AS quantity_ship_received,
-                            line.units AS unit,
-                    unitsTypeUom.unitName AS unit_name,
-                    unitsTypeUom.conversionRate AS conversion_rate,
-                        FROM 
-                            transaction AS so
-                        JOIN 
-                            transactionline AS line
-                        ON 
-                            so.id = line.transaction
-                        JOIN
-                            customer
-                        ON
-                            so.entity = customer.id 
-                        JOIN
-                            employee
-                        ON
-                            so.custbody_abj_sales_rep_fulfillment = employee.id
-                        JOIN
-                            item
-                        ON
-                            line.item = item.id 
-                JOIN
-                    unitsTypeUom
-                ON
-                    line.units = unitsTypeUom.internalId
-                WHERE 
-                    so.type = 'SalesOrd'
-                AND
-                    line.item IS NOT NULL
-                AND 
-                    line.item IN (SELECT id FROM item)
+                line.quantity AS quantity,
+                line.quantityshiprecv AS quantity_ship_received,
+                line.units AS unit,
+                unitsTypeUom.unitName AS unit_name,
+                unitsTypeUom.conversionRate AS conversion_rate,
+                COALESCE((
+                    SELECT 
+                        SUM(tl.quantity - tl.quantityshiprecv)
+                    FROM 
+                        transaction t
+                    JOIN 
+                        transactionLine tl
+                    ON 
+                        t.id = tl.transaction
+                    WHERE 
+                        t.type = 'PurchOrd'
+                        AND t.status IN ('PurchOrd:E', 'PurchOrd:B')
+                        AND tl.mainline = 'F'
+                        AND tl.taxline = 'F'
+                        AND tl.item = line.item
+                ), 0) AS incoming_stock
+
+            FROM 
+                transaction AS so
+            JOIN 
+                transactionline AS line
+            ON 
+                so.id = line.transaction
+            JOIN
+                customer
+            ON
+                so.entity = customer.id 
+            JOIN
+                employee
+            ON
+                so.custbody_abj_sales_rep_fulfillment = employee.id
+            JOIN
+                item
+            ON
+                line.item = item.id 
+            JOIN
+                unitsTypeUom
+            ON
+                line.units = unitsTypeUom.internalId
+
+            WHERE 
+                so.type = 'SalesOrd'
+                AND line.item IS NOT NULL
+                AND line.item IN (SELECT id FROM item)
+
             `;
 
                 var resultSet = query.runSuiteQL({
                     query: sqlQuery
                 });
 
-                var results = resultSet.asMappedResults();
+                var results = resultSet.asMappedResults().slice(0, 50);
 
                 if (results.length > 0) {
                     var currentRecord = createSublist("custpage_sublist_item", form);
@@ -108,6 +125,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
                         var units = result.unit_name
                         var idSO = result.id
                         var rateUnit = result.conversion_rate
+                        var incoimngStock = result.incoming_stock
 
                         var currentStock = 0
                         var isReSearch = true
@@ -210,166 +228,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
                             details: scriptObj.getRemainingUsage(),
                         });
                         // search incoming stock
-                        var incoimngStock = 0
-                        var research = true
-                        if(idSO){
-                            var purchaseorderSearchObj = search.create({
-                                type: "purchaseorder",
-                                filters:
-                                [
-                                    ["type","anyof","PurchOrd"], 
-                                    "AND", 
-                                    ["customform","anyof","104"], 
-                                    "AND", 
-                                    ["status","anyof","PurchOrd:E","PurchOrd:B"], 
-                                    "AND", 
-                                    ["mainline","is","F"], 
-                                    "AND", 
-                                    ["taxline","is","F"], 
-                                    "AND", 
-                                    ["cogs","is","F"], 
-                                    "AND", 
-                                    ["formulatext: {item}","isnotempty",""], 
-                                    "AND", 
-                                    ["formulatext: {custcol_abj_sales_rep_line}","isnotempty",""], 
-                                    "AND", 
-                                    ["item","anyof", itemId], 
-                                    "AND", 
-                                    ["custcol_abj_sales_rep_line","anyof",salesRepId], 
-                                    "AND", 
-                                    ["custcol_abj_customer_line","anyof",customerId], 
-                                    "AND", 
-                                    ["custcol_abj_no_so","anyof",idSO]
-                                ],
-                                columns:
-                                [
-                                    search.createColumn({
-                                        name: "item",
-                                        summary: "GROUP",
-                                        label: "Item"
-                                    }),
-                                    search.createColumn({
-                                        name: "custcol_abj_sales_rep_line",
-                                        summary: "GROUP",
-                                        label: "Sales Rep"
-                                    }),
-                                    search.createColumn({
-                                        name: "custcol_abj_customer_line",
-                                        summary: "GROUP",
-                                        label: "ABJ - Customer"
-                                    }),
-                                    search.createColumn({
-                                        name: "quantity",
-                                        summary: "SUM",
-                                        label: "Quantity"
-                                    }),
-                                    search.createColumn({
-                                        name: "quantityshiprecv",
-                                        summary: "SUM",
-                                        label: "Quantity Fulfilled/Received"
-                                    }),
-                                    search.createColumn({
-                                        name: "formulanumeric",
-                                        summary: "SUM",
-                                        formula: "{quantity}-{quantityshiprecv}",
-                                        label: "Formula (Numeric)"
-                                    })
-                                ]
-                            });
-                            var searchIncom1 = purchaseorderSearchObj.run().getRange({start: 0, end: 1});
-              
-                            if (searchIncom1.length > 0) {
-                                var qtyIncomingStock = searchIncom1[0].getValue({
-                                    name: "formulanumeric",
-                                    summary: "SUM",
-                                    formula: "{quantity}-{quantityshiprecv}",
-                                })
-                                if(qtyIncomingStock){
-                                    incoimngStock += Number(qtyIncomingStock)
-                                    research = false
-                                }
-                            } 
-                           
-                        }
-                        if(research == true){
-                            var purchaseorderSearchObj2 = search.create({
-                                type: "purchaseorder",
-                                filters:
-                                [
-                                    ["type","anyof","PurchOrd"], 
-                                    "AND", 
-                                    ["customform","anyof","104"], 
-                                    "AND", 
-                                    ["status","anyof","PurchOrd:E","PurchOrd:B"], 
-                                    "AND", 
-                                    ["mainline","is","F"], 
-                                    "AND", 
-                                    ["taxline","is","F"], 
-                                    "AND", 
-                                    ["cogs","is","F"], 
-                                    "AND", 
-                                    ["formulatext: {item}","isnotempty",""], 
-                                    "AND", 
-                                    ["formulatext: {custcol_abj_sales_rep_line}","isnotempty",""], 
-                                    "AND", 
-                                    ["item","anyof", itemId], 
-                                    "AND", 
-                                    ["custcol_abj_sales_rep_line","anyof",salesRepId], 
-                                    "AND", 
-                                    ["custcol_abj_customer_line","anyof",customerId],
-                                    "AND", 
-                                    ["custcol_abj_no_so","anyof","@NONE@"]
-                                ],
-                                columns:
-                                [
-                                    search.createColumn({
-                                        name: "item",
-                                        summary: "GROUP",
-                                        label: "Item"
-                                    }),
-                                    search.createColumn({
-                                        name: "custcol_abj_sales_rep_line",
-                                        summary: "GROUP",
-                                        label: "Sales Rep"
-                                    }),
-                                    search.createColumn({
-                                        name: "custcol_abj_customer_line",
-                                        summary: "GROUP",
-                                        label: "ABJ - Customer"
-                                    }),
-                                    search.createColumn({
-                                        name: "quantity",
-                                        summary: "SUM",
-                                        label: "Quantity"
-                                    }),
-                                    search.createColumn({
-                                        name: "quantityshiprecv",
-                                        summary: "SUM",
-                                        label: "Quantity Fulfilled/Received"
-                                    }),
-                                    search.createColumn({
-                                        name: "formulanumeric",
-                                        summary: "SUM",
-                                        formula: "{quantity}-{quantityshiprecv}",
-                                        label: "Formula (Numeric)"
-                                    })
-                                ]
-                            });
-                           
-                            var searchIncom2 = purchaseorderSearchObj2.run().getRange({start: 0, end: 1});
-              
-                            if (searchIncom2.length > 0) {
-                                var qtyIncomingStock = searchIncom2[0].getValue({
-                                    name: "formulanumeric",
-                                    summary: "SUM",
-                                    formula: "{quantity}-{quantityshiprecv}",
-                                })
-                                if(qtyIncomingStock){
-                                    incoimngStock += Number(qtyIncomingStock)
-                                    research = false
-                                }
-                            } 
-                        }
+                        
                         currentRecord.setSublistValue({
                             sublistId: "custpage_sublist_item",
                             id: "custpage_sublist_idso",
