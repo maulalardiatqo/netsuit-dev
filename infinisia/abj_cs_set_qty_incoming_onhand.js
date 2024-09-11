@@ -38,169 +38,212 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     console.log('customer', customer)
 
                     if(itemId && salesRep && customer){
-                        var incoimngStock = 0
-                        var research = true
+                        var lineCount = currentRecordObj.getLineCount({
+                            sublistId: "item"
+                        });
+                        console.log('lineCount', lineCount)
+                        var alreadySet = false
                         if(noSO){
-                            var purchaseorderSearchObj = search.create({
-                                type: "purchaseorder",
-                                filters:
-                                [
-                                    ["type","anyof","PurchOrd"], 
-                                    "AND", 
-                                    ["customform","anyof","104"], 
-                                    "AND", 
-                                    ["status","anyof","PurchOrd:E","PurchOrd:B"], 
-                                    "AND", 
-                                    ["mainline","is","F"], 
-                                    "AND", 
-                                    ["taxline","is","F"], 
-                                    "AND", 
-                                    ["cogs","is","F"], 
-                                    "AND", 
-                                    ["formulatext: {item}","isnotempty",""], 
-                                    "AND", 
-                                    ["formulatext: {custcol_abj_sales_rep_line}","isnotempty",""], 
-                                    "AND", 
-                                    ["item","anyof", itemId], 
-                                    "AND", 
-                                    ["custcol_abj_sales_rep_line","anyof",salesRep], 
-                                    "AND", 
-                                    ["custcol_abj_customer_line","anyof",customer], 
-                                    "AND", 
-                                    ["custcol_abj_no_so","anyof",noSO]
-                                ],
-                                columns:
-                                [
-                                    search.createColumn({
-                                        name: "item",
-                                        summary: "GROUP",
-                                        label: "Item"
-                                    }),
-                                    search.createColumn({
-                                        name: "custcol_abj_sales_rep_line",
-                                        summary: "GROUP",
-                                        label: "Sales Rep"
-                                    }),
-                                    search.createColumn({
-                                        name: "custcol_abj_customer_line",
-                                        summary: "GROUP",
-                                        label: "ABJ - Customer"
-                                    }),
-                                    search.createColumn({
-                                        name: "quantity",
-                                        summary: "SUM",
-                                        label: "Quantity"
-                                    }),
-                                    search.createColumn({
-                                        name: "quantityshiprecv",
-                                        summary: "SUM",
-                                        label: "Quantity Fulfilled/Received"
-                                    }),
-                                    search.createColumn({
-                                        name: "formulanumeric",
-                                        summary: "SUM",
-                                        formula: "{quantity}-{quantityshiprecv}",
-                                        label: "Formula (Numeric)"
+                            if(lineCount > 0){
+                                var keyCurrent = itemId + "-" + salesRep + "-" + noSO + "-" + customer
+                                for(var i = 0; i < lineCount; i++){
+                                    var itemCek = currentRecordObj.getSublistValue({
+                                        sublistId: "item",
+                                        fieldId: "item",
+                                        line : i
                                     })
-                                ]
-                            });
-                           
-                            var searchResultCount = purchaseorderSearchObj.runPaged().count;
-                            purchaseorderSearchObj.run().each(function(result){
-                                var qtyIncomingStock = result.getValue({
-                                    name: "formulanumeric",
-                                    summary: "SUM",
-                                    formula: "{quantity}-{quantityshiprecv}",
-                                })
-                                console.log('qtyIncomingStock', qtyIncomingStock)
-                                if(qtyIncomingStock){
-                                    incoimngStock += Number(qtyIncomingStock)
-                                    research = false
+                                    var salesCek = currentRecordObj.getSublistValue({
+                                        sublistId: "item",
+                                        fieldId: "custcol_abj_sales_rep_line",
+                                        line : i
+                                    })
+                                    var noSOCek = currentRecordObj.getSublistValue({
+                                        sublistId: "item",
+                                        fieldId: "custcol_abj_no_so",
+                                        line : i
+                                    })
+                                    var custCek = currentRecordObj.getSublistValue({
+                                        sublistId: "item",
+                                        fieldId: "custcol_abj_customer_line",
+                                        line : i
+                                    })
+                                    var lineCek = itemCek + "-" + salesCek + "-" + noSOCek + "-" + custCek
+                                    console.log('lineCek', lineCek);
+                                    console.log('keyCurrent', keyCurrent)
+                                    if(lineCek == keyCurrent){
+                                        alreadySet = true
+                                    }
+                                    
                                 }
-                                return true;
-                            });
+                            }
                         }
-                        console.log('incomingStcok', incoimngStock)
-                        console.log('research', research)
-                        if(research == true){
-                            var purchaseorderSearchObj = search.create({
-                                type: "purchaseorder",
-                                filters:
-                                [
-                                    ["type","anyof","PurchOrd"], 
-                                    "AND", 
-                                    ["customform","anyof","104"], 
-                                    "AND", 
-                                    ["status","anyof","PurchOrd:E","PurchOrd:B"], 
-                                    "AND", 
-                                    ["mainline","is","F"], 
-                                    "AND", 
-                                    ["taxline","is","F"], 
-                                    "AND", 
-                                    ["cogs","is","F"], 
-                                    "AND", 
-                                    ["formulatext: {item}","isnotempty",""], 
-                                    "AND", 
-                                    ["formulatext: {custcol_abj_sales_rep_line}","isnotempty",""], 
-                                    "AND", 
-                                    ["item","anyof", itemId], 
-                                    "AND", 
-                                    ["custcol_abj_sales_rep_line","anyof",salesRep], 
-                                    "AND", 
-                                    ["custcol_abj_customer_line","anyof",customer],
-                                    "AND", 
-                                    ["custcol_abj_no_so","anyof","@NONE@"]
-                                ],
-                                columns:
-                                [
-                                    search.createColumn({
-                                        name: "item",
-                                        summary: "GROUP",
-                                        label: "Item"
-                                    }),
-                                    search.createColumn({
-                                        name: "custcol_abj_sales_rep_line",
-                                        summary: "GROUP",
-                                        label: "Sales Rep"
-                                    }),
-                                    search.createColumn({
-                                        name: "custcol_abj_customer_line",
-                                        summary: "GROUP",
-                                        label: "ABJ - Customer"
-                                    }),
-                                    search.createColumn({
-                                        name: "quantity",
-                                        summary: "SUM",
-                                        label: "Quantity"
-                                    }),
-                                    search.createColumn({
-                                        name: "quantityshiprecv",
-                                        summary: "SUM",
-                                        label: "Quantity Fulfilled/Received"
-                                    }),
-                                    search.createColumn({
+                        console.log('alreadySet', alreadySet)
+                        var incoimngStock = 0
+                        if(alreadySet == false){
+                            var research = true
+                            if(noSO){
+                                var purchaseorderSearchObj = search.create({
+                                    type: "purchaseorder",
+                                    filters:
+                                    [
+                                        ["type","anyof","PurchOrd"], 
+                                        "AND", 
+                                        ["customform","anyof","104"], 
+                                        "AND", 
+                                        ["status","anyof","PurchOrd:E","PurchOrd:B"], 
+                                        "AND", 
+                                        ["mainline","is","F"], 
+                                        "AND", 
+                                        ["taxline","is","F"], 
+                                        "AND", 
+                                        ["cogs","is","F"], 
+                                        "AND", 
+                                        ["formulatext: {item}","isnotempty",""], 
+                                        "AND", 
+                                        ["formulatext: {custcol_abj_sales_rep_line}","isnotempty",""], 
+                                        "AND", 
+                                        ["item","anyof", itemId], 
+                                        "AND", 
+                                        ["custcol_abj_sales_rep_line","anyof",salesRep], 
+                                        "AND", 
+                                        ["custcol_abj_customer_line","anyof",customer], 
+                                        "AND", 
+                                        ["custcol_abj_no_so","anyof",noSO]
+                                    ],
+                                    columns:
+                                    [
+                                        search.createColumn({
+                                            name: "item",
+                                            summary: "GROUP",
+                                            label: "Item"
+                                        }),
+                                        search.createColumn({
+                                            name: "custcol_abj_sales_rep_line",
+                                            summary: "GROUP",
+                                            label: "Sales Rep"
+                                        }),
+                                        search.createColumn({
+                                            name: "custcol_abj_customer_line",
+                                            summary: "GROUP",
+                                            label: "ABJ - Customer"
+                                        }),
+                                        search.createColumn({
+                                            name: "quantity",
+                                            summary: "SUM",
+                                            label: "Quantity"
+                                        }),
+                                        search.createColumn({
+                                            name: "quantityshiprecv",
+                                            summary: "SUM",
+                                            label: "Quantity Fulfilled/Received"
+                                        }),
+                                        search.createColumn({
+                                            name: "formulanumeric",
+                                            summary: "SUM",
+                                            formula: "{quantity}-{quantityshiprecv}",
+                                            label: "Formula (Numeric)"
+                                        })
+                                    ]
+                                });
+                               
+                                var searchResultCount = purchaseorderSearchObj.runPaged().count;
+                                purchaseorderSearchObj.run().each(function(result){
+                                    var qtyIncomingStock = result.getValue({
                                         name: "formulanumeric",
                                         summary: "SUM",
                                         formula: "{quantity}-{quantityshiprecv}",
-                                        label: "Formula (Numeric)"
                                     })
-                                ]
-                            });
+                                    console.log('qtyIncomingStock', qtyIncomingStock)
+                                    if(qtyIncomingStock){
+                                        incoimngStock += Number(qtyIncomingStock)
+                                        research = false
+                                    }
+                                    return true;
+                                });
+                            }
+                            console.log('incomingStcok', incoimngStock)
+                            console.log('research', research)
+                            if(research == true){
+                                var purchaseorderSearchObj = search.create({
+                                    type: "purchaseorder",
+                                    filters:
+                                    [
+                                        ["type","anyof","PurchOrd"], 
+                                        "AND", 
+                                        ["customform","anyof","104"], 
+                                        "AND", 
+                                        ["status","anyof","PurchOrd:E","PurchOrd:B"], 
+                                        "AND", 
+                                        ["mainline","is","F"], 
+                                        "AND", 
+                                        ["taxline","is","F"], 
+                                        "AND", 
+                                        ["cogs","is","F"], 
+                                        "AND", 
+                                        ["formulatext: {item}","isnotempty",""], 
+                                        "AND", 
+                                        ["formulatext: {custcol_abj_sales_rep_line}","isnotempty",""], 
+                                        "AND", 
+                                        ["item","anyof", itemId], 
+                                        "AND", 
+                                        ["custcol_abj_sales_rep_line","anyof",salesRep], 
+                                        "AND", 
+                                        ["custcol_abj_customer_line","anyof",customer],
+                                        "AND", 
+                                        ["custcol_abj_no_so","anyof","@NONE@"]
+                                    ],
+                                    columns:
+                                    [
+                                        search.createColumn({
+                                            name: "item",
+                                            summary: "GROUP",
+                                            label: "Item"
+                                        }),
+                                        search.createColumn({
+                                            name: "custcol_abj_sales_rep_line",
+                                            summary: "GROUP",
+                                            label: "Sales Rep"
+                                        }),
+                                        search.createColumn({
+                                            name: "custcol_abj_customer_line",
+                                            summary: "GROUP",
+                                            label: "ABJ - Customer"
+                                        }),
+                                        search.createColumn({
+                                            name: "quantity",
+                                            summary: "SUM",
+                                            label: "Quantity"
+                                        }),
+                                        search.createColumn({
+                                            name: "quantityshiprecv",
+                                            summary: "SUM",
+                                            label: "Quantity Fulfilled/Received"
+                                        }),
+                                        search.createColumn({
+                                            name: "formulanumeric",
+                                            summary: "SUM",
+                                            formula: "{quantity}-{quantityshiprecv}",
+                                            label: "Formula (Numeric)"
+                                        })
+                                    ]
+                                });
+                               
+                                var searchResultCount = purchaseorderSearchObj.runPaged().count;
+                                purchaseorderSearchObj.run().each(function(result){
+                                    var qtyIncomingStock = result.getValue({
+                                        name: "formulanumeric",
+                                        summary: "SUM",
+                                        formula: "{quantity}-{quantityshiprecv}",
+                                    })
+                                    console.log('qtyIncomingStock', qtyIncomingStock)
+                                    if(qtyIncomingStock){
+                                        incoimngStock += Number(qtyIncomingStock)
+                                    }
+                                    return true;
+                                });
+                            }  
                            
-                            var searchResultCount = purchaseorderSearchObj.runPaged().count;
-                            purchaseorderSearchObj.run().each(function(result){
-                                var qtyIncomingStock = result.getValue({
-                                    name: "formulanumeric",
-                                    summary: "SUM",
-                                    formula: "{quantity}-{quantityshiprecv}",
-                                })
-                                console.log('qtyIncomingStock', qtyIncomingStock)
-                                if(qtyIncomingStock){
-                                    incoimngStock += Number(qtyIncomingStock)
-                                }
-                                return true;
-                            });
-                        }  
+                        }
                        
                         currentRecordObj.setCurrentSublistValue({
                             sublistId: "item",
@@ -209,127 +252,131 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         });
                         
                         var onHand = 0
-                        var isReSearch = true
-                        if(noSO){
-                            var inventorynumberSearchObj = search.create({
-                                type: "inventorynumber",
-                                filters:
-                                [
-                                    ["item.type","anyof","InvtPart"], 
-                                    "AND", 
-                                    ["item","anyof",itemId], 
-                                    "AND", 
-                                    ["custitemnumber1","anyof",salesRep], 
-                                    "AND", 
-                                    ["custitemnumber_lot_customer","anyof",customer], 
-                                    "AND", 
-                                    ["custitemnumber_lot_so_number","anyof",noSO]
-                                ],
-                                columns:
-                                [
-                                    search.createColumn({
-                                        name: "inventorynumber",
-                                        summary: "GROUP",
-                                        label: "Number"
-                                    }),
-                                    search.createColumn({
-                                        name: "item",
-                                        summary: "GROUP",
-                                        label: "Item"
-                                    }),
-                                    search.createColumn({
+                        if(alreadySet == false){
+                            var isReSearch = true
+                            if(noSO){
+                                var inventorynumberSearchObj = search.create({
+                                    type: "inventorynumber",
+                                    filters:
+                                    [
+                                        ["item.type","anyof","InvtPart"], 
+                                        "AND", 
+                                        ["item","anyof",itemId], 
+                                        "AND", 
+                                        ["custitemnumber1","anyof",salesRep], 
+                                        "AND", 
+                                        ["custitemnumber_lot_customer","anyof",customer], 
+                                        "AND", 
+                                        ["custitemnumber_lot_so_number","anyof",noSO]
+                                    ],
+                                    columns:
+                                    [
+                                        search.createColumn({
+                                            name: "inventorynumber",
+                                            summary: "GROUP",
+                                            label: "Number"
+                                        }),
+                                        search.createColumn({
+                                            name: "item",
+                                            summary: "GROUP",
+                                            label: "Item"
+                                        }),
+                                        search.createColumn({
+                                            name: "quantityonhand",
+                                            summary: "SUM",
+                                            label: "On Hand"
+                                        }),
+                                        search.createColumn({
+                                            name: "custitemnumber1",
+                                            summary: "GROUP",
+                                            label: "Sales Rep"
+                                        }),
+                                        search.createColumn({
+                                            name: "custitemnumber_lot_customer",
+                                            summary: "GROUP",
+                                            label: "Customer"
+                                        })
+                                    ]
+                                });
+                               
+                                var searchResultCount = inventorynumberSearchObj.runPaged().count;
+                                log.debug("inventorynumberSearchObj result count",searchResultCount);
+                                inventorynumberSearchObj.run().each(function(result){
+                                    var qtyOnhand = result.getValue({
                                         name: "quantityonhand",
                                         summary: "SUM",
-                                        label: "On Hand"
-                                    }),
-                                    search.createColumn({
-                                        name: "custitemnumber1",
-                                        summary: "GROUP",
-                                        label: "Sales Rep"
-                                    }),
-                                    search.createColumn({
-                                        name: "custitemnumber_lot_customer",
-                                        summary: "GROUP",
-                                        label: "Customer"
                                     })
-                                ]
-                            });
-                           
-                            var searchResultCount = inventorynumberSearchObj.runPaged().count;
-                            log.debug("inventorynumberSearchObj result count",searchResultCount);
-                            inventorynumberSearchObj.run().each(function(result){
-                                var qtyOnhand = result.getValue({
-                                    name: "quantityonhand",
-                                    summary: "SUM",
-                                })
-                                console.log('qtyOnhand', qtyOnhand)
-                                if(qtyOnhand){
-                                    onHand += Number(qtyOnhand)
-                                    isReSearch = false
-                                }
-                                return true;
-                            });
-                        }
-                        console.log('isReSearch qty onHand', isReSearch);
-                        if(isReSearch == true){
-                            var inventorynumberSearchObj = search.create({
-                                type: "inventorynumber",
-                                filters:
-                                [
-                                    ["item.type","anyof","InvtPart"], 
-                                    "AND", 
-                                    ["item","anyof",itemId], 
-                                    "AND", 
-                                    ["custitemnumber1","anyof",salesRep], 
-                                    "AND", 
-                                    ["custitemnumber_lot_customer","anyof",customer],
-                                    "AND", 
-                                    ["custitemnumber_lot_so_number","anyof","@NONE@"]
-                                ],
-                                columns:
-                                [
-                                    search.createColumn({
-                                        name: "inventorynumber",
-                                        summary: "GROUP",
-                                        label: "Number"
-                                    }),
-                                    search.createColumn({
-                                        name: "item",
-                                        summary: "GROUP",
-                                        label: "Item"
-                                    }),
-                                    search.createColumn({
+                                    console.log('qtyOnhand', qtyOnhand)
+                                    if(qtyOnhand){
+                                        onHand += Number(qtyOnhand)
+                                        isReSearch = false
+                                    }
+                                    return true;
+                                });
+                            }
+                            console.log('isReSearch qty onHand', isReSearch);
+                            if(isReSearch == true){
+                                var inventorynumberSearchObj = search.create({
+                                    type: "inventorynumber",
+                                    filters:
+                                    [
+                                        ["item.type","anyof","InvtPart"], 
+                                        "AND", 
+                                        ["item","anyof",itemId], 
+                                        "AND", 
+                                        ["custitemnumber1","anyof",salesRep], 
+                                        "AND", 
+                                        ["custitemnumber_lot_customer","anyof",customer],
+                                        "AND", 
+                                        ["custitemnumber_lot_so_number","anyof","@NONE@"]
+                                    ],
+                                    columns:
+                                    [
+                                        search.createColumn({
+                                            name: "inventorynumber",
+                                            summary: "GROUP",
+                                            label: "Number"
+                                        }),
+                                        search.createColumn({
+                                            name: "item",
+                                            summary: "GROUP",
+                                            label: "Item"
+                                        }),
+                                        search.createColumn({
+                                            name: "quantityonhand",
+                                            summary: "SUM",
+                                            label: "On Hand"
+                                        }),
+                                        search.createColumn({
+                                            name: "custitemnumber1",
+                                            summary: "GROUP",
+                                            label: "Sales Rep"
+                                        }),
+                                        search.createColumn({
+                                            name: "custitemnumber_lot_customer",
+                                            summary: "GROUP",
+                                            label: "Customer"
+                                        })
+                                    ]
+                                });
+                               
+                                var searchResultCount = inventorynumberSearchObj.runPaged().count;
+                                log.debug("inventorynumberSearchObj result count",searchResultCount);
+                                inventorynumberSearchObj.run().each(function(result){
+                                    var qtyOnhand = result.getValue({
                                         name: "quantityonhand",
                                         summary: "SUM",
-                                        label: "On Hand"
-                                    }),
-                                    search.createColumn({
-                                        name: "custitemnumber1",
-                                        summary: "GROUP",
-                                        label: "Sales Rep"
-                                    }),
-                                    search.createColumn({
-                                        name: "custitemnumber_lot_customer",
-                                        summary: "GROUP",
-                                        label: "Customer"
                                     })
-                                ]
-                            });
-                           
-                            var searchResultCount = inventorynumberSearchObj.runPaged().count;
-                            log.debug("inventorynumberSearchObj result count",searchResultCount);
-                            inventorynumberSearchObj.run().each(function(result){
-                                var qtyOnhand = result.getValue({
-                                    name: "quantityonhand",
-                                    summary: "SUM",
-                                })
-                                console.log('qtyOnhand', qtyOnhand)
-                                if(qtyOnhand){
-                                    onHand += Number(qtyOnhand)
-                                }
-                                return true;
-                            });
+                                    console.log('qtyOnhand', qtyOnhand)
+                                    if(qtyOnhand){
+                                        onHand += Number(qtyOnhand)
+                                    }
+                                    return true;
+                                });
+                            }
                         }
+                        
+                       
                         console.log('onHand', onHand)
                         currentRecordObj.setCurrentSublistValue({
                             sublistId: "item",
