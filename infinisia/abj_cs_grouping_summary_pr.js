@@ -178,8 +178,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             console.log('countLineInCustom', countLineInCustom)
             if (countLineInCustom > 0) {
                 var lineCount = currentRecordObj.getLineCount({ sublistId: 'recmachcustrecord_iss_pr_parent' });
-                
-                // Hapus semua baris yang ada
+                console.log('deletedLineSUms')
                 for (var i = lineCount - 1; i >= 0; i--) {
                     currentRecordObj.selectLine({ sublistId: 'recmachcustrecord_iss_pr_parent', line: i });
                     currentRecordObj.removeLine({ sublistId: 'recmachcustrecord_iss_pr_parent', line: i, ignoreRecalc: true });
@@ -212,8 +211,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     var totalPackaging = data.totalPackaging
                     var keyItem = item + "-" + salesRep + "-" + customerId + "-" + packSizeOrder;
                    
-                    
-                    // Tambahkan baris baru setelah semua baris dihapus jika ada baris, atau langsung tambahkan jika countLineInCustom = 0
                     currentRecordObj.selectNewLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
                     currentRecordObj.setCurrentSublistValue({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
