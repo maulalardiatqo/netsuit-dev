@@ -43,39 +43,33 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         });
                         console.log('lineCount', lineCount)
                         var alreadySet = false
-                        if(noSO){
-                            if(lineCount > 0){
-                                var keyCurrent = itemId + "-" + salesRep + "-" + noSO + "-" + customer
-                                for(var i = 0; i < lineCount; i++){
-                                    var itemCek = currentRecordObj.getSublistValue({
-                                        sublistId: "item",
-                                        fieldId: "item",
-                                        line : i
-                                    })
-                                    var salesCek = currentRecordObj.getSublistValue({
-                                        sublistId: "item",
-                                        fieldId: "custcol_abj_sales_rep_line",
-                                        line : i
-                                    })
-                                    var noSOCek = currentRecordObj.getSublistValue({
-                                        sublistId: "item",
-                                        fieldId: "custcol_abj_no_so",
-                                        line : i
-                                    })
-                                    var custCek = currentRecordObj.getSublistValue({
-                                        sublistId: "item",
-                                        fieldId: "custcol_abj_customer_line",
-                                        line : i
-                                    })
-                                    var lineCek = itemCek + "-" + salesCek + "-" + noSOCek + "-" + custCek
-                                    console.log('lineCek', lineCek);
-                                    console.log('keyCurrent', keyCurrent)
-                                    if(lineCek == keyCurrent){
-                                        alreadySet = true
-                                    }
-                                    
+                        if(lineCount > 0){
+                            var keyCurrent = itemId + "-" + salesRep + "-"  + customer
+                            for(var i = 0; i < lineCount; i++){
+                                var itemCek = currentRecordObj.getSublistValue({
+                                    sublistId: "item",
+                                    fieldId: "item",
+                                    line : i
+                                })
+                                var salesCek = currentRecordObj.getSublistValue({
+                                    sublistId: "item",
+                                    fieldId: "custcol_abj_sales_rep_line",
+                                    line : i
+                                })
+                                var custCek = currentRecordObj.getSublistValue({
+                                    sublistId: "item",
+                                    fieldId: "custcol_abj_customer_line",
+                                    line : i
+                                })
+                                var lineCek = itemCek + "-" + salesCek + "-" + custCek
+                                console.log('lineCek', lineCek);
+                                console.log('keyCurrent', keyCurrent)
+                                if(lineCek == keyCurrent){
+                                    alreadySet = true
                                 }
+                                
                             }
+                            
                         }
                         console.log('alreadySet', alreadySet)
                         var incoimngStock = 0
