@@ -43,7 +43,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       id: recid,
       isDynamic: false,
     });
-
+    function escapeXmlSymbols(input) {
+      if (!input || typeof input !== "string") {
+          return input;
+      }
+      return input.replace(/&/g, "&amp;")
+                  .replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;")
+                  .replace(/"/g, "&quot;")
+                  .replace(/'/g, "&apos;");
+  }
     var currenc = dataRec.getValue("currency");
     if (currenc) {
       var recCurrenc = record.load({
@@ -65,7 +74,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       });
       // load for header
       var legalName = subsidiariRec.getValue("legalname");
-      var addresSubsidiaries = subsidiariRec.getValue("mainaddress_text");
+      var addresSubsidiaries = escapeXmlSymbols(subsidiariRec.getValue("mainaddress_text"));
       var retEmailAddres = subsidiariRec.getValue("email");
       var Npwp = subsidiariRec.getValue("federalidnumber");
       var logo = subsidiariRec.getValue("logo");
@@ -107,7 +116,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
           custName = custRecord.getValue("companyname");
         }
       }
-      var custAddres = custRecord.getValue("billaddr1");
+      var custName = escapeXmlSymbols(custName)
+      var custAddres = escapeXmlSymbols(custRecord.getValue("billaddr1"));
       if (custAddres === "") {
         custAddres = custRecord.getValue("defaultaddress");
       }
@@ -118,7 +128,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       var count = custRecord.getLineCount({
         sublistId: "submachine",
       });
-      var contPerson = dataRec.getValue('custbody_abj_cp_name');
+      var contPerson = escapeXmlSymbols(dataRec.getValue('custbody_abj_cp_name'));
       var cpEmail = dataRec.getValue('custbody_abj_cp_email');
       var cpPhone = dataRec.getValue('custbody_abj_cp_phone');
       for (var i = 0; i < count; i++) {
@@ -145,14 +155,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       });
     }
     // PO data
-    var jobTitle = dataRec.getValue("title");
+    var jobTitle = escapeXmlSymbols(dataRec.getValue("title"));
     var sendDate = dataRec.getText("trandate");
     var tranId = dataRec.getValue("tranid");
     var quoteTotal = dataRec.getValue("total") || 0;
     var taxtotal = dataRec.getValue("taxtotal") || 0;
     var total = dataRec.getValue("total") || 0;
-    var termsCondition = dataRec.getValue('custbody_abj_memo_quotation_rate_card');
-    var jobNumber = dataRec.getValue("custbody_abj_custom_jobnumber");
+    var termsCondition = escapeXmlSymbols(dataRec.getValue('custbody_abj_memo_quotation_rate_card'));
+    var jobNumber = escapeXmlSymbols(dataRec.getValue("custbody_abj_custom_jobnumber"));
     if (jobNumber.includes("\\")) {
       jobNumber = jobNumber.replace(/\\/g, "<br/>");
     }
