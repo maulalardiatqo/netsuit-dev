@@ -53,6 +53,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     'unit',
                     'memo',
                     'taxamount',
+                    'custcol_pr_total_order',
                     search.createColumn({name: "rate", label: "Item Rate"}),
                     search.createColumn({
                         name: 'formulatext1',
@@ -107,7 +108,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var amountBef = result.getValue('amount')
                 var amount = Number(amountBef) / Number(exchangerate)
                 var quantity = result.getValue('quantityuom')
-                var unit = result.getValue('unit')
+                var unit = result.getValue('unit');
+                var totQTY = result.getValue('custcol_pr_total_order');
+                log.debug('totQTY', totQTY)
                
                 var vendorId = result.getValue({
                     name: 'formulatext1',
@@ -167,7 +170,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     itemdesc: itemdesc,
                     memo: memo,
                     taxamount: taxamount,
-                    rate : rate
+                    rate : rate,
+                    totQTY : totQTY
 
                 })
                 return true
@@ -561,15 +565,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
             body += "<tbody>";
             body += "<tr>"
-            body += "<td class='tg-head_body' style='width:35%'> DESCRIPTION </td>"
-            body += "<td class='tg-head_body' style='width:15%'> PACK SIZE </td>"
+            body += "<td class='tg-head_body' style='width:30%'> DESCRIPTION </td>"
+            body += "<td class='tg-head_body' style='width:13%'> PACK SIZE </td>"
             body += "<td class='tg-head_body' style='width:10%'> QTY </td>"
-            body += "<td class='tg-head_body' style='align:right; width:20%'> UNIT PRICE (" + tlcCurr + ") </td>"
-            body += "<td class='tg-head_body' style='align:right; width:20%'> AMOUNT (" + tlcCurr + ") </td>"
+            body += "<td class='tg-head_body' style='width:13%'> TOTAL QTY </td>"
+            body += "<td class='tg-head_body' style='align:right; width:19%'> UNIT PRICE (" + tlcCurr + ") </td>"
+            body += "<td class='tg-head_body' style='align:right; width:15%'> AMOUNT (" + tlcCurr + ") </td>"
             body += "</tr>"
             body += getPOItem(context, poRecord);
             body += getPOExpense(context, poRecord);
             body += "<tr>"
+            body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
@@ -578,6 +584,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "</tr>"
             if (taxRateList != '') {
                 body += "<tr>"
+                body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
@@ -591,12 +598,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td class='tg-headerrow_left'></td>";
                     body += "<td class='tg-headerrow_left'></td>";
                     body += "<td class='tg-headerrow_left'></td>"
+                    body += "<td class='tg-headerrow_left'></td>"
                     body += "<td class='tg-f_body'>" + charge.itemText + "</td>";
                     body += "<td class='tg-f_body'>" + charge.amount + "</td>";
                     body += "</tr>";
                 });
             }
             body += "<tr>"
+            body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
@@ -610,12 +619,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
+                body += "<td class='tg-headerrow_left'></td>"
                 body += "<td style='align: right;font-size:12px;border-bottom: solid black 2px;'>" + whTaxCodetoPrint + "</td>"
                 body += "<td class='tg-f_body'>" + removeDecimalFormat(totalWhTaxamount) + "</td>"
                 body += "</tr>"
             }
 
             body += "<tr>"
+            body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
@@ -743,6 +754,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             // Handle other charges if necessary
                         } else {
                             var qty = poRecord[index].quantity;
+                            var totQTY = poRecord[index].totQTY
                             var description = poRecord[index].itemdesc;
                             var amount = poRecord[index].amount
                             var rate = poRecord[index].rate;
@@ -757,11 +769,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                     unit: unit,
                                     qty: 0,
                                     amount: 0,
-                                    rate: 0
+                                    rate: 0, 
+                                    totQTY : 0
                                 };
                             }
         
                             items[itemKey].qty += Number(qty);
+                            items[itemKey].totQTY += Number(totQTY);
                             items[itemKey].amount += Number(amount);
                             items[itemKey].rate = rate;
                         }
@@ -791,6 +805,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td class='tg-b_body'>" + item.description + "</td>";
                     body += "<td class='tg-b_body'>" + item.unit + "</td>";
                     body += "<td class='tg-b_body'>" + item.qty + "</td>";
+                    body += "<td class='tg-b_body'>" + item.totQTY + "</td>";
                     body += "<td class='tg-b_body' style='align:right'>" + removeDecimalFormat(rateFormatted) + "</td>";
                     body += "<td class='tg-b_body' style='align:right;'>" + removeDecimalFormat(amountFormatted) + "</td>";
                     body += "</tr>";

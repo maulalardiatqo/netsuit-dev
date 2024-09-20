@@ -6,9 +6,27 @@
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
     function(render, search, record, log, file, http, config, format, email, runtime) {
         try{
-            function removeDecimalFormat(value) {
-                return value.split('.')[0];
-            }
+            function decimalRemove(number) {
+                if (number != 0) {
+                  return number.substring(0, number.length - 3);
+                } else {
+                  return "0.00";
+                }
+              }
+              function removeDecimalFormat(number) {
+                return number.toString().substring(0, number.toString().length - 3);
+              }
+              function removeDuplicates(array) {
+                return array.filter((value, index, self) => {
+                  return self.indexOf(value) === index;
+                });
+              }
+              function numberWithCommas(x) {
+                x = x.toString();
+                var pattern = /(-?\d+)(\d{3})/;
+                while (pattern.test(x)) x = x.replace(pattern, "$1,$2");
+                return x;
+              }
             function pembulatan(angka) {
                 if (angka >= 0) {
                     var bulat = Math.floor(angka);
@@ -84,7 +102,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 
                 // load vendor
                 var customer_id = invoiceRecord.getValue('entity');
-                log.debug('customer_id', customer_id)
                 if(customer_id){
                     var customerRecord = record.load({
                         type: "customer",
@@ -115,11 +132,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         custAddres = customerRecord.getValue('defaultaddress');
                         
                     }
-                    log.debug('custAdress', custAddres);
                         if(custAddres.includes('&')){
                             custAddres = custAddres.replace(/&/g, 'dan');
                         }
-                        log.debug('custAdress after', custAddres);
                     var custEmail = customerRecord.getValue('email');
                     var taxRegNo = customerRecord.getValue('vatregnumber');
                     var count = customerRecord.getLineCount({
@@ -154,6 +169,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // PO data
                 var tandId = invoiceRecord.getValue('tranid');
                 var InvDate = invoiceRecord.getValue('trandate');
+                var memo = invoiceRecord.getValue('memo');
+                var quoteNumber = invoiceRecord.getValue('custbody_abj_quotation_from_sales')
                 var terms = invoiceRecord.getText('terms');
                 var fakturPajak = invoiceRecord.getValue('custbody_fcn_faktur_pajak');
                 var subTotal = invoiceRecord.getValue('subtotal') || 0;
@@ -165,11 +182,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var duedate = invoiceRecord.getValue('duedate');
                 var prosentDiscount = invoiceRecord.getValue('discountrate');
                 var discount = invoiceRecord.getValue('discounttotal') || 0;
+                var subTotal2 = Number(subTotal) + Number(discount);
                 var jobNumber = invoiceRecord.getValue('custbody_abj_custom_jobnumber');
-                if (jobNumber.includes('\\')) {
-                    log.debug('ada tanda');
-                    jobNumber = jobNumber.replace(/\\/g, '<br/>');
+                if(jobNumber){
+                    if (jobNumber.includes('\\')) {
+                        jobNumber = jobNumber.replace(/\\/g, '<br/>');
+                    }
                 }
+                
                 var otehrRefNum = invoiceRecord.getValue('otherrefnum');
                 discount = Math.abs(discount);
                 prosentDiscount = Math.abs(prosentDiscount);
@@ -226,10 +246,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId : 'quantity',
                             line : i
                         })
-                        // subTotal += ammount * qty
-                        // taxtotalCount = ammount * qty * taxItem / 100
-                        // log.debug('taxtotalCount', taxtotalCount);
-                        // taxtotal += taxtotalCount
                         var tamount = whtaxammountItem
                         whtaxammountItem = Math.abs(tamount);
                         totalWhTaxamountItem += whtaxammountItem
@@ -240,10 +256,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             }
                         }
                     }
-                    // log.debug('whtaxammountItem', whtaxammountItem)
-                    // log.debug('totalWhTaxamountItem', totalWhTaxamountItem);
+                    
                 }
-                // log.debug('taxtotal', taxtotal)
                 var whtaxToCount = whtaxammountItem;
                 totalWhTaxamount = totalWhTaxamountItem;
                 if (taxpphList.length > 0) {
@@ -251,7 +265,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                   }
                 var subBefore = subTotal
                 var taxtotalBefor = taxtotal
-                total = Number(subBefore) + Number(taxtotalBefor);
+                total = Number(subTotal2) + Number(taxtotalBefor);
                 amountReceive = total
                 if(taxpphToPrint){
                     amountReceive = amountReceive - totalWhTaxamount;
@@ -332,16 +346,54 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type: format.Type.DATE
                     });
                 }
-                // var amountRecieved = Number(subtotalB) - Number(discount) + Number(taxtotalB) / Number(totalB);
-                // log.debug('subtotal', subtotalB);
-                // log.debug('discount', discount);
-                // log.debug('total', totalB);
-                // log.debug('taxtotal', taxtotalB);
-                // log.debug('amountR', amountRecieved);
-                // amountRecieved = format.format({
-                //     value: amountRecieved,
-                //     type: format.Type.CURRENCY
-                // });
+                var itemCount = invoiceRecord.getLineCount({
+                    sublistId: "item",
+                  });
+                  var totalDiscount = 0
+                  var totalCost = 0
+                  if (itemCount > 0) {
+                    for (var index = 0; index < itemCount; index++) {
+                      var discLine = invoiceRecord.getSublistValue({
+                        sublistId: "item",
+                        fieldId: "custcol_abj_disc_line",
+                        line: index,
+                      }) || 0
+                      totalDiscount += parseFloat(discLine)
+                      var itemId = invoiceRecord.getSublistValue({
+                        sublistId: "item",
+                        fieldId: "item",
+                        line: index,
+                      });
+                      if(itemId != '2880'){
+                        var itemPrice = invoiceRecord.getSublistValue({
+                          sublistId: "item",
+                          fieldId: "amount",
+                          line: index,
+                        }) || 0;
+                        totalCost += parseFloat(itemPrice)
+                      } 
+                      
+                    }
+                  }
+                  //added by kurnia
+                  totalCost = pembulatan(totalCost);
+                  //
+                  
+                  var discountHeader = invoiceRecord.getValue("discountrate")||0;
+                  log.debug('discountheader', discountHeader)
+                  discountHeader = discountHeader.toString();
+                  if(discountHeader.includes('%')){
+                    log.debug('mengandung prosent')
+                    var ubahProsent = parseFloat(discountHeader.replace('%', ''));
+                    var ubahmin = Math.abs(ubahProsent);
+                    var hitungUlang = parseFloat(totalCost) * parseFloat(ubahmin) / 100
+                    log.debug('hitungUlang', hitungUlang);
+                    discountHeader = pembulatan(hitungUlang)
+                  }
+                  totalDiscount = parseFloat(totalDiscount) + parseFloat(discountHeader)
+                  var taxTotalRate = (parseFloat(totalCost) - parseFloat(totalDiscount)) * 11 / 100;
+                var customForm = invoiceRecord.getValue('customform');
+                var createdFrom = invoiceRecord.getText('createdfrom')
                 var response = context.response;
                 var xml = "";
                 var header = "";
@@ -350,10 +402,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var style = "";
                 var footer = "";
                 var pdfFile = null;
-                if(jobNumber.includes('&')){
-                    log.debug('masuk');
-                    jobNumber = jobNumber.replace(/&/g, '&amp;');
+                if(jobNumber){
+                    if(jobNumber.includes('&')){
+                        jobNumber = jobNumber.replace(/&/g, '&amp;');
+                    }
                 }
+
+                var contPerson = invoiceRecord.getValue('custbody_abj_cp_name');
+                var cpEmail = invoiceRecord.getValue('custbody_abj_cp_email');
+                var cpPhone = invoiceRecord.getValue('custbody_abj_cp_phone');
+
+                
                 style += "<style type='text/css'>";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
@@ -366,8 +425,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
                 style += ".tg .tg-headerrow_Total{align: right;font-size:16px;word-break:break-all; font-weight: bold;}";
                 style += ".tg .tg-headerrow_left{align: left;font-size:12px;}";
-                style += ".tg .tg-head_body{align: left;font-size:12px;font-weight: bold; border-top: 3px solid black; border-bottom: 3px solid black;}";
-                style += ".tg .tg-b_body{align: left;font-size:12px; border-bottom: solid black 2px;}";
+                style += ".tg .tg-head_body{align: center;font-size:10px;font-weight: bold; border-top: 1px solid black; border-bottom: 1px solid black; color:#fcfafa}";
+                style += ".tg .tg-b_body{align: left;font-size:10px;}";
                 style += ".tg .tg-f_body{align: right;font-size:14px;border-bottom: solid black 2px;}";
                 style += ".tg .tg-foot{font-size:11px; color: #808080; position: absolute; bottom: 0;}";
                 style += "</style>";
@@ -396,8 +455,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tr>";
                 body+= "<td>";
                 body+= "<p class='tg-headerrow_left'>"+ custName + "<br/>"
-                body+= "<span>"+custAddres+"</span><br/>"
-                body+= "<span>"+custEmail+"</span><br/>"
                 body+= "NPWP : "+ taxRegNo + "</p>"
                 body+= "</td>"
                 body+= "<td>"
@@ -408,129 +465,251 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // body+= "<p class='tg-headerrow_Total'> Rp."+ balance + "</p>"
                 body+= "</td>"
                 body+= "</tr>"
+                body += "<tr>";
+                body += "<td>CONTACT PERSON : "+contPerson+"</td>"
+                body += "</tr>";
+            
+                body += "<tr>";
+                body += "<td>EMAIL : "+cpEmail+"</td>"
+                body += "</tr>";
+            
+                body += "<tr>";
+                body += "<td>PHONE : "+cpPhone+"</td>"
+                body += "</tr>";
                 body+= "<tr style='height:10px;'>";
                 body+= "</tr>";
                 body+= "</tbody>";
                 body+= "</table>";
-    
-                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
-                body += "<tbody>";
-                body += "<tr>"
-                body += "<td class='tg-head_body' style='width:12%'> QTY </td>"
-                body += "<td class='tg-head_body' style='width:31%'> DESCRIPTION </td>"
-                body += "<td class='tg-head_body' style='align:right; width:17%;'> UNIT PRICE ("+ tlcCurr +") </td>"
-                body += "<td class='tg-head_body' style='align:right'> TAXED </td>"
-                body += "<td class='tg-head_body' style='align:right; width:20%;'> AMOUNT ("+ tlcCurr +") </td>"
-                body += "</tr>"
-                body += getPOItem(context, invoiceRecord);
-                body += "<tr>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-f_body' colspan='2'>SUBTOTAL</td>"
-                body += "<td class='tg-f_body'>"+subTotal+"</td>"
-                body += "</tr>"
-                if(discount !== 0){
+                if(customForm == 152){
+                    body += '<table class=\'tg\' width="100%" style="table-layout:fixed;">';
+                    body += "<tbody>";
+                    body += "<tr>";
+                    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='5%'> No </td>";
+                    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='30%'> Description </td>";
+                    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='20%'> Complexity Level </td>";
+                    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='21%'> Item Price </td>";
+                    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='5%'> QTY </td>";
+                    body += "<td class='tg-head_body' style='border-right: 1px solid black; border-left: 1px solid black; background-color:#757575'  width='24%'> Total Costs </td>";
+                    body += "</tr>";
+                    body += getPOItemRateCard(context, invoiceRecord);
+                    body += "<tr>";
+                    body += "<td style='border-top: 1px solid black;' colspan='6'></td>";
+                    body += "</tr>";
+                
+                    body += "<tr style='height:20px;'></tr>";
+                    body += "</tbody>";
+                    body += "</table>";
+
+                    body += '<table class=\'tg\' width="100%" style="table-layout:fixed;">';
+                    body += "<tbody>";
+
+                    body += "<tr>";
+                    body += "<td style='width:55%'></td>"
+                    body += "<td style='width:5%'></td>"
+                    body += "<td style='width:20%'></td>"
+                    body += "<td style='width:20%'></td>"
+                    body += "</tr>";
+
+                    body += "<tr>";
                     
-                    body += "<tr>"
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-f_body'></td>"
-                    body += "<td class='tg-f_body'>Discount "+ prosentDiscount +" %</td>"
-                    log.debug('sampai11', prosentDiscount);
-                    body += "<td class='tg-f_body'>"+discount+"</td>"
-                    body += "</tr>"
-                }
-                if(taxItem !== 0){
-                    body += "<tr>"
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-f_body'></td>"
-                    body += "<td class='tg-f_body'>PPN "+ taxItem +" %</td>"
-                    body += "<td class='tg-f_body'>"+ taxtotal +"</td>"
-                    body += "</tr>"
+                    body += "<td></td>"
+                    body += "<td></td>"
+                    body += "<td style='align:right'>TOTAL COST</td>"
+                    body += "<td style='align:right'>Rp. "+numberWithCommas(totalCost)+"</td>"
+                    body += "</tr>";
+                    log.debug('totalDiscount', totalDiscount)
+                    if(totalDiscount != 0 || totalDiscount != '0'){
+                        body += "<tr>";
+                        body += "<td></td>"
+                        body += "<td></td>"
+                        body += "<td style='align:right'>TOTAL DISCOUNT</td>"
+                        body += "<td style='align:right'>Rp. ("+numberWithCommas(Math.abs(totalDiscount))+")</td>"
+                        body += "</tr>";
+
+                        body += "<tr>";
+                        body += "<td></td>"
+                        body += "<td></td>"
+                        body += "<td style='align:right'>SUB TOTAL</td>"
+                        
+                        body += "<td style='align:right'>Rp. "+numberWithCommas(subTotal2)+"</td>"
+                        body += "</tr>";
+                    }
+                    
+                    body += "<tr>";
+                    body += "<td></td>"
+                    body += "<td></td>"
+                    body += "<td style='align:right'>VAT 11%</td>"
+                    body += "<td style='align:right'>Rp. "+numberWithCommas(taxtotal)+"</td>"
+                    // body += "<td style='align:right'>Rp. "+numberWithCommas(taxTotalRate)+"</td>"
+                    body += "</tr>";
+
+                    body += "<tr>";
+                    body += "<td></td>"
+                    body += "<td></td>"
+                    body += "<td style='align:right'>GRAND TOTAL</td>"
+                    body += "<td style='align:right'>Rp. "+numberWithCommas(total)+"</td>"
+                    body += "</tr>";
+
+                    
+                    body += "</tbody>";
+                    body += "</table>";
+                }else{
+                    body += "<table class='tg' style=\"table-layout:fixed;\">";
+                    body += "<thead>";
+                    body += "<tr>";
+                    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='5%'> No </td>";
+                    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='40%'> Description </td>";
+                    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='25%'> Item Price </td>";
+                    body += "<td class='tg-head_body' style='border-left: 1px solid black; background-color:#757575' width='10%'> QTY </td>";
+                    body += "<td class='tg-head_body' style='border-right: 1px solid black; border-left: 1px solid black; background-color:#757575'  width='25%'> Total Costs </td>";
+                    body += "</tr>";
+                    body += "</thead>";
+                    body += "<tbody>";
+                    body += getPOItem(context, invoiceRecord);
+                    body += "<tr>";
+                    body += "<td style='border-top: 1px solid black;' colspan='5'></td>";
+                    body += "</tr>";
+                
+                    body += "<tr style='height:20px;'></tr>";
+                    body += "</tbody>";
+                    body += "</table>";
+              
+                    body += '<table class=\'tg\' width="100%" style="table-layout:fixed;">';
+                    body += "<tbody>";
+              
+                    body += "<tr>";
+                    body += "<td style='width:55%'></td>"
+                    body += "<td style='width:5%'></td>"
+                    body += "<td style='width:20%'></td>"
+                    body += "<td style='width:20%'></td>"
+                    body += "</tr>";
+              
+                    body += "<tr>";
+                   
+                    body += "<td></td>"
+                    body += "<td></td>"
+                    body += "<td style='align:right'>TOTAL COST</td>"
+                    body += "<td style='align:right'>Rp. "+numberWithCommas(totalCost)+"</td>"
+                    body += "</tr>";
+                    log.debug('totalDiscount', totalDiscount)
+                    if(totalDiscount != 0 || totalDiscount != '0'){
+                      body += "<tr>";
+                      body += "<td></td>"
+                      body += "<td></td>"
+                      body += "<td style='align:right'>TOTAL DISCOUNT</td>"
+                      body += "<td style='align:right'>Rp. ("+numberWithCommas(Math.abs(totalDiscount))+")</td>"
+                      body += "</tr>";
+              
+                      body += "<tr>";
+                      body += "<td></td>"
+                      body += "<td></td>"
+                      body += "<td style='align:right'>SUB TOTAL</td>"
+                      
+                      body += "<td style='align:right'>Rp. "+numberWithCommas(subTotal2)+"</td>"
+                      body += "</tr>";
+                    }
+                    
+              
+                  
+              
+                    body += "<tr>";
+                    body += "<td></td>"
+                    body += "<td></td>"
+                    body += "<td style='align:right'>VAT 11%</td>"
+                    body += "<td style='align:right'>Rp. "+numberWithCommas(taxtotal)+"</td>"
+                    // body += "<td style='align:right'>Rp. "+numberWithCommas(taxTotalRate)+"</td>"
+                    body += "</tr>";
+              
+                    body += "<tr>";
+                    body += "<td></td>"
+                    body += "<td></td>"
+                    body += "<td style='align:right'>GRAND TOTAL</td>"
+                    body += "<td style='align:right'>Rp. "+numberWithCommas(total)+"</td>"
+                    body += "</tr>";
+              
+                  
+                    body += "</tbody>";
+                    body += "</table>";
                 }
                 
-                body += "<tr>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-f_body'></td>"
-                body += "<td class='tg-f_body'>TOTAL</td>"
-                body += "<td class='tg-f_body'>"+total+"</td>"
-                body += "</tr>"
-                if(whTaxCodetoPrint){
-                    body += "<tr>"
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td style='align: right;font-size:12px;border-bottom: solid black 2px;' colspan='2'>"+whTaxCodetoPrint+" </td>"
-                    body += "<td class='tg-f_body'>"+totalWhTaxamount+"</td>"
-                    body += "</tr>"
-                }
-                body += "<tr>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td style='align: right;font-size:14px;border-top: solid black 2px; font-weight: bold;' colspan='2'>Balance Due</td>"
-                body += "<td style='align: right;font-size:15px;border-top: solid black 2px; font-weight: bold;'>"+ amountReceive +"</td>"
-                body += "</tr>"
-                // body += "<tr>"
-                // body += "<td class='tg-headerrow_left'></td>"
-                // body += "<td class='tg-headerrow_left'></td>"
-                // body += "<td style='align: right;font-size:15px;' colspan='2'>BALANCE DUE</td>"
-                // body += "<td style='align: right;font-size:15px;'>"+balance+"</td>"
-                // body += "</tr>"
-                body += "<tr style='height:30px;'></tr>"
-                
-                body += "</tbody>";
-                body += "</table>";
     
-                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
-                body += "<tbody>";
+                body += "<table class='tg' width=\"100%\">";
+                body += "<tr style='height:30px;'></tr>";
                 body += "<tr>"
-                body += "<td style='align:left; width:20%;'></td>"
-                body += "<td style='align:left; width:30%;'></td>"
-                body += "<td style='align:left; width:20%;'></td>"
-                body += "<td style='align:left; width:20%;'></td>"
+                body += "<td style='width:35%'></td>"
+                body += "<td style='width:1%'></td>"
+                body += "<td style='width:64%'></td>"
                 body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left; font-weight: bold;'>Payment Detail</td>"
-                body += "<td></td>"
-                body += "<td style='align:left; font-weight: bold;'>Other Information</td>"
-                body += "<td></td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Bank Name </td>"
-                body += "<td style='align:left;'>: "+ bankName +"</td>"
-                body += "<td style='align:left;'>Customer References </td>"
-                body += "<td style='align:left;'>: "+ otehrRefNum +"</td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Bank Branch </td>"
-                body += "<td style='align:left;'>: "+ bankBranch +"</td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Bank/Swift Code </td>"
-                body += "<td style='align:left;'>: "+ swiftCode +"</td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Account Name </td>"
-                body += "<td style='align:left;' colspan='2'>: "+ legalName +"</td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Account Number </td>"
-                body += "<td style='align:left;'>: "+ accountNo +"</td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Payment References </td>"
-                body += "<td style='align:left;'>: "+ tandId  +"</td>"
-                body += "</tr>"
-                body += "<tr>"
-                body += "<td style='align:left;'>Faktur Pajak :</td>"
-                body += "<td style='align:left;'>: "+ fakturPajak +"</td>"
-                body += "</tr>"
-                body += "<tr style='height:40px;'></tr>"
-                body += "<tr>"
-                body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='4'>"+jobNumber+"</td>"
-                body += "</tr>"
-                body += "</tbody>";
+                
+                body += "<tr>";
+                body += "<td style='align:left; font-weight: bold;' colspan='2'>Other Information</td>";
+                body += "</tr>";
+                
+                body += "<tr>";
+                body += "<td style='align:left;'>Quote </td>";
+                body += "<td>:</td>";
+                body += "<td style='align:left;'>" + quoteNumber + "</td>";
+                body += "</tr>";
+
+                body += "<tr>";  
+                body += "<td style='align:left;'>Created From</td>";
+                body += "<td>:</td>";
+                body += "<td style='align:left;'>"+createdFrom+"</td>";  
+                body += "</tr>";
+            
+                body += "<tr>";
+                body += "<td style='align:left;'>PO# </td>";
+                body += "<td>:</td>";
+                body += "<td style='align:left;'>" + otehrRefNum + "</td>";
+                body += "</tr>";
+
+                
+            
+                body += "<tr>";
+                body += "<td style='align:left; font-weight: bold;'>Payment Detail</td>";
+                body += "</tr>";
+            
+                body += "<tr>";
+                body += "<td style='align:left;'>Bank Name</td>";
+                body += "<td>:</td>";
+                body += "<td style='align:left;'>" + bankName + "</td>";
+                body += "</tr>";
+            
+                body += "<tr>";
+                body += "<td style='align:left;'>Bank Branch</td>";
+                body += "<td>:</td>";
+                body += "<td style='align:left;'>" + bankBranch + "</td>";
+                body += "</tr>";
+            
+                body += "<tr>";
+                body += "<td style='align:left;'>Bank/Swift Code</td>";
+                body += "<td>:</td>";
+                body += "<td style='align:left;'>" + swiftCode + "</td>";
+                body += "</tr>";
+            
+                body += "<tr>";
+                body += "<td style='align:left;'>Acount Name</td>";
+                body += "<td>:</td>";
+                body += "<td style='align:left;'>" + legalName + "</td>";
+                body += "</tr>";
+            
+                body += "<tr>";
+                body += "<td style='align:left;'>Acount Number</td>";
+                body += "<td>:</td>";
+                body += "<td style='align:left;'>" + accountNo + "</td>";
+                body += "</tr>";
+            
+                body += "<tr>";
+                body += "<td style='align:left;'>Payment References</td>";
+                body += "<td>:</td>";
+                body += "<td style='align:left;'>" + tandId + "</td>";
+                body += "</tr>";
+            
+                body += "<tr>";
+                body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>" + jobNumber + "</td>";
+                body += "</tr>";
+            
+               
                 body += "</table>";
                 
     
@@ -573,117 +752,286 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
             }
     
-            function getPOItem(context, invoiceRecord){
-                var itemCount = invoiceRecord.getLineCount({
-                    sublistId: 'item'
-                });
-                
-                
-                if(itemCount > 0){
-                    var body = "";
-                    for(var index = 0; index < itemCount; index++){
-                        var qty = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'quantity',
-                            line: index
-                        });
-                        var description = invoiceRecord.getSublistText({
-                            sublistId: 'item',
-                            fieldId: 'description',
-                            line: index
-                        });
-                        if (description.includes('\\')) {
-                            log.debug('ada tanda');
-                            description = description.replace(/\\/g, '<br/>');
-                        }
-                        if(description.includes('$') && description.includes('$$')){
-                            log.debug('masuk $')
-                            description = description.replace(/\$(.*?)\$\$/g, '<b>$1</b>');
-                        }
-                        if(description.includes('#') && description.includes('##')){
-                            log.debug('masuk #')
-                            description = description.replace(/\#(.*?)\#\#/g, '<i>$1</i>');
-                        }
-                        if(description.includes('*') && description.includes('**')){
-                            log.debug('masuk *')
-                            description = description.replace(/\*(.*?)\*\*/g, '<u>$1</u>');
-                        }
-                        // if(description.includes('<b>')){
-                        //     log.debug('masukKondisi', description)
-                        //     description = description.replace(/<b>(.*?)<\/b>/g, '<strong>$1</strong>');
-                        // }
-                            
-                        
-                        
-                        // description = description.replace(/\\/g, '<br/>');
-                        // log.debug('descripsi', description);
-                        var unit = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'units',
-                            line: index
-                        });
-                        var rate;
-                        var rateBef = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'rate',
-                            line: index
-                        });
-                        var ammount = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'amount',
-                            line: index
-                        });
-                        if(rateBef){
-                            rate = rateBef
-                        }else{
-                            rate = Number(ammount) / Number(qty)
-                        }
-                        if(rate){
-                            rate = pembulatan(rate);
-                            rate = format.format({
-                                value: rate,
-                                type: format.Type.CURRENCY
-                            });
-                            rate = removeDecimalFormat(rate)
-                        }
-                        
-                        var taxAmt = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'tax1amt',
-                            line: index
-                        });
-                        if(taxAmt){
-                            taxAmt = pembulatan(taxAmt)
-                            taxAmt = format.format({
-                                value: taxAmt,
-                                type: format.Type.CURRENCY
-                            });
-                            taxAmt = removeDecimalFormat(taxAmt)
-                        }
-                        
-                        // var ammount = Number(rateBefor) * Number(qty)
-                        
-                        if (ammount){
-                            ammount = pembulatan(ammount)
-                            ammount = format.format({
-                                value: ammount,
-                                type: format.Type.CURRENCY
-                            });
-                            ammount = removeDecimalFormat(ammount)
-                        }
-                        
-                        body += "<tr>";
-                        body += "<td class='tg-b_body'>"+qty+" - "+unit+ "Pcs</td>";
-                        body += "<td class='tg-b_body'>"+description+"</td>";
-                        body += "<td class='tg-b_body' style='align:right'>"+rate+"</td>";
-                        body += "<td class='tg-b_body' style='align:right'>X</td>";
-                        body += "<td class='tg-b_body' style='align:right;'>"+ammount+"</td>";
-                        body += "</tr>";
+            function generateTableHTMLSO(items) {
+                let html = "";
+                let no = 1;
+                items.forEach((item, index) => {
+                    // html += `<tr>
+                    //             <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
+                    //             <td class='tg-b_body'>${item.description}</td>
+                    //             <td class='tg-b_body' align="right">Rp. ${numberWithCommas(item.itemPrice)}</td>
+                    //             <td class='tg-b_body' style='align:center'>${item.quantity}</td>
+                    //             <td class='tg-b_body' style="border-right: 1px solid black; align:right;">Rp. ${removeDecimalFormat(item.totalCost)}</td>
+                    //         </tr>`;
+                    //added by kurnia
+                    html += `<tr>
+                                <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
+                                <td class='tg-b_body'>${item.description}</td>
+                                <td class='tg-b_body' align="right">Rp. ${(numberWithCommas(item.itemPrice))}</td>
+                                <td class='tg-b_body' style='align:center'>${item.quantity}</td>
+                                <td class='tg-b_body' style="border-right: 1px solid black; align:right;">Rp. ${numberWithCommas(item.totalCost)}</td>
+                            </tr>`;
+                    //
+                    
+                    if (item.discLine && item.discLine != 0) {
+                        html += `<tr>
+                                    <td class='tg-b_body' style='border-left: 1px solid black'></td>
+                                    <td class='tg-b_body' style=''>[Discount - ${item.prosDiscLine}%]</td>
+                                    <td class='tg-b_body' colspan="2"></td>
+                                    <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>Rp. (${numberWithCommas(item.discLine)})</td>
+                                </tr>`;
                     }
+          
+                    no++;
+                });
+                return html;
+            }
+            let dataItemSO = []
+            function getPOItem(context, soRecord) {
+                dataRec = soRecord
+                const itemCount = dataRec.getLineCount({ sublistId: "item" });
+                if (itemCount > 0) {
+                    let body = "";
+                    for (let index = 0; index < itemCount; index++) {
+                        const account = dataRec.getSublistValue({
+                            sublistId: "item",
+                            fieldId: "item",
+                            line: index,
+                        });
+                        const itemId = dataRec.getSublistValue({
+                            sublistId: "item",
+                            fieldId: "item",
+                            line: index,
+                        });
+                        if(itemId != '2880'){
+                            if (account) {
+                                const itemText = dataRec.getSublistText({
+                                    sublistId: "item",
+                                    fieldId: "item",
+                                    line: index,
+                                });
+                                const description = dataRec.getSublistValue({
+                                    sublistId: "item",
+                                    fieldId: "description",
+                                    line: index,
+                                });
+                                const remarks = dataRec.getSublistValue({
+                                    sublistId: "item",
+                                    fieldId: "custcol_abj_rate_card_line_item_rmrks",
+                                    line: index,
+                                });
+                                let itemPrice = dataRec.getSublistValue({
+                                    sublistId: "item",
+                                    fieldId: "rate",
+                                    line: index,
+                                });
+                                //added by kurnia
+                                itemPrice = pembulatan(itemPrice)
+                                //
+                                const quantity = dataRec.getSublistValue({
+                                    sublistId: "item",
+                                    fieldId: "quantity",
+                                    line: index,
+                                });
+                                // let totalCost = dataRec.getSublistText({
+                                //     sublistId: "item",
+                                //     fieldId: "amount",
+                                //     line: index,
+                                // });
+                                //added by kurnia
+                                let totalCost = dataRec.getSublistValue({
+                                    sublistId: "item",
+                                    fieldId: "amount",
+                                    line: index,
+                                });
+                                totalCost = pembulatan(totalCost);
+                                //
+                                log.debug('totalCost', totalCost)
+                                const discLine = dataRec.getSublistValue({
+                                    sublistId: "item",
+                                    fieldId: "custcol_abj_disc_line",
+                                    line: index,
+                                }) || 0;
+                                const prosDiscLine = Number(discLine) / Number(itemPrice) * 100;
+            
+                                dataItemSO.push({
+                                    itemText: itemText,
+                                    description: description,
+                                    remarks: remarks,
+                                    itemPrice: itemPrice,
+                                    quantity: quantity,
+                                    totalCost: totalCost,
+                                    discLine: discLine,
+                                    prosDiscLine: prosDiscLine
+                                });
+                            
+                        }
+                        }
+                        
+                            
+                    }
+                    let tableHTML = generateTableHTMLSO(dataItemSO);
+                    body += tableHTML;
                     return body;
                 }
             }
 
+            function generateTableHTML(sectionID, items) {
+                var fieldLookUpSection = search.lookupFields({
+                  type: "customlist_abj_rate_card_section",
+                  id: sectionID,
+                  columns: ["name"],
+                });
+                var sectionName = fieldLookUpSection.name;
+                let html = `<tr><td colspan="6" class='tg-b_body' style="border-right: 1px solid black; border-left: 1px solid black; background-color:#adacac">${sectionName}</td></tr>`;
+                var no = 1;
+                items.forEach((item, index) => {
+                  html += `<tr>
+                                <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
+                                <td class='tg-b_body'>${item.description}</td>
+                                <td class='tg-b_body' style='align:center'>${item.complexityLevel}</td>
+                                <td class='tg-b_body' align="right">Rp. ${numberWithCommas(item.itemPrice)}</td>
+                                <td class='tg-b_body' style='align:center'>${item.quantity}</td>
+                                ${index === 0 ? `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}">Rp. ${numberWithCommas(item.totalCost)}</td>` : `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}"></td>`}
+            
+                            </tr>
+                            <tr>
+                                <td class='tg-b_body' style='border-left: 1px solid black'></td>
+                                <td class='tg-b_body' style='font-weight:bold;'>${item.remarks}</td>
+                                <td class='tg-b_body' style='border-right: 1px solid black' colspan="4"></td>
+                            </tr>`;
+            
+                          if (item.discLine && item.discLine != 0) {
+                              html += `<tr>
+                                              <td class='tg-b_body' style='border-left: 1px solid black'></td>
+                                              <td class='tg-b_body' style=''>[Discount - ${item.prosDiscLine}%]</td>
+                                              <td class='tg-b_body' colspan="3"></td>
+                                              <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>Rp. (${numberWithCommas(item.discLine)})</td>
+                                          </tr>`;
+                          }
+            
+                          no++;
+                });
+                return html;
+              }
+              var dataSection = [];
+              var dataItem = [];
+              function getPOItemRateCard(context, dataRec) {
+                var itemCount = dataRec.getLineCount({
+                  sublistId: "item",
+                });
+                if (itemCount > 0) {
+                  var body = "";
+                  for (var index = 0; index < itemCount; index++) {
+                    var account = dataRec.getSublistValue({
+                      sublistId: "item",
+                      fieldId: "item",
+                      line: index,
+                    });
+                    var itemId = dataRec.getSublistValue({
+                      sublistId: "item",
+                      fieldId: "item",
+                      line: index,
+                    });
+                    
+                    if(itemId != '2880'){
+                      log.debug('itemId', itemId)
+                      if (account) {
+                        var itemText = dataRec.getSublistText({
+                          sublistId: "item",
+                          fieldId: "item",
+                          line: index,
+                        });
+                        var description = dataRec.getSublistValue({
+                          sublistId: "item",
+                          fieldId: "description",
+                          line: index,
+                        });
+                        var remarks = dataRec.getSublistValue({
+                          sublistId: "item",
+                          fieldId: "custcol_abj_rate_card_line_item_rmrks",
+                          line: index,
+                        });
+                        var complexityLevel = dataRec.getSublistText({
+                          sublistId: "item",
+                          fieldId: "custcol_abj_complexity_level_line",
+                          line: index,
+                        });
+                        var itemPrice = dataRec.getSublistValue({
+                          sublistId: "item",
+                          fieldId: "rate",
+                          line: index,
+                        });
+                        //added by kurnia
+                        itemPrice = pembulatan(itemPrice);
+                        //
+                        var quantity = dataRec.getSublistValue({
+                          sublistId: "item",
+                          fieldId: "quantity",
+                          line: index,
+                        });
+                        // var totalCost = dataRec.getSublistText({
+                        //   sublistId: "item",
+                        //   fieldId: "amount",
+                        //   line: index,
+                        // });
+                        //added by kurnia
+                        var totalCost = dataRec.getSublistValue({
+                            sublistId: "item",
+                            fieldId: "amount",
+                            line: index,
+                        });
+                        totalCost = pembulatan(totalCost);
+                        //
+                        var sectionID = dataRec.getSublistValue({
+                          sublistId: "item",
+                          fieldId: "custcol_abj_rate_card_section_list",
+                          line: index,
+                        });
+                        var sectionName = dataRec.getSublistText({
+                          sublistId: "item",
+                          fieldId: "custcol_abj_rate_card_section_list",
+                          line: index,
+                        });
+                        var discLine = dataRec.getSublistValue({
+                          sublistId: "item",
+                          fieldId: "custcol_abj_disc_line",
+                          line: index,
+                        }) || 0
+                        var prosDiscLine =  Number(discLine)/ Number(itemPrice) *100
+                        dataSection.push(sectionName);
+                        dataItem.push({
+                          itemText: itemText,
+                          description: description,
+                          remarks: remarks,
+                          sectionID: sectionID,
+                          complexityLevel: complexityLevel,
+                          itemPrice: itemPrice,
+                          quantity: quantity,
+                          totalCost: totalCost,
+                          discLine : discLine,
+                          prosDiscLine : prosDiscLine
+                        });
+                      }
+                    }
+                    
+                  }
+                  dataSection = removeDuplicates(dataSection);
+                  const groupedItems = {};
+                  dataItem.forEach((item) => {
+                    if (!groupedItems[item.sectionID]) {
+                      groupedItems[item.sectionID] = [];
+                    }
+                    groupedItems[item.sectionID].push(item);
+                  });
+                  let tableHTML = "";
+                  for (const sectionID in groupedItems) {
+                    tableHTML += generateTableHTML(sectionID, groupedItems[sectionID]);
+                  }
+                  body += tableHTML;
+                  return body;
+                }
+              }
         }catch(e){
             log.debug('error', e)
         }

@@ -88,8 +88,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             name: "quantity"
                         })
                         var description = poRecord.getValue({
-                            name: "salesdescription",
-                            join: "item",
+                            name: "memo"
                         })
                         var rate = poRecord.getValue({
                             name: "rate"
@@ -101,6 +100,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             name: "amount"
                         })
                         var idr = Number(rate) * Number(kurs)
+                        var usd = Number(idr) * (kurs)
                         log.debug('idr', idr);
                         allDataItem.push({
                             description : description,
@@ -109,7 +109,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             uom : uom,
                             amount : amount,
                             kurs : kurs,
-                            idr : idr
+                            idr : idr,
+                            usd : usd
                         })
                     }
                 }
@@ -406,7 +407,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td>:</td>"
                 body += "<td>"+leadTime+"</td>"
                 body += "<td style='font-weight:bold; align:right;'>Subtotal :</td>"
-                body += "<td style='font-weight:bold;'>"+subTotal+"</td>"
+                body += "<td style='font-weight:bold; align:right;'>"+subTotal+"</td>"
                 body += "</tr>"
 
                 body += "<tr>";
@@ -414,7 +415,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td>:</td>"
                 body += "<td>"+terms+"</td>"
                 body += "<td style='font-weight:bold; align:right;'>Tax Total :</td>"
-                body += "<td style='font-weight:bold;'>"+taxTotal+"</td>"
+                body += "<td style='font-weight:bold; align:right;'>"+taxTotal+"</td>"
                 body += "</tr>"
 
                 body += "<tr>";
@@ -422,7 +423,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td>:</td>"
                 body += "<td>"+kurs+"</td>"
                 body += "<td style='font-weight:bold; align:right;'>Total :</td>"
-                body += "<td style='font-weight:bold;'>"+total+"</td>"
+                body += "<td style='font-weight:bold; align:right;'>"+total+"</td>"
                 body += "</tr>"
 
                 body += "</tbody>";
@@ -531,8 +532,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var uom = item.uom;
                         var amount = item.amount;
                         var idr = item.idr;
-                        log.debug('perhitungan', {rate : rate, dolar : dolar})
-                        rate = Number(rate) / Number(dolar); 
+                        var usd = Number(idr) / Number(kurs)
                         if(kurs){
                             kurs = format.format({
                                 value: kurs,
@@ -554,7 +554,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 type: format.Type.CURRENCY
                             });
                         }
-                       
+                        if(usd){
+                            log.debug('usd', usd);
+                            usd = format.format({
+                                value: usd,
+                                type: format.Type.CURRENCY
+                            });
+                        }
                         if(amount){
                             amount = pembulatan(amount)
                             log.debug('amount', amount);
@@ -567,7 +573,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+qty+"</td>";
                         body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+uom+"</td>";
                         body += "<td style='font-size: 10px; border: 1px solid black; border-right:none;'>"+description+"</td>";
-                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none; align:right'>"+removeDecimalFormat(rate)+"</td>";
+                        body += "<td style='font-size: 10px; border: 1px solid black; border-right:none; align:right'>"+usd+"</td>";
                         body += "<td style='font-size: 10px; border: 1px solid black; border-right:none; align:right'>"+kurs+"</td>";
                         body += "<td style='font-size: 10px; border: 1px solid black; border-right:none; align:right'>"+removeDecimalFormat(idr)+"</td>";
                         body += "<td style='font-size:10px; border: 1px solid black; background-color: #EBF7FC; align:right'>"+removeDecimalFormat(amount)+"</td>";

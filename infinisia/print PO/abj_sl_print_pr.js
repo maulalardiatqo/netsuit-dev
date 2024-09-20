@@ -100,6 +100,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var POdate = poRecord.getValue({
                 name: "trandate"
             });
+            var memo = poRecord.getValue({
+                name: "memo"
+            });
             var busdev = poRecord.getValue({
                 name: "custbody_abj_sales_rep_fulfillment"
             });
@@ -200,6 +203,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<tr>";
             body += "<td style='font-weight: bold;'>LEAD TIME</td>"
             body += "<td style=''>: "+vendLeadTime+"</td>"
+            body += "</tr>";
+
+            body += "<tr>";
+            body += "<td style='font-weight: bold;'>REMARKS</td>"
+            body += "<td style=''>: "+memo+"</td>"
             body += "</tr>";
 
             body += "</tbody>";

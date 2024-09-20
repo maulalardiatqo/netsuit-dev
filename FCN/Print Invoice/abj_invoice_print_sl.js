@@ -8,25 +8,25 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
         try{
             function decimalRemove(number) {
                 if (number != 0) {
-                    return number.substring(0, number.length - 3);
+                  return number.substring(0, number.length - 3);
                 } else {
-                    return "0.00";
+                  return "0.00";
                 }
-            }
-            function removeDecimalFormat(number) {
+              }
+              function removeDecimalFormat(number) {
                 return number.toString().substring(0, number.toString().length - 3);
-            }
-            function removeDuplicates(array) {
+              }
+              function removeDuplicates(array) {
                 return array.filter((value, index, self) => {
-                    return self.indexOf(value) === index;
+                  return self.indexOf(value) === index;
                 });
-            }
-            function numberWithCommas(x) {
+              }
+              function numberWithCommas(x) {
                 x = x.toString();
                 var pattern = /(-?\d+)(\d{3})/;
                 while (pattern.test(x)) x = x.replace(pattern, "$1,$2");
                 return x;
-            }
+              }
             function pembulatan(angka) {
                 if (angka >= 0) {
                     var bulat = Math.floor(angka);
@@ -375,8 +375,25 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                       
                     }
                   }
-                  
+                  //added by kurnia
+                  totalCost = pembulatan(totalCost);
+                  //
+                  var currSymb
+                  var currency = invoiceRecord.getValue('currency');
+                  if(currency){
+                      var currRec = record.load({
+                          type: "currency",
+                          id: currency,
+                          isDynamic: false,
+                      });
+                      var symb = currRec.getValue('displaysymbol');
+                      log.debug('symb', symb)
+                      if(symb){
+                          currSymb = symb
+                      }
+                  }
                   var discountHeader = invoiceRecord.getValue("discountrate")||0;
+
                   log.debug('discountheader', discountHeader)
                   discountHeader = discountHeader.toString();
                   if(discountHeader.includes('%')){
@@ -512,7 +529,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td></td>"
                     body += "<td></td>"
                     body += "<td style='align:right'>TOTAL COST</td>"
-                    body += "<td style='align:right'>Rp. "+numberWithCommas(totalCost)+"</td>"
+                    body += "<td style='align:right'>"+currSymb+". "+numberWithCommas(totalCost)+"</td>"
                     body += "</tr>";
                     log.debug('totalDiscount', totalDiscount)
                     if(totalDiscount != 0 || totalDiscount != '0'){
@@ -586,7 +603,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td></td>"
                     body += "<td></td>"
                     body += "<td style='align:right'>TOTAL COST</td>"
-                    body += "<td style='align:right'>Rp. "+numberWithCommas(totalCost)+"</td>"
+                    body += "<td style='align:right'>"+currSymb+". "+numberWithCommas(totalCost)+"</td>"
                     body += "</tr>";
                     log.debug('totalDiscount', totalDiscount)
                     if(totalDiscount != 0 || totalDiscount != '0'){
@@ -602,7 +619,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                       body += "<td></td>"
                       body += "<td style='align:right'>SUB TOTAL</td>"
                       
-                      body += "<td style='align:right'>Rp. "+numberWithCommas(subTotal2)+"</td>"
+                      body += "<td style='align:right'>"+currSymb+". "+numberWithCommas(subTotal2)+"</td>"
                       body += "</tr>";
                     }
                     
@@ -613,7 +630,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td></td>"
                     body += "<td></td>"
                     body += "<td style='align:right'>VAT 11%</td>"
-                    body += "<td style='align:right'>Rp. "+numberWithCommas(taxtotal)+"</td>"
+                    body += "<td style='align:right'>"+currSymb+". "+numberWithCommas(taxtotal)+"</td>"
                     // body += "<td style='align:right'>Rp. "+numberWithCommas(taxTotalRate)+"</td>"
                     body += "</tr>";
               
@@ -621,7 +638,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td></td>"
                     body += "<td></td>"
                     body += "<td style='align:right'>GRAND TOTAL</td>"
-                    body += "<td style='align:right'>Rp. "+numberWithCommas(total)+"</td>"
+                    body += "<td style='align:right'>"+currSymb+". "+numberWithCommas(total)+"</td>"
                     body += "</tr>";
               
                   
@@ -753,20 +770,29 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 let html = "";
                 let no = 1;
                 items.forEach((item, index) => {
+                    // html += `<tr>
+                    //             <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
+                    //             <td class='tg-b_body'>${item.description}</td>
+                    //             <td class='tg-b_body' align="right">Rp. ${numberWithCommas(item.itemPrice)}</td>
+                    //             <td class='tg-b_body' style='align:center'>${item.quantity}</td>
+                    //             <td class='tg-b_body' style="border-right: 1px solid black; align:right;">Rp. ${removeDecimalFormat(item.totalCost)}</td>
+                    //         </tr>`;
+                    //added by kurnia
                     html += `<tr>
                                 <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
                                 <td class='tg-b_body'>${item.description}</td>
-                                <td class='tg-b_body' align="right">Rp. ${numberWithCommas(item.itemPrice)}</td>
+                                <td class='tg-b_body' align="right">${item.currSymb}. ${(numberWithCommas(item.itemPrice))}</td>
                                 <td class='tg-b_body' style='align:center'>${item.quantity}</td>
-                                <td class='tg-b_body' style="border-right: 1px solid black; align:right;">Rp. ${removeDecimalFormat(item.totalCost)}</td>
+                                <td class='tg-b_body' style="border-right: 1px solid black; align:right;">${item.currSymb}. ${numberWithCommas(item.totalCost)}</td>
                             </tr>`;
+                    //
                     
                     if (item.discLine && item.discLine != 0) {
                         html += `<tr>
                                     <td class='tg-b_body' style='border-left: 1px solid black'></td>
                                     <td class='tg-b_body' style=''>[Discount - ${item.prosDiscLine}%]</td>
                                     <td class='tg-b_body' colspan="2"></td>
-                                    <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>Rp. (${numberWithCommas(item.discLine)})</td>
+                                    <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>${item.currSymb}. (${numberWithCommas(item.discLine)})</td>
                                 </tr>`;
                     }
           
@@ -777,6 +803,21 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             let dataItemSO = []
             function getPOItem(context, soRecord) {
                 dataRec = soRecord
+                var currSymb
+                var currency = dataRec.getValue('currency');
+                if(currency){
+                    var currRec = record.load({
+                        type: "currency",
+                        id: currency,
+                        isDynamic: false,
+                    });
+                    var symb = currRec.getValue('displaysymbol');
+                    log.debug('symb', symb)
+                    if(symb){
+                        currSymb = symb
+                    }
+                }
+                log.debug('currency', currency)
                 const itemCount = dataRec.getLineCount({ sublistId: "item" });
                 if (itemCount > 0) {
                     let body = "";
@@ -808,21 +849,32 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                     fieldId: "custcol_abj_rate_card_line_item_rmrks",
                                     line: index,
                                 });
-                                const itemPrice = dataRec.getSublistValue({
+                                let itemPrice = dataRec.getSublistValue({
                                     sublistId: "item",
                                     fieldId: "rate",
                                     line: index,
                                 });
+                                //added by kurnia
+                                itemPrice = pembulatan(itemPrice)
+                                //
                                 const quantity = dataRec.getSublistValue({
                                     sublistId: "item",
                                     fieldId: "quantity",
                                     line: index,
                                 });
-                                const totalCost = dataRec.getSublistText({
+                                // let totalCost = dataRec.getSublistText({
+                                //     sublistId: "item",
+                                //     fieldId: "amount",
+                                //     line: index,
+                                // });
+                                //added by kurnia
+                                let totalCost = dataRec.getSublistValue({
                                     sublistId: "item",
                                     fieldId: "amount",
                                     line: index,
                                 });
+                                totalCost = pembulatan(totalCost);
+                                //
                                 log.debug('totalCost', totalCost)
                                 const discLine = dataRec.getSublistValue({
                                     sublistId: "item",
@@ -830,7 +882,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                     line: index,
                                 }) || 0;
                                 const prosDiscLine = Number(discLine) / Number(itemPrice) * 100;
-            
+                                log.debug('cek currSymb', currSymb)
                                 dataItemSO.push({
                                     itemText: itemText,
                                     description: description,
@@ -839,14 +891,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                     quantity: quantity,
                                     totalCost: totalCost,
                                     discLine: discLine,
-                                    prosDiscLine: prosDiscLine
+                                    prosDiscLine: prosDiscLine,
+                                    currSymb : currSymb
                                 });
+                                log.debug('dataItemSO', dataItemSO)
                             
                         }
                         }
                         
                             
                     }
+                    
                     let tableHTML = generateTableHTMLSO(dataItemSO);
                     body += tableHTML;
                     return body;
@@ -867,9 +922,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
                                 <td class='tg-b_body'>${item.description}</td>
                                 <td class='tg-b_body' style='align:center'>${item.complexityLevel}</td>
-                                <td class='tg-b_body' align="right">Rp. ${numberWithCommas(item.itemPrice)}</td>
+                                <td class='tg-b_body' align="right">${item.currSymb}. ${numberWithCommas(item.itemPrice)}</td>
                                 <td class='tg-b_body' style='align:center'>${item.quantity}</td>
-                                ${index === 0 ? `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}">Rp. ${removeDecimalFormat(item.totalCost)}</td>` : `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}"></td>`}
+                                ${index === 0 ? `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}">${item.currSymb}. ${numberWithCommas(item.totalCost)}</td>` : `<td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}"></td>`}
             
                             </tr>
                             <tr>
@@ -883,7 +938,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                               <td class='tg-b_body' style='border-left: 1px solid black'></td>
                                               <td class='tg-b_body' style=''>[Discount - ${item.prosDiscLine}%]</td>
                                               <td class='tg-b_body' colspan="3"></td>
-                                              <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>Rp. (${numberWithCommas(item.discLine)})</td>
+                                              <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>${item.currSymb}. (${numberWithCommas(item.discLine)})</td>
                                           </tr>`;
                           }
             
@@ -894,6 +949,21 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
               var dataSection = [];
               var dataItem = [];
               function getPOItemRateCard(context, dataRec) {
+                var currSymb
+                var currency = dataRec.getValue('currency');
+                if(currency){
+                    var currRec = record.load({
+                        type: "currency",
+                        id: currency,
+                        isDynamic: false,
+                    });
+                    var symb = currRec.getValue('displaysymbol');
+                    log.debug('symb', symb)
+                    if(symb){
+                        currSymb = symb
+                    }
+                }
+                log.debug('currency', currency)
                 var itemCount = dataRec.getLineCount({
                   sublistId: "item",
                 });
@@ -939,16 +1009,27 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                           fieldId: "rate",
                           line: index,
                         });
+                        //added by kurnia
+                        itemPrice = pembulatan(itemPrice);
+                        //
                         var quantity = dataRec.getSublistValue({
                           sublistId: "item",
                           fieldId: "quantity",
                           line: index,
                         });
-                        var totalCost = dataRec.getSublistText({
-                          sublistId: "item",
-                          fieldId: "amount",
-                          line: index,
+                        // var totalCost = dataRec.getSublistText({
+                        //   sublistId: "item",
+                        //   fieldId: "amount",
+                        //   line: index,
+                        // });
+                        //added by kurnia
+                        var totalCost = dataRec.getSublistValue({
+                            sublistId: "item",
+                            fieldId: "amount",
+                            line: index,
                         });
+                        totalCost = pembulatan(totalCost);
+                        //
                         var sectionID = dataRec.getSublistValue({
                           sublistId: "item",
                           fieldId: "custcol_abj_rate_card_section_list",

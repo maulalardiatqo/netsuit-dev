@@ -130,10 +130,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             allData.forEach(function(data) {
                 var groupKey = data.item + '-' + data.salesRep + '-' + data.customerId + '-' + data.packSizeOrder;
             
-                if (!data.soNo && data.foreCastBuffer) {
-                    groupKey += '-forecast';
-                }
-            
                 if (!groupedData[groupKey]) {
                     groupedData[groupKey] = {
                         soNo : data.soNo,
@@ -187,8 +183,38 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var result = Object.keys(groupedData).map(function(key) {
                 var data = groupedData[key];
                 data.poCustomer = data.poCustomer.join(', ');
+                if (data.foreCastBuffer > 0) {
+                    var calculationResult = data.onHand + data.incomingStock - data.osPo;
+            
+                    // Jika hasil perhitungan negatif
+                    if (calculationResult < 0) {
+                        var newRow = JSON.parse(JSON.stringify(data));
+                        console.log('tanggalKirim', data.tanggalKirim)
+                        newRow.onHand = 0;
+                        newRow.incomingStock = 0;
+                        newRow.osPo = 0;
+                        newRow.foreCastBuffer = data.foreCastBuffer;
+                        newRow.totalOrder = -Math.abs(data.foreCastBuffer);
+                        newRow.totalPackaging = data.totalPackaging;
+                        newRow.poCustomer = '';
+                        newRow.soNo = '';
+                        newRow.tanggalKirim = data.tanggalKirim
+                        data.foreCastBuffer = 0;
+                        data.totalOrder = calculationResult;
+                        
+            
+                        return [data, newRow];
+                    }else{
+                        var newTotal = Number(calculationResult)  - Number(data.foreCastBuffer)
+                        console.log('newTotal', newTotal)
+                        data.totalOrder = newTotal;
+                        data.soNo = ''
+                        return data;
+                    }
+                }
                 return data;
             });
+            result = result.flat(); 
             console.log('resultLength', result.length)
             if (result.length > 0) {
                 result.forEach(function(data) {
@@ -289,14 +315,15 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     });
                     currentRecordObj.setCurrentSublistValue({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_tgl_kirim',
-                        value: tanggalKirim
-                    });
-                    currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
                         fieldId: 'custrecord_iss_total_order_formula',
                         value: totalPackaging
                     });
+                    currentRecordObj.setCurrentSublistValue({
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_tgl_kirim',
+                        value: tanggalKirim
+                    });
+                   
                     currentRecordObj.commitLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
                     
                     
