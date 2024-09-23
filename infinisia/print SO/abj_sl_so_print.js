@@ -50,6 +50,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var taxTotal = poRec.getValue({
                     name: "taxtotal"
                 });
+                var noForm = poRec.getValue({
+                    name : "custbody_abj_no_form"
+                })
                 var total = poRec.getValue({
                     name: "total"
                 })
@@ -310,7 +313,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tr>"
 
                 body += "<tr>";
-                body += "<td style='font-size:10px; color:#0B3383; align:center'>No. Form : 008/ISS-BD/FF</td>"
+                body += "<td style='font-size:10px; color:#0B3383; align:center'>No. Form : "+noForm+"</td>"
                 body += "</tr>"
 
                 body += "</tbody>";

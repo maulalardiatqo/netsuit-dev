@@ -92,7 +92,55 @@ define(["N/record", "N/search", "N/query"], function (record, search, query) {
             log.debug('error',  e)
         }
     }
+    function beforeLoad(context) {
+        try {
+            var form = context.form;
+            var rec = context.newRecord;
+
+            if (context.type === context.UserEventType.CREATE) {
+                var sql = `
+                SELECT
+                    currencyRate.exchangeRate AS exchange_rate,
+                    currencyRate.effectiveDate AS effective_date
+                FROM
+                    currency
+                JOIN
+                    currencyRate
+                ON
+                    currency.id = currencyRate.transactioncurrency
+                WHERE
+                    currency.id = 2
+                AND
+                    currencyRate.effectiveDate = (
+                        SELECT MAX(cr.effectiveDate)
+                        FROM currencyRate cr
+                        WHERE cr.transactioncurrency = currency.id
+                    )
+                `;
+
+                var queryResult = query.runSuiteQL({
+                    query: sql
+                });
+
+                var resultSet = queryResult.asMappedResults();
+                if (resultSet.length > 0) {
+                    var exchangeRate = resultSet[0].exchange_rate;
+
+                    rec.setValue({
+                        fieldId: "custbody_abj_kurs_usd",
+                        value: exchangeRate,
+                        ignoreFieldChange: true,
+                    });
+
+                    log.debug("Exchange Rate set to", exchangeRate);
+                }
+            }
+        } catch (e) {
+            log.debug('error', e);
+        }
+    }
     return {
+        beforeLoad : beforeLoad,
         afterSubmit: afterSubmit,
       };
     });
