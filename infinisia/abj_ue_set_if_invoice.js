@@ -14,12 +14,24 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                     log.debug('itemship', itemship)
 
                     if (itemship) {
+                        var recIf = record.load({
+                            type: 'itemfulfillment',
+                            id: itemship,
+                            isDynamic: true
+                        })
+                        var dateIf = recIf.getValue('trandate')
                         var newRecord = context.newRecord;
 
                         newRecord.setValue({
                             fieldId: 'custbody3',
                             value: itemship
                         });
+                        if(dateIf){
+                            newRecord.setValue({
+                                fieldId: 'trandate',
+                                value: dateIf
+                            });
+                        }
 
                         log.debug('Itemship value set', 'Value: ' + itemship);
                     } else {

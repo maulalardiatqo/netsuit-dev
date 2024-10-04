@@ -14,7 +14,7 @@ function(search, message, error) {
         });
         throw myCustomError.name + '<br \><br \>' + myCustomError.message + '<br \><br \>';
     }
-
+    // perlu diperbaiki saat edit
     function beforeSubmit(context) {
         if (context.type == context.UserEventType.CREATE) {
             var newRecord = context.newRecord;
