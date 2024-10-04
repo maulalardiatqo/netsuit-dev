@@ -65,8 +65,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         id: idIf,
                         isDynamic: false,
                     });
-                    var trandId = recIf.getValue('tranid')
-                    doNo = trandId
+                    var tranidIf = recIf.getValue('tranid')
+                    doNo = tranidIf
                 }
                 var duedate = invRec.getValue({
                     name: "duedate"
@@ -95,6 +95,25 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     name: "internalid",
                     join: "customer",
                 });
+                var billTo = invRec.getValue({
+                    name : 'billaddress'
+                });
+                if(billTo){
+                    if(billTo.includes('\n')){
+                        log.debug('masuk enter')
+                        billTo = billTo.replace('\n', '<br/>');
+                    }
+                }
+                var shipTo = invRec.getValue({
+                    name : 'shipaddress'
+                });
+                if(shipTo){
+                    if(shipTo.includes('\n')){
+                        log.debug('masuk enter')
+                        shipTo = shipTo.replace('\n', '<br/>');
+                    }
+                }
+                log.debug('shipTo', shipTo)
                 var accName = invRec.getValue('custbody_iss_inv_account_name');
                 var bankNumber = invRec.getValue('custbody_iss_inv_bank_number');
                 var bankName = invRec.getValue('custbody_iss_inv_branch_name');
@@ -183,10 +202,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var qty = invRec.getValue({
                             name: "quantity"
                         });
-                        var namaBarang = invRec.getText({
-                            name: "salesdescription",
-                            join: "item",
+                        var namaBarang = invRec.getValue({
+                            name: "memo",
                         })
+                        log.debug('namaBarang', namaBarang)
                         var rate = invRec.getValue({
                             name: "rate"
                         });
@@ -206,22 +225,22 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         })
                     }
                 }
-                if(trandate){
-                    trandate = format.format({
-                        value: trandate,
-                        type: format.Type.DATE
-                    });
-                }
+                // if(trandate){
+                //     trandate = format.format({
+                //         value: trandate,
+                //         type: format.Type.DATE
+                //     });
+                // }
                 log.debug('trandate', trandate)
                 if(trandate){
                     trandate = convertDateFormat(trandate)
                 }
-                if(duedate){
-                    duedate = format.format({
-                        value: duedate,
-                        type: format.Type.DATE
-                    });
-                }
+                // if(duedate){
+                //     duedate = format.format({
+                //         value: duedate,
+                //         type: format.Type.DATE
+                //     });
+                // }
                 if(duedate){
                     duedate = convertDateFormat(duedate)
                 }
@@ -370,9 +389,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "</tr>"
 
                 body+= "<tr>"
-                body+= "<td style='align:left'>"+custName+"</td>"
+                body+= "<td style='align:left'>"+billTo+"</td>"
                 body+= "<td></td>"
-                body+= "<td style='align:left'>"+custAdders+"</td>"
+                body+= "<td style='align:left'>"+shipTo+"</td>"
                 body+= "</tr>"
 
                 // body+= "<tr>"

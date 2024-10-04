@@ -8,7 +8,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     var records = currentRecord.get();
     
     function pageInit(context) {
-        console.log('init masuk');
+        log.debug('init masuk');
     }
     
     function calculate(context) {
@@ -166,15 +166,15 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 }
             });
             
-            console.log('groupedData', groupedData);
+            log.debug('groupedData', groupedData);
             
             var countLineInCustom = currentRecordObj.getLineCount({
                 sublistId: "recmachcustrecord_iss_pr_parent"
             });
-            console.log('countLineInCustom', countLineInCustom)
+            log.debug('countLineInCustom', countLineInCustom)
             if (countLineInCustom > 0) {
                 var lineCount = currentRecordObj.getLineCount({ sublistId: 'recmachcustrecord_iss_pr_parent' });
-                console.log('deletedLineSUms')
+                log.debug('deletedLineSUms')
                 for (var i = lineCount - 1; i >= 0; i--) {
                     currentRecordObj.selectLine({ sublistId: 'recmachcustrecord_iss_pr_parent', line: i });
                     currentRecordObj.removeLine({ sublistId: 'recmachcustrecord_iss_pr_parent', line: i, ignoreRecalc: true });
@@ -189,7 +189,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     // Jika hasil perhitungan negatif
                     if (calculationResult < 0) {
                         var newRow = JSON.parse(JSON.stringify(data));
-                        console.log('tanggalKirim', data.tanggalKirim)
+                        log.debug('tanggalKirim', data.tanggalKirim)
                         newRow.onHand = 0;
                         newRow.incomingStock = 0;
                         newRow.osPo = 0;
@@ -206,7 +206,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         return [data, newRow];
                     }else{
                         var newTotal = Number(calculationResult)  - Number(data.foreCastBuffer)
-                        console.log('newTotal', newTotal)
+                       log.debug('newTotal', newTotal)
                         data.totalOrder = newTotal;
                         data.soNo = ''
                         return data;
@@ -215,7 +215,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 return data;
             });
             result = result.flat(); 
-            console.log('resultLength', result.length)
+           log.debug('resultLength', result.length)
             if (result.length > 0) {
                 result.forEach(function(data) {
                     var soNo = data.soNo

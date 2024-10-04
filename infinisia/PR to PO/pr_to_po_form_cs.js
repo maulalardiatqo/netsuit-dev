@@ -173,6 +173,7 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               fieldId : "custpage_sublist_packsize_text",
               line : j
             })
+            console.log('packSizeText', packSizeText)
             var totalOrder = records.getSublistValue({
               sublistId: "custpage_sublist_item",
               fieldId: "custpage_sublist_total_order",

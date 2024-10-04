@@ -220,13 +220,13 @@ define(["N/record", "N/search"], function (record, search) {
             if (TransType == "estimate") {
               createRecord.setValue({
                 fieldId: "custrecord_msa_pon_last_run",
-                value: "001" + formatRunning,
+                value: "0001" + formatRunning,
                 ignoreFieldChange: true,
               });
             } else {
               createRecord.setValue({
                 fieldId: "custrecord_msa_pon_last_run",
-                value: formatRunning + "001",
+                value: formatRunning + "0001",
                 ignoreFieldChange: true,
               });
             }
@@ -261,11 +261,12 @@ define(["N/record", "N/search"], function (record, search) {
               var setRunning = "";
               if (TransType == "estimate") {
                 log.debug("transaction adalah quotation");
-                setRunning = "001" + formatRunning;
+                setRunning = "0001" + formatRunning;
               } else {
                 log.debug("else quot");
                 setRunning = formatRunning + "0001";
               }
+              log.debug('setRunning', setRunning)
               if (TransType == "custrecordentry") {
                 recordTRans.setValue({
                   fieldId: "custrecord_iss_pr_tranid",

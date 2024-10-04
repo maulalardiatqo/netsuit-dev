@@ -57,7 +57,7 @@
       form.addResetButton({
           label: "Clear",
       });
-      form.clientScriptModulePath = "SuiteScripts/abj_cs_pr_po_ver_sec.js ";
+      form.clientScriptModulePath = "SuiteScripts/pr_to_po_form_cs.js";
   
       if (contextRequest.method == "GET") {
   

@@ -6,13 +6,13 @@
 
 define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message"], function (runtime, log, url, currentRecord, currency, record, search, message) {
     function pageInit(context) {
-        console.log('init masuk');
+       log.debug('init masuk');
     }
 
     function saveRecord(context) {
         var currentRecordObj = context.currentRecord;
         var cForm = currentRecordObj.getValue('customform');
-        console.log('cForm', cForm)
+       log.debug('cForm', cForm)
         if (cForm == '138') {
             var countLine = currentRecordObj.getLineCount({ sublistId: 'item' });
             var currentId = currentRecordObj.getValue('id');
@@ -23,93 +23,97 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     fieldId: 'custcol_abj_no_so',
                     line: i
                 });
-                var soNumberText = currentRecordObj.getSublistText({
-                    sublistId: 'item',
-                    fieldId: 'custcol_abj_no_so',
-                    line: i
-                });
-                var itemLine = currentRecordObj.getSublistValue({
-                    sublistId: 'item',
-                    fieldId: 'item',
-                    line: i
-                });
-                var itemLineText = currentRecordObj.getSublistText({
-                    sublistId: 'item',
-                    fieldId: 'item',
-                    line: i
-                });
-                var packSizeSo = currentRecordObj.getSublistValue({
-                    sublistId: 'item',
-                    fieldId: 'custcol_abj_pack_size_order',
-                    line: i
-                });
-                var isDuplicateInAllDataItem = allDataItem.some(function (data) {
-                    return data.soNumber === soNumber && data.itemLine === itemLine && data.packSizeSo === packSizeSo;
-                });
-
-                if (isDuplicateInAllDataItem) {
-                    console.log('isDuplicateInAllDataItem', {soNumberText : soNumberText, itemLineText : itemLineText})
-                    alert('Duplicated Sales Order Number in Item Line');
-                    return false;
-                }
-                allDataItem.push({
-                    soNumber: soNumber,
-                    itemLine : itemLine,
-                    packSizeSo : packSizeSo
-                })
-                console.log('allDataItem', allDataItem)
-                var cekSORec = soNumber + "-" + itemLine + "-" + packSizeSo;
-
-                if (soNumber === '') {
-                    continue; 
-                }
-
-                var arrSoNumber = [];
-                var arrItem = [];
-                var cekValidasi = true
-                var purchaseorderSearchObj = search.create({
-                    type: "purchaseorder",
-                    filters: [
-                        ["type", "anyof", "PurchOrd"],
-                        "AND",
-                        ["customform", "anyof", "138"],
-                        "AND",
-                        ["custcol_abj_no_so", "noneof", "@NONE@"]
-                    ],
-                    columns: [
-                        search.createColumn({ name: "internalid", label: "Internal ID" }),
-                        search.createColumn({ name: "custcol_abj_no_so", label: "No SO" }),
-                        search.createColumn({ name: "item", label: "Item" }),
-                        search.createColumn({ name: "custcol_abj_pack_size_order", label: "Pack Size" })
-                    ]
-                });
-                purchaseorderSearchObj.run().each(function (result) {
-                    var numberSO = result.getValue({ name: 'custcol_abj_no_so' });
-                    var itemId = result.getValue({ name: "item" });
-                    var packSizeSoSearch = result.getValue({ name: "custcol_abj_pack_size_order" });
-                    var internalId = result.getValue({
-                        name: 'internalid'
+               log.debug('soNumber', soNumber)
+                if(soNumber && soNumber != ""){
+                    var soNumberText = currentRecordObj.getSublistText({
+                        sublistId: 'item',
+                        fieldId: 'custcol_abj_no_so',
+                        line: i
                     });
-                    if(internalId == currentId){
-                        cekValidasi = false
+                    var itemLine = currentRecordObj.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'item',
+                        line: i
+                    });
+                    var itemLineText = currentRecordObj.getSublistText({
+                        sublistId: 'item',
+                        fieldId: 'item',
+                        line: i
+                    });
+                    var packSizeSo = currentRecordObj.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_abj_pack_size_order',
+                        line: i
+                    });
+                    var isDuplicateInAllDataItem = allDataItem.some(function (data) {
+                        return data.soNumber === soNumber && data.itemLine === itemLine && data.packSizeSo === packSizeSo;
+                    });
+    
+                    if (isDuplicateInAllDataItem) {
+                       log.debug('isDuplicateInAllDataItem', {soNumberText : soNumberText, itemLineText : itemLineText})
+                        alert('Duplicated Sales Order Number in Item Line');
+                        return false;
                     }
-
-                    var soCekSearch = numberSO + "-" + itemId + "-" + packSizeSoSearch;
-                    arrSoNumber.push(soCekSearch);
-                    arrItem.push(itemId);
-
-                    return true;
-                });
-                console.log('arrSoNumber', arrSoNumber)
-                var isSoNumberExist = arrSoNumber.indexOf(cekSORec) !== -1;
-                console.log('isSoNumberExist', isSoNumberExist)
-                if (isSoNumberExist) {
-                    if(cekValidasi == true){
-                        alert('Duplicated Sales Order Number In item Line!');
-                        return false;  
+                    allDataItem.push({
+                        soNumber: soNumber,
+                        itemLine : itemLine,
+                        packSizeSo : packSizeSo
+                    })
+                   log.debug('allDataItem', allDataItem)
+                    var cekSORec = soNumber + "-" + itemLine + "-" + packSizeSo;
+    
+                    if (soNumber === '') {
+                        continue; 
                     }
-                   
+    
+                    var arrSoNumber = [];
+                    var arrItem = [];
+                    var cekValidasi = true
+                    var purchaseorderSearchObj = search.create({
+                        type: "purchaseorder",
+                        filters: [
+                            ["type", "anyof", "PurchOrd"],
+                            "AND",
+                            ["customform", "anyof", "138"],
+                            "AND",
+                            ["custcol_abj_no_so", "noneof", "@NONE@"]
+                        ],
+                        columns: [
+                            search.createColumn({ name: "internalid", label: "Internal ID" }),
+                            search.createColumn({ name: "custcol_abj_no_so", label: "No SO" }),
+                            search.createColumn({ name: "item", label: "Item" }),
+                            search.createColumn({ name: "custcol_abj_pack_size_order", label: "Pack Size" })
+                        ]
+                    });
+                    purchaseorderSearchObj.run().each(function (result) {
+                        var numberSO = result.getValue({ name: 'custcol_abj_no_so' });
+                        var itemId = result.getValue({ name: "item" });
+                        var packSizeSoSearch = result.getValue({ name: "custcol_abj_pack_size_order" });
+                        var internalId = result.getValue({
+                            name: 'internalid'
+                        });
+                        if(internalId == currentId){
+                            cekValidasi = false
+                        }
+    
+                        var soCekSearch = numberSO + "-" + itemId + "-" + packSizeSoSearch;
+                        arrSoNumber.push(soCekSearch);
+                        arrItem.push(itemId);
+    
+                        return true;
+                    });
+                   log.debug('arrSoNumber', arrSoNumber)
+                    var isSoNumberExist = arrSoNumber.indexOf(cekSORec) !== -1;
+                   log.debug('isSoNumberExist', isSoNumberExist)
+                    if (isSoNumberExist) {
+                        if(cekValidasi == true){
+                            alert('Duplicated Sales Order Number In item Line!');
+                            return false;  
+                        }
+                       
+                    }
                 }
+                
             }
 
             var countRecMachLine = currentRecordObj.getLineCount({ sublistId: 'recmachcustrecord_iss_pr_parent' });
@@ -204,7 +208,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 }
             }
         }else{
-            console.log('masuk else')
+           log.debug('masuk else')
             return true
         }
 
