@@ -4,7 +4,7 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/record", "N/search", "N/format"], function (record, search, format) {
+define(["N/record", "N/search", "N/format", "N/task"], function (record, search, format, task) {
     function afterSubmit(context) {
         if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.EDIT) {
             try {
@@ -40,23 +40,20 @@ define(["N/record", "N/search", "N/format"], function (record, search, format) {
                         log.debug('amount', amount)
                         log.debug('idLine', idLine)
                         var idAmortTemp
-                        var transactionSearchObj = search.create({
-                            type: "transaction",
+                        var idAmortSched
+                        var vendorbillSearchObj = search.create({
+                            type: "vendorbill",
                             settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
                             filters:
                             [
-                                ["amortizationschedule.internalid","noneof","@NONE@"], 
-                                "AND", 
-                                ["recordtype","is",recType], 
+                                ["type","anyof","VendBill"], 
                                 "AND", 
                                 ["internalid","anyof",recId], 
                                 "AND", 
-                                ["line","equalto",idLine]
+                                ["amortizationschedule.internalid","noneof","@NONE@"]
                             ],
                             columns:
                             [
-                                search.createColumn({name: "recordtype", label: "Record Type"}),
-                                search.createColumn({name: "internalid", label: "Internal ID"}),
                                 search.createColumn({
                                     name: "internalid",
                                     join: "amortizationSchedule",
@@ -66,14 +63,12 @@ define(["N/record", "N/search", "N/format"], function (record, search, format) {
                                     name: "amortemplate",
                                     join: "amortizationSchedule",
                                     label: "Template Name"
-                                }),
-                                search.createColumn({name: "account", label: "Account"}),
-                                search.createColumn({name: "line", label: "Line ID"})
+                                })
                             ]
                         });
-                        var searchResultCount = transactionSearchObj.runPaged().count;
-                        log.debug("transactionSearchObj result count",searchResultCount);
-                        transactionSearchObj.run().each(function(result){
+                        var searchResultCount = vendorbillSearchObj.runPaged().count;
+                        log.debug("vendorbillSearchObj result count",searchResultCount);
+                        vendorbillSearchObj.run().each(function(result){
                             var tempAmort = result.getValue({
                                 name: "amortemplate",
                                 join: "amortizationSchedule",
@@ -82,75 +77,129 @@ define(["N/record", "N/search", "N/format"], function (record, search, format) {
                                 idAmortTemp = tempAmort
                             }
                             log.debug('tempAmort', tempAmort)
+                            var schedAmort = result.getValue({
+                                name: "internalid",
+                                join: "amortizationSchedule",
+                            });
+                            log.debug('schedAmort', schedAmort)
+                            if(schedAmort){
+                                if(context.type === context.UserEventType.CREATE){
+                                    log.debug('masuk create')
+                                    idAmortSched = Number(schedAmort) + Number(1)
+                                }else{
+                                    idAmortSched = schedAmort
+                                }
+                                
+                            }
                             return true;
                         });
+                       
                         if(idAmortTemp){
                             log.debug('idAmortTemp', idAmortTemp)
                             var recTempAmor = record.load({
                                 type: 'amortizationtemplate',
                                 id: idAmortTemp,
                                 isDynamic: true,
-                            })
-                            var amortPeriod = recTempAmor.getValue('amortizationperiod');
-                            log.debug('amortPeriod', amortPeriod)
-                            var amounttoSet = Number(amount) / Number(amortPeriod);
-                            log.debug('amounttoSet', amounttoSet)
-
-                           // Mengambil bagian-bagian dari postingPeriodText
-                            var parts = postingPeriodText.split(' ');
-                            var month = parts[1];
-                            var year = parts[2];
-
-                            // Mendapatkan tanggal terakhir dari bulan
-                            var lastDateOfMonth = new Date(year, new Date(Date.parse(month + " 1")).getUTCMonth() + 1, 0);
-
-                            // Format tanggal ke dd/mm/yyyy
-                            var lastDateFormatted = ('0' + lastDateOfMonth.getUTCDate()).slice(-2) + '/' +
-                                                    ('0' + (lastDateOfMonth.getMonth() + 1)).slice(-2) + '/' +
-                                                    lastDateOfMonth.getUTCFullYear();
-                            log.debug('lastDateFormatted', lastDateFormatted);
-
-                            // Tambahkan amortPeriod ke bulan untuk mendapatkan endDate
-                            var endDate = new Date(lastDateOfMonth);
-                            endDate.setMonth(endDate.getUTCMonth() + amortPeriod);
-
-                            // Format endDate ke dd/mm/yyyy
-                            var endDateFormatted = ('0' + endDate.getUTCDate()).slice(-2) + '/' +
-                                                    ('0' + (endDate.getMonth() + 1)).slice(-2) + '/' +
-                                                    endDate.getUTCFullYear();
-                            log.debug('endDateFormatted', endDateFormatted);
-
-                            // Fungsi untuk mendapatkan tanggal sistem
-                            function sysDate(lastDateFormatted, endDateFormatted) {
+                            });
+                            
+                            var account = recTempAmor.getValue('accttarget');
+                            
+                            // Function to extract month and year from posting period text
+                            function getMonthYearFromText(postingPeriodText) {
+                                const parts = postingPeriodText.split(' '); 
+                                const monthText = parts[1]; 
+                                const year = parseInt(parts[2]);
+                            
+                                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                                const month = months.indexOf(monthText) + 1;
+                            
+                                log.debug(`Month: ${month}, Year: ${year}`);
+                            
+                                return { month, year };
+                            }
+                            
+                            // Function to add months to a given month/year
+                            function addMonths(month, year, monthsToAdd) {
+                                let newMonth = month + monthsToAdd; 
+                                let newYear = year;
+                            
+                                while (newMonth > 12) {
+                                    newMonth -= 12;
+                                    newYear++;
+                                }
+                            
+                                log.debug(`New Month after adding: ${newMonth}, New Year: ${newYear}`);
+                            
+                                return { newMonth, newYear };
+                            }
+                            
+                            // Function to subtract months from a given month/year
+                            
+                            function getLastDayOfMonth(year, month) {
+                                const lastDay = new Date(year, month, 0); 
+                                const day = String(lastDay.getDate()).padStart(2, '0');
+                                const monthFormatted = String(lastDay.getMonth() + 1).padStart(2, '0');
+                                const yearFormatted = lastDay.getFullYear();
+                            
+                                return `${day}/${monthFormatted}/${yearFormatted}`;
+                            }
+                            
+                            function getAmortizationDates(postingPeriodText, amortPeriod, periodOffset, startOffset) {
+                                const { month: startMonth, year: startYear } = getMonthYearFromText(postingPeriodText);
+                                
+                                const { newMonth: endMonth, newYear: endYear } = addMonths(startMonth, startYear, amortPeriod - 1);
+                            
+                                let dateAwal = getLastDayOfMonth(startYear, startMonth);
+                                let dateAhir = getLastDayOfMonth(endYear, endMonth);
+                            
+                                if (periodOffset > 0) {
+                                    const { newMonth: adjStartMonth, newYear: adjStartYear } = addMonths(startMonth, startYear, periodOffset);
+                                    const { newMonth: adjEndMonth, newYear: adjEndYear } = addMonths(endMonth, endYear, periodOffset);
+                            
+                                    dateAwal = getLastDayOfMonth(adjStartYear, adjStartMonth);
+                                    dateAhir = getLastDayOfMonth(adjEndYear, adjEndMonth);
+                                }
+                            
+                                if (startOffset > 0) {
+                                    const { newMonth: adjStartMonth, newYear: adjStartYear } = addMonths(startMonth, startYear, startOffset);
+                                    dateAwal = getLastDayOfMonth(adjStartYear, adjStartMonth);
+                                }
+                            
+                                return { dateAwal, dateAhir };
+                            }
+                            
+                            var amortPeriod = recTempAmor.getValue('amortizationperiod'); 
+                            var periodOffset = recTempAmor.getValue('periodoffset');      
+                            var startOffset = recTempAmor.getValue('revrecoffset');        
+                            
+                            
+                            const { dateAwal, dateAhir } = getAmortizationDates(postingPeriodText, amortPeriod, periodOffset, startOffset);
+                            
+                            log.debug('dateAwal', dateAwal); 
+                            log.debug('dateAhir', dateAhir);  
+                            function sysDate(dateAwal, dateAhir) {
                                 var date = new Date();
                                 var tdate = date.getUTCDate();
                                 var month = date.getUTCMonth() + 1;
                                 var year = date.getUTCFullYear();
-                                log.debug("tdate month year", tdate + '/' + month + '/' + year);
-
-                                log.debug("lastDateFormatted", lastDateFormatted);
-                                log.debug("endDateFormatted", endDateFormatted);
                                 
                                 return {
-                                    lastDate: lastDateFormatted,
-                                    endDate: endDateFormatted
+                                    lastDate: dateAwal,
+                                    endDate: dateAhir
                                 };
                             }
 
-                            var result = sysDate(lastDateFormatted, endDateFormatted);
+                            var result = sysDate(dateAwal, dateAhir);
 
-                            // Memecah lastDateFormatted menjadi bagian tanggal, bulan, dan tahun
                             var lastDateParts = result.lastDate.split('/');
                             var lastDate = new Date(lastDateParts[2], lastDateParts[1] - 1, lastDateParts[0]);
 
-                            // Memecah endDateFormatted menjadi bagian tanggal, bulan, dan tahun
                             var endDateParts = result.endDate.split('/');
                             var endDateFor = new Date(endDateParts[2], endDateParts[1] - 1, endDateParts[0]);
 
-                            // Format objek Date menjadi format yang diinginkan
                             function convertToDate(dateString) {
                                 var dateParts = dateString.split('/');
-                                return new Date(dateParts[2], dateParts[1] - 1, dateParts[0]); // Year, Month (0-indexed), Day
+                                return new Date(dateParts[2], dateParts[1] - 1, dateParts[0]); 
                             }
                             
                             var startDate = convertToDate(result.lastDate);
@@ -158,7 +207,11 @@ define(["N/record", "N/search", "N/format"], function (record, search, format) {
 
                             log.debug('startDate', startDate);
                             log.debug('endDate', endDate);
-
+                            if(startOffset > 0){
+                                amortPeriod = Number(amortPeriod) - Number(startOffset)
+                            }
+                            var amounttoSet = Number(amount) / Number(amortPeriod)
+                            log.debug('amounttoSet', amounttoSet)
                             recordLoad.selectLine({
                                 sublistId : "expense",
                                 line : i
@@ -176,6 +229,44 @@ define(["N/record", "N/search", "N/format"], function (record, search, format) {
                                 value : endDate
                             });
                             recordLoad.commitLine("expense")
+                            log.debug('Parameters Sent to Map/Reduce', {
+                                custscript_amortization_id: idAmortSched,
+                                custscript_recamount: amounttoSet,
+                                custscript_startdate: startDate,
+                                custscript_enddate: endDate
+                            });
+                            var amortizationscheduleSearchObj = search.create({
+                                type: "amortizationschedule",
+                                filters:
+                                [
+                                     ["internalid","anyof",idAmortSched]
+                                ],
+                                columns:
+                                [
+                                    search.createColumn({name: "recuramount", label: "Amount"})
+                                ]
+                            });
+                            var searchResultCount = amortizationscheduleSearchObj.runPaged().count;
+                            log.debug("amortizationscheduleSearchObj result count",searchResultCount);
+                            if(searchResultCount < 0 || searchResultCount == null || searchResultCount == ''){
+                                idAmortSched = Number(idAmortSched) + 1
+                            }
+                            var mapReduceTask = task.create({
+                                taskType: task.TaskType.MAP_REDUCE,
+                                scriptId: 'customscript_abj_mr_set_amortization', 
+                                deploymentId: 'customdeploy_abj_mr_set_amortization',
+                                params: {
+                                    custscript_amortization_id: idAmortSched,
+                                    custscript_recamount: amounttoSet,
+                                    custscript_startdate: startDate,
+                                    custscript_enddate: endDate,
+                                    custscript_account : account,
+                                    custscript_id_trans : recId
+
+                                }
+                            });
+                            var taskId = mapReduceTask.submit();
+                            log.debug('Map/Reduce Task Submitted', taskId);
                         }
                     }
                     var saveRec = recordLoad.save({

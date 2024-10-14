@@ -44,6 +44,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             // load subsidiarie
             var arraySUbsidiaries = [46, 47, 48, 49]
             var isTampil = true
+            var alva = false
+            if(subsidiari == 46 || subsidiari == 47	|| subsidiari == 48 || subsidiari == 49 ){
+              alva = true
+            }
             if(subsidiari){
                 var subsidiariRec = record.load({
                     type: "subsidiary",
@@ -56,6 +60,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var name = subsidiariRec.getValue('name');
                 var addresSubsidiaries = subsidiariRec.getValue('mainaddress_text');
                 log.debug('addresSubsidiaries', addresSubsidiaries)
+
+                if(subsidiari==47){ //froyo, bagian sites.google dihilangkan
+                    var froyoAddressArr = addresSubsidiaries.split(' ')
+                    var newFroyoAddr = []
+                    for(let fr = 0; fr<(froyoAddressArr.length-1); fr++){
+                        if(froyoAddressArr[fr] != ""){
+                            newFroyoAddr.push(froyoAddressArr[fr])
+                        }
+                    }
+                    var addressFroyo = newFroyoAddr.join(" ")
+                }
                
                 if(addresSubsidiaries.includes("<br>")){
                     log.debug('masuk br')
@@ -72,6 +87,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     addresSubsidiaries = addresSubsidiaries.replace(/^\s*\S+\s*/, "").trim();
                     isTampil = false
                 }
+
                 var retEmailAddres = subsidiariRec.getValue('email');
                 var Npwp = subsidiariRec.getValue('federalidnumber');
                 var logo = subsidiariRec.getValue('logo');
@@ -419,11 +435,25 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
             body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
             body += "<tbody>";
+            if(isTampil == false){
+                body += "<tr>"
+                body += "<td style='width:45%;'></td>"
+                body += "<td style=''></td>"
+                body += "<td style=''></td>"
+                body += "</tr>"
+            } else {
+                body += "<tr>"
+                body += "<td style='width:55%;'></td>"
+                body += "<td style='width:45%;'></td>"
+                // body += "<td style='width:0%;'></td>"
+                body += "</tr>"
+            }
             body += "<tr>";
             if (urlLogo) {
-                body += "<td class='tg-headerlogo' style='width:50%;vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+                body += "<td class='tg-headerlogo' style='vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px; '><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
             }
             body += "<td>";
+            
             if(isTampil == true){
                 body +=  "<p class='tg-headerrow_legalName' style='margin-top: 10px; margin-bottom: 10px;'>"  + legalName + "</p>";
                 body += "<p class='tg-headerrow' style='margin-top: 1px; margin-bottom: 1px;'>"+ addresSubsidiaries + "<br/>";
@@ -431,13 +461,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "NPWP : "+ Npwp + "</p>" ;
             }else{
                 body +=  "<p class='tg-headerrow_legalName_Alva' style='margin-top: 10px; margin-bottom: 10px;'>"  + legalName + "</p>";
-                body += "<p class='tg-headerrow_alva' style='margin-top: 1px; margin-bottom: 1px;'>"+ addresSubsidiaries + "<br/>";
+                if(subsidiari==47){ //froyo
+                    body += "<p class='tg-headerrow_alva' style='margin-top: 1px; margin-bottom: 1px;'>"+ addressFroyo + "<br/>";
+                } else {
+                    body += "<p class='tg-headerrow_alva' style='margin-top: 1px; margin-bottom: 1px;'>"+ addresSubsidiaries + "<br/>";
+                }
                 body += "NPWP : "+ Npwp + "</p>" ;
             }
             
             body +="</td>";
             if(isTampil == false){
                 body += "<td style='font-size:18px; font-weight:bold; align:right;'>Purchase Order</td>";
+            } else {
+                body += "<td style=''></td>"
             }
             body += "</tr>";
             body += "<tr style='height:30px;'>";
@@ -458,7 +494,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             }
             
             body += "</td>"
-            body += "<td>"
+            // body += "<td></td>"
+            body += "<td colspan='2'>"
             if(isTampil == true){
                 body += "<p class='tg-headerrow_legalName'> Purchase Order # : "+ tandId + "<br/>"
                 body += ""+ POdate + "</p>"
@@ -466,7 +503,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "Due Date :"+duedate+ "</p>"
             }else{
                 log.debug('poNumber', poNumber)
-                body += "<p class='tg-headerrow_legalName'> PO Number: " + poNumber + "<br/>";
+                body += "<p class='tg-headerrow_legalName' style='text-align: right; align:right;'> PO Number: " + poNumber + "<br/>";
                 body += "PO Date: " + POdate + "<br/></p>";
             }
            
@@ -552,7 +589,22 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td style='align: right;font-size:14px;border-top: solid black 2px; font-weight: bold;' colspan='2'>BALANCE DUE</td>"
             body += "<td style='align: right;font-size:15px;border-top: solid black 2px; font-weight: bold;'>"+removeDecimalFormat(amountRecieved)+"</td>"
             body += "</tr>"
+
+           
             body += "<tr style='height:30px;'></tr>"
+            if(alva){
+                body += "<tr>"
+                body += "<td style='margin:4%;' colspan='2'>Signed By</td>"
+                body += "</tr>"
+
+                body += "<tr style='height:30px;'>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td style='margin:3%;' colspan='2'>( __________ )</td>"
+                body += "</tr>"
+
+            }
             body += "<tr>"
             body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>"+jobNumber+"</td>"
             body += "</tr>"

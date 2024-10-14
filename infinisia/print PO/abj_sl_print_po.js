@@ -54,6 +54,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     'memo',
                     'taxamount',
                     'custcol_pr_total_order',
+                    'custcol_abj_purchase_price_per_kg',
                     search.createColumn({name: "rate", label: "Item Rate"}),
                     search.createColumn({
                         name: 'formulatext1',
@@ -141,7 +142,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var itemName = result.getValue('item')
                 var memo = result.getValue('memo')
                 var taxamount = result.getValue('taxamount')
-                var rate = Number(amount) / Number(quantity)
+                var rate = result.getValue('custcol_abj_purchase_price_per_kg');
+                log.debug('rate', rate)
                 resultArray.push({
                     internalid: internalid,
                     currency: currency,

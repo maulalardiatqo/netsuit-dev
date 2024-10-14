@@ -519,10 +519,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       body += "<td style='width:20%'></td>"
       body += "<td style='width:20%'></td>"
       body += "</tr>";
-
+      var alva = false
+      if(subsidiari == 46 || subsidiari == 47	|| subsidiari == 48 || subsidiari == 49 ){
+        alva = true
+      }
       body += "<tr>";
-     
-      body += "<td></td>"
+      if(alva){
+          body += "<td>Signed By</td>"
+      }else{
+        body += "<td></td>"
+      }
       body += "<td></td>"
       body += "<td style='align:right'>TOTAL COST</td>"
       body += "<td style='align:right'>Rp. "+numberWithCommas(totalCost)+"</td>"
@@ -563,6 +569,22 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       body += "<td style='align:right'>Rp. "+removeDecimalFormat(total)+"</td>"
       body += "</tr>";
 
+      if(alva){
+        body += "<tr>"
+        body += "<td></td>"
+        body += "<td></td>"
+        body += "<td></td>"
+        body += "<td></td>"
+        body += "</tr>";
+  
+        body += "<tr>"  
+        body += "<td>(__________)</td>"
+        body += "<td></td>"
+        body += "<td></td>"
+        body += "<td></td>"
+        body += "</tr>";
+      }
+     
     
       body += "</tbody>";
       body += "</table>";
@@ -682,12 +704,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       let no = 1;
       items.forEach((item, index) => {
           html += `<tr>
-                      <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
+                      <td class='tg-b_body' style='border-left:1px solid black;'>${no}</td>
                       <td class='tg-b_body'>${item.itemText}</td>
                       <td class='tg-b_body' align="right">Rp. ${numberWithCommas(item.itemPrice)}</td>
-                      <td class='tg-b_body' style='align:center'>${item.quantity}</td>
-                     <td class='tg-b_body' style="border-right: 1px solid black; align:right;" rowspan="${items.length}">Rp. ${removeDecimalFormat(item.totalCost)}</td>
+                      <td class='tg-b_body' align="center">${item.quantity}</td>
+                      <td class='tg-b_body' style="border-right: 1px solid black;" align="right">Rp. ${removeDecimalFormat(item.totalCost)}</td>
                   </tr>
+
+
                   <tr>
                       <td class='tg-b_body' style='border-left: 1px solid black'></td>
                       <td class='tg-b_body'>${item.description}</td>

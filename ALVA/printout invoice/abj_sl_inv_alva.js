@@ -42,7 +42,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var tlcCurr = recCurrenc.getValue('symbol');
                     
                 }
-                var crFrom = invoiceRecord.getValue('createdfrom')
+                var crFrom = invoiceRecord.getValue('createdfrom');
+                var fromSo = ''
+                if(crFrom){
+                    var recSo = record.load({
+                        type : 'salesorder',
+                        id : crFrom,
+                        isDynamic : true
+                    });
+                    var SoFrom = recSo.getText('createdfrom');
+                    if(SoFrom){
+                        fromSo = SoFrom
+                    }
+                }
                 var subsidiari = invoiceRecord.getValue('subsidiary');
                 // load subsidiarie
                 if(subsidiari){
@@ -109,10 +121,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         custName = customerRecord.getValue('companyname');
                         }
                     }
-                    var custAddres = customerRecord.getValue('billaddr1');
+                    var custAddres = customerRecord.getValue('defaultaddress');
                     if (custAddres === '') {
                         
-                        custAddres = customerRecord.getValue('defaultaddress');
+                        custAddres = customerRecord.getValue('billaddr1');
                         
                     }
                     log.debug('custAdress', custAddres);
@@ -154,6 +166,22 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // PO data
                 var tandId = invoiceRecord.getValue('tranid');
                 var InvDate = invoiceRecord.getValue('trandate');
+                var signaturedBy = invoiceRecord.getValue('custbody11');
+                var nameSignatured = ''
+                if(signaturedBy){
+                    var recEmp = record.load({
+                        type : "employee",
+                        id : signaturedBy,
+                        isDynamic : true
+                    })
+                    var fName = recEmp.getValue('firstname');
+                    var mName = recEmp.getValue('middlename');
+                    var lName = recEmp.getValue('lastname');
+                    var nameEmp = fName + " " + mName + " " + lName 
+                    nameSignatured = nameEmp
+                }
+                var template = invoiceRecord.getText('custbody10');
+                var totalTax = invoiceRecord.getValue('taxtotal')
                 var terms = invoiceRecord.getText('terms');
                 var fakturPajak = invoiceRecord.getValue('custbody_fcn_faktur_pajak');
                 var subTotal = invoiceRecord.getValue('subtotal') || 0;
@@ -272,6 +300,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type: format.Type.CURRENCY
                     });
                     totalWhTaxamount = removeDecimalFormat(totalWhTaxamount)
+                }
+                if(totalTax){
+                    totalTax = pembulatan(totalTax)
+                    totalTax = format.format({
+                        value: totalTax,
+                        type: format.Type.CURRENCY
+                    });
+                    totalTax = removeDecimalFormat(totalTax)
                 }
                 if(amountReceive){
                     amountReceive = pembulatan(amountReceive)
@@ -396,7 +432,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='align:left; width:20%;'></td>"
                 body+= "</tr>";
                 body+= "<tr>"
-                body+= "<td style='font-size:25px; font-weight: bold; '>"+legalName+"</td>"
+                body+= "<td style='font-size:25px; font-weight: bold; '>"+legalName+ " " + template + "</td>"
                 body+= "<td></td>"
                 body+= "<td></td>"
                 body+= "<td style='font-size:20px; align:right; color:#0813AF; font-weight: bold;'>INVOICE</td>"
@@ -418,7 +454,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tr>"
                 body+= "<td></td>"
                 body+= "<td>Quotation #</td>"
-                body+= "<td style='align:right;'>"+crFrom+"</td>"
+                body+= "<td style='align:right;'>"+fromSo+"</td>"
                 body+= "</tr>";
 
                 body+= "</tbody>";
@@ -427,7 +463,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                body += "<td style='align:left; height:50px'></td>"
+                body += "<td style='align:left; height:20px'></td>"
                 body+= "</tr>";
                 body+= "</tbody>";
                 body+= "</table>";
@@ -444,8 +480,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                body += "<td style='align:left; width:30%;'></td>"
                 body += "<td style='align:left; width:70%;'></td>"
+                body += "<td style='align:left; width:30%;'></td>"
                 body+= "</tr>";
 
                 body+= "<tr>";
@@ -522,7 +558,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style=''>VAT"+taxRegNo+"</td>"
                 footer += "<td style=''>:</td>"
                 footer += "<td style=''>IDR</td>"
-                footer += "<td style='align:right'>"+totalWhTaxamount+"</td>"
+                footer += "<td style='align:right'>"+totalTax+"</td>"
                 footer += "</tr>";
 
                 footer += "<tr style=''>";
@@ -544,7 +580,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "</tr>";
 
                 footer += "<tr>";
-                footer += "<td style=''>Submitted By</td>"
+                footer += "<td style=''>Signed By</td>"
                 footer += "<td style=''></td>"
                 footer += "<td style='align:center' colspan='4'>Make All Payment To</td>"
                 footer += "</tr>";
@@ -580,7 +616,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "</tr>";
 
                 footer += "<tr>";
-                footer += "<td style=''>(________________)</td>"
+                footer += "<td style=''>( "+nameSignatured+" )</td>"
                 footer += "<td style=''></td>"
                 footer += "<td style='align:center' colspan='4'></td>"
                 footer += "</tr>";
@@ -651,7 +687,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         
                         var ammount = invoiceRecord.getSublistValue({
                             sublistId: 'item',
-                            fieldId: 'grossamt',
+                            fieldId: 'amount',
                             line: index
                         });
                         var itemText = invoiceRecord.getSublistText({
