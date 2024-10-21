@@ -17,6 +17,7 @@
                 console.log('noPol', noPol);
                 if(noPol){
                     var nameAsset = ''
+                    var idAsset = ''
                     var customrecord_ncfar_assetSearchObj = search.create({
                         type: "customrecord_ncfar_asset",
                         filters:
@@ -25,7 +26,8 @@
                         ],
                         columns:
                         [
-                            search.createColumn({name: "altname", label: "Name"})
+                            search.createColumn({name: "altname", label: "Name"}),
+                            search.createColumn({name: "internalid", label: "Name"})
                         ]
                     });
                     var searchResults = customrecord_ncfar_assetSearchObj.run().getRange({ start: 0, end: 1 });
@@ -35,12 +37,20 @@
                         if(altName){
                             nameAsset = altName
                         }
+                        var id = searchResults[0].getValue({ name: 'internalid' });
+                        if(id){
+                            idAsset = id
+                        }
                     }
                     console.log('nameAsset', nameAsset)
                     if(nameAsset != '' ){
                         vrecord.setValue({
                             fieldId: 'custpage_armada',
                             value : nameAsset
+                        });
+                        vrecord.setValue({
+                            fieldId: 'custpage_armada_id',
+                            value : idAsset
                         });
                     }
                 }else{
@@ -52,127 +62,253 @@
                 
 
             }
-            if(context.fieldId == 'custpage_order_number'){
-                var vrecord = context.currentRecord;
-                console.log('change');
-                var noDo = vrecord.getValue('custpage_order_number');
-                if(noDo){
-                    console.log('noDo', noDo)
-                    var salesorderSearchObj = search.create({
-                        type: "salesorder",
-                        settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
-                        filters:
-                        [
-                            ["type","anyof","SalesOrd"], 
-                            "AND", 
-                            ["number","equalto",noDo], 
-                            "AND", 
-                            ["mainline","is","T"]
-                        ],
-                        columns:
-                        [
-                            search.createColumn({name: "internalid", label: "Internal ID"})
-                        ]
-                    });
-                    var searchResults = salesorderSearchObj.run().getRange({ start: 0, end: 1 });
-                    
-                    if (searchResults.length > 0) {
-                        var idSO = searchResults[0].getValue({ name: 'internalid' });
-                        console.log('idSO', idSO)
-                        var dataSearch = search.load({
-                            id: "customsearch_rda_packing_list_shipped",
-                        });
-                        dataSearch.filters.push(
-                            search.createFilter({
-                            name: "createdfrom",
-                            operator: search.Operator.ANYOF,
-                            values: idSO,
-                            })
-                        );
-                        var dateSearchSet = dataSearch.run();
-                        var dataSearch = dateSearchSet.getRange(0, 1000);
 
-                        if (dataSearch.length > 0) {
-                            var allData = []
-                            for (var i = 0; i < dataSearch.length; i++) {
-                                var doNumber = dataSearch[i].getValue({
-                                    name: dateSearchSet.columns[0],
-                                });
-                                var soNumber = dataSearch[i].getValue({
-                                    name: dateSearchSet.columns[1],
-                                });
-                                var doDate = dataSearch[i].getValue({
-                                    name: dateSearchSet.columns[2],
-                                });
-                                var customer = dataSearch[i].getValue({
-                                    name: dateSearchSet.columns[3],
-                                });
-                                var memo = dataSearch[i].getValue({
-                                    name: dateSearchSet.columns[4],
-                                });
-                                allData.push({
-                                    doNumber : doNumber,
-                                    soNumber : soNumber,
-                                    doDate : doDate,
-                                    customer : customer,
-                                    memo : memo
-                                })
-                            }
-                            console.log('allData', allData)
-                            allData.forEach(function(data) {
-                                var doNumber = data.doNumber
-                                var soNumber = data.soNumber
-                                var doDate = data.doDate
-                                var customer = data.customer
-                                var memo = data.memo
-                            
-                                vrecord.selectNewLine({ sublistId: 'custpage_sublist_item' });
-                                vrecord.setCurrentSublistValue({
-                                    sublistId: 'custpage_sublist_item', 
-                                    fieldId: 'custpage_sublist_item_select',
-                                    value: false
-                                });
-                                vrecord.setCurrentSublistValue({
-                                    sublistId: 'custpage_sublist_item', 
-                                    fieldId: 'custpage_sublist_process',
-                                    value: 'test'
-                                });
-                                records.setCurrentSublistValue({
-                                    sublistId: 'custpage_sublist_item', 
-                                    fieldId: 'custpage_sublist_transaction_type',
-                                    value: 'Sales Order'
-                                });
-                                vrecord.setCurrentSublistValue({
-                                    sublistId: 'custpage_sublist_item', 
-                                    fieldId: 'custpage_sublist_no_so',
-                                    value: 'test'
-                                });
-                                vrecord.commitLine({ sublistId: 'custpage_sublist_item' });
-
-                              
-                            });
-                        }else{
-                            alert("No Data Found!")
-                            vrecord.setValue({
-                                fieldId: 'custpage_order_number',
-                                value : ''
-                            });
-                        }   
-
-                    }else{
-                        alert("No Matching Data!")
-                        vrecord.setValue({
-                            fieldId: 'custpage_order_number',
-                            value : ''
-                        });
-
-                    }
+        }
+        function searchFilter(context){
+            var area = records.getValue('custpage_area');
+            var subsidiary = records.getValue('custpage_subsidiary');
+            var noDo = records.getValue('custpage_order_number');
+            var customerId = records.getValue('custpage_customer');
+            var accPeriodid = records.getValue('custpage_accperiod');
+            var date = records.getValue('custpage_date');
+            var subsId = records.getValue('custpage_subsidiary');
+            if(area && subsidiary){
+                var dataSearch = search.load({
+                    id: "customsearch_rda_packing_list_shipped",
+                });
+                if(customerId){
+                    dataSearch.filters.push(
+                        search.createFilter({
+                        name: "entity",
+                        operator: search.Operator.ANYOF,
+                        values: customerId,
+                        })
+                    );
                 }
+                
+                // if(date){
+                //     dataSearch.filters.push(
+                //         search.createFilter({
+                //         name: "trandate",
+                //         operator: search.Operator.ON,
+                //         values: date,
+                //         })
+                //     );
+                // }
+                if(subsId){
+                    dataSearch.filters.push(
+                        search.createFilter({
+                        name: "subsidiary",
+                        operator: search.Operator.ANYOF,
+                        values: subsId,
+                        })
+                    );
+                }
+                if(area){
+                    dataSearch.filters.push(
+                        search.createFilter({
+                        name: "custbody_rda_area",
+                        operator: search.Operator.ANYOF,
+                        values: area,
+                        })
+                    );
+                }
+                var dateSearchSet = dataSearch.run();
+                var dataSearch = dateSearchSet.getRange(0, 1000);
+
+                if (dataSearch.length > 0) {
+                    var allData = []
+                    for (var i = 0; i < dataSearch.length; i++) {
+                        var doNumber = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[0],
+                        });
+                        var soNumber = dataSearch[i].getText({
+                            name: dateSearchSet.columns[1],
+                        });
+                        var doDate = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[2],
+                        });
+                        var customer = dataSearch[i].getText({
+                            name: dateSearchSet.columns[3],
+                        });
+                        var idCus = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[3],
+                        });
+                        var memo = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[4],
+                        });
+                        var currency = dataSearch[i].getText({
+                            name: dateSearchSet.columns[5],
+                        });
+                        var idSubs = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[6],
+                        });
+                        var idPer = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[7],
+                        });
+                        var idFul = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[8],
+                        });
+                        var area = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[9],
+                        });
+                        var Subarea = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[10],
+                        });
+                        allData.push({
+                            doNumber : doNumber,
+                            soNumber : soNumber,
+                            doDate : doDate,
+                            customer : customer,
+                            memo : memo,
+                            currency : currency,
+                            idCus : idCus,
+                            idSubs : idSubs,
+                            idPer : idPer,
+                            idFul : idFul,
+                            area : area,
+                            Subarea : Subarea
+                        })
+                    }
+                    console.log('allData', allData)
+                    allData.forEach(function(data) {
+                        var doNumber = data.doNumber
+                        var soNumber = data.soNumber
+                        var doDate = data.doDate
+                        var customer = data.customer
+                        var memo = data.memo
+                        var currency = data.currency
+                        var idPer = data.idPer
+                        var idFul = data.idFul
+                        var area = data.area
+                        var Subarea = data.Subarea
+                    
+                        records.selectNewLine({ sublistId: 'custpage_sublist' });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_item_select',
+                            value: false
+                        })
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_transaction_type',
+                            value: 'Sales Order'
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_no_so',
+                            value: soNumber
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_no_fulfill',
+                            value: doNumber
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_date',
+                            value: doDate
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_customer',
+                            value: customer
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_memo',
+                            value: memo
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_curr',
+                            value: currency
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_idcus',
+                            value: idCus
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_subsidiary',
+                            value: idSubs
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_perid',
+                            value: idPer
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_idfulfill',
+                            value: idFul
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_area',
+                            value: area
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_sub_area',
+                            value: Subarea
+                        });
+                        records.commitLine({ sublistId: 'custpage_sublist' });
+
+                        
+                    });
+                }else{
+                    alert("No Data Found!")
+                    records.setValue({
+                        fieldId: 'custpage_order_number',
+                        value : ''
+                    });
+                }   
+
+                
+            }else{
+                alert("Please fill in the Area and Subsidiary fields");
+            }
+           
+        }
+        function markAll() {
+            var rec = currentRecord.get();
+            var sublistName = 'custpage_sublist';  
+    
+            var lineCount = rec.getLineCount({ sublistId: sublistName });
+            for (var i = 0; i < lineCount; i++) {
+                rec.selectLine({ sublistId: sublistName, line: i });
+                rec.setCurrentSublistValue({
+                    sublistId: sublistName,
+                    fieldId: 'custpage_sublist_item_select',
+                    value: true
+                });
+                rec.commitLine({ sublistId: sublistName });
+            }
+        }
+    
+        function unmarkAll() {
+            var rec = currentRecord.get();
+            var sublistName = 'custpage_sublist';  
+    
+            var lineCount = rec.getLineCount({ sublistId: sublistName });
+            for (var i = 0; i < lineCount; i++) {
+                rec.selectLine({ sublistId: sublistName, line: i });
+                rec.setCurrentSublistValue({
+                    sublistId: sublistName,
+                    fieldId: 'custpage_sublist_item_select',
+                    value: false
+                });
+                rec.commitLine({ sublistId: sublistName });
             }
         }
     return {
         pageInit: pageInit,
         fieldChanged : fieldChanged,
+        markAll : markAll,
+        unmarkAll : unmarkAll,
+        searchFilter : searchFilter
     };
 }); 
  
