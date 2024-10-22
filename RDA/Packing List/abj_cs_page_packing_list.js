@@ -6,6 +6,15 @@
     function(error,dialog,url,record,currentRecord,log, search) {
         var allIdIr = []
         var records = currentRecord.get();
+        function convertDate(dateStr) {
+            const date = new Date(dateStr);
+        
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); 
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+        
         function pageInit(context) {
             console.log("masuk client");
         }
@@ -64,7 +73,27 @@
             }
 
         }
+        window.onCustomButtonClick = function(context) {
+            searchFilter(context)
+         }
+      
         function searchFilter(context){
+            var cekLine = records.getLineCount({sublistId : "custpage_sublist"});
+            console.log('cekLine', cekLine)
+            if(cekLine > 0){
+                for(var i = cekLine - 1; i >= 0; i--){
+                    var isSelect = records.getSublistValue({
+                        sublistId : "custpage_sublist",
+                        fieldId : "custpage_sublist_item_select",
+                        line : i
+                    });
+                    console.log('isSelect', isSelect)
+                    if(isSelect == false){
+                        records.selectLine({ sublistId: 'custpage_sublist', line: i });
+                        records.removeLine({ sublistId: 'custpage_sublist', line: i});
+                    }
+                }
+            }
             var area = records.getValue('custpage_area');
             var subsidiary = records.getValue('custpage_subsidiary');
             var noDo = records.getValue('custpage_order_number');
@@ -95,15 +124,16 @@
                         })
                     );
                 }
-                // if(date){
-                //     dataSearch.filters.push(
-                //         search.createFilter({
-                //         name: "trandate",
-                //         operator: search.Operator.ON,
-                //         values: date,
-                //         })
-                //     );
-                // }
+                var cekDate = convertDate(date)
+                if(cekDate){
+                    dataSearch.filters.push(
+                        search.createFilter({
+                        name: "trandate",
+                        operator: search.Operator.ON,
+                        values: cekDate,
+                        })
+                    );
+                }
                 if(subsId){
                     dataSearch.filters.push(
                         search.createFilter({

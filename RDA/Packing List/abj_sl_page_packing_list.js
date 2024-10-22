@@ -2,10 +2,14 @@
  * @NApiVersion 2.1
  * @NScriptType Suitelet
  */
-define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/message'], function (serverWidget, task, search, log, record, message) {
+define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/message', 'N/runtime'], function (serverWidget, task, search, log, record, message, runtime) {
 
     function onRequest(context) {
         if (context.request.method === 'GET') {
+            let currentUser = runtime.getCurrentUser();
+            let subsidiaryId = currentUser.subsidiary;
+            log.debug('subsidiaryId', subsidiaryId)
+
             var form = serverWidget.createForm({
                 title: 'Packing List'
             });
@@ -161,11 +165,20 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 source: 'subsidiary'
             });
             subsidiary.isMandatory = true;
+            if(subsidiaryId){
+                subsidiary.defaultValue = subsidiaryId
+            }
             var supir = form.addField({
                 id: 'custpage_supir', 
                 type: serverWidget.FieldType.TEXT,
                 container: "valueRedord",
                 label: 'Supir'
+            });
+            var helper = form.addField({
+                id: 'custpage_helper', 
+                type: serverWidget.FieldType.TEXT,
+                container: "valueRedord",
+                label: 'Helper'
             });
             var gudang = form.addField({
                 id: 'custpage_gudang', 
@@ -275,11 +288,18 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 label: "Unmark All",
                 functionName: "unmarkAll",
             });
-            form.addButton({
-                id: "search_filter",
-                label: "Search",
-                functionName: "searchFilter",
+            
+            var inlineHtml = form.addField({
+                id: 'custpage_buttonhtml',
+                type: serverWidget.FieldType.INLINEHTML,
+                label: ' ',
+                container: "filteroption",
             });
+            
+            inlineHtml.defaultValue = `
+                <button type="button" value="Search" onclick="onCustomButtonClick(); return false;" style="margin-top: 10px; padding:5px;">Search</button>
+            `;
+            
             form.addSubmitButton({
                 label: 'Submit'
             });
@@ -294,10 +314,11 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 return new Date(dateParts[2], dateParts[1] - 1, dateParts[0]); 
             }
             function formatFulfillmentText(fulfillText) {
-                return fulfillText.map(number => `Item Fulfillment #${number}`).join(', ');
+                return fulfillText.map(number => `${number}`).join(', ');
             }
             try{
                 var supir = context.request.parameters.custpage_supir;
+                var helper = context.request.parameters.custpage_helper;
                 var armada = context.request.parameters.custpage_armada_id;
                 var nopol = context.request.parameters.custpage_nopol;
                 var lineCount = context.request.getLineCount({
@@ -437,6 +458,11 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                             ignoreFieldChange: true,
                         });
                         createRec.setValue({
+                            fieldId: "custbody_rda_packlist_rit",
+                            value: helper || '',
+                            ignoreFieldChange: true,
+                        });
+                        createRec.setValue({
                             fieldId: "custbody_rda_packlist_do_number",
                             value: allIdFul,
                             ignoreFieldChange: true,
@@ -479,26 +505,40 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                         fieldId : "custbody_rda_flag_centangpackinglist",
                                         value : true,
                                     });
+                                    log.debug('nopol to set', nopol)
+                                    recIf.setValue({
+                                        fieldId : "custbody_rda_nopol",
+                                        value : nopol,
+                                        ignoreFieldChange: true,
+                                    });
                                     recIf.save();
-
                                 }
                             });
-                            var html = "<html><body>";
-                            html += "<h3>Succes</h3>";
-                            html +=
-                                '<input style="border: none; color: rgb(255, 255, 255); padding: 8px 30px; margin-top: 15px; cursor: pointer; text-align: center; background-color: rgb(0, 106, 255); border-color: rgb(0, 106, 255); fill: rgb(255, 255, 255); border-radius: 3px; font-weight: bold;" type="button" onclick="window.history.go(-1)" value="OK" />';
-                                html += "</body></html>";
                         
-                                var form = serverWidget.createForm({
+                            var html = "<html><body>";
+                            html += "<h3>Success</h3>";
+                        
+                            html += '<input style="border: none; color: rgb(255, 255, 255); padding: 8px 30px; margin-top: 15px; cursor: pointer; text-align: center; background-color: rgb(0, 106, 255); border-color: rgb(0, 106, 255); fill: rgb(255, 255, 255); border-radius: 3px; font-weight: bold;" ' +
+                                    'type="button" onclick="window.history.go(-1)" value="OK" />';
+                        
+                            html += '<br /><br /><a href="https://11069529.app.netsuite.com/app/accounting/transactions/custom.nl?id=' + saveCreate + '" ' +
+                                    'style="text-decoration:none; color:rgb(0, 106, 255); font-weight:bold;">Go to Packing List</a>';
+                        
+                            html += "</body></html>";
+                        
+                            var form = serverWidget.createForm({
                                 title: "Success Create Packing List",
-                                });
-                            form.addPageInitMessage({
-                                        type: message.Type.CONFIRMATION,
-                                        title: "Success!",
-                                        message: html,
                             });
+                        
+                            form.addPageInitMessage({
+                                type: message.Type.CONFIRMATION,
+                                title: "Success!",
+                                message: html,
+                            });
+                        
                             context.response.writePage(form);
-                        }else{
+                        }
+                        else{
                             var html = "<html><body>";
                             html += "<h3>Gagal Menyimpan</h3>";
                             html +=
@@ -528,7 +568,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         });
                     form.addPageInitMessage({
                                 type: message.Type.WARNING,
-                                title: "Success!",
+                                title: "Warning!",
                                 message: html,
                             });
                     context.response.writePage(form);

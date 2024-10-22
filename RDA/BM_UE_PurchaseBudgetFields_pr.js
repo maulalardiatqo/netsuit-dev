@@ -111,7 +111,7 @@ define(["exports", "../../common/constants/Constants", "../gateway/PurchaseBudge
 
     if ((!prefRecord.getValue(PREF_ENABLE_BUDGET)) && type !== PRINT && type !== EMAIL) {
       expSublist ? _hideBudgetFields(expSublist, form, arrBodyFields, arrLineFields) : _hideBudgetFields(itemSublist, form, arrBodyFields, arrLineFields);
-
+      
       if (itemSublist) {
         _hideBudgetFields(itemSublist, form, arrBodyFields, arrLineItemFields);
       }
