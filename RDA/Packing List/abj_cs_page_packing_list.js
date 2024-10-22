@@ -85,7 +85,16 @@
                         })
                     );
                 }
-                
+                console.log('noDo', noDo)
+                if(noDo){
+                    dataSearch.filters.push(
+                        search.createFilter({
+                        name: "createdfrom",
+                        operator: search.Operator.ANYOF,
+                        values: noDo,
+                        })
+                    );
+                }
                 // if(date){
                 //     dataSearch.filters.push(
                 //         search.createFilter({
@@ -202,7 +211,7 @@
                         records.setCurrentSublistValue({
                             sublistId: 'custpage_sublist', 
                             fieldId: 'custpage_sublist_no_fulfill',
-                            value: doNumber
+                            value: 'Item Fulfillment #' + ' ' +doNumber
                         });
                         records.setCurrentSublistValue({
                             sublistId: 'custpage_sublist', 

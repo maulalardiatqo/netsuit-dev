@@ -9,14 +9,15 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             var form = serverWidget.createForm({
                 title: 'Packing List'
             });
-            var valueRedord = form.addFieldGroup({
-                id: "valueRedord",
-                label: "Record",
-            });
             var filterOption = form.addFieldGroup({
                 id: "filteroption",
                 label: "FILTERS",
             });
+            var valueRedord = form.addFieldGroup({
+                id: "valueRedord",
+                label: "Record",
+            });
+           
             var customerField = form.addField({
                 id: 'custpage_customer', 
                 type: serverWidget.FieldType.SELECT,
@@ -95,12 +96,15 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 type: serverWidget.FieldType.TEXT,
                 container: "valueRedord",
                 label: 'Armada'
+            }).updateDisplayType({
+                displayType: serverWidget.FieldDisplayType.HIDDEN,
             });
             var orderNumber = form.addField({
                 id: 'custpage_order_number', 
-                type: serverWidget.FieldType.TEXT,
+                type: serverWidget.FieldType.SELECT,
                 container: "filteroption",
-                label: 'Select Order Number'
+                label: 'Select Order Number',
+                source: 'salesorder'
             });
             var date_field = form.addField({
                 id: 'custpage_date', 
@@ -261,12 +265,12 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             }).updateDisplayType({
                 displayType: serverWidget.FieldDisplayType.HIDDEN,
             });
-            form.addButton({
+            sublist.addButton({
                 id: "markall",
                 label: "Mark All",
                 functionName: "markAll",
             });
-            form.addButton({
+            sublist.addButton({
                 id: "unmarkall",
                 label: "Unmark All",
                 functionName: "unmarkAll",
@@ -278,6 +282,9 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             });
             form.addSubmitButton({
                 label: 'Submit'
+            });
+            form.addResetButton({
+                label: "Clear",
             });
             form.clientScriptModulePath = "SuiteScripts/abj_cs_page_packing_list.js";
             context.response.writePage(form);
@@ -291,7 +298,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             }
             try{
                 var supir = context.request.parameters.custpage_supir;
-                var armada = context.request.parameters.custpage_armada;
+                var armada = context.request.parameters.custpage_armada_id;
                 var nopol = context.request.parameters.custpage_nopol;
                 var lineCount = context.request.getLineCount({
                     group: 'custpage_sublist'
@@ -460,6 +467,22 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         var saveCreate = createRec.save();
                         log.debug('saveCreate', saveCreate)
                         if(saveCreate){
+                            allIdFul.forEach(function(id) {
+                                log.debug('id', id)
+                                if(id){
+                                    var recIf = record.load({
+                                        type: "itemfulfillment",
+                                        id : id,
+                                        isDynamic: true
+                                    });
+                                    recIf.setValue({
+                                        fieldId : "custbody_rda_flag_centangpackinglist",
+                                        value : true,
+                                    });
+                                    recIf.save();
+
+                                }
+                            });
                             var html = "<html><body>";
                             html += "<h3>Succes</h3>";
                             html +=
