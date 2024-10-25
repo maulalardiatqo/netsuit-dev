@@ -132,6 +132,9 @@ define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", 
                         var idInv = dataSearch[i].getValue({
                             name: dateSearchSet.columns[12],
                         });
+                        var reason = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[13],
+                        });
                         allData.push({
                             doNumber : doNumber,
                             customerId : customerId,
@@ -149,7 +152,8 @@ define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", 
                             excRate : excRate,
                             division : division,
                             idInv : idInv,
-                            currencyId : currencyId
+                            currencyId : currencyId,
+                            reason : reason
                         })
                     }
                     console.log('allData', allData)
@@ -171,6 +175,7 @@ define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", 
                         var idInv = data.idInv
                         var division = data.division
                         var currencyId = data.currencyId
+                        var reason = data.reason
                     
                         records.selectNewLine({ sublistId: 'custpage_sublist' });
                         records.setCurrentSublistValue({
@@ -263,6 +268,14 @@ define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", 
                             fieldId: 'custpage_sublist_division',
                             value: division
                         });
+                        if(reason){
+                            records.setCurrentSublistValue({
+                                sublistId: 'custpage_sublist', 
+                                fieldId: 'custpage_sublist_reason',
+                                value: reason
+                            });
+                        }
+                        
                         records.commitLine({ sublistId: 'custpage_sublist' });
 
                         

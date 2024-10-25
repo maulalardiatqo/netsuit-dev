@@ -66,11 +66,12 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                     value: idEmp, 
                     text: nameSales 
                 });
+                kolektor.addSelectOption({
+                    value: idEmp, 
+                    text: nameSales 
+                })
                 return true;
             });
-           
-
-            
             var date_field = form.addField({
                 id: 'custpage_date', 
                 type: serverWidget.FieldType.DATE,
@@ -209,7 +210,8 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             var reasonOption = sublist.addField({
                 id: 'custpage_sublist_reason',
                 label: 'Reason (Kenapa Belum Tertagih)',
-                type: serverWidget.FieldType.SELECT
+                type: serverWidget.FieldType.SELECT,
+                source : 'customlist_rda_reason_sjp'
             })
             sublist.addField({
                 id: 'custpage_sublist_action',
@@ -259,197 +261,157 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             });
             form.clientScriptModulePath = "SuiteScripts/abj_cs_coll_management.js";
             context.response.writePage(form);
-        }else{
-            try{
+        } else {
+            try {
                 function convertToDate(dateString) {
-                    var dateParts = dateString.split('/');
-                    return new Date(dateParts[2], dateParts[1] - 1, dateParts[0]); 
+                    const [day, month, year] = dateString.split('/');
+                    return new Date(year, month - 1, day); 
                 }
-
-                var kolektorSelect = context.request.parameters.custpage_kolektor;
-                var salesSelect = context.request.parameters.custpage_sales;
-                var subsidiarySelect = context.request.parameters.custpage_subsidiary;
-                var dateSelect = context.request.parameters.custpage_date;
-                var lineCount = context.request.getLineCount({
-                    group: 'custpage_sublist'
-                });
+        
+                const kolektorSelect = context.request.parameters.custpage_kolektor;
+                const salesSelect = context.request.parameters.custpage_sales;
+                const subsidiarySelect = context.request.parameters.custpage_subsidiary;
+                const dateSelect = context.request.parameters.custpage_date;
+                const lineCount = context.request.getLineCount({ group: 'custpage_sublist' });
                 log.debug('Line Count', lineCount);
-                
-                if(lineCount > 0){
-                    var allIdInv = []
-                    var subsSet
-                    var dateSet
-                    var divisionSet
-                    var currSet
-                    var excSet
-                    var isCreate = false
-                    for (var i = 0; i < lineCount; i++) {
-                        var fulfill = context.request.getSublistValue({
+        
+                if (lineCount > 0) {
+                    let allIdInv = new Set(), isCreate = false, subsSet, dateSet, divisionSet, currSet, excSet, reasonSet, actionPlanSet;
+        
+                    for (let i = 0; i < lineCount; i++) {
+                        const fulfill = context.request.getSublistValue({
                             group: 'custpage_sublist',
                             name: 'custpage_sublist_item_select',
                             line: i
                         });
-                        log.debug('fulfill', fulfill)
-                        if(fulfill == 'T'){
-                            var subsId = context.request.getSublistValue({
+        
+                        if (fulfill === 'T') {
+                            const subsId = context.request.getSublistValue({
                                 group: 'custpage_sublist',
                                 name: 'custpage_sublist_subsidiary_id',
                                 line: i
                             });
-                            log.debug('subsId', subsId)
-                            if(subsId){
-                                isCreate = true
-                                subsSet = subsId
-                                var idInv = context.request.getSublistValue({
+        
+                            if (subsId) {
+                                isCreate = true;
+                                subsSet = subsId;
+                                allIdInv.add(context.request.getSublistValue({
                                     group: 'custpage_sublist',
                                     name: 'custpage_sublist_id_inv',
                                     line: i
-                                });
-                                if(idInv){
-                                    allIdInv.push(idInv);
-                                }
-                                
-                                var date = context.request.getSublistValue({
+                                }));
+                                dateSet = context.request.getSublistValue({
                                     group: 'custpage_sublist',
                                     name: 'custpage_sublist_date',
                                     line: i
-                                });
-                                if(date){
-                                    dateSet = date
-                                }
-    
-                                var divi = context.request.getSublistValue({
+                                }) || dateSet;
+                                divisionSet = context.request.getSublistValue({
                                     group: 'custpage_sublist',
                                     name: 'custpage_sublist_division',
                                     line: i
-                                });
-                                if(divi){
-                                    divisionSet = divi
-                                }
-    
-                                var curren = context.request.getSublistValue({
+                                }) || divisionSet;
+                                currSet = context.request.getSublistValue({
                                     group: 'custpage_sublist',
                                     name: 'custpage_sublist_currency_id',
                                     line: i
-                                });
-                                if(curren){
-                                    currSet = curren
-                                }
-                                var exc = context.request.getSublistValue({
+                                }) || currSet;
+                                excSet = context.request.getSublistValue({
                                     group: 'custpage_sublist',
                                     name: 'custpage_sublist_exc_rate',
                                     line: i
-                                });
-                                if(exc){
-                                    excSet = exc
-                                }
+                                }) || excSet;
+                                reasonSet = context.request.getSublistValue({
+                                    group: 'custpage_sublist',
+                                    name: 'custpage_sublist_reason',
+                                    line: i
+                                }) || reasonSet;
+                                actionPlanSet = context.request.getSublistValue({
+                                    group: 'custpage_sublist',
+                                    name: 'custpage_sublist_action',
+                                    line: i
+                                }) || actionPlanSet;
                             }
                         }
                     }
-                    log.debug('isCreate', isCreate)
-                    if(isCreate == true){
-                        log.debug('masuk create')
-                        var dateConvert = convertToDate(dateSet);
-                        log.debug('dateConvert', dateConvert)
-                        var createRec = record.create({
-                            type: "customtransaction_rda_collection_mgm",
-                        });
-                        createRec.setValue({
-                            fieldId: "trandate",
-                            value: dateConvert,
-                            ignoreFieldChange: true,
-                        });
-                        createRec.setValue({
-                            fieldId: "currency",
-                            value: currSet,
-                            ignoreFieldChange: true,
-                        });
-                        createRec.setValue({
-                            fieldId: "exchangerate",
-                            value: excSet,
-                            ignoreFieldChange: true,
-                        });
-                        createRec.setValue({
-                            fieldId: "class",
-                            value: divisionSet,
-                            ignoreFieldChange: true,
-                        });
-                        createRec.setValue({
-                            fieldId: "subsidiary",
-                            value: subsSet,
-                            ignoreFieldChange: true,
-                        });
-                        log.debug('allIdInv', allIdInv)
-                        createRec.setValue({
-                            fieldId: "custbody_rda_invoice_number",
-                            value: allIdInv,
-                            ignoreFieldChange: true,
-                        });
-                        var saveCreate = createRec.save();
-                        log.debug('saveCreate', saveCreate)
-                        if(saveCreate){
-                            var html = "<html><body>";
-                            html += "<h3>Success</h3>";
+        
+                    if (isCreate) {
+                        const dateConvert = convertToDate(dateSet);
+                        const createRec = record.create({ type: "customtransaction_rda_collection_mgm" });
+                        createRec.setValue({ fieldId: "trandate", value: dateConvert, ignoreFieldChange: true });
+                        createRec.setValue({ fieldId: "currency", value: currSet, ignoreFieldChange: true });
+                        createRec.setValue({ fieldId: "exchangerate", value: excSet, ignoreFieldChange: true });
+                        createRec.setValue({ fieldId: "class", value: divisionSet, ignoreFieldChange: true });
+                        createRec.setValue({ fieldId: "subsidiary", value: subsSet, ignoreFieldChange: true });
+                        createRec.setValue({ fieldId: "custbody_rda_invoice_number", value: [...allIdInv], ignoreFieldChange: true });
                         
-                            html += '<input style="border: none; color: rgb(255, 255, 255); padding: 8px 30px; margin-top: 15px; cursor: pointer; text-align: center; background-color: rgb(0, 106, 255); border-color: rgb(0, 106, 255); fill: rgb(255, 255, 255); border-radius: 3px; font-weight: bold;" ' +
-                                    'type="button" onclick="window.history.go(-1)" value="OK" />';
-                        
-                            html += '<br /><br /><a href="https://11069529.app.netsuite.com/app/accounting/transactions/custom.nl?id=' + saveCreate + '" ' +
-                                    'style="text-decoration:none; color:rgb(0, 106, 255); font-weight:bold;">Go to Collection Management Record</a>';
-                        
-                            html += "</body></html>";
-                        
-                            var form = serverWidget.createForm({
-                                title: "Success Create Packing List",
-                            });
-                        
-                            form.addPageInitMessage({
-                                type: message.Type.CONFIRMATION,
-                                title: "Success!",
-                                message: html,
-                            });
-                        
-                            context.response.writePage(form);
-                        }
-                    }else{
-                        var html = "<html><body>";
-                        html += "<h3>Gagal Menyimpan</h3>";
-                        html +=
-                            '<input style="border: none; color: rgb(255, 255, 255); padding: 8px 30px; margin-top: 15px; cursor: pointer; text-align: center; background-color: rgb(0, 106, 255); border-color: rgb(0, 106, 255); fill: rgb(255, 255, 255); border-radius: 3px; font-weight: bold;" type="button" onclick="window.history.go(-1)" value="OK" />';
-                            html += "</body></html>";
-                    
-                            var form = serverWidget.createForm({
-                            title: "Gagal Menyimpan",
-                            });
-                        form.addPageInitMessage({
-                                    type: message.Type.WARNING,
-                                    title: "Success!",
-                                    message: html,
+                        const saveCreate = createRec.save();
+                        if (saveCreate) {
+                            function removeDuplicates(array) {
+                                return [...new Set(array)];
+                            }
+                            const uniqueAllIdInv = removeDuplicates(allIdInv);
+                            uniqueAllIdInv.forEach(id => {
+                                const recInv = record.load({ type: "invoice", id, isDynamic: true });
+                                const cekNumber = recInv.getValue("custbody_rda_sjp_count");
+                                recInv.setValue({
+                                    fieldId: "custbody_rda_sjp_count",
+                                    value: cekNumber ? Number(cekNumber) + 1 : 1,
+                                    ignoreFieldChange: true
                                 });
-                        context.response.writePage(form);
-                    }
-                }else{
-                    var html = "<html><body>";
-                    html += "<h3>No data Found</h3>";
-                    html +=
-                        '<input style="border: none; color: rgb(255, 255, 255); padding: 8px 30px; margin-top: 15px; cursor: pointer; text-align: center; background-color: rgb(0, 106, 255); border-color: rgb(0, 106, 255); fill: rgb(255, 255, 255); border-radius: 3px; font-weight: bold;" type="button" onclick="window.history.go(-1)" value="OK" />';
-                        html += "</body></html>";
-                
-                        var form = serverWidget.createForm({
-                        title: "No data Found",
-                        });
-                    form.addPageInitMessage({
-                                type: message.Type.WARNING,
-                                title: "Warning!",
-                                message: html,
+                                log.debug('reasonSet', reasonSet)
+                                if(reasonSet){
+                                    recInv.setValue({
+                                        fieldId: "custbody_rda_reason",
+                                        value: reasonSet,
+                                        ignoreFieldChange: true
+                                    });
+                                }
+                                log.debug('actionPlanSet', actionPlanSet)
+                                recInv.setValue({
+                                    fieldId: "custbody_rda_action_plan",
+                                    value: actionPlanSet || '',
+                                    ignoreFieldChange: true
+                                });
+                                recInv.save();
                             });
-                    context.response.writePage(form);
+                            context.response.writePage(createSuccessPage(saveCreate));
+                        }
+                    } else {
+                        context.response.writePage(createErrorPage("Gagal Menyimpan"));
+                    }
+                } else {
+                    context.response.writePage(createErrorPage("No data Found"));
                 }
-                
-            }catch(e){
-                log.debug('error', e)
+            } catch (e) {
+                log.debug('error', e);
             }
+            const scriptObj = runtime.getCurrentScript();
+            log.debug({ title: "Remaining usage units: ", details: scriptObj.getRemainingUsage() });
         }
+        
+        function createSuccessPage(recordId) {
+            const html = `<html><body><h3>Success</h3>
+                <input style="border: none; color: white; padding: 8px 30px; background-color: rgb(0, 106, 255);" 
+                type="button" onclick="window.history.go(-1)" value="OK" />
+                <br /><br /><a href="https://11069529.app.netsuite.com/app/accounting/transactions/custom.nl?id=${recordId}" 
+                style="text-decoration:none; color:rgb(0, 106, 255); font-weight:bold;">Go to Collection Management Record</a>
+                </body></html>`;
+        
+            const form = serverWidget.createForm({ title: "Success Create Collection Management" });
+            form.addPageInitMessage({ type: message.Type.CONFIRMATION, title: "Success!", message: html });
+            return form;
+        }
+        
+        function createErrorPage(title) {
+            const html = `<html><body><h3>${title}</h3>
+                <input style="border: none; color: white; padding: 8px 30px; background-color: rgb(0, 106, 255);" 
+                type="button" onclick="window.history.go(-1)" value="OK" /></body></html>`;
+        
+            const form = serverWidget.createForm({ title });
+            form.addPageInitMessage({ type: message.Type.WARNING, title: "Warning!", message: html });
+            return form;
+        }
+        
     }
     return {
         onRequest: onRequest

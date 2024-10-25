@@ -4,7 +4,7 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message"], function (runtime, log, url, currentRecord, currency, record, search, message) {
+define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/runtime"], function (runtime, log, url, currentRecord, currency, record, search, message, runtime) {
     var records = currentRecord.get();
     
     function pageInit(context) {
@@ -269,8 +269,12 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     
                 });
             }
-            
         }
+        var scriptObj = runtime.getCurrentScript();
+        log.debug({
+            title: "Remaining usage units: ",
+            details: scriptObj.getRemainingUsage(),
+        });
     }
     return {
         pageInit: pageInit,
