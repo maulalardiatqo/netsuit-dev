@@ -2,7 +2,7 @@
  *@NApiVersion 2.1
  *@NScriptType ClientScript
  */
- define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", "N/search"],
+define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", "N/search"],
     function(error,dialog,url,record,currentRecord,log, search) {
         var allIdIr = []
         var records = currentRecord.get();
@@ -18,65 +18,9 @@
         function pageInit(context) {
             console.log("masuk client");
         }
-        function fieldChanged(context) {
-            if(context.fieldId == 'custpage_nopol'){
-                var vrecord = context.currentRecord;
-                console.log('change');
-                var noPol = vrecord.getValue('custpage_nopol');
-                console.log('noPol', noPol);
-                if(noPol){
-                    var nameAsset = ''
-                    var idAsset = ''
-                    var customrecord_ncfar_assetSearchObj = search.create({
-                        type: "customrecord_ncfar_asset",
-                        filters:
-                        [
-                            ["custrecord_rda_nopol_","is",noPol]
-                        ],
-                        columns:
-                        [
-                            search.createColumn({name: "altname", label: "Name"}),
-                            search.createColumn({name: "internalid", label: "Name"})
-                        ]
-                    });
-                    var searchResults = customrecord_ncfar_assetSearchObj.run().getRange({ start: 0, end: 1 });
-            
-                    if (searchResults.length > 0) {
-                        var altName = searchResults[0].getValue({ name: 'altname' });
-                        if(altName){
-                            nameAsset = altName
-                        }
-                        var id = searchResults[0].getValue({ name: 'internalid' });
-                        if(id){
-                            idAsset = id
-                        }
-                    }
-                    console.log('nameAsset', nameAsset)
-                    if(nameAsset != '' ){
-                        vrecord.setValue({
-                            fieldId: 'custpage_armada',
-                            value : nameAsset
-                        });
-                        vrecord.setValue({
-                            fieldId: 'custpage_armada_id',
-                            value : idAsset
-                        });
-                    }
-                }else{
-                    vrecord.setValue({
-                        fieldId: 'custpage_armada',
-                        value : ''
-                    });
-                }
-                
-
-            }
-
-        }
         window.onCustomButtonClick = function(context) {
             searchFilter(context)
-         }
-      
+        }
         function searchFilter(context){
             var cekLine = records.getLineCount({sublistId : "custpage_sublist"});
             console.log('cekLine', cekLine)
@@ -94,7 +38,11 @@
                     }
                 }
             }
-            if(area && subsidiary){
+            var subsidiary = records.getValue('custpage_subsidiary');
+            var date = records.getValue('custpage_date');
+            var sales = records.getValue('custpage_sales');
+
+            if(subsidiary){
                 var dataSearch = search.load({
                     id: "customsearch_rda_collection_management",
                 });
@@ -109,12 +57,21 @@
                         })
                     );
                 }
-                if(subsId){
+                if(subsidiary){
                     dataSearch.filters.push(
                         search.createFilter({
                         name: "subsidiary",
                         operator: search.Operator.ANYOF,
-                        values: subsId,
+                        values: subsidiary,
+                        })
+                    );
+                }
+                if(sales){
+                    dataSearch.filters.push(
+                        search.createFilter({
+                        name: "salesrep",
+                        operator: search.Operator.ANYOF,
+                        values: sales,
                         })
                     );
                 }
@@ -127,66 +84,93 @@
                         var doNumber = dataSearch[i].getValue({
                             name: dateSearchSet.columns[0],
                         });
-                        var soNumber = dataSearch[i].getText({
+                        var customerId = dataSearch[i].getValue({
                             name: dateSearchSet.columns[1],
                         });
-                        var doDate = dataSearch[i].getValue({
+                        var customerText = dataSearch[i].getText({
+                            name: dateSearchSet.columns[1],
+                        });
+                        var dueDate = dataSearch[i].getValue({
                             name: dateSearchSet.columns[2],
                         });
-                        var customer = dataSearch[i].getText({
+                        var invAmt = dataSearch[i].getValue({
                             name: dateSearchSet.columns[3],
                         });
-                        var idCus = dataSearch[i].getValue({
-                            name: dateSearchSet.columns[3],
-                        });
-                        var memo = dataSearch[i].getValue({
+                        var amtDue = dataSearch[i].getValue({
                             name: dateSearchSet.columns[4],
                         });
-                        var currency = dataSearch[i].getText({
+                        var salesRepId = dataSearch[i].getValue({
                             name: dateSearchSet.columns[5],
                         });
-                        var idSubs = dataSearch[i].getValue({
+                        var salesRepText = dataSearch[i].getText({
+                            name: dateSearchSet.columns[5],
+                        });
+                        var subsidiaryId = dataSearch[i].getValue({
                             name: dateSearchSet.columns[6],
                         });
-                        var idPer = dataSearch[i].getValue({
+                        var subsidiaryText = dataSearch[i].getText({
+                            name: dateSearchSet.columns[6],
+                        });
+                        var aplyingTrans = dataSearch[i].getValue({
                             name: dateSearchSet.columns[7],
                         });
-                        var idFul = dataSearch[i].getValue({
+                        var aplyingLinkAmt = dataSearch[i].getValue({
                             name: dateSearchSet.columns[8],
                         });
-                        var area = dataSearch[i].getValue({
+                        var currency = dataSearch[i].getText({
                             name: dateSearchSet.columns[9],
                         });
-                        var Subarea = dataSearch[i].getValue({
+                        var currencyId = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[9],
+                        });
+                        var excRate = dataSearch[i].getValue({
                             name: dateSearchSet.columns[10],
+                        });
+                        var division = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[11],
+                        });
+                        var idInv = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[12],
                         });
                         allData.push({
                             doNumber : doNumber,
-                            soNumber : soNumber,
-                            doDate : doDate,
-                            customer : customer,
-                            memo : memo,
+                            customerId : customerId,
+                            customerId : customerText,
+                            dueDate : dueDate,
+                            invAmt : invAmt,
+                            amtDue : amtDue,
+                            salesRepId : salesRepId,
+                            salesRepText : salesRepText,
+                            subsidiaryId : subsidiaryId,
+                            subsidiaryText : subsidiaryText,
+                            aplyingTrans : aplyingTrans,
+                            aplyingLinkAmt : aplyingLinkAmt,
                             currency : currency,
-                            idCus : idCus,
-                            idSubs : idSubs,
-                            idPer : idPer,
-                            idFul : idFul,
-                            area : area,
-                            Subarea : Subarea
+                            excRate : excRate,
+                            division : division,
+                            idInv : idInv,
+                            currencyId : currencyId
                         })
                     }
                     console.log('allData', allData)
                     allData.forEach(function(data) {
                         var doNumber = data.doNumber
-                        var soNumber = data.soNumber
-                        var doDate = data.doDate
-                        var customer = data.customer
-                        var memo = data.memo
+                        var customerId = data.customerId
+                        var customerId = data.customerId
+                        var dueDate = data.dueDate
+                        var invAmt = data.invAmt
+                        var amtDue = data.amtDue
+                        var salesRepId = data.salesRepId
+                        var salesRepText = data.salesRepText
+                        var subsidiaryId = data.subsidiaryId
+                        var subsidiaryText = data.subsidiaryText
+                        var aplyingTrans = data.aplyingTrans
+                        var aplyingLinkAmt = data.aplyingLinkAmt
                         var currency = data.currency
-                        var idPer = data.idPer
-                        var idFul = data.idFul
-                        var area = data.area
-                        var Subarea = data.Subarea
+                        var excRate = data.excRate
+                        var idInv = data.idInv
+                        var division = data.division
+                        var currencyId = data.currencyId
                     
                         records.selectNewLine({ sublistId: 'custpage_sublist' });
                         records.setCurrentSublistValue({
@@ -196,68 +180,88 @@
                         })
                         records.setCurrentSublistValue({
                             sublistId: 'custpage_sublist', 
-                            fieldId: 'custpage_sublist_transaction_type',
-                            value: 'Sales Order'
-                        });
-                        records.setCurrentSublistValue({
-                            sublistId: 'custpage_sublist', 
-                            fieldId: 'custpage_sublist_no_so',
-                            value: soNumber
-                        });
-                        records.setCurrentSublistValue({
-                            sublistId: 'custpage_sublist', 
-                            fieldId: 'custpage_sublist_no_fulfill',
-                            value: 'Item Fulfillment #' + ' ' +doNumber
-                        });
-                        records.setCurrentSublistValue({
-                            sublistId: 'custpage_sublist', 
                             fieldId: 'custpage_sublist_date',
-                            value: doDate
+                            value: dueDate
                         });
                         records.setCurrentSublistValue({
                             sublistId: 'custpage_sublist', 
-                            fieldId: 'custpage_sublist_customer',
-                            value: customer
+                            fieldId: 'custpage_sublist_type',
+                            value: 'Invoice'
                         });
                         records.setCurrentSublistValue({
                             sublistId: 'custpage_sublist', 
-                            fieldId: 'custpage_sublist_memo',
-                            value: memo
+                            fieldId: 'custpage_sublist_vendor',
+                            value: customerText
                         });
                         records.setCurrentSublistValue({
                             sublistId: 'custpage_sublist', 
-                            fieldId: 'custpage_sublist_curr',
+                            fieldId: 'custpage_sublist_vendor_id',
+                            value: customerId
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_refno',
+                            value: ''
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_currency',
                             value: currency
                         });
                         records.setCurrentSublistValue({
                             sublistId: 'custpage_sublist', 
-                            fieldId: 'custpage_sublist_idcus',
-                            value: idCus
+                            fieldId: 'custpage_sublist_currency_id',
+                            value: currencyId
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_exc_rate',
+                            value: excRate
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_org_amt',
+                            value: invAmt
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_amt_due',
+                            value: amtDue
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_retur',
+                            value: ''
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_sales',
+                            value: salesRepText || ''
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_sales_id',
+                            value: salesRepId || ''
                         });
                         records.setCurrentSublistValue({
                             sublistId: 'custpage_sublist', 
                             fieldId: 'custpage_sublist_subsidiary',
-                            value: idSubs
+                            value: subsidiaryText
                         });
                         records.setCurrentSublistValue({
                             sublistId: 'custpage_sublist', 
-                            fieldId: 'custpage_sublist_perid',
-                            value: idPer
+                            fieldId: 'custpage_sublist_subsidiary_id',
+                            value: subsidiaryId
                         });
                         records.setCurrentSublistValue({
                             sublistId: 'custpage_sublist', 
-                            fieldId: 'custpage_sublist_idfulfill',
-                            value: idFul
+                            fieldId: 'custpage_sublist_id_inv',
+                            value: idInv
                         });
                         records.setCurrentSublistValue({
                             sublistId: 'custpage_sublist', 
-                            fieldId: 'custpage_sublist_area',
-                            value: area
-                        });
-                        records.setCurrentSublistValue({
-                            sublistId: 'custpage_sublist', 
-                            fieldId: 'custpage_sublist_sub_area',
-                            value: Subarea
+                            fieldId: 'custpage_sublist_division',
+                            value: division
                         });
                         records.commitLine({ sublistId: 'custpage_sublist' });
 
@@ -265,15 +269,10 @@
                     });
                 }else{
                     alert("No Data Found!")
-                    records.setValue({
-                        fieldId: 'custpage_order_number',
-                        value : ''
-                    });
+                    
                 }   
-
-                
             }else{
-                alert("Please fill in the Area and Subsidiary fields");
+                alert("Please fill in Subsidiary fields");
             }
            
         }
@@ -308,12 +307,11 @@
                 rec.commitLine({ sublistId: sublistName });
             }
         }
-    return {
-        pageInit: pageInit,
-        fieldChanged : fieldChanged,
-        markAll : markAll,
-        unmarkAll : unmarkAll,
-        searchFilter : searchFilter
-    };
-}); 
- 
+        return {
+            pageInit: pageInit,
+            markAll : markAll,
+            unmarkAll : unmarkAll,
+            searchFilter : searchFilter
+        };
+    }
+); 
