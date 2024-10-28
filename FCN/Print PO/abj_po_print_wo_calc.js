@@ -167,6 +167,21 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var POdate = poRecord.getValue('trandate');
             var terms = poRecord.getText('terms');
             var poNumber = poRecord.getValue('custbody7');
+            var signedId = poRecord.getValue('custbody11');
+            var nameSigned = ''
+            if(signedId){
+                var empRec = record.load({
+                    type : "employee",
+                    id : signedId
+                });
+                var fName = empRec.getValue('firstname');
+                var mName = empRec.getValue('middlename');
+                var lName = empRec.getValue('lastname');
+                var nameEmp = fName + " " + mName + " " + lName 
+                if(nameEmp){
+                    nameSigned = nameEmp
+                }
+            }
             // var subTotal = poRecord.getValue('subtotal') || 0;
             var poTotal = poRecord.getValue('total') || 0;
             
@@ -338,6 +353,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             total = Number(subTotal) + Number(taxtotal);
             var totalToCount = total
             if(poTotal){
+                
                 poTotal = parseFloat(poTotal);
                 poTotal = poTotal.toFixed(2);
                 poTotal = format.format({
@@ -346,7 +362,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
             }
             if(subTotal){
-                subTotal = pembulatan(subTotal)
+                if(alva){
+                    subTotal = subTotal
+                }else{
+                    subTotal = pembulatan(subTotal)
+                }
+                
                 subTotal = format.format({
                     value: subTotal,
                     type: format.Type.CURRENCY
@@ -354,14 +375,24 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             }
             
             if(taxtotal){
-                taxtotal = pembulatan(taxtotal)
+                if(alva){
+                    taxtotal = taxtotal
+                }else{
+                    taxtotal = pembulatan(taxtotal)
+                }
+                
                 taxtotal = format.format({
                     value: taxtotal,
                     type: format.Type.CURRENCY
                 });
             }
             if(total){
-                total = pembulatan(total)
+                if(alva){
+                    total = total
+                }else{
+                    total = pembulatan(total)
+                }
+                
                 total = format.format({
                     value: total,
                     type: format.Type.CURRENCY
@@ -548,61 +579,69 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td class='tg-head_body' style='align:right'> TAXED </td>"
                 body += "<td class='tg-head_body' style='align:right; width:23%'> AMOUNT ("+ tlcCurr +") </td>"
             }
-              
+            
             body += "</tr>"
-            body += getPOItem(context, poRecord);
-            body += getPOExpense(context, poRecord);
+            body += getPOItem(context, poRecord, alva);
+            body += getPOExpense(context, poRecord, alva);
             body += "<tr>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-f_body' colspan='2'>SUBTOTAL</td>"
-            body += "<td class='tg-f_body'>"+removeDecimalFormat(subTotal)+"</td>"
+            body += "<td class='tg-f_body'>" + (alva ? subTotal : removeDecimalFormat(subTotal)) + "</td>"
             body += "</tr>"
-            if(taxRateList != ''){
+            
+            if (taxRateList != '') {
                 body += "<tr>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-f_body'></td>"
-                body += "<td class='tg-f_body'>VAT "+taxtRate+" %</td>"
-                body += "<td class='tg-f_body'>"+removeDecimalFormat(taxtotal)+"</td>"
+                body += "<td class='tg-f_body'>VAT " + taxtRate + " %</td>"
+                body += "<td class='tg-f_body'>" + (alva ? taxtotal : removeDecimalFormat(taxtotal)) + "</td>"
                 body += "</tr>"
             }
+            
             body += "<tr>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-f_body'></td>"
             body += "<td class='tg-f_body'>TOTAL</td>"
-            body += "<td class='tg-f_body'>"+removeDecimalFormat(total)+"</td>"
+            body += "<td class='tg-f_body'>" + (alva ? total : removeDecimalFormat(total)) + "</td>"
             body += "</tr>"
-            if(whTaxCodetoPrint){
+            
+            if (whTaxCodetoPrint) {
                 body += "<tr>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
-                body += "<td style='align: right;font-size:12px;border-bottom: solid black 2px;' colspan='2'>"+ whTaxCodetoPrint+"</td>"
-                body += "<td class='tg-f_body'>"+removeDecimalFormat(totalWhTaxamount)+"</td>"
+                body += "<td style='align: right;font-size:12px;border-bottom: solid black 2px;' colspan='2'>" + whTaxCodetoPrint + "</td>"
+                body += "<td class='tg-f_body'>" + (alva ? totalWhTaxamount : removeDecimalFormat(totalWhTaxamount)) + "</td>"
                 body += "</tr>"
             }
-           
+            
             body += "<tr>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td style='align: right;font-size:14px;border-top: solid black 2px; font-weight: bold;' colspan='2'>BALANCE DUE</td>"
-            body += "<td style='align: right;font-size:15px;border-top: solid black 2px; font-weight: bold;'>"+removeDecimalFormat(amountRecieved)+"</td>"
+            body += "<td style='align: right;font-size:15px;border-top: solid black 2px; font-weight: bold;'>" + (alva ? amountRecieved : removeDecimalFormat(amountRecieved)) + "</td>"
             body += "</tr>"
-
-           
+            
             body += "<tr style='height:30px;'></tr>"
             if(alva){
                 body += "<tr>"
                 body += "<td style='margin:4%;' colspan='2'>Signed By</td>"
                 body += "</tr>"
 
-                body += "<tr style='height:30px;'>"
+                body += "<tr style='height:50px;'>"
                 body += "</tr>"
-
-                body += "<tr>"
-                body += "<td style='margin:3%;' colspan='2'>( __________ )</td>"
-                body += "</tr>"
+                if(nameSigned){
+                    body += "<tr>"
+                    body += "<td style='margin:3%;' colspan='2'>( "+nameSigned+" )</td>"
+                    body += "</tr>"
+                }else{
+                    body += "<tr>"
+                    body += "<td style='margin:3%;' colspan='2'>( __________ )</td>"
+                    body += "</tr>"
+                }
+                
 
             }
             body += "<tr>"
@@ -643,7 +682,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             });
         }
 
-        function getPOItem(context, poRecord){
+        function getPOItem(context, poRecord, alva){
             var itemCount = poRecord.getLineCount({
                 sublistId: 'item'
             });
@@ -687,7 +726,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     // }
                     rate = Number(ammount) / Number(qty)
                     if(rate){
-                        rate = pembulatan(rate)
+                        if(alva){
+                            rate = rate
+                        }else{
+                            rate = pembulatan(rate)
+                        }
+                        
                         rate = format.format({
                             value: rate,
                             type: format.Type.CURRENCY
@@ -700,33 +744,53 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         line: index
                     });
                     if(taxAmt){
-                        taxAmt = pembulatan(taxAmt)
+                        if(alva){
+                            taxAmt = taxAmt
+                        }else{
+                            taxAmt = pembulatan(taxAmt)
+                        }
+                        
                         taxAmt = format.format({
                             value: taxAmt,
                             type: format.Type.CURRENCY
                         });
                     }
                     if(ammount){
-                        ammount = pembulatan(ammount)
+                        if(alva){
+                            ammount = ammount
+                        }else{
+                            ammount = pembulatan(ammount)
+                        }
+                        
                         ammount = format.format({
                             value: ammount,
                             type: format.Type.CURRENCY
                         });
                     }
-                   
-                    body += "<tr>";
-                    body += "<td class='tg-b_body'>"+qty+" - "+unit+ "Pcs</td>";
-                    body += "<td class='tg-b_body'>"+description+"</td>";
-                    body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(rate)+"</td>";
-                    body += "<td class='tg-b_body' style='align:right'> X </td>";
-                    body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(ammount)+"</td>";
-                    body += "</tr>";
+                    if(alva){
+                        body += "<tr>";
+                        body += "<td class='tg-b_body'>"+qty+" - "+unit+ "Pcs</td>";
+                        body += "<td class='tg-b_body'>"+description+"</td>";
+                        body += "<td class='tg-b_body' style='align:right'>"+rate+"</td>";
+                        body += "<td class='tg-b_body' style='align:right'> X </td>";
+                        body += "<td class='tg-b_body' style='align:right;'>"+ammount+"</td>";
+                        body += "</tr>";
+                    }else{
+                        body += "<tr>";
+                        body += "<td class='tg-b_body'>"+qty+" - "+unit+ "Pcs</td>";
+                        body += "<td class='tg-b_body'>"+description+"</td>";
+                        body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(rate)+"</td>";
+                        body += "<td class='tg-b_body' style='align:right'> X </td>";
+                        body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(ammount)+"</td>";
+                        body += "</tr>";
+                    }
+                    
                 }
                 return body;
             }
             
         }
-        function getPOExpense(context, poRecord){
+        function getPOExpense(context, poRecord, alva){
             var expCont = poRecord.getLineCount({
                 sublistId : 'expense'
             });
@@ -749,8 +813,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                     if(amount){
                         var amountBef = amount
+                        if(alva){
+                            amount = amount
+                        }else{
+                            amount = pembulatan(amount)
+                        }
                         
-                        amount = pembulatan(amount)
                         amount = format.format({
                             value: amount,
                             type: format.Type.CURRENCY
@@ -762,7 +830,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         line: index
                     });
                     if(taxamt_exp){
-                        taxamt_exp = pembulatan(taxamt_exp)
+                        if(alva){
+                            taxamt_exp = taxamt_exp 
+                        }else{
+                            taxamt_exp = pembulatan(taxamt_exp)
+                        }
+                        
                         taxamt_exp = format.format({
                             value: taxamt_exp,
                             type: format.Type.CURRENCY
@@ -770,19 +843,35 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     var grosamt_exp = Number(amountBef) * Number(qty)
                     if(grosamt_exp){
-                        grosamt_exp = pembulatan(grosamt_exp)
+                        if(alva){
+                            grosamt_exp = grosamt_exp 
+                        }else{
+                            grosamt_exp = pembulatan(grosamt_exp)
+                        }
+                        
                         grosamt_exp = format.format({
                             value: grosamt_exp,
                             type: format.Type.CURRENCY
                         });
                     }
-                    body += "<tr>";
-                    body += "<td class='tg-b_body'>"+qty+"</td>";
-                    body += "<td class='tg-b_body'>"+description+"</td>";
-                    body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(amount)+"</td>";
-                    body += "<td class='tg-b_body' style='align:right'>X</td>";
-                    body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(grosamt_exp)+"</td>";
-                    body += "</tr>";
+                    if(alva){
+                        body += "<tr>";
+                        body += "<td class='tg-b_body'>"+qty+"</td>";
+                        body += "<td class='tg-b_body'>"+description+"</td>";
+                        body += "<td class='tg-b_body' style='align:right'>"+amount+"</td>";
+                        body += "<td class='tg-b_body' style='align:right'>X</td>";
+                        body += "<td class='tg-b_body' style='align:right;'>"+grosamt_exp+"</td>";
+                        body += "</tr>";
+                    }else{
+                        body += "<tr>";
+                        body += "<td class='tg-b_body'>"+qty+"</td>";
+                        body += "<td class='tg-b_body'>"+description+"</td>";
+                        body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(amount)+"</td>";
+                        body += "<td class='tg-b_body' style='align:right'>X</td>";
+                        body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(grosamt_exp)+"</td>";
+                        body += "</tr>";
+                    }
+                    
                 }
                 return body;
             }
