@@ -8,7 +8,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     var records = currentRecord.get();
     
     function pageInit(context) {
-        console.log('init masuk');
+        log.debug('init masuk');
     }
     
     function calculate(context) {
@@ -104,6 +104,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     fieldId : 'custcol_abj_total_packaging',
                     line : index
                 })
+                log.debug('totalPackaging', totalPackaging)
                 allData.push({
                     soNo : soNo,
                     packSizeOrder : packSizeOrder,
@@ -126,7 +127,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
 
             var groupedData = {};
-
             allData.forEach(function(data) {
                 var groupKey = data.item + '-' + data.salesRep + '-' + data.customerId + '-' + data.packSizeOrder;
             
@@ -138,7 +138,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         customerId: data.customerId,
                         packSizeOrder: data.packSizeOrder,
                         tanggalKirim: data.tanggalKirim,
-                        totalPackaging : data.totalPackaging,
+                        totalPackaging : 0,
                         rumusPerhitungan: 0,
                         avgPengBusdev: 0,
                         avgPengAcc: 0,
@@ -152,29 +152,28 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     };
                 }
             
-                groupedData[groupKey].onHand += data.onHand;
-                groupedData[groupKey].incomingStock += data.incomingStock;
-                groupedData[groupKey].osPo += data.osPo;
+                groupedData[groupKey].onHand += Number(data.onHand);
+                groupedData[groupKey].incomingStock += Number(data.incomingStock);
+                groupedData[groupKey].osPo += Number(data.osPo);
                 groupedData[groupKey].foreCastBuffer += Number(data.foreCastBuffer);
-                groupedData[groupKey].totalOrder += data.totalOrder;
-                groupedData[groupKey].avgPengAcc += data.avgPengAcc;
-                groupedData[groupKey].avgPengBusdev += data.avgPengBusdev;
-                groupedData[groupKey].rumusPerhitungan += data.rumusPerhitungan;
+                groupedData[groupKey].totalOrder += Number(data.totalOrder);
+                groupedData[groupKey].totalPackaging += Number(data.totalPackaging);
+                groupedData[groupKey].avgPengAcc += Number(data.avgPengAcc);
+                groupedData[groupKey].avgPengBusdev += Number(data.avgPengBusdev);
+                groupedData[groupKey].rumusPerhitungan += Number(data.rumusPerhitungan);
                 
                 if (data.poCustomer && data.poCustomer.trim() !== "") {
                     groupedData[groupKey].poCustomer.push(data.poCustomer);
                 }
             });
             
-            console.log('groupedData', groupedData);
+            log.debug('groupedData', groupedData);
             
             var countLineInCustom = currentRecordObj.getLineCount({
                 sublistId: "recmachcustrecord_iss_pr_parent"
             });
-            console.log('countLineInCustom', countLineInCustom)
             if (countLineInCustom > 0) {
                 var lineCount = currentRecordObj.getLineCount({ sublistId: 'recmachcustrecord_iss_pr_parent' });
-                console.log('deletedLineSUms')
                 for (var i = lineCount - 1; i >= 0; i--) {
                     currentRecordObj.selectLine({ sublistId: 'recmachcustrecord_iss_pr_parent', line: i });
                     currentRecordObj.removeLine({ sublistId: 'recmachcustrecord_iss_pr_parent', line: i, ignoreRecalc: true });
@@ -189,13 +188,13 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     // Jika hasil perhitungan negatif
                     if (calculationResult < 0) {
                         var newRow = JSON.parse(JSON.stringify(data));
-                        console.log('tanggalKirim', data.tanggalKirim)
                         newRow.onHand = 0;
                         newRow.incomingStock = 0;
                         newRow.osPo = 0;
                         newRow.foreCastBuffer = data.foreCastBuffer;
                         newRow.totalOrder = -Math.abs(data.foreCastBuffer);
                         newRow.totalPackaging = data.totalPackaging;
+                        newRow.poCustomer = '';
                         newRow.soNo = '';
                         newRow.tanggalKirim = data.tanggalKirim
                         data.foreCastBuffer = 0;
@@ -205,18 +204,20 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         return [data, newRow];
                     }else{
                         var newTotal = Number(calculationResult)  - Number(data.foreCastBuffer)
-                        console.log('newTotal', newTotal)
+                       log.debug('newTotal', newTotal)
                         data.totalOrder = newTotal;
-                        data.soNo = ''
+                        // data.soNo = ''
                         return data;
                     }
                 }
                 return data;
             });
             result = result.flat(); 
-            console.log('resultLength', result.length)
+           log.debug('resultLength', result.length)
             if (result.length > 0) {
+
                 result.forEach(function(data) {
+                    log.debug('data', data)
                     var soNo = data.soNo
                     var packSizeOrder = data.packSizeOrder
                     var item = data.item;
@@ -277,6 +278,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: 'custrecord_iss_os_po',
                         value: osPo
                     });
+                    
                     currentRecordObj.setCurrentSublistValue({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
                         fieldId: 'custrecord_iss_total_order',
@@ -330,6 +332,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
             
         }
+        var scriptObj = runtime.getCurrentScript();
+        log.debug({
+            title: "Remaining usage units: ",
+            details: scriptObj.getRemainingUsage(),
+        });
     }
     return {
         pageInit: pageInit,

@@ -36,13 +36,50 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 label: 'Area',
                 source: 'customlist_rda_are_so'
             });
-            area.isMandatory = true
             var subArea = form.addField({
                 id: 'custpage_sub_area', 
                 type: serverWidget.FieldType.SELECT,
                 container: "filteroption",
                 label: 'Sub Area',
                 source: 'customrecord_rda_vehicle_detail'
+            });
+            var salesMan = form.addField({
+                id: 'custpage_sales', 
+                type: serverWidget.FieldType.SELECT,
+                container: "filteroption",
+                label: 'Sales Rep',
+            });
+            salesMan.addSelectOption({
+                value: '', 
+                text: '-Select-'
+            });
+            // search sales rep
+            var employeeSearchObj = search.create({
+                type: "employee",
+                filters:
+                [
+                    ["salesrep","is","T"]
+                ],
+                columns:
+                [
+                    search.createColumn({name: "entityid", label: "Name"}),
+                    search.createColumn({name: "internalid", label: "Internal ID"})
+                ]
+            });
+            var searchResultCount = employeeSearchObj.runPaged().count;
+            log.debug("employeeSearchObj result count",searchResultCount);
+            employeeSearchObj.run().each(function(result){
+                var nameSales = result.getValue({
+                    name: "entityid"
+                });
+                var idEmp = result.getValue({
+                    name: "internalid"
+                });
+                salesMan.addSelectOption({
+                    value: idEmp, 
+                    text: nameSales 
+                });
+                return true;
             });
             var nopolList = form.addField({
                 id: 'custpage_nopol', 

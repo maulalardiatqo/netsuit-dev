@@ -27,6 +27,8 @@
                 if(noPol){
                     var nameAsset = ''
                     var idAsset = ''
+                    var spr = ''
+                    var hlp = ''
                     var customrecord_ncfar_assetSearchObj = search.create({
                         type: "customrecord_ncfar_asset",
                         filters:
@@ -36,7 +38,9 @@
                         columns:
                         [
                             search.createColumn({name: "altname", label: "Name"}),
-                            search.createColumn({name: "internalid", label: "Name"})
+                            search.createColumn({name: "internalid", label: "Name"}),
+                            search.createColumn({name: "custrecord_rda_kend_sewa_supir", label: "Supir"}),
+                            search.createColumn({name: "custrecord_rda_kend_sewa_helper", label: "Helper"})
                         ]
                     });
                     var searchResults = customrecord_ncfar_assetSearchObj.run().getRange({ start: 0, end: 1 });
@@ -50,6 +54,14 @@
                         if(id){
                             idAsset = id
                         }
+                        var sprName = searchResults[0].getValue({ name: 'custrecord_rda_kend_sewa_supir' });
+                        if(sprName){
+                            spr = sprName
+                        }
+                        var hlpName = searchResults[0].getValue({ name: 'custrecord_rda_kend_sewa_helper' });
+                        if(hlpName){
+                            hlp = hlpName
+                        }
                     }
                     console.log('nameAsset', nameAsset)
                     if(nameAsset != '' ){
@@ -61,10 +73,26 @@
                             fieldId: 'custpage_armada_id',
                             value : idAsset
                         });
+                        vrecord.setValue({
+                            fieldId: 'custpage_supir',
+                            value : sprName
+                        });
+                        vrecord.setValue({
+                            fieldId: 'custpage_helper',
+                            value : hlpName
+                        });
                     }
                 }else{
                     vrecord.setValue({
                         fieldId: 'custpage_armada',
+                        value : ''
+                    });
+                    vrecord.setValue({
+                        fieldId: 'custpage_supir',
+                        value : ''
+                    });
+                    vrecord.setValue({
+                        fieldId: 'custpage_helper',
                         value : ''
                     });
                 }
@@ -101,7 +129,8 @@
             var accPeriodid = records.getValue('custpage_accperiod');
             var date = records.getValue('custpage_date');
             var subsId = records.getValue('custpage_subsidiary');
-            if(area && subsidiary){
+            var salesId = records.getValue('custpage_sales');
+            if(subsidiary){
                 var dataSearch = search.load({
                     id: "customsearch_rda_packing_list_shipped",
                 });
@@ -149,6 +178,15 @@
                         name: "custbody_rda_area",
                         operator: search.Operator.ANYOF,
                         values: area,
+                        })
+                    );
+                }
+                if(salesId){
+                    dataSearch.filters.push(
+                        search.createFilter({
+                        name: "salesrep",
+                        operator: search.Operator.ANYOF,
+                        values: salesId,
                         })
                     );
                 }

@@ -419,7 +419,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
         
         var dataItem = []
         function getPOItem(context, recid){
-            var itemSearch =  search.load({
+            var itemSearch = search.load({
                 id: "customsearch_pr_line_for_printout",
             });
             if(recid){
