@@ -140,6 +140,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var witaxamountExp = result.getValue('custcol_4601_witaxamt_exp')
                 var witaxcodeExp = result.getValue('custcol_4601_witaxcode_exp')
                 var itemName = result.getValue('item')
+                var itemNameText = result.getText('item')
                 var memo = result.getValue('memo')
                 var taxamount = result.getValue('taxamount')
                 var rate = result.getValue('custcol_abj_purchase_price_per_kg');
@@ -166,6 +167,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     witaxamountExp,
                     witaxcodeExp,
                     itemName: itemName,
+                    itemNameText: itemNameText,
                     itemid: itemid,
                     quantity: quantity,
                     unit: unit,
@@ -480,6 +482,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var itemOtherChacge = result.getValue({
                         name: "internalid"
                     })
+
                     if (itemOtherChacge) {
                         idItemOtherCharge.push(itemOtherChacge)
                     }
@@ -491,11 +494,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                         var itemId = poRecord[index].itemid
                         var itemText = poRecord[index].itemName
+                        var itemNameText = poRecord[index].itemNameText
                         var amount = poRecord[index].amount
                         if (idItemOtherCharge.includes(itemId)) {
                             log.debug('Skip itemId', itemId);
                             allDataCharge.push({
-                                itemText: itemText,
+                                itemNameText: itemNameText,
                                 amount: amount
                             })
                         }
@@ -601,7 +605,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td class='tg-headerrow_left'></td>";
                     body += "<td class='tg-headerrow_left'></td>"
                     body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-f_body'>" + charge.itemText + "</td>";
+                    body += "<td class='tg-f_body'>" + charge.itemNameText + "</td>";
                     body += "<td class='tg-f_body'>" + charge.amount + "</td>";
                     body += "</tr>";
                 });

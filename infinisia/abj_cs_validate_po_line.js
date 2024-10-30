@@ -5,303 +5,116 @@
  */
 
 define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message"], function (runtime, log, url, currentRecord, currency, record, search, message) {
-    var records = currentRecord.get();
     function pageInit(context) {
-        console.log('init masuk')
+       log.debug('init masuk');
     }
-    function validateLine(context) {
+
+    function saveRecord(context) {
         var currentRecordObj = context.currentRecord;
         var cForm = currentRecordObj.getValue('customform');
-        
-        if(cForm == '138'){
-            if(context.sublistId === 'item'){
-                console.log('sublist adalah item');
-                var currentId = currentRecordObj.getValue('id');
-                var currentIdLine = currentRecordObj.getCurrentSublistValue({
+        log.debug('cForm', cForm)
+        if (cForm == '138') {
+            var countLine = currentRecordObj.getLineCount({ sublistId: 'item' });
+            var currentId = currentRecordObj.getValue('id');
+            var allDataItem = [];
+            for (var i = 0; i < countLine; i++) {
+                var soNumber = currentRecordObj.getSublistValue({
                     sublistId: 'item',
-                    fieldId: 'line'
+                    fieldId: 'custcol_abj_no_so',
+                    line: i
                 });
-                console.log('currentIdLine', currentIdLine)
-                var soNumber = currentRecordObj.getCurrentSublistValue({
-                    sublistId: 'item',
-                    fieldId: 'custcol_abj_no_so'
-                });
-                var itemLine = currentRecordObj.getCurrentSublistValue({
-                    sublistId: 'item',
-                    fieldId: 'item'
-                });
-                var id_line = currentRecordObj.getCurrentSublistValue({
-                    sublistId: 'item',
-                    fieldId: 'id'
-                });
-                var packSizeSo = currentRecordObj.getCurrentSublistValue({
-                    sublistId: 'item',
-                    fieldId: 'custcol_abj_packsize_po'
-                });
-                var cekSORec = soNumber + "-" + itemLine + "-" + packSizeSo
-                if(soNumber == ''){
-                    return true
+                log.debug('soNumber', soNumber)
+                if(soNumber && soNumber != ""){
+                    var soNumberText = currentRecordObj.getSublistText({
+                        sublistId: 'item',
+                        fieldId: 'custcol_abj_no_so',
+                        line: i
+                    });
+                    var itemLine = currentRecordObj.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'item',
+                        line: i
+                    });
+                    var itemLineText = currentRecordObj.getSublistText({
+                        sublistId: 'item',
+                        fieldId: 'item',
+                        line: i
+                    });
+                    var packSizeSo = currentRecordObj.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_abj_pack_size_order',
+                        line: i
+                    });
+                    var isDuplicateInAllDataItem = allDataItem.some(function (data) {
+                        return data.soNumber === soNumber && data.itemLine === itemLine && data.packSizeSo === packSizeSo;
+                    });
+    
+                    if (isDuplicateInAllDataItem) {
+                        log.debug('isDuplicateInAllDataItem', {soNumberText : soNumberText, itemLineText : itemLineText})
+                        alert('Duplicated Sales Order Number in Item Line');
+                        return false;
+                    }
+                    allDataItem.push({
+                        soNumber: soNumber,
+                        itemLine : itemLine,
+                        packSizeSo : packSizeSo
+                    })
+                    log.debug('allDataItem', allDataItem)
+                    var cekSORec = soNumber + "-" + itemLine + "-" + packSizeSo;
+    
+                    if (soNumber === '') {
+                        continue; 
+                    }
+    
+                   
                 }
-                var countLine = currentRecordObj.getLineCount({ sublistId: 'item' });
-                // cek 1
                 
-                var arrSoNumber = [];
-                var arrItem = [];
-                var purchaseorderSearchObj = search.create({
-                    type: "purchaseorder",
-                    filters: [
-                        ["type","anyof","PurchOrd"], 
-                        "AND", 
-                        ["customform","anyof","138"], 
-                        "AND", 
-                        ["custcol_abj_no_so","noneof","@NONE@"]
-                    ],
-                    columns: [
-                        search.createColumn({name: "internalid", label: "Internal ID"}),
-                        search.createColumn({name: "custcol_abj_no_so", label: "No SO"}),
-                        search.createColumn({name: "item", label: "Item"}),
-                        search.createColumn({name: "item", label: "custcol_abj_packsize_po"})
-                    ]
-                });
-                var searchResultCount = purchaseorderSearchObj.runPaged().count;
-                log.debug("purchaseorderSearchObj result count", searchResultCount);
-                var cekValidasi = true
-                purchaseorderSearchObj.run().each(function(result) {
-                    var numberSO = result.getValue({
-                        name: 'custcol_abj_no_so'
-                    });
-                    var internalId = result.getValue({
-                        name: 'internalid'
-                    });
-                    var itemId = result.getValue({
-                        name: "item"
-                    })
-                    var packSizeSoSearch = result.getValue({
-                        name: "item"
-                    })
-                    console.log('internalid', internalId)
-                    if(internalId == currentId){
-                        cekValidasi = false
-                    }
-                    var soCekSearch = numberSO + "-" + itemId + "-" + packSizeSoSearch
-                    arrSoNumber.push(soCekSearch)
-                    arrItem.push(itemId)
-                    return true;
-                });
-                console.log('arrSoNumber', arrSoNumber);
-                console.log('cekValidasi', cekValidasi)
-                var isSoNumberExist = arrSoNumber.indexOf(cekSORec) !== -1;
-                var isItemExist = arrItem.indexOf(itemLine) !== -1;
-                console.log('Apakah soNumber ada di dalam arrSoNumber?', isSoNumberExist);
-                if (countLine > 0) {
-                    for (var i = 0; i < countLine; i++) {
-                        var cekSo = currentRecordObj.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_abj_no_so',
-                            line: i
-                        });
-                        var cekItem = currentRecordObj.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'item',
-                            line: i
-                        });
-                        var cekpackSoLine = currentRecordObj.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_abj_packsize_po',
-                            line: i
-                        });
-                        var cekSoitem = cekSo + "-" + cekItem + "-" + cekpackSoLine
-                        var cekSoItemSearch = soNumber + "-" + itemLine + "-" + packSizeSo
-                        console.log('cekSoitem', cekSoitem)
-                        console.log('cekSoItemSearch', cekSoItemSearch)
-                        if(cekValidasi == false){
-                            var cekLineId = currentRecordObj.getSublistValue({
-                                sublistId: 'item',
-                                fieldId: 'id',
-                                line: i
-                            });
-                            log.debug('id_line', id_line)
-                            log.debug('cekLineId', cekLineId)
-                            if(id_line == cekLineId){
-                                console.log('cek line id sama')
-                                return true
-                            }else{
-                                if (cekSoitem === cekSoItemSearch) {
-                                        alert('Duplicated Sales Order Number!');
-                                        return false;
-                                    
-                                }
-                            }
-                            
-                        }else{
-                            if (cekSoitem === cekSoItemSearch) {
-                                alert('Duplicated Sales Order Number!');
-                                return false;
-                                
-                            }else{
-                                return true;
-                            }
-                            
-                        }
-                        
-                    }
-                }
-                if(cekValidasi == true){
-                    if (isSoNumberExist) {
-                            alert('Duplicated Sales Order Number!');
-                            return false;
-                        } else {
-                            return true;
-                        }
-                }else{
-                    return true;
-                }
-            
             }
-            if(context.sublistId === 'recmachcustrecord_iss_pr_parent'){
-                console.log('sublist id adalah recmach')
-                var currentId = currentRecordObj.getValue('id');
-                console.log('currentId', currentId)
-                var soNumber = currentRecordObj.getCurrentSublistValue({
+
+            var countRecMachLine = currentRecordObj.getLineCount({ sublistId: 'recmachcustrecord_iss_pr_parent' });
+            var allDataPRSum = [];
+            for (var j = 0; j < countRecMachLine; j++) {
+                var soNumberRecMach = currentRecordObj.getSublistValue({
                     sublistId: 'recmachcustrecord_iss_pr_parent',
-                    fieldId: 'custrecord_iss_no_po'
+                    fieldId: 'custrecord_iss_no_po',
+                    line: j
                 });
-                var itemLine = currentRecordObj.getCurrentSublistValue({
+                var itemLineRecMach = currentRecordObj.getSublistValue({
                     sublistId: 'recmachcustrecord_iss_pr_parent',
-                    fieldId: 'custrecord_iss_pr_item'
+                    fieldId: 'custrecord_iss_pr_item',
+                    line: j
                 });
-                var id_line = currentRecordObj.getCurrentSublistValue({
-                    sublistId: 'recmachcustrecord_iss_pr_parent',
-                    fieldId: 'id'
+                var cekSORecMach = soNumberRecMach + "-" + itemLineRecMach;
+
+                var isDuplicateInAllDataPRSum = allDataItem.some(function (data) {
+                    return data.soNumberRecMach === soNumberRecMach && data.itemLineRecMach === itemLineRecMach
                 });
-                var cekSORec = soNumber + "-" + itemLine
-                if(soNumber == ''){
-                    return true
+
+                if (isDuplicateInAllDataPRSum) {
+                    alert('Duplicated Sales Order Number in Item Line');
+                    return false;
                 }
-                var countLine = currentRecordObj.getLineCount({ sublistId: 'recmachcustrecord_iss_pr_parent' });
-                var arrSoNumber = [];
-                var arrItem = [];
-                var purchaseorderSearchObj = search.create({
-                    type: "purchaseorder",
-                    filters:
-                    [
-                        ["type","anyof","PurchOrd"], 
-                        "AND", 
-                        ["customform","anyof","138"], 
-                        "AND", 
-                        ["custrecord_iss_pr_parent.custrecord_iss_no_po","noneof","@NONE@"]
-                    ],
-                    columns:
-                    [
-                        search.createColumn({name: "internalid", label: "Internal ID"}),
-                        search.createColumn({
-                            name: "custrecord_iss_no_po",
-                            join: "CUSTRECORD_ISS_PR_PARENT",
-                            label: "No SO"
-                        }),
-                        search.createColumn({
-                            name: "custrecord_iss_pr_item",
-                            join: "CUSTRECORD_ISS_PR_PARENT",
-                            label: "Item"
-                         })
-                    ]
-                });
-                var searchResultCount = purchaseorderSearchObj.runPaged().count;
-                log.debug("purchaseorderSearchObj result count",searchResultCount);
-                var cekValidasi = true
-                purchaseorderSearchObj.run().each(function(result){
-                    var numberSO = result.getValue({
-                        name: "custrecord_iss_no_po",
-                        join: "CUSTRECORD_ISS_PR_PARENT",
-                    });
-                    var internalId = result.getValue({
-                        name: 'internalid'
-                    });
-                    var itemSavedId = result.getValue({
-                        name: "custrecord_iss_pr_item",
-                            join: "CUSTRECORD_ISS_PR_PARENT",
-                    });
-                    console.log('internalid', internalId)
-                    if(internalId == currentId){
-                        cekValidasi = false
-                    }
-                    var soCekSearch = numberSO + "-" + itemId
-                    arrSoNumber.push(soCekSearch)
-                    arrItem.push(itemSavedId)
-                    return true;
-                });
-                console.log('arrSoNumber', arrSoNumber)
-                var isSoNumberExist = arrSoNumber.indexOf(cekSORec) !== -1;
-                var isItemExist = arrItem.indexOf(itemLine) !== -1;
-                console.log('Apakah soNumber ada di dalam arrSoNumber?', isSoNumberExist);
-                if (countLine > 0) {
-                    for (var i = 0; i < countLine; i++) {
-                        var cekSo = currentRecordObj.getSublistValue({
-                            sublistId: 'recmachcustrecord_iss_pr_parent',
-                            fieldId: 'custrecord_iss_no_po',
-                            line: i
-                        });
-                        var cekItem = currentRecordObj.getSublistValue({
-                            sublistId: 'recmachcustrecord_iss_pr_parent',
-                            fieldId: 'custrecord_iss_pr_item',
-                            line: i
-                        });
-                        console.log('cekSo', cekSo);
-                        var cekSoitem = cekSo + "-" +cekItem
-                        var cekSoItemSearch = soNumber + "-" + itemLine 
-                        if(cekValidasi == false){
-                            var cekLineId = currentRecordObj.getSublistValue({
-                                sublistId: 'recmachcustrecord_iss_pr_parent',
-                                fieldId: 'id',
-                                line: i
-                            });
-                            log.debug('id_line', id_line)
-                            log.debug('cekLineId', cekLineId)
-                            if(id_line == cekLineId){
-                                console.log('cek line id sama')
-                                return true
-                            }else{
-                                if (cekSoitem === cekSoItemSearch) {
-                                        alert('Duplicated Sales Order Number!');
-                                        return false;
-                                    
-                                    
-                                }
-                            }
-                            
-                        }else{
-                            if (cekSoitem === cekSoItemSearch) {
-                                    alert('Duplicated Sales Order Number!');
-                                    return false;
-                                
-                            }else{
-                                return true;
-                            }
-                            
-                        }
-                        
-                        
-                    }
+                allDataPRSum.push({
+                    soNumberRecMach : soNumberRecMach,
+                    itemLineRecMach : itemLineRecMach
+                })
+
+                if (soNumberRecMach === '') {
+                    continue;
                 }
-                if(cekValidasi == true){
-                    if (isSoNumberExist) {
-                            alert('Duplicated Sales Order Number!');
-                            return false;
-                    } else {
-                        return true;
-                    }
-                }else{
-                    return true;
-                }
+
+               
             }
-            
         }else{
+           log.debug('masuk else')
             return true
         }
-        
+
+        return true;
     }
+
     return {
         pageInit: pageInit,
-        validateLine : validateLine
+        saveRecord: saveRecord
     };
 });

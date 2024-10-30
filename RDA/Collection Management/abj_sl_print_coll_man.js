@@ -46,29 +46,38 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 const dayName = days[currentDate.getDay()];
 
                 // Format date
-                const year = currentDate.getFullYear();
-                const month = String(currentDate.getMonth() + 1).padStart(2, "0");
-                const date = String(currentDate.getDate()).padStart(2, "0");
+                const year = currentDate.getUTCFullYear();
+                const month = String(currentDate.getUTCMonth() + 1).padStart(2, "0");
+                const date = String(currentDate.getUTCDate()).padStart(2, "0");
                 const formattedDate = `${dayName} ${year}/${month}/${date}`;
 
-                const hours = String(currentDate.getHours()).padStart(2, "0");
-                const minutes = String(currentDate.getMinutes()).padStart(2, "0");
+                const hours = String(currentDate.getUTCHours()).padStart(2, "0");
+                const minutes = String(currentDate.getUTCMinutes()).padStart(2, "0");
                 const formattedTime = `${hours}:${minutes}`;
 
                 var recid = context.request.parameters.id;
+                log.debug('recid', recid)
                 // load Record
                 log.debug('recid', recid)
-                
-                var collRecord = record.load({
-                    type: 'customtransaction_rda_collection_mgm',
-                    id: recid,
-                    isDynamic: false,
+                var searchCreate = search.load({
+                    id: "customsearch875",
                 });
-                var docNo = collRecord.getValue('tranid')
-                var areaToPrint
+                if(recid){
+                    searchCreate.filters.push(search.createFilter({name: "internalid", operator: search.Operator.ANYOF, values: recid}));
+                }
+                var searchCreateSet = searchCreate.run();
+                var result = searchCreateSet.getRange(0, 1);
+                var collRecord = result[0];
+
+                var docNo = collRecord.getValue({name :'tranid'})
+                var areaToPrint = ''
                 var allData = []
-                var allIdInv = collRecord.getValue('custbody_rda_invoice_number');
+                var allIdInv = collRecord.getValue({ name :'custbody_rda_invoice_number'});
                 log.debug('allIdInv', allIdInv);
+                var allIdInvArray = allIdInv.split(',').map(function(id) {
+                    return id.trim(); // Menghapus spasi jika ada
+                });
+                log.debug('allIdInvArray', allIdInvArray);
                 var invoiceSearchObj = search.create({
                     type: "invoice",
                     settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
@@ -80,7 +89,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         "AND", 
                         ["cogs","is","F"],
                         "AND",
-                        ["internalid", "anyof"].concat(allIdInv)
+                        ["internalid", "anyof"].concat(allIdInvArray)
                     ],
                     columns:
                     [
@@ -235,7 +244,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 log.debug('allClass', allClass)
                 var allClassString = allClass.join(', ');
                 log.debug('allClassString', allClassString)
-                var subsId = collRecord.getValue('subsidiary');
+                var subsId = collRecord.getValue({name : 'subsidiary'});
                 var subAdders = ''
                 if(subsId){
                     var recSub = record.load({
@@ -248,7 +257,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         subAdders = addresSubsidiaries
                     }
                 }
-                var dateRec = collRecord.getValue('trandate')
+                var dateRec = collRecord.getValue({name : 'trandate'})
                 if(dateRec){
                     dateRec = format.format({
                         value: dateRec,
@@ -257,124 +266,76 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 log.debug('dateRec', dateRec)
 
-                var kolektor = collRecord.getValue('custbody_rda_kolektor');
+                var kolektor = collRecord.getText({name :'custbody_rda_kolektor'});
                 var halaman = 1
                 // page print
                 var response = context.response;
                 var xml = "";
                 var header = "";
                 var body = "";
-                var headerHeight = '25%';
+                var headerHeight = '26%';
                 var style = "";
                 var footer = "";
                 var pdfFile = null;
-
+                
                 // css
                 style += "<style type='text/css'>";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
-                style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
-                style += ".tg .tg-img-logo{width:195px; height:90px; object-vit:cover;}";
-                style += ".tg .tg-headerrow{align: right;font-size:12px;}";
-                style += ".tg .tg-headerrow_alva{align: left;font-size:12px;}";
-                style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
-                style += ".tg .tg-headerrow_legalName_Alva{align: left;font-size:13px;word-break:break-all; font-weight: bold;}";
-                style += ".tg .tg-headerrow_Total{align: right;font-size:16px;word-break:break-all; font-weight: bold;}";
-                style += ".tg .tg-headerrow_left{align: left;font-size:12px;}";
-                style += ".tg .tg-head_body{align: left;font-size:12px;font-weight: bold; border-top: 3px solid black; border-bottom: 3px solid black;}";
-                style += ".tg .tg-jkm{align: left;font-size:12px;font-weight: bold; border-top: 3px solid black; border-bottom: 3px solid black; background-color:#eba134}";
-                style += ".tg .tg-sisi{align: left;font-size:12px;font-weight: bold; border-top: 3px solid black; border-bottom: 3px solid black; background-color:#F8F40F}";
-                style += ".tg .tg-alva{align: left;font-size:12px;font-weight: bold; border-top: 3px solid black; border-bottom: 3px solid black; background-color:#08B1FF}";
-                style += ".tg .tg-froyo{align: left;font-size:12px;font-weight: bold; border-top: 3px solid black; border-bottom: 3px solid black; background-color:#0A65EC; color:#F9FAFC}";
-                style += ".tg .tg-b_body{align: left;font-size:12px; border-bottom: solid black 2px;}";
-                style += ".tg .tg-f_body{align: right;font-size:14px;border-bottom: solid black 2px;}";
-                style += ".tg .tg-foot{font-size:11px; color: #808080; position: absolute; bottom: 0;}";
+                style += ".tg .tg-headerlogo {align:right; border:none;}";
+                style += ".tg .tg-img-logo {width:195px; height:90px; object-fit:cover;}";
+                style += ".tg .tg-headerrow, .tg .tg-headerrow_alva {align: right; font-size:12px;}";
+                style += ".tg .tg-headerrow_legalName, .tg .tg-headerrow_legalName_Alva {align: left; font-size:13px; font-weight: bold;}";
+                style += ".tg .tg-headerrow_Total {align: right; font-size:16px; font-weight: bold;}";
+                style += ".tg .tg-head_body {align: left; font-size:12px; font-weight: bold; border-top:3px solid black; border-bottom:3px solid black;}";
+                style += ".tg .tg-jkm {background-color:#eba134;}";
+                style += ".tg .tg-sisi {background-color:#F8F40F;}";
+                style += ".tg .tg-alva {background-color:#08B1FF;}";
+                style += ".tg .tg-froyo {background-color:#0A65EC; color:#F9FAFC;}";
+                style += ".tg .tg-b_body {align:left; font-size:12px; border-bottom:2px solid black;}";
+                style += ".tg .tg-f_body {align:right; font-size:14px; border-bottom:2px solid black;}";
+                style += ".tg .tg-foot {font-size:11px; color: #808080; position: absolute; bottom: 0;}";
                 style += "</style>";
-
+                
                 // header
-                header += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
                 header += "<tbody>";
-                header += "<tr>"
-                header += "<td style='width:30%;'></td>"
-                header += "<td style='width:40%;'></td>"
-                header += "<td style='width:12%;'></td>"
-                header += "<td style='width:1%;'></td>"
-                header += "<td style='width:17%;'></td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td style='font-size:15px; font-weight:bold;'>PT. Rejeki Damai Abadi</td>"
-                header += "<td style='align:center; font-size:20px; font-weight:bold;' rowspan='4'>Surat Jalan Penagihan</td>"
-                header += "<td style=''>Nomor Dokumen</td>"
-                header += "<td style=''>:</td>"
-                header += "<td style=''>"+docNo+"</td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td rowspan='3'>"+subAdders+"</td>"
-                header += "<td>Tanggal Penagihan</td>"
-                header += "<td>:</td>"
-                header += "<td style='font-weight:bold'>"+dateRec+"</td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td>Kolektor</td>"
-                header += "<td>:</td>"
-                header += "<td style='font-weight:bold'>"+kolektor+"</td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td>Halaman</td>"
-                header += "<td>:</td>"
-                header += "<td style='font-weight:bold'><pagenumber/></td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td>Division: <b>"+allClassString+" </b></td>"
-                header += "</tr>"
-
-                header += "<tr style='height:20px'>"
-                header += "</tr>"
-
+                header += "<tr><td style='width:30%;'></td><td style='width:40%;'></td><td style='width:12%;'></td><td style='width:1%;'></td><td style='width:17%;'></td></tr>";
+                
+                header += "<tr><td style='font-size:15px; font-weight:bold;'>PT. Rejeki Damai Abadi</td>";
+                header += "<td rowspan='4' style='align:center; font-size:20px; font-weight:bold;'>Surat Jalan Penagihan</td>";
+                header += "<td>Nomor Dokumen</td><td>:</td><td>" + escapeXmlSymbols(docNo) + "</td></tr>";
+                
+                header += "<tr><td rowspan='3'>" + escapeXmlSymbols(subAdders) + "</td><td>Tanggal Penagihan</td><td>:</td><td style='font-weight:bold'>" + dateRec + "</td></tr>";
+                header += "<tr><td>Kolektor</td><td>:</td><td style='font-weight:bold'>" + escapeXmlSymbols(kolektor) + "</td></tr>";
+                header += "<tr><td>Halaman</td><td>:</td><td style='font-weight:bold'><pagenumber/></td></tr>";
+                header += "<tr><td colspan='5'>Division: <b>" + escapeXmlSymbols(allClassString) + " </b></td></tr>";
+                header += "<tr style='height:20px'></tr>";
+                
                 header += "</tbody>";
                 header += "</table>";
-
-                header += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+                
+                // Kolom header tabel
+                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
                 header += "<tbody>";
-
-                header += "<tr>"
-                header += "<td style='width:14%;'></td>"
-                header += "<td style='width:14%;'></td>"
-                header += "<td style='width:6%;'></td>"
-                header += "<td style='width:6%;'></td>"
-                header += "<td style='width:9%;'></td>"
-                header += "<td style='width:8%;'></td>"
-                header += "<td style='width:8%;'></td>"
-                header += "<td style='width:3%'></td>"
-                header += "<td style='width:6%;'></td>"
-                header += "<td style='width:6%;'></td>"
-                header += "<td style='width:6%;'></td>"
-                header += "<td style='width:13%;'></td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td style='border: solid black 1px; border-right:none; '>Customer</td>"
-                header += "<td style='border: solid black 1px; border-right:none;'>Nomor Faktur <br/> Performa Invoice Number</td>";
-                header += "<td style='border: solid black 1px; border-right:none;'>Tanggal <br/> Faktur</td>"
-                header += "<td style='border: solid black 1px; border-right:none;'>Tanggal <br/> Jt Tempo</td>"
-                header += "<td style='border: solid black 1px; border-right:none;'>Salesman <br/> atau No Kontra Bon</td>"
-                header += "<td style='border: solid black 1px; border-right:none;'>Nilai Faktur</td>"
-                header += "<td style='border: solid black 1px; border-right:none;'>Out Standing</td>"
-                header += "<td style='border: solid black 1px; border-right:none;'>Over <br/> Due</td>"
-                header += "<td style='border: solid black 1px; border-right:none;'>Retur</td>"
-                header += "<td style='border: solid black 1px; border-right:none;'>Tunai</td>"
-                header += "<td style='border: solid black 1px; border-right:none;'>Nominal</td>"
-                header += "<td style='border: solid black 1px; border-left:none; '>Pembayaran Giro <br/> No Giro/Bank/Jatuh Tempo</td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td style='border: solid black 1px; border-top:none; font-size:12px; font-weight:bold;' colspan='12'>"+areaToPrint+"</td>"
-                header += "</tr>"
-
+                header += "<tr><td style='width:14%;'></td><td style='width:14%;'></td><td style='width:6%;'></td><td style='width:6%;'></td>";
+                header += "<td style='width:9%;'></td><td style='width:8%;'></td><td style='width:8%;'></td><td style='width:3%'></td>";
+                header += "<td style='width:6%;'></td><td style='width:6%;'></td><td style='width:6%;'></td><td style='width:13%;'></td></tr>";
+                
+                // Kolom header baris isi tabel
+                header += "<tr><td style='border: solid black 1px; border-right:none;'>Customer</td>";
+                header += "<td style='border: solid black 1px; border-right:none;'>Nomor Faktur<br/>Performa Invoice Number</td>";
+                header += "<td style='border: solid black 1px; border-right:none;'>Tanggal Faktur</td>";
+                header += "<td style='border: solid black 1px; border-right:none;'>Tanggal Jt Tempo</td>";
+                header += "<td style='border: solid black 1px; border-right:none;'>Salesman atau No Kontra Bon</td>";
+                header += "<td style='border: solid black 1px; border-right:none;'>Nilai Faktur</td>";
+                header += "<td style='border: solid black 1px; border-right:none;'>Out Standing</td>";
+                header += "<td style='border: solid black 1px; border-right:none;'>Over Due</td>";
+                header += "<td style='border: solid black 1px; border-right:none;'>Retur</td>";
+                header += "<td style='border: solid black 1px; border-right:none;'>Tunai</td>";
+                header += "<td style='border: solid black 1px; border-right:none;'>Nominal</td>";
+                header += "<td style='border: solid black 1px; border-left:none;'>Pembayaran Giro<br/>No Giro/Bank/Jatuh Tempo</td></tr>";
+                header += "<tr><td colspan='12' style='border: solid black 1px; border-top: none; font-size:12px; font-weight:bold;'>" + escapeXmlSymbols(areaToPrint) + "</td></tr>";
+                
                 header += "</tbody>";
                 header += "</table>";
 
@@ -432,11 +393,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     
                     body += "<tr>"
-                    body += "<td style='border: solid black 1px; border-right:none; '><b>"+item.cussId+"</b><br/># "+item.entityId+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;'>"+item.docNumber+" ("+item.sjpCount+")<br/>-</td>";
+                    body += "<td style='border: solid black 1px; border-right:none; '><b>"+escapeXmlSymbols(item.cussId)+"</b><br/># "+escapeXmlSymbols(item.entityId)+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;'>"+escapeXmlSymbols(item.docNumber)+" ("+item.sjpCount+")<br/>-</td>";
                     body += "<td style='border: solid black 1px; border-right:none;'>"+item.tranDate+"</td>"
                     body += "<td style='border: solid black 1px; border-right:none;'>"+item.dueDate+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;'>"+item.salesRep+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;'>"+escapeXmlSymbols(item.salesRep)+"</td>"
                     body += "<td style='border: solid black 1px; border-right:none;'>"+amtTotal+"</td>"
                     body += "<td style='border: solid black 1px; border-right:none;'>"+amtRemaining+"</td>"
                     body += "<td style='border: solid black 1px; border-right:none;'>"+item.daysOverDue+"</td>"
@@ -477,7 +438,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style='border: solid black 1px; border-right:none; border-bottom:none; height:100px;'>Kolektor/Salesman,</td>"
                 footer += "<td style='border: solid black 1px; border-right:none; border-bottom:none; height:100px;'>Administrasi,</td>"
                 footer += "<td style='border: solid black 1px; border-right:none; border-bottom:none; height:100px;'>Kasir,</td>"
-                footer += "<td style='border: solid black 1px; border-bottom:none; height:100px;'>menyetujui,</td>"
+                footer += "<td style='border: solid black 1px; border-bottom:none; height:100px;'>Menyetujui,</td>"
                 footer += "</tr>"
 
                 footer += "<tr>"
@@ -496,7 +457,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 footer += "<tr>"
                 footer += "<td style='' colspan='2'><i>*/n setelah nofaktur menunjukan faktur sudah berapakali ditagih</i></td>"
-                footer += "<td style='align:right;' colspan='2'>"+formattedDate+" "+formattedTime+ " " +roleName+"</td>"
+                footer += "<td style='align:right;' colspan='2'>"+formattedDate+" "+formattedTime+ " " +escapeXmlSymbols(roleName)+"</td>"
                 footer += "</tr>"
               
                 footer += "</tbody>";

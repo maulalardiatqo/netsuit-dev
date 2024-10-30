@@ -265,6 +265,11 @@ define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", 
                         });
                         records.setCurrentSublistValue({
                             sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_refno',
+                            value: doNumber
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
                             fieldId: 'custpage_sublist_division',
                             value: division
                         });

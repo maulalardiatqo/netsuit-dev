@@ -87,6 +87,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 container: "valueRedord",
                 label: 'Nopol'
             });
+            nopolList.isMandatory = true
             nopolList.addSelectOption({
                 value: '', 
                 text: '-Select-'
@@ -202,7 +203,27 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 source: 'subsidiary'
             });
             subsidiary.isMandatory = true;
+            var nameGudang = ''
             if(subsidiaryId){
+                var subsidiarySearchObj = search.create({
+                    type: "subsidiary",
+                    filters: [
+                        ["internalid", "anyof", subsidiaryId]
+                    ],
+                    columns: [
+                        search.createColumn({name: "namenohierarchy", label: "Name (no hierarchy)"})
+                    ]
+                });
+                 
+                 // Ambil satu hasil saja
+                var result = subsidiarySearchObj.run().getRange({start: 0, end: 1})[0];
+                
+                if (result) {
+                    var nameG = result.getValue("namenohierarchy")
+                    if(nameG){
+                        nameGudang = 'InTransit Outbound - ' + nameG
+                    }
+                }
                 subsidiary.defaultValue = subsidiaryId
             }
             var supir = form.addField({
@@ -223,6 +244,9 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 container: "valueRedord",
                 label: 'Gudang'
             });
+            if(nameGudang){
+                gudang.defaultValue = nameGudang
+            }
            
             var sublist = form.addSublist({
                 id: 'custpage_sublist',
