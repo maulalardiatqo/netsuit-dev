@@ -72,32 +72,18 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 })
                 return true;
             });
-            var date_field = form.addField({
-                id: 'custpage_date', 
+            var date_field_from = form.addField({
+                id: 'custpage_date_from', 
                 type: serverWidget.FieldType.DATE,
                 container: "filteroption",
-                label: 'Due Date'
+                label: 'Due Date From'
             });
-            function getCurrentDateUTC() {
-                const now = new Date();
-                const year = now.getUTCFullYear();
-                const month = now.getUTCMonth();
-                const date = now.getUTCDate();
-                const hours = now.getUTCHours();
-                const minutes = now.getUTCMinutes();
-                const seconds = now.getUTCSeconds();
-                const milliseconds = now.getUTCMilliseconds();
-            
-                return new Date(Date.UTC(year, month, date, hours, minutes, seconds, milliseconds));
-            }
-            var currDate = getCurrentDateUTC();
-            function formatDate(dateString) {
-                const options = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' };
-                const date = new Date(dateString);
-                return date.toLocaleDateString('en-GB', options);
-            }
-            log.debug('currDate', currDate)
-            date_field.defaultValue = currDate;
+            var date_field_to = form.addField({
+                id: 'custpage_date_to', 
+                type: serverWidget.FieldType.DATE,
+                container: "filteroption",
+                label: 'Due Date To'
+            });
 
             var subsidiary = form.addField({
                 id: 'custpage_subsidiary', 
@@ -342,6 +328,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         createRec.setValue({ fieldId: "exchangerate", value: excSet, ignoreFieldChange: true });
                         createRec.setValue({ fieldId: "class", value: divisionSet, ignoreFieldChange: true });
                         createRec.setValue({ fieldId: "subsidiary", value: subsSet, ignoreFieldChange: true });
+                        createRec.setValue({ fieldId: "custbody_rda_kolektor", value: kolektorSelect, ignoreFieldChange: true });
                         createRec.setValue({ fieldId: "custbody_rda_invoice_number", value: [...allIdInv], ignoreFieldChange: true });
                         
                         const saveCreate = createRec.save();

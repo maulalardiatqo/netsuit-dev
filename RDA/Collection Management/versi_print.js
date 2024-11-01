@@ -263,55 +263,54 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var xml = "";
                 var header = "";
                 var body = "";
-                var headerHeight = '26%';
                 var style = "";
                 var footer = "";
                 var pdfFile = null;
-                
+
                 // css
                 style += "<style type='text/css'>";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
-                style += ".tg .tg-headerlogo {align:right; border:none;}";
+                style += ".tg .tg-headerlogo {text-align:right; border:none;}";
                 style += ".tg .tg-img-logo {width:195px; height:90px; object-fit:cover;}";
-                style += ".tg .tg-headerrow, .tg .tg-headerrow_alva {align: right; font-size:12px;}";
-                style += ".tg .tg-headerrow_legalName, .tg .tg-headerrow_legalName_Alva {align: left; font-size:13px; font-weight: bold;}";
-                style += ".tg .tg-headerrow_Total {align: right; font-size:16px; font-weight: bold;}";
-                style += ".tg .tg-head_body {align: left; font-size:12px; font-weight: bold; border-top:3px solid black; border-bottom:3px solid black;}";
+                style += ".tg .tg-headerrow, .tg .tg-headerrow_alva {text-align: right; font-size:12px;}";
+                style += ".tg .tg-headerrow_legalName, .tg .tg-headerrow_legalName_Alva {text-align: left; font-size:13px; font-weight: bold;}";
+                style += ".tg .tg-headerrow_Total {text-align: right; font-size:16px; font-weight: bold;}";
+                style += ".tg .tg-head_body {text-align: left; font-size:12px; font-weight: bold; border-top:3px solid black; border-bottom:3px solid black;}";
                 style += ".tg .tg-jkm {background-color:#eba134;}";
                 style += ".tg .tg-sisi {background-color:#F8F40F;}";
                 style += ".tg .tg-alva {background-color:#08B1FF;}";
                 style += ".tg .tg-froyo {background-color:#0A65EC; color:#F9FAFC;}";
-                style += ".tg .tg-b_body {align:left; font-size:12px; border-bottom:2px solid black;}";
-                style += ".tg .tg-f_body {align:right; font-size:14px; border-bottom:2px solid black;}";
-                style += ".tg .tg-foot {font-size:11px; color: #808080; position: absolute; bottom: 0;}";
+                style += ".tg .tg-b_body {text-align:left; font-size:12px; border-bottom:2px solid black;}";
+                style += ".tg .tg-f_body {text-align:right; font-size:14px; border-bottom:2px solid black;}";
+                style += ".tg .tg-foot {font-size:11px; color: #808080; position: relative; text-align: center;}";
                 style += "</style>";
-                
+
                 // header
                 header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
                 header += "<tbody>";
                 header += "<tr><td style='width:30%;'></td><td style='width:40%;'></td><td style='width:12%;'></td><td style='width:1%;'></td><td style='width:17%;'></td></tr>";
-                
+
                 header += "<tr><td style='font-size:15px; font-weight:bold;'>PT. Rejeki Damai Abadi</td>";
-                header += "<td rowspan='4' style='align:center; font-size:20px; font-weight:bold;'>Surat Jalan Penagihan</td>";
+                header += "<td rowspan='4' style='text-align:center; font-size:20px; font-weight:bold;'>Surat Jalan Penagihan</td>";
                 header += "<td>Nomor Dokumen</td><td>:</td><td>" + escapeXmlSymbols(docNo) + "</td></tr>";
-                
+
                 header += "<tr><td rowspan='3'>" + escapeXmlSymbols(subAdders) + "</td><td>Tanggal Penagihan</td><td>:</td><td style='font-weight:bold'>" + dateRec + "</td></tr>";
                 header += "<tr><td>Kolektor</td><td>:</td><td style='font-weight:bold'>" + escapeXmlSymbols(kolektor) + "</td></tr>";
                 header += "<tr><td>Halaman</td><td>:</td><td style='font-weight:bold'><pagenumber/></td></tr>";
                 header += "<tr><td colspan='5'>Division: <b>" + escapeXmlSymbols(allClassString) + " </b></td></tr>";
                 header += "<tr style='height:20px'></tr>";
-                
+
                 header += "</tbody>";
                 header += "</table>";
-                
-                // Kolom header tabel
-                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
+
+                // header table column
+                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px; margin-bottom:10px;'>";
                 header += "<tbody>";
                 header += "<tr><td style='width:14%;'></td><td style='width:14%;'></td><td style='width:6%;'></td><td style='width:6%;'></td>";
                 header += "<td style='width:9%;'></td><td style='width:8%;'></td><td style='width:8%;'></td><td style='width:3%'></td>";
                 header += "<td style='width:6%;'></td><td style='width:6%;'></td><td style='width:6%;'></td><td style='width:13%;'></td></tr>";
-                
-                // Kolom header baris isi tabel
+
+                // header row
                 header += "<tr><td style='border: solid black 1px; border-right:none;'>Customer</td>";
                 header += "<td style='border: solid black 1px; border-right:none;'>Nomor Faktur<br/>Performa Invoice Number</td>";
                 header += "<td style='border: solid black 1px; border-right:none;'>Tanggal Faktur</td>";
@@ -325,12 +324,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "<td style='border: solid black 1px; border-right:none;'>Nominal</td>";
                 header += "<td style='border: solid black 1px; border-left:none;'>Pembayaran Giro<br/>No Giro/Bank/Jatuh Tempo</td></tr>";
                 header += "<tr><td colspan='12' style='border: solid black 1px; border-top: none; font-size:12px; font-weight:bold;'>" + escapeXmlSymbols(areaToPrint) + "</td></tr>";
-                
+
                 header += "</tbody>";
                 header += "</table>";
 
                 // body
-                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
+                body += "<table class='tg' width='100%' style='table-layout:fixed; font-size:9px; margin-top:30px;'>";
                 body += "<tbody>";
 
                 body += "<tr>"
@@ -476,11 +475,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += footer;
                 xml += "</macro>";
                 xml += "</macrolist>";
-                xml += "</head>"
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 21cm; width: 29.7cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='20%'>";
+                xml += "</head>";
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;margin-top:100px;margin-bottom:80px;' header='nlheader' footer='nlfooter' footer-height='20%'>";
                 xml += body;
                 xml += "\n</body>\n</pdf>";
-
+                
                 xml = xml.replace(/ & /g, ' &amp; ');
                 response.renderPdf({
                     xmlString: xml
