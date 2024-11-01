@@ -36,8 +36,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var invSearchSet = invSearch.run();
                 var result = invSearchSet.getRange(0, 1);
                 var invoiceRecord = result[0];
-                
-                var currenc = invoiceRecord.getValue('currency');
+
+                var currenc = invoiceRecord.getValue({ name : 'currency'});
                 if(currenc){
                     var recCurrenc = record.load({
                         type : 'currency',
@@ -47,7 +47,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var tlcCurr = recCurrenc.getValue('symbol');
                     
                 }
-                var crFrom = invoiceRecord.getValue('createdfrom');
+                var crFrom = invoiceRecord.getValue({ name : 'createdfrom'});
                 var fromSo = ''
                 if(crFrom){
                     var recSo = record.load({
@@ -60,7 +60,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fromSo = SoFrom
                     }
                 }
-                var subsidiari = invoiceRecord.getValue('subsidiary');
+                var subsidiari = invoiceRecord.getValue({ name : 'subsidiary'});
                 // load subsidiarie
                 if(subsidiari){
                     var subsidiariRec = record.load({
@@ -98,7 +98,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 
                 // load vendor
-                var customer_id = invoiceRecord.getValue('entity');
+                var customer_id = invoiceRecord.getValue({
+                    name: "internalid",
+                    join: "customer",
+                });
                 log.debug('customer_id', customer_id)
                 if(customer_id){
                     var customerRecord = record.load({
@@ -166,9 +169,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     balance = removeDecimalFormat(balance);
                 }
                 // PO data
-                var tandId = invoiceRecord.getValue('tranid');
-                var InvDate = invoiceRecord.getValue('trandate');
-                var signaturedBy = invoiceRecord.getValue('custbody11');
+                var tandId = invoiceRecord.getValue({ name : 'tranid'});
+                var InvDate = invoiceRecord.getValue({ name : 'trandate'});
+                var signaturedBy = invoiceRecord.getValue({ name : 'custbody11'});
                 var nameSignatured = ''
                 if(signaturedBy){
                     var recEmp = record.load({
@@ -182,17 +185,21 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var nameEmp = fName + " " + mName + " " + lName 
                     nameSignatured = nameEmp
                 }
-                var template = invoiceRecord.getText('custbody10');
-                var totalTax = invoiceRecord.getValue('taxtotal')
-                var subTotal = invoiceRecord.getValue('subtotal') || 0;
-                var taxtotal = invoiceRecord.getValue('taxtotal') ||0;
-                var poTotal = invoiceRecord.getValue('total') || 0;
+                var template = invoiceRecord.getText({ name : 'custbody10'});
+                var totalTax = invoiceRecord.getValue({ name : 'taxtotal'})
+                // var subTotal = invoiceRecord.getValue({
+                //     name: "formulacurrency",
+                //     formula: "{total}+{taxtotal}",
+                // }) || 0;
+                var taxtotal = invoiceRecord.getValue({ name : 'taxtotal'}) ||0;
+                var poTotal = invoiceRecord.getValue({ name : 'total'}) || 0;
+                log.debug('poTotal', poTotal)
                 var total = 0;
                 var amountReceive = 0;
-                var duedate = invoiceRecord.getValue('duedate');
-                var prosentDiscount = invoiceRecord.getValue('discountrate');
-                var discount = invoiceRecord.getValue('discounttotal') || 0;
-                var jobNumber = invoiceRecord.getValue('custbody_abj_custom_jobnumber');
+                var duedate = invoiceRecord.getValue({ name : 'duedate'});
+                var prosentDiscount = invoiceRecord.getValue({ name : 'discountrate'});
+                var discount = invoiceRecord.getValue({ name : 'discounttotal'}) || 0;
+                var jobNumber = invoiceRecord.getValue({ name : 'custbody_abj_custom_jobnumber'});
                 if (jobNumber.includes('\\')) {
                     log.debug('ada tanda');
                     jobNumber = jobNumber.replace(/\\/g, '<br/>');
@@ -204,35 +211,52 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var whtaxammountItem = 0;
                 var whTaxCodetoPrint = ''
                 var otherComment = ""
-                var countItem = invoiceRecord.getLineCount({
-                    sublistId: 'item'
-                });
-                if(countItem > 0){
-                    var taxpphList = [];
-                    for (var i = 0; i < countItem; i++) {
-                        var taxpph = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_4601_witaxrate',
-                            line: i
+                var searchLine = search.load({
+                    id : "customsearch_invoice_print_line"
+                })
+                if(recid){
+                    searchLine.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
+                }
+                var itemSearchSet = searchLine.run();
+                var countItem = itemSearchSet.getRange(0, 100);
+                log.debug('countItem', countItem.length)
+        
+                var allDataLine = []
+                var taxpphList = [];
+                if(countItem.length > 0){
+                    for (var i = 0; i < countItem.length; i++) {
+                        var lineRec = countItem[i];
+                        var description = lineRec.getValue({
+                            name: "memo",
                         });
-                        whtaxammountItem = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_4601_witaxamount',
-                            line: i
+                        var ammount = lineRec.getValue({
+                            name: "amount",
                         });
-                        var project = invoiceRecord.getSublistText({
-                            sublistId : 'item',
-                            fieldId : 'class',
-                            line : i
+                        var itemText = lineRec.getText({
+                            name: "item",
+                        });
+                        log.debug('ammount', ammount)
+                        allDataLine.push({
+                            description: description,
+                            ammount: ammount,
+                            itemText : itemText
+                        })
+        
+                        var taxpph = lineRec.getValue({
+                            name: "custcol_4601_witaxrate",
+                        });
+                        whtaxammountItem = lineRec.getValue({
+                            name: "custcol_4601_witaxamount",
+                        });
+                        var project = lineRec.getText({
+                            name: "class",
                         });
                         log.debug('project', project)
                         if(project){
                             otherComment = project
                         }
-                        var whTaxCodeI = invoiceRecord.getSublistValue({
-                            sublistId : 'item',
-                            fieldId : 'custcol_4601_witaxcode',
-                            line : i
+                        var whTaxCodeI = lineRec.getValue({
+                            name: "custcol_4601_witaxcode",
                         });
     
                         if(whTaxCodeI){
@@ -261,8 +285,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if (taxpphList.length > 0) {
                     var taxpphToPrint = taxpphList.join(' & ');
                 }
+                var subTotal = Number(poTotal) - Number(taxtotal)
                 var subBefore = subTotal
+                log.debug('subBefore', subBefore)
                 var taxtotalBefor = taxtotal
+                log.debug('taxtotalBefor', taxtotalBefor)
                 total = Number(subBefore) + Number(taxtotalBefor);
                 amountReceive = total
                 if(taxpphToPrint){
@@ -487,7 +514,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td colspan='3'>"+otherComment+"</td>"
                 body += "<td colspan='2'></td>"
                 body+= "</tr>";
-                body += getPOItem(context, invoiceRecord);
+                body += getPOItem(context, invoiceRecord, allDataLine);
                 body+= "</tbody>";
                 body+= "</table>";
     
@@ -532,7 +559,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style='font-weight:bold'>Total Invoice</td>"
                 footer += "<td style=''>:</td>"
                 footer += "<td style=''>IDR</td>"
-                footer += "<td style='align:right'>"+total+"</td>"
+                footer += "<td style='align:right'>"+poTotal+"</td>"
                 footer += "</tr>";
 
                 footer += "<tr style='height:20px'>";
@@ -618,21 +645,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
             }
     
-            function getPOItem(context, invoiceRecord){
-                var itemCount = invoiceRecord.getLineCount({
-                    sublistId: 'item'
-                });
-                
-                
-                if(itemCount > 0){
+            function getPOItem(context, invoiceRecord, allDataLine){
+
+                var cekDataLine = allDataLine.length
+                if(cekDataLine > 0){
                     var body = "";
-                    var no = 1
-                    for(var index = 0; index < itemCount; index++){
-                        var description = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'description',
-                            line: index
-                        });
+                    var no = 1;
+                    allDataLine.forEach(data => {
+                        var description = data.description;
+                        var ammount = data.ammount;
+                        var itemText = data.itemText
+
                         if (description.includes('\\')) {
                             log.debug('ada tanda');
                             description = description.replace(/\\/g, '<br/>');
@@ -649,17 +672,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             log.debug('masuk *')
                             description = description.replace(/\*(.*?)\*\*/g, '<u>$1</u>');
                         }
-                        
-                        var ammount = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'amount',
-                            line: index
-                        });
-                        var itemText = invoiceRecord.getSublistText({
-                            sublistId: 'item',
-                            fieldId: 'item',
-                            line: index
-                        });
+
                         if(ammount){
                             ammount = pembulatan(ammount);
                             ammount = format.format({
@@ -676,9 +689,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<td  style='align:right;'>"+ammount+"</td>";
                         body += "</tr>";
                         no++
-                    }
+                    });
                     return body;
                 }
+                
             }
 
         }catch(e){
