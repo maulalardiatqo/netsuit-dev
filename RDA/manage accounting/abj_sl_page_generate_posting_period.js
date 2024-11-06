@@ -6,6 +6,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
 
     function onRequest(context) {
         if (context.request.method === 'GET') {
+            log.debug('masuk')
             var form = serverWidget.createForm({
                 title: 'Generate Accounting And Tax Period'
             });
@@ -66,7 +67,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         context.response.writePage(form);
                     } else {
                         function isMoreThan31Days(selectedFrom, selectedTo) {
-                            log.debug('masuk fungsi isMore');
                             
                             function parseDate(dateStr) {
                                 var parts = dateStr.split('/');
@@ -123,17 +123,12 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     var periodName = searchResults[0].getValue({ name: 'periodname' });
                                     var internalId = searchResults[0].getValue({ name: 'internalid' });
                                     var fiscal = searchResults[0].getValue({name : 'fiscalcalendar'});
-                                    log.debug('fiscal', fiscal)
-                
-                                    log.debug('Period Name:', periodName);
-                                    log.debug('Internal ID:', internalId);
                 
                                     return {
                                         periodName: periodName,
                                         internalId: internalId
                                     };
                                 } else {
-                                    log.debug('No results found.');
                                     return null;
                                 }
                             }
@@ -155,17 +150,12 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     var periodName = searchResults[0].getValue({ name: 'periodname' });
                                     var internalId = searchResults[0].getValue({ name: 'internalid' });
                                     var fiscal = searchResults[0].getValue({name : 'fiscalcalendar'});
-                                    log.debug('fiscal', fiscal)
-                
-                                    log.debug('Period Name:', periodName);
-                                    log.debug('Internal ID:', internalId);
                 
                                     return {
                                         periodName: periodName,
                                         internalId: internalId
                                     };
                                 } else {
-                                    log.debug('No results found.');
                                     return null;
                                 }
                             }
@@ -204,19 +194,14 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                 };
                             }
                             function convertToDateString(dateString) {
-                                log.debug('dateString', dateString)
                                 
                                 var dataToreturn = new Date(dateString); 
-                                log.debug('dataToreturn', dataToreturn)
                                 
                                 return dataToreturn
                             }
                             function convertToDate(dateString) {
-                                log.debug('dateString', dateString)
                                 var dateParts = dateString.split('/');
-                                log.debug('dateParts', dateParts)
                                 var dataToreturn = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]); 
-                                log.debug('dataToreturn', dataToreturn)
                                 return dataToreturn
                             }
                             function getStartYear(year) {
@@ -284,7 +269,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     enableSourcing: false,
                                     ignoreMandatoryFields: true,
                                 });
-                                log.debug('saveYear', saveYear);
                                 return saveYear
                             }
                             function createYearTP(periodName, startYear, endYear, fiscalSet){
@@ -332,7 +316,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     enableSourcing: false,
                                     ignoreMandatoryFields: true,
                                 });
-                                log.debug('saveYear', saveYear);
                                 return saveYear
                             }
 
@@ -447,7 +430,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     enableSourcing: false,
                                     ignoreMandatoryFields: true,
                                 });
-                                log.debug('saveMonth', saveMonth)
                                 return saveMonth;
                             }
                             function createPeriodMonthTP(periodNameMonth, startDateMonth, endDateMonth, saveYear){
@@ -499,7 +481,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     enableSourcing: false,
                                     ignoreMandatoryFields: true,
                                 });
-                                log.debug('saveMonth', saveMonth)
                                 return saveMonth;
                             }
                             function generateDates(monthYear) {
@@ -525,22 +506,35 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                             
                                 return { dates, startDate, endDate };
                             }
-
+                            function cekDateExist(periodNamedate){
+                                var isSet = true
+                                var accountingperiodSearchObj = search.create({
+                                    type: "accountingperiod",
+                                    filters:
+                                    [
+                                        ["periodname","is","28 Feb 2025"]
+                                    ],
+                                    columns:
+                                    [
+                                        search.createColumn({name: "periodname", label: "Name"}),
+                                        search.createColumn({name: "internalid", label: "Internal ID"})
+                                    ]
+                                });
+                                var searchResultCount = accountingperiodSearchObj.runPaged().count;
+                                if(searchResultCount > 0){
+                                    isSet = false
+                                }
+                                return isSet
+                            }
                             function createDatePeiodAP(allDate, saveYear, saveMonth){
                                 var isAllExceute = false
-                                log.debug('masuk fungsi ini');
-                                log.debug('allDate', allDate)
                                 allDate.forEach(date => {
-                                        log.debug('date', date)
                                         var periodNamedate = date
                                         var dateConv = formatDate(date);
-                                        log.debug('dateConv', dateConv)
                                         var stdDate = convertToDate(dateConv);
                                         var endDate = convertToDate(dateConv);
-                                        log.debug('stdDate', stdDate)
-                                        log.debug('endDate', endDate)
-                                        log.debug('saveMonth', saveMonth)
-        
+                                        var isSet = cekDateExist(periodNamedate);
+                                        log.debug('isSet', isSet)
                                         var parentMont = saveMonth;
                                         log.debug('data', {
                                             periodNamedate: periodNamedate,
@@ -624,7 +618,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                 allDate.forEach(date => {
                                         var periodNamedate = date
                                         var dateConv = formatDate(date);
-                                        log.debug('dateConv', dateConv)
                                         var stdDate = convertToDate(dateConv);
                                         var endDate = convertToDate(dateConv);
         
@@ -697,7 +690,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                             enableSourcing: false,
                                             ignoreMandatoryFields: true,
                                         });
-                                        log.debug('saveDate', saveDate)
                                         if(saveDate){
                                             isAllExceute = true
                                         }
@@ -719,6 +711,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                 const day = parts[0].padStart(2, '0'); 
                                 return `${day} ${parts[1]} ${parts[2]}`;
                             }
+                            
                             function createDateExistMonthAP(idMonth, allDate){
                                 var allName = []
                                 var isAllExceute = false
@@ -740,7 +733,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     ]
                                 });
                                 var searchResultCount = accountingperiodSearchObj.runPaged().count;
-                                log.debug("accountingperiodSearchObj result count",searchResultCount);
                                 accountingperiodSearchObj.run().each(function(result){
                                     var namePer = result.getValue({
                                         name: "periodname"
@@ -748,19 +740,14 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     allName.push(namePer)
                                     return true;
                                 });
-                                log.debug('allName', allName)
                                 allDate.forEach(date => {
                                     var periodNamedate = date
                                     var normalizedPeriodNamedate = normalizePeriodName(periodNamedate);
                                     if (!allName.map(normalizePeriodName).includes(normalizedPeriodNamedate)) {
                                         isAllExceute = true
-                                        log.debug('periodNamedate', periodNamedate)
                                         var dateConv = formatDate(date);
-                                        log.debug('dateConv', dateConv)
                                         var stdDate = convertToDate(dateConv);
                                         var endDate = convertToDate(dateConv);
-                                        log.debug('stdDate', stdDate)
-                                        log.debug('endDate', endDate)
                                         
                                         var recCreateDate = record.create({
                                             type: "accountingperiod",
@@ -806,7 +793,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                             value: 1,  
                                             ignoreFieldChange: true
                                         });
-                                        log.debug('idMonth', idMonth)
                                         recCreateDate.setCurrentSublistValue({
                                             sublistId: 'fiscalcalendars',
                                             fieldId: 'parent',
@@ -822,7 +808,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                             enableSourcing: false,
                                             ignoreMandatoryFields: true,
                                         });
-                                        log.debug('saveDate', saveDate)
         
                                     }
                                 });
@@ -885,7 +870,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     ]
                                 });
                                 var searchResultCount = taxperiodSearchObj.runPaged().count;
-                                log.debug("taxperiodSearchObj result count",searchResultCount);
                                 taxperiodSearchObj.run().each(function(result){
                                     var namePer = result.getValue({
                                         name: "periodname"
@@ -893,15 +877,12 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     allName.push(namePer)
                                     return true;
                                 });
-                                log.debug('allName', allName)
                                 allDate.forEach(date => {
                                     var periodNamedate = date
                                     var normalizedPeriodNamedate = normalizePeriodName(periodNamedate);
                                     if (!allName.map(normalizePeriodName).includes(normalizedPeriodNamedate)) {
                                         isAllExceute = true
-                                        log.debug('periodNamedate', periodNamedate)
                                         var dateConv = formatDate(date);
-                                        log.debug('dateConv', dateConv)
                                         var stdDate = convertToDate(dateConv);
                                         var endDate = convertToDate(dateConv);
                                         var recCreateDate = record.create({
@@ -964,7 +945,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                             enableSourcing: false,
                                             ignoreMandatoryFields: true,
                                         });
-                                        log.debug('saveDate', saveDate)
         
                                     }
                                 });
@@ -974,8 +954,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                             var years = getYearFromDates(selectedFrom, selectedTo);
                             var yearForm = years.fromYear
                             var yearTo = years.toYear
-                            log.debug('yearForm', yearForm);
-                            log.debug('yearTo', yearTo)
                             if(yearForm == yearTo){
                                 var showMessage = false
                                 // pengecekan prosses
@@ -987,9 +965,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                 var dateRange = generateDateRange(selectedFrom, selectedTo);
                                 var fromMonth = getMonthAbbreviation(selectedFrom);
                                 var toMonth = getMonthAbbreviation(selectedTo);
-                                log.debug('fromMonth', fromMonth)
-                                log.debug('toMonth', toMonth)
-                                log.debug('dateRange', dateRange)
 
                                 // logic
                                 var startYear = convertToDate(getStartYear(yearForm));
@@ -998,15 +973,12 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
 
                                 // create AP
                                 if(!cekYearAPsame){
-                                    log.debug('year belum tercreate')
                                     var saveYearAP = createYearAP(periodName, startYear, endYear, fiscalSet)
                                     if(fromMonth == toMonth){
                                         var periodNameMonth = fromMonth + ' ' + yearForm
                                         var cekDate = generateDates(fromMonth + ' ' + yearForm);
                                         var startDateMonth = convertToDate(cekDate.startDate);
                                         var endDateMonth = convertToDate(cekDate.endDate)
-                                        log.debug('startDateMonth', startDateMonth)
-                                        log.debug('endDateMonth', endDateMonth)
 
                                         var saveMonthAP = createPeriodMonthAP(periodNameMonth, startDateMonth, endDateMonth, saveYearAP)
                                         var saveDate = createDatePeiodAP(dateRange, saveYearAP, saveMonthAP)
@@ -1017,7 +989,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     }else{
                                         var groupedDates = groupByMonth(dateRange, selectedFrom, selectedTo);
                                         var datesInFromMonth = groupedDates[fromMonth];
-                                        log.debug('datesInFromMonth', datesInFromMonth)
                                         var resultFromMonth = getStartAndEndDate(datesInFromMonth);
                                         var startDateFrom = convertToDateString(resultFromMonth.startDate)
                                         var endDateFrom = convertToDateString(resultFromMonth.endDate)
@@ -1026,7 +997,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                         var resultToMonth = getStartAndEndDate(datesInToMonth);
                                         var startDateTo = convertToDateString(resultToMonth.startDate)
                                         var endDateTo = convertToDateString(resultToMonth.endDate)
-                                        log.debug('datesInToMonth', datesInToMonth)
                                         var periodNameMonthFirst = fromMonth + ' ' + yearForm
                                         var saveMonthFirstAp = createPeriodMonthAP(periodNameMonthFirst, startDateFrom, endDateFrom, saveYearAP);
                                         var saveDatesatu = createDatePeiodAP(datesInFromMonth, saveYearAP, saveMonthFirstAp)
@@ -1041,15 +1011,12 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                         }
                                     }
                                 }else{
-                                    log.debug('cekYearAPsame', cekYearAPsame);
                                     var idYear = cekYearAPsame.internalId
                                     if(fromMonth == toMonth){
                                         var cekMonthAp = cekYearAP(fromMonth + ' ' + yearForm);
-                                        log.debug('cekMonthAp', cekMonthAp)
                                         
                                         if(cekMonthAp){
                                             var idMonth = cekMonthAp.internalId
-                                            log.debug('dateRange', dateRange)
                                             var createDate = createDateExistMonthAP(idMonth, dateRange)
                                             
                                         }else{
@@ -1057,8 +1024,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                             var cekDate = generateDates(fromMonth + ' ' + yearForm);
                                             var startDateMonth = convertToDate(cekDate.startDate);
                                             var endDateMonth = convertToDate(cekDate.endDate)
-                                            log.debug('startDateMonth', startDateMonth)
-                                            log.debug('endDateMonth', endDateMonth)
 
                                             var saveMonthAP = createPeriodMonthAP(periodNameMonth, startDateMonth, endDateMonth, idYear)
                                             var saveDate = createDatePeiodAP(dateRange, idYear, saveMonthAP)
@@ -1073,7 +1038,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                         var cekMonthApFrom = cekYearAP(fromMonth + ' ' + yearForm);
                                         var groupedDates = groupByMonth(dateRange, selectedFrom, selectedTo);
                                         var datesInFromMonth = groupedDates[fromMonth];
-                                        log.debug('datesInFromMonth', datesInFromMonth)
                                         if(cekMonthApFrom){
                                             var idMonth = cekMonthApFrom.internalId
                                             var saveDate = createDateExistMonthAP(idMonth, datesInFromMonth)
@@ -1105,17 +1069,12 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                             }
                                         }else{
                                             var resultToMonth = getStartAndEndDate(datesInToMonth);
-                                            log.debug('resultToMonth', resultToMonth)
                                             var startDateTo = convertToDateString(resultToMonth.startDate)
-                                            log.debug('startDateTo', startDateTo)
                                             var endDateTo = convertToDateString(resultToMonth.endDate);
-                                            log.debug('endDateTo', endDateTo)
-                                            log.debug('datesInToMonth', datesInToMonth)
                                             
     
                                             var periodNameMonthSec = toMonth + ' ' + yearForm
                                             var saveMonthSecAp = createPeriodMonthAP(periodNameMonthSec, startDateTo, endDateTo, idYear);
-                                            log.debug('saveMonthSecAp', saveMonthSecAp)
                                             var saveDate = createDatePeiodAP(datesInToMonth, idYear, saveMonthSecAp)
                                             if(saveDate){
                                                 showMessage = true
@@ -1126,7 +1085,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
 
                                 // create TP
                                 if(!cekYearTPsame){
-                                    log.debug('year TP belum tercreate')
                                     var saveYearTP = createYearTP(periodName, startYear, endYear, fiscalSet)
                                      if(fromMonth == toMonth){
                                         var periodNameMonth = fromMonth + ' ' + yearForm
@@ -1142,7 +1100,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     }else{
                                         var groupedDates = groupByMonth(dateRange, selectedFrom, selectedTo);
                                         var datesInFromMonth = groupedDates[fromMonth];
-                                        log.debug('datesInFromMonth', datesInFromMonth)
                                         var resultFromMonth = getStartAndEndDate(datesInFromMonth);
                                         var startDateFrom = convertToDateString(resultFromMonth.startDate)
                                         var endDateFrom = convertToDateString(resultFromMonth.endDate)
@@ -1151,7 +1108,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                         var resultToMonth = getStartAndEndDate(datesInToMonth);
                                         var startDateTo = convertToDateString(resultToMonth.startDate)
                                         var endDateTo = convertToDateString(resultToMonth.endDate)
-                                        log.debug('datesInToMonth', datesInToMonth)
                                         var periodNameMonthFirst = fromMonth + ' ' + yearForm
                                         var saveMonthFirstAp = createPeriodMonthTP(periodNameMonthFirst, startDateFrom, endDateFrom, saveYearTP);
                                         var saveDatesatu = createDatePeiodTP(datesInFromMonth, saveYearTP, saveMonthFirstAp)
@@ -1165,10 +1121,8 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     }
                                 }else{
                                     var idYearTP = cekYearTPsame.internalId
-                                    log.debug('idYearTP', idYearTP)
                                     if(fromMonth == toMonth){
                                         var cekMonthTP = cekYearTP(fromMonth + ' ' + yearForm);
-                                        log.debug('cekMonthTP', cekMonthTP)
                                         if(cekMonthTP){
                                             var idMonth = cekMonthTP.internalId
                                             var createDate = createDateExistMonthTP(idMonth, dateRange)
@@ -1180,8 +1134,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                             var cekDate = generateDates(fromMonth + ' ' + yearForm);
                                             var startDateMonth = convertToDate(cekDate.startDate);
                                             var endDateMonth = convertToDate(cekDate.endDate)
-                                            log.debug('startDateMonth', startDateMonth)
-                                            log.debug('endDateMonth', endDateMonth)
 
                                             var saveMonthTP = createPeriodMonthTP(periodNameMonth, startDateMonth, endDateMonth, idYearTP)
                                             var createDate = createDatePeiodTP(dateRange, idYearTP, saveMonthTP)
@@ -1193,7 +1145,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                         var cekMonthTpFrom = cekYearTP(fromMonth + ' ' + yearForm);
                                         var groupedDates = groupByMonth(dateRange, selectedFrom, selectedTo);
                                         var datesInFromMonth = groupedDates[fromMonth];
-                                        log.debug('datesInFromMonth', datesInFromMonth)
                                         if(cekMonthTpFrom){
                                             var idMonth = cekMonthTpFrom.internalId
                                             createDateExistMonthTP(idMonth, datesInFromMonth)
@@ -1220,7 +1171,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                             var resultToMonth = getStartAndEndDate(datesInToMonth);
                                             var startDateTo = convertToDateString(resultToMonth.startDate)
                                             var endDateTo = convertToDateString(resultToMonth.endDate)
-                                            log.debug('datesInToMonth', datesInToMonth)
                                             var periodNameMonthSec = toMonth + ' ' + yearForm
                                             var savemonthToTP = createPeriodMonthTP(periodNameMonthSec, startDateTo, endDateTo, idYear);
                                             var saveDate = createDatePeiodTP(datesInToMonth, idYear, savemonthToTP)

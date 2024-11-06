@@ -140,7 +140,7 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
                     ignoreRecalc: true
                 });
             }
-
+            var forSave = false
             formattedDates.forEach(formattedDate => {
                 log.debug('formattedDate', formattedDate)
                 var idPeriod
@@ -166,28 +166,35 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
                     }
                     return false;
                 });
-                log.debug('idPeriod', idPeriod)
-                log.debug('data to set', {idPeriod : idPeriod, account: account, amount : amount})
-                amortizationScheduleRec.selectNewLine({ sublistId: 'recurrence' });
-                amortizationScheduleRec.setCurrentSublistValue({
-                    sublistId: 'recurrence',
-                    fieldId: 'defrevaccount',
-                    value: account
-                });
-                amortizationScheduleRec.setCurrentSublistValue({
-                    sublistId: 'recurrence',
-                    fieldId: 'postingperiod',
-                    value: idPeriod
-                });
-                amortizationScheduleRec.setCurrentSublistValue({
-                    sublistId: 'recurrence',
-                    fieldId: 'recamount',
-                    value: amount
-                });
-                amortizationScheduleRec.commitLine({ sublistId: 'recurrence' });
+                if(idPeriod){
+                    forSave = true
+                    log.debug('idPeriod', idPeriod)
+                    log.debug('data to set', {idPeriod : idPeriod, account: account, amount : amount})
+                    amortizationScheduleRec.selectNewLine({ sublistId: 'recurrence' });
+                    amortizationScheduleRec.setCurrentSublistValue({
+                        sublistId: 'recurrence',
+                        fieldId: 'defrevaccount',
+                        value: account
+                    });
+                    amortizationScheduleRec.setCurrentSublistValue({
+                        sublistId: 'recurrence',
+                        fieldId: 'postingperiod',
+                        value: idPeriod
+                    });
+                    amortizationScheduleRec.setCurrentSublistValue({
+                        sublistId: 'recurrence',
+                        fieldId: 'recamount',
+                        value: amount
+                    });
+                    amortizationScheduleRec.commitLine({ sublistId: 'recurrence' });
+                }
+               
             });
-            var saveAmor = amortizationScheduleRec.save()
-            log.debug('saveAmor', saveAmor)
+            if(forSave){
+                var saveAmor = amortizationScheduleRec.save()
+                log.debug('saveAmor', saveAmor)
+            }
+            
         } catch (e) {
            log.debug('error', e)
         }

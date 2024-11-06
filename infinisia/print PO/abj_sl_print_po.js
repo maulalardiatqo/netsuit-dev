@@ -467,11 +467,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             if (itemCount > 0) {
                 var idItemOtherCharge = []
                 var otherchargeitemSearchObj = search.create({
-                    type: "otherchargeitem",
+                    type: "serviceitem",
                     filters:
-                        [
-                            ["type", "anyof", "OthCharge"]
-                        ],
+                    [
+                        ["type","anyof","Service"]
+                    ],
                     columns:
                         [
                             search.createColumn({ name: "internalid", label: "Internal ID" })
@@ -727,9 +727,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             if (itemCount > 0) {
                 var idItemOtherCharge = [];
                 var otherchargeitemSearchObj = search.create({
-                    type: "otherchargeitem",
-                    filters: [
-                        ["type", "anyof", "OthCharge"]
+                    type: "serviceitem",
+                    filters:
+                    [
+                        ["type","anyof","Service"]
                     ],
                     columns: [
                         search.createColumn({ name: "internalid", label: "Internal ID" })
@@ -746,7 +747,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     return true;
                 });
-        
+                log.debug('idItemOtherCharge', idItemOtherCharge)
                 var body = "";
                 var items = {};
         
@@ -757,6 +758,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var unit = poRecord[index].unit;
         
                         if (idItemOtherCharge.includes(itemId)) {
+                            log.debug('itemId', itemId)
                             // Handle other charges if necessary
                         } else {
                             var qty = poRecord[index].quantity;
@@ -764,7 +766,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             var description = poRecord[index].itemdesc;
                             var amount = poRecord[index].amount
                             var rate = poRecord[index].rate;
-                            log.debug('rate', rate);
         
                             // Create a unique key combining itemId and unit
                             var itemKey = itemId + '_' + unit;
@@ -788,7 +789,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                 }
         
-                log.debug('items', items);
                 for (var itemKey in items) {
                     var item = items[itemKey];
         

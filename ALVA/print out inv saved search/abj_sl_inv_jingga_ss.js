@@ -27,12 +27,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var recid = context.request.parameters.id;
                 
                 // load SO
-                var invoiceRecord = record.load({
-                    type: "invoice",
-                    id: recid,
-                    isDynamic: false,
+                var invSearch = search.load({
+                    id: "customsearch_invoice_print_body",
                 });
-                var currenc = invoiceRecord.getValue('currency');
+                if(recid){
+                    invSearch.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
+                }
+                var invSearchSet = invSearch.run();
+                var result = invSearchSet.getRange(0, 1);
+                var invoiceRecord = result[0];
+
+                var currenc = invoiceRecord.getValue({ name :'currency'});
                 if(currenc){
                     var recCurrenc = record.load({
                         type : 'currency',
@@ -42,7 +47,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var tlcCurr = recCurrenc.getValue('symbol');
                     
                 }
-                var crFrom = invoiceRecord.getValue('createdfrom');
+                var crFrom = invoiceRecord.getValue({ name :'createdfrom'});
                 var fromSo = ''
                 if(crFrom){
                     var recSo = record.load({
@@ -55,7 +60,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         fromSo = SoFrom
                     }
                 }
-                var subsidiari = invoiceRecord.getValue('subsidiary');
+                var subsidiari = invoiceRecord.getValue({ name :'subsidiary'});
                 // load subsidiarie
                 if(subsidiari){
                     var subsidiariRec = record.load({
@@ -98,7 +103,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 
                 // load vendor
-                var customer_id = invoiceRecord.getValue('entity');
+                var customer_id = invoiceRecord.getValue({
+                    name: "internalid",
+                    join: "customer",
+                });
                 log.debug('customer_id', customer_id)
                 if(customer_id){
                     var customerRecord = record.load({
@@ -167,9 +175,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     balance = removeDecimalFormat(balance);
                 }
                 // PO data
-                var tandId = invoiceRecord.getValue('tranid');
-                var InvDate = invoiceRecord.getValue('trandate');
-                var signaturedBy = invoiceRecord.getValue('custbody11');
+                var tandId = invoiceRecord.getValue({ name :'tranid'});
+                var InvDate = invoiceRecord.getValue({ name :'trandate'});
+                var signaturedBy = invoiceRecord.getValue({ name :'custbody11'});
                 var nameSignatured = ''
                 if(signaturedBy){
                     var recEmp = record.load({
@@ -183,27 +191,27 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var nameEmp = fName + " " + mName + " " + lName 
                     nameSignatured = nameEmp
                 }
-                var template = invoiceRecord.getText('custbody10');
+                var template = invoiceRecord.getText({ name :'custbody10'});
                 var terms = invoiceRecord.getText('terms');
                 var fakturPajak = invoiceRecord.getValue('custbody_fcn_faktur_pajak');
-                var subTotal = invoiceRecord.getValue('subtotal') || 0;
-                var taxtotal = invoiceRecord.getValue('taxtotal') ||0;
+                var subTotal = invoiceRecord.getValue({ name :'subtotal'}) || 0;
+                var taxtotal = invoiceRecord.getValue({ name :'taxtotal'}) ||0;
                 var taxtotalCount = 0;
-                var poTotal = invoiceRecord.getValue('total') || 0;
+                var poTotal = invoiceRecord.getValue({ name :'total'}) || 0;
                 var total = 0;
                 var amountReceive = 0;
-                var duedate = invoiceRecord.getValue('duedate');
-                var prosentDiscount = invoiceRecord.getValue('discountrate');
-                var discount = invoiceRecord.getValue('discounttotal') || 0;
-                var jobNumber = invoiceRecord.getValue('custbody_abj_custom_jobnumber');
+                var duedate = invoiceRecord.getValue({ name :'duedate'});
+                var prosentDiscount = invoiceRecord.getValue({ name :'discountrate'});
+                var discount = invoiceRecord.getValue({ name :'discounttotal'}) || 0;
+                var jobNumber = invoiceRecord.getValue({ name :'custbody_abj_custom_jobnumber'});
                 if (jobNumber.includes('\\')) {
                     log.debug('ada tanda');
                     jobNumber = jobNumber.replace(/\\/g, '<br/>');
                 }
-                var otehrRefNum = invoiceRecord.getValue('otherrefnum');
+                var otehrRefNum = invoiceRecord.getValue({ name :'otherrefnum'});
                 discount = Math.abs(discount);
                 prosentDiscount = Math.abs(prosentDiscount);
-                var totalTax = invoiceRecord.getValue('taxtotal')
+                var totalTax = invoiceRecord.getValue({ name :'taxtotal'})
                 var totalWhTaxamount = 0;
                 var totalWhTaxamountItem = 0;
                 var whtaxammountItem = 0;
