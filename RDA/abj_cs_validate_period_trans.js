@@ -35,6 +35,28 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var searchResults = taxperiodSearchObj.run().getRange({ start: 0, end: 1 });
         return searchResults
     }
+    function getNextMonth(trandate) {
+        let date = new Date(trandate);
+    
+        let currentMonth = date.getUTCMonth(); 
+        let currentYear = date.getUTCFullYear();
+    
+        let nextMonth = currentMonth + 1;
+        let nextYear = currentYear;
+    
+        if (nextMonth > 11) {
+            nextMonth = 0; 
+            nextYear += 1;
+        }
+    
+        let nextMonthDate = new Date(Date.UTC(nextYear, nextMonth, date.getUTCDate()));
+    
+        while (nextMonthDate.getUTCMonth() !== nextMonth) {
+            nextMonthDate.setUTCDate(nextMonthDate.getUTCDate() - 1);
+        }
+    
+        return nextMonthDate.toISOString();
+    }
     function pageInit(context) {
         log.debug('init masuk');
     }
@@ -95,8 +117,31 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         }
         
     }
+    function saveRecord(context) {
+        var currentRecordObj = context.currentRecord;
+        var typeRec = currentRecordObj.getValue('type')
+        if (typeRec == 'vendbill') {
+            var trandate = currentRecordObj.getValue('trandate')
+            log.debug('trandate', trandate)
+            var trandateafter = getNextMonth(trandate);
+            log.debug('trandateafter', trandateafter)
+            var cekLineExp = currentRecordObj.getLineCount({sublistId : 'expense'});
+            if(cekLineExp > 0){
+                for(var i = 0; i < cekLineExp; i++){
+                    var cekAmor = currentRecordObj.getSublistText({
+                        sublistId: 'expense',
+                        fieldId: 'amortizationsched',
+                        line : i
+                    })
+                    log.debug('cekAmor', cekAmor)
+                }
+            }
+        }
+        return true;
+    }
     return {
         pageInit: pageInit,
-        fieldChanged: fieldChanged
+        fieldChanged: fieldChanged,
+        saveRecord : saveRecord
     };
 });

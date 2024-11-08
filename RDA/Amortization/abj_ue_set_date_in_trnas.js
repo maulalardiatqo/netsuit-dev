@@ -5,6 +5,7 @@
  */
 
 define(["N/record", "N/search", "N/format", "N/task"], function (record, search, format, task) {
+    
     function afterSubmit(context) {
         if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.EDIT) {
             try {
@@ -104,7 +105,6 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             
                             var account = recTempAmor.getValue('accttarget');
                             
-                            // Function to extract month and year from posting period text
                             function getMonthYearFromText(postingPeriodText) {
                                 const parts = postingPeriodText.split(' '); 
                                 const monthText = parts[1]; 
@@ -118,7 +118,6 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                                 return { month, year };
                             }
                             
-                            // Function to add months to a given month/year
                             function addMonths(month, year, monthsToAdd) {
                                 let newMonth = month + monthsToAdd; 
                                 let newYear = year;
@@ -205,8 +204,6 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             var startDate = convertToDate(result.lastDate);
                             var endDate = convertToDate(result.endDate);
 
-                            log.debug('startDate', startDate);
-                            log.debug('endDate', endDate);
                             if(startOffset > 0){
                                 amortPeriod = Number(amortPeriod) - Number(startOffset)
                             }
@@ -239,7 +236,7 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                                 type: "amortizationschedule",
                                 filters:
                                 [
-                                     ["internalid","anyof",idAmortSched]
+                                        ["internalid","anyof",idAmortSched]
                                 ],
                                 columns:
                                 [
@@ -251,22 +248,22 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             if(searchResultCount < 0 || searchResultCount == null || searchResultCount == ''){
                                 idAmortSched = Number(idAmortSched) + 1
                             }
-                            var mapReduceTask = task.create({
-                                taskType: task.TaskType.MAP_REDUCE,
-                                scriptId: 'customscript_abj_mr_set_amortization', 
-                                deploymentId: 'customdeploy_abj_mr_set_amortization',
-                                params: {
-                                    custscript_amortization_id: idAmortSched,
-                                    custscript_recamount: amounttoSet,
-                                    custscript_startdate: startDate,
-                                    custscript_enddate: endDate,
-                                    custscript_account : account,
-                                    custscript_id_trans : recId
+                            // var mapReduceTask = task.create({
+                            //     taskType: task.TaskType.MAP_REDUCE,
+                            //     scriptId: 'customscript_abj_mr_set_amortization', 
+                            //     deploymentId: 'customdeploy_abj_mr_set_amortization',
+                            //     params: {
+                            //         custscript_amortization_id: idAmortSched,
+                            //         custscript_recamount: amounttoSet,
+                            //         custscript_startdate: startDate,
+                            //         custscript_enddate: endDate,
+                            //         custscript_account : account,
+                            //         custscript_id_trans : recId
 
-                                }
-                            });
-                            var taskId = mapReduceTask.submit();
-                            log.debug('Map/Reduce Task Submitted', taskId);
+                            //     }
+                            // });
+                            // var taskId = mapReduceTask.submit();
+                            // log.debug('Map/Reduce Task Submitted', taskId);
                         }
                     }
                     var saveRec = recordLoad.save({
