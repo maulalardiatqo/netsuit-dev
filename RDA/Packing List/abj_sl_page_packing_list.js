@@ -382,6 +382,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 var helper = context.request.parameters.custpage_helper;
                 var armada = context.request.parameters.custpage_armada_id;
                 var nopol = context.request.parameters.custpage_nopol;
+                var salesRep = context.request.parameters.custpage_sales;
                 var lineCount = context.request.getLineCount({
                     group: 'custpage_sublist'
                 });

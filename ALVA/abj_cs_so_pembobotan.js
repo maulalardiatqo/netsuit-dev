@@ -58,7 +58,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 fieldId: 'item',
                 value: iteminCostom
             });
-            // console.log('terset setItem', setItem)
             currentRecordObj.setCurrentSublistValue({
                 sublistId: 'item',
                 fieldId: 'rate',
@@ -89,7 +88,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 fieldId: 'grossamt',
                 value: '1.11'
             });
-            // console.log('terset setTax', setTax)
             currentRecordObj.commitLine({ sublistId: 'item' });
         }
     }

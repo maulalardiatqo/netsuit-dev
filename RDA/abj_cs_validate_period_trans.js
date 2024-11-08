@@ -35,6 +35,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var searchResults = taxperiodSearchObj.run().getRange({ start: 0, end: 1 });
         return searchResults
     }
+    function formatTrandate(dateString) {
+        const date = new Date(dateString);
+        const options = { day: '2-digit', month: 'short', year: 'numeric' };
+        return date.toLocaleDateString('en-GB', options).replace(',', '');
+    }
     function getNextMonth(trandate) {
         let date = new Date(trandate);
     
@@ -56,6 +61,27 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         }
     
         return nextMonthDate.toISOString();
+    }
+    function getEndOfMonthDates(trandateafterFormat, amorPeriod) {
+        var startDate = new Date(trandateafterFormat);
+    
+        var endOfMonthDates = [];
+        for (var i = 0; i < amorPeriod; i++) {
+            var tempDate = new Date(startDate);
+            tempDate.setMonth(tempDate.getMonth() + i + 1);
+            
+            tempDate.setDate(0);
+            
+            var formattedDate = formatPeriodDate(tempDate);
+            endOfMonthDates.push(formattedDate);
+        }
+    
+        return endOfMonthDates;
+    }
+    
+    function formatPeriodDate(date) {
+        var options = { day: '2-digit', month: 'short', year: 'numeric' };
+        return new Intl.DateTimeFormat('en-GB', options).format(date);
     }
     function pageInit(context) {
         log.debug('init masuk');
@@ -119,26 +145,91 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     }
     function saveRecord(context) {
         var currentRecordObj = context.currentRecord;
-        var typeRec = currentRecordObj.getValue('type')
+        var typeRec = currentRecordObj.getValue('type');
+    
         if (typeRec == 'vendbill') {
-            var trandate = currentRecordObj.getValue('trandate')
-            log.debug('trandate', trandate)
+            var trandate = currentRecordObj.getValue('trandate');
+            log.debug('trandate', trandate);
             var trandateafter = getNextMonth(trandate);
-            log.debug('trandateafter', trandateafter)
-            var cekLineExp = currentRecordObj.getLineCount({sublistId : 'expense'});
-            if(cekLineExp > 0){
-                for(var i = 0; i < cekLineExp; i++){
-                    var cekAmor = currentRecordObj.getSublistText({
+            log.debug('trandateafter', trandateafter);
+            var cekLineExp = currentRecordObj.getLineCount({ sublistId: 'expense' });
+    
+            if (cekLineExp > 0) {
+                for (var i = 0; i < cekLineExp; i++) {
+                    var cekAmor = currentRecordObj.getSublistValue({
                         sublistId: 'expense',
                         fieldId: 'amortizationsched',
-                        line : i
-                    })
-                    log.debug('cekAmor', cekAmor)
+                        line: i
+                    });
+                    log.debug('cekAmor', cekAmor);
+    
+                    if (cekAmor) {
+                        var recAmor = record.load({
+                            type: 'revRecTemplate',
+                            id: cekAmor
+                        });
+                        var amorPeriod = recAmor.getValue('amortizationperiod');
+                        var periodOffset = recAmor.getValue('periodoffset');
+                        var startOffset = recAmor.getValue('revrecoffset');
+                        log.debug('amorPeriod', amorPeriod);
+                        
+                        var trandateafterFormat = formatTrandate(trandateafter);
+                        log.debug('trandateafterFormat (before offset)', trandateafterFormat);
+                        
+                        if (periodOffset) {
+                            var trandateafterDate = new Date(trandateafterFormat);
+                            trandateafterDate.setMonth(trandateafterDate.getMonth() + periodOffset);
+                            trandateafterFormat = formatTrandate(trandateafterDate);
+                        }
+                        log.debug('trandateafterFormat (after periodOffset)', trandateafterFormat);
+                        
+                        var arrayDate = getEndOfMonthDates(trandateafterFormat, amorPeriod);
+                        log.debug('arrayDate (before startOffset)', arrayDate);
+                        
+                        if (startOffset) {
+                            arrayDate = arrayDate.slice(startOffset);
+                        }
+                        log.debug('arrayDate (after startOffset)', arrayDate);
+    
+                        var isValid = true;
+    
+                        arrayDate.forEach(function (date) {
+                            if (!isValid) return; 
+                            log.debug('date', date);
+    
+                            var cekAp = cekApDate(date);
+                            log.debug('cekAp', cekAp);
+                            if (cekAp.length == 0) {
+                                dialog.alert({
+                                    title: 'Warning!',
+                                    message: '<div style="color: red;">Accounting Period untuk ammortization Belum dibuat, silahkan buat terlebih dulu!</div>'
+                                });
+                                isValid = false;
+                                return; 
+                            }
+    
+                            var cekTp = cekTpDate(date);
+                            log.debug('cekTp', cekTp);
+                            if (cekTp.length == 0) {
+                                dialog.alert({
+                                    title: 'Warning!',
+                                    message: '<div style="color: red;">Tax Period untuk ammortization Belum dibuat, silahkan buat terlebih dulu!</div>'
+                                });
+                                isValid = false;
+                                return; 
+                            }
+                        });
+    
+                        if (!isValid) {
+                            return false;
+                        }
+                    }
                 }
             }
         }
         return true;
     }
+    
     return {
         pageInit: pageInit,
         fieldChanged: fieldChanged,

@@ -5,7 +5,25 @@
  */
 
 define(["N/record", "N/search", "N/format", "N/task"], function (record, search, format, task) {
+    function getEndOfNextMonth(postingPeriodText) {
+        const [day, monthStr, year] = postingPeriodText.split(" ");
+        const monthMap = {
+            Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+            Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
+        };
+        const currentMonth = monthMap[monthStr];
     
+        const nextMonthDate = new Date(year, currentMonth + 1, 1);
+    
+        nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+        nextMonthDate.setDate(0);
+    
+        const endOfMonth = nextMonthDate.getDate();
+        const endMonthStr = Object.keys(monthMap).find(key => monthMap[key] === nextMonthDate.getMonth());
+        const endYear = nextMonthDate.getFullYear();
+    
+        return `${endOfMonth} ${endMonthStr} ${endYear}`;
+    }
     function afterSubmit(context) {
         if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.EDIT) {
             try {
@@ -17,14 +35,15 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                     id: rec.id,
                     isDynamic: true,
                 });
+                
                 var postingPeriod = recordLoad.getValue('postingperiod');
-                log.debug('postingPeriod', postingPeriod);
-                var postingPeriodText = recordLoad.getText('postingperiod');
+                var prefPostingPeriod = recordLoad.getText('postingperiod');
+                var postingPeriodText = getEndOfNextMonth(prefPostingPeriod);
+                log.debug('prefPostingPeriod', prefPostingPeriod)
                 log.debug('postingPeriodText', postingPeriodText)
                 var countLineExpense = recordLoad.getLineCount({
                     sublistId : "expense"
                 });
-                log.debug('countLineExpense', countLineExpense)
                 if(countLineExpense > 0){
 
                     for(var i = 0; i < countLineExpense; i++){
@@ -38,8 +57,6 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             fieldId : 'amount',
                             line : i
                         });
-                        log.debug('amount', amount)
-                        log.debug('idLine', idLine)
                         var idAmortTemp
                         var idAmortSched
                         var vendorbillSearchObj = search.create({
@@ -68,7 +85,6 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             ]
                         });
                         var searchResultCount = vendorbillSearchObj.runPaged().count;
-                        log.debug("vendorbillSearchObj result count",searchResultCount);
                         vendorbillSearchObj.run().each(function(result){
                             var tempAmort = result.getValue({
                                 name: "amortemplate",
@@ -77,15 +93,12 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             if(tempAmort){
                                 idAmortTemp = tempAmort
                             }
-                            log.debug('tempAmort', tempAmort)
                             var schedAmort = result.getValue({
                                 name: "internalid",
                                 join: "amortizationSchedule",
                             });
-                            log.debug('schedAmort', schedAmort)
                             if(schedAmort){
                                 if(context.type === context.UserEventType.CREATE){
-                                    log.debug('masuk create')
                                     idAmortSched = Number(schedAmort) + Number(1)
                                 }else{
                                     idAmortSched = schedAmort
@@ -96,7 +109,6 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                         });
                        
                         if(idAmortTemp){
-                            log.debug('idAmortTemp', idAmortTemp)
                             var recTempAmor = record.load({
                                 type: 'amortizationtemplate',
                                 id: idAmortTemp,
@@ -113,8 +125,6 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                                 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                                 const month = months.indexOf(monthText) + 1;
                             
-                                log.debug(`Month: ${month}, Year: ${year}`);
-                            
                                 return { month, year };
                             }
                             
@@ -126,8 +136,6 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                                     newMonth -= 12;
                                     newYear++;
                                 }
-                            
-                                log.debug(`New Month after adding: ${newMonth}, New Year: ${newYear}`);
                             
                                 return { newMonth, newYear };
                             }
@@ -173,9 +181,7 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             
                             
                             const { dateAwal, dateAhir } = getAmortizationDates(postingPeriodText, amortPeriod, periodOffset, startOffset);
-                            
-                            log.debug('dateAwal', dateAwal); 
-                            log.debug('dateAhir', dateAhir);  
+                             
                             function sysDate(dateAwal, dateAhir) {
                                 var date = new Date();
                                 var tdate = date.getUTCDate();
@@ -208,7 +214,6 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                                 amortPeriod = Number(amortPeriod) - Number(startOffset)
                             }
                             var amounttoSet = Number(amount) / Number(amortPeriod)
-                            log.debug('amounttoSet', amounttoSet)
                             recordLoad.selectLine({
                                 sublistId : "expense",
                                 line : i
@@ -226,12 +231,7 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                                 value : endDate
                             });
                             recordLoad.commitLine("expense")
-                            log.debug('Parameters Sent to Map/Reduce', {
-                                custscript_amortization_id: idAmortSched,
-                                custscript_recamount: amounttoSet,
-                                custscript_startdate: startDate,
-                                custscript_enddate: endDate
-                            });
+                           
                             var amortizationscheduleSearchObj = search.create({
                                 type: "amortizationschedule",
                                 filters:
@@ -244,26 +244,25 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                                 ]
                             });
                             var searchResultCount = amortizationscheduleSearchObj.runPaged().count;
-                            log.debug("amortizationscheduleSearchObj result count",searchResultCount);
                             if(searchResultCount < 0 || searchResultCount == null || searchResultCount == ''){
                                 idAmortSched = Number(idAmortSched) + 1
                             }
-                            // var mapReduceTask = task.create({
-                            //     taskType: task.TaskType.MAP_REDUCE,
-                            //     scriptId: 'customscript_abj_mr_set_amortization', 
-                            //     deploymentId: 'customdeploy_abj_mr_set_amortization',
-                            //     params: {
-                            //         custscript_amortization_id: idAmortSched,
-                            //         custscript_recamount: amounttoSet,
-                            //         custscript_startdate: startDate,
-                            //         custscript_enddate: endDate,
-                            //         custscript_account : account,
-                            //         custscript_id_trans : recId
+                            var mapReduceTask = task.create({
+                                taskType: task.TaskType.MAP_REDUCE,
+                                scriptId: 'customscript_abj_mr_set_amortization', 
+                                deploymentId: 'customdeploy_abj_mr_set_amortization',
+                                params: {
+                                    custscript_amortization_id: idAmortSched,
+                                    custscript_recamount: amounttoSet,
+                                    custscript_startdate: startDate,
+                                    custscript_enddate: endDate,
+                                    custscript_account : account,
+                                    custscript_id_trans : recId
 
-                            //     }
-                            // });
-                            // var taskId = mapReduceTask.submit();
-                            // log.debug('Map/Reduce Task Submitted', taskId);
+                                }
+                            });
+                            var taskId = mapReduceTask.submit();
+                            log.debug('Map/Reduce Task Submitted', taskId);
                         }
                     }
                     var saveRec = recordLoad.save({

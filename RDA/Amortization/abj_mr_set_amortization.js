@@ -120,8 +120,9 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
         log.debug('formattedDates', formattedDates)
 
         try {
+            log.debug('amortizationId', )
             var amortizationScheduleRec = record.load({
-                type: 'amortizationschedule',
+                type: 'revRecSchedule',
                 id: amortizationId,
                 isDynamic: true
             });
