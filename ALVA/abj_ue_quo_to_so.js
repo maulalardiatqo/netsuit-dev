@@ -10,7 +10,7 @@ define(["N/record", "N/search"], function(
   ) {
     function afterSubmit(context) {
         try {
-            if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT) {
+            if (context.type == context.UserEventType.CREATE) {
                 var rec = context.newRecord;
   
                 var soRec = record.load({
@@ -21,7 +21,6 @@ define(["N/record", "N/search"], function(
                 var lineCOunt = soRec.getLineCount({
                     sublistId : "recmachcustrecord_ajb_pembobotan_so_id"
                 })
-                log.debug('linePembobotanCount', lineCOunt)
                 if(lineCOunt > 0){
                     var groupedData = {};
                     for(var i = 0; i < lineCOunt; i++){
@@ -30,7 +29,6 @@ define(["N/record", "N/search"], function(
                             fieldId: 'custrecord_abj_pembobotan_department',
                             line: i
                         });
-                        log.debug('soDepartment', soDepartment)
                         var soItem = soRec.getSublistValue({
                             sublistId: 'recmachcustrecord_ajb_pembobotan_so_id',
                             fieldId: 'custrecord_abj_pembobotan_item',
@@ -71,10 +69,6 @@ define(["N/record", "N/search"], function(
                                 var soAmountL = dataL.soAmount
                                 var prosentLine = Number(soAmountL) / totalAmount * 100
                                 var lineIndex = dataL.lineCus
-                                log.debug('lineIndex', lineIndex);
-                                log.debug("totalAmount", totalAmount)
-                                log.debug('soAmountL', soAmountL);
-                                log.debug('prosentLine', prosentLine);
                                 soRec.selectLine({
                                     sublistId: 'recmachcustrecord_ajb_pembobotan_so_id',
                                     line: lineIndex
@@ -143,6 +137,7 @@ define(["N/record", "N/search"], function(
 
                             // setValue
                             soRec.selectNewLine({ sublistId: 'recmachcustrecord_ajb_pembobotan_so_id'});
+                            log.debug('prosent', prosent)
                             soRec.setCurrentSublistValue({
                                 sublistId: 'recmachcustrecord_ajb_pembobotan_so_id',
                                 fieldId: 'custrecord_abj_pembobotan_persen',
@@ -153,6 +148,7 @@ define(["N/record", "N/search"], function(
                                 fieldId: 'custrecord_abj_pembobotan_item',
                                 value: itemQ
                             });
+                            log.debug('amountQ', amountQ)
                             soRec.setCurrentSublistValue({
                                 sublistId: 'recmachcustrecord_ajb_pembobotan_so_id',
                                 fieldId: 'custrecord_alva_fix_amount',
@@ -167,13 +163,6 @@ define(["N/record", "N/search"], function(
 
                         }
                         
-                        
-                    }
-                }else{
-                    var countPembobotan = soRec.getLineCount({
-                        sublistId : 'recmachcustrecord_ajb_pembobotan_so_id'
-                    });
-                    if(countPembobotan > 0){
                         
                     }
                 }

@@ -2,8 +2,8 @@
  *@NApiVersion 2.1
  *@NScriptType ClientScript
  */
- define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", "N/search"],
-    function(error,dialog,url,record,currentRecord,log, search) {
+ define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", "N/search", "N/runtime"],
+    function(error,dialog,url,record,currentRecord,log, search, runtime) {
         var allIdIr = []
         var records = currentRecord.get();
         function convertDate(dateStr) {
@@ -17,7 +17,49 @@
         
         function pageInit(context) {
             console.log("masuk client");
+            var vrecord = context.currentRecord;
+            let currentUser = runtime.getCurrentUser();
+            // let subsidiaryId = currentUser.subsidiary;
+            let subsidiaryId = 7;
+            console.log('subsidiaryId', subsidiaryId);
+        
+            if (subsidiaryId) {
+                var customrecord_ncfar_assetSearchObj = search.create({
+                    type: "customrecord_ncfar_asset",
+                    filters: [
+                        ["custrecord_assetsubsidiary", "anyof", subsidiaryId]
+                    ],
+                    columns: [
+                        search.createColumn({ name: "custrecord_rda_nopol_", label: "NOPOL" }),
+                        search.createColumn({ name: "altname", label: "Name" })
+                    ]
+                });
+        
+                var nopolField = vrecord.getField({ fieldId: 'custpage_nopol' });
+        
+                // Menambahkan opsi default "- Select -" di paling atas
+                // nopolField.insertSelectOption({
+                //     value: '',
+                //     text: '- Select -'
+                // });
+        
+                customrecord_ncfar_assetSearchObj.run().each(function(result) {
+                    var nopol = result.getValue({
+                        name: "custrecord_rda_nopol_"
+                    });
+                    
+                    if (nopol) {
+                        nopolField.insertSelectOption({
+                            value: nopol,
+                            text: nopol
+                        });
+                    }
+        
+                    return true;
+                });
+            }
         }
+        
         function fieldChanged(context) {
             if(context.fieldId == 'custpage_nopol'){
                 var vrecord = context.currentRecord;
@@ -99,6 +141,97 @@
                 
 
             }
+            if (context.fieldId == 'custpage_area') {
+                var vrecord = context.currentRecord;
+                console.log('change');
+                var area = vrecord.getValue('custpage_area');
+                console.log('area', area);
+                
+                if (area) {
+                    var customrecord_rda_sub_areaSearchObj = search.create({
+                        type: "customrecord_rda_sub_area",
+                        filters: [
+                            ["custrecord_rda_subarea_area", "anyof", area]
+                        ],
+                        columns: [
+                            search.createColumn({name: "name", label: "Name"}),
+                            search.createColumn({name: "internalid", label: "Internal ID"})
+                        ]
+                    });
+                    
+                    var subAreaField = vrecord.getField({ fieldId: 'custpage_sub_area' });
+            
+                    var subAreaCount = subAreaField.getSelectOptions().length;
+                    for (var i = subAreaCount - 1; i >= 0; i--) {
+                        subAreaField.removeSelectOption({
+                            value: subAreaField.getSelectOptions()[i].value
+                        });
+                    }
+            
+                    customrecord_rda_sub_areaSearchObj.run().each(function(result) {
+                        var subAreaName = result.getValue({ name: "name" });
+                        var subAreaId = result.getValue({ name: "internalid" });
+            
+                        subAreaField.insertSelectOption({
+                            value: subAreaId,
+                            text: subAreaName
+                        });
+            
+                        return true;
+                    });
+                }
+            }
+            if (context.fieldId == 'custpage_subsidiary') {
+                var vrecord = context.currentRecord;
+                var subsidiary = vrecord.getValue('custpage_subsidiary');
+                console.log('subsidiary', subsidiary);
+                
+                if (subsidiary) {
+                    var customrecord_ncfar_assetSearchObj = search.create({
+                        type: "customrecord_ncfar_asset",
+                        filters:
+                        [
+                            ["custrecord_assetsubsidiary","anyof",subsidiary]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({name: "custrecord_rda_nopol_", label: "NOPOL"}),
+                            search.createColumn({name: "altname", label: "Name"})
+                        ]
+                    });
+                    var searchResultCount = customrecord_ncfar_assetSearchObj.runPaged().count;
+                    
+                    var nopolField = vrecord.getField({ fieldId: 'custpage_nopol' });
+                    if(nopolField){
+                        var nopolCount = nopolField.getSelectOptions().length;
+                        console.log('nopolCount', nopolCount)
+                        for (var i = nopolCount - 1; i >= 0; i--) {
+                            nopolField.removeSelectOption({
+                                value: nopolField.getSelectOptions()[i].value
+                            });
+                        }
+                    }
+                     // Menambahkan opsi default "- Select -" di paling atas
+                    nopolField.insertSelectOption({
+                        value: '',
+                        text: '- Select -'
+                    });
+                    customrecord_ncfar_assetSearchObj.run().each(function(result){
+                        var nopol = result.getValue({
+                            name: "custrecord_rda_nopol_"
+                        });
+                        if(nopol){
+                            nopolField.insertSelectOption({
+                                value: nopol,
+                                text: nopol
+                            });
+                        }
+                        
+                        return true;
+                    });
+                }
+            }
+            
 
         }
         window.onCustomButtonClick = function(context) {

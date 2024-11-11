@@ -183,14 +183,47 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
             log.debug('resultArray', resultArray)
 
-            // var poRecord = record.load({
-            //     type: record.Type.PURCHASE_ORDER,
-            //     id: recid,
-            //     isDynamic: false,
-            // });
-
-            // var currenc = poRecord.getValue('currency');
             var poRecord = resultArray
+            var poId = poRecord[0].internalid
+            log.debug('poId', poId)
+            // search item landed cost
+            var allItemLanded = []
+            var customrecord_abj_add_landed_cost_poSearchObj = search.create({
+                type: "customrecord_abj_add_landed_cost_po",
+                filters:
+                [
+                    ["custrecord_abj_link_po","anyof",poId]
+                ],
+                columns:
+                [
+                    search.createColumn({name: "custrecord_abj_add_landed_cost_po", label: "Item Landed Cost"}),
+                    search.createColumn({name: "custrecord_abj_add_landed_cost_po_amt", label: "Amount"})
+                ]
+            });
+            var searchResultCount = customrecord_abj_add_landed_cost_poSearchObj.runPaged().count;
+            customrecord_abj_add_landed_cost_poSearchObj.run().each(function(resultSearch){
+                var itemLanded = resultSearch.getText({
+                    name: "custrecord_abj_add_landed_cost_po"
+                });
+                var amountLanded = resultSearch.getValue({
+                    name: "custrecord_abj_add_landed_cost_po_amt"
+                });
+                if(amountLanded){
+                    amountLanded = pembulatan(amountLanded);
+                    amountLanded = format.format({
+                        value: amountLanded,
+                        type: format.Type.CURRENCY
+                    });
+                    amountLanded = removeDecimalFormat(amountLanded)
+                }
+                
+                allItemLanded.push({
+                    itemLanded : itemLanded,
+                    amountLanded : amountLanded
+                })
+                return true;
+            });
+            log.debug('allItemLanded', allItemLanded)
             var currenc = poRecord[0].currency
             if (currenc) {
                 var recCurrenc = record.load({
@@ -286,26 +319,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var whTaxCodetoPrint = ''
 
 
-            // var poRecord = record.load({
-            //     type: record.Type.PURCHASE_ORDER,
-            //     id: recid,
-            //     isDynamic: false,
-            // });
-            // var countItem = poRecord.getLineCount({
-            //     sublistId: 'item'
-            // });
+
             var countItem = poRecord.length
             var taxRateList = [];
-            // var poRecord = record.load({
-            //     type: record.Type.PURCHASE_ORDER,
-            //     id: recid,
-            //     isDynamic: false,
-            // });
+
 
             if (countItem > 0) {
                 var taxpphList = [];
-                for (var i = 1; i < countItem; i++) { //line 0 adalah mainline
-                    if (poRecord[i].itemName != '') { //khusus sublistId=item
+                for (var i = 1; i < countItem; i++) { 
+                    if (poRecord[i].itemName != '') { 
 
                         var taxpph = poRecord[i].witaxrate
 
@@ -598,15 +620,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td class='tg-f_body'>" + removeDecimalFormat(taxtotal) + "</td>"
                 body += "</tr>"
             }
-            if (allDataCharge || allDataCharge.length > 0) {
-                allDataCharge.forEach(function (charge) {
+            if (allItemLanded || allItemLanded.length > 0) {
+                allItemLanded.forEach(function (charge) {
                     body += "<tr>";
                     body += "<td class='tg-headerrow_left'></td>";
                     body += "<td class='tg-headerrow_left'></td>";
                     body += "<td class='tg-headerrow_left'></td>"
                     body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-f_body'>" + charge.itemNameText + "</td>";
-                    body += "<td class='tg-f_body'>" + charge.amount + "</td>";
+                    body += "<td class='tg-f_body'>" + charge.itemLanded + "</td>";
+                    body += "<td class='tg-f_body'>" + charge.amountLanded + "</td>";
                     body += "</tr>";
                 });
             }
@@ -725,29 +747,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var itemCount = poRecord.length;
         
             if (itemCount > 0) {
-                var idItemOtherCharge = [];
-                var otherchargeitemSearchObj = search.create({
-                    type: "serviceitem",
-                    filters:
-                    [
-                        ["type","anyof","Service"]
-                    ],
-                    columns: [
-                        search.createColumn({ name: "internalid", label: "Internal ID" })
-                    ]
-                });
-        
-                var searchResultCount = otherchargeitemSearchObj.runPaged().count;
-                otherchargeitemSearchObj.run().each(function(result) {
-                    var itemOtherChacge = result.getValue({
-                        name: "internalid"
-                    });
-                    if (itemOtherChacge) {
-                        idItemOtherCharge.push(itemOtherChacge);
-                    }
-                    return true;
-                });
-                log.debug('idItemOtherCharge', idItemOtherCharge)
                 var body = "";
                 var items = {};
         
@@ -757,35 +756,32 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var itemId = poRecord[index].itemid;
                         var unit = poRecord[index].unit;
         
-                        if (idItemOtherCharge.includes(itemId)) {
-                            log.debug('itemId', itemId)
-                            // Handle other charges if necessary
-                        } else {
-                            var qty = poRecord[index].quantity;
-                            var totQTY = poRecord[index].totQTY
-                            var description = poRecord[index].itemdesc;
-                            var amount = poRecord[index].amount
-                            var rate = poRecord[index].rate;
-        
-                            // Create a unique key combining itemId and unit
-                            var itemKey = itemId + '_' + unit;
-        
-                            if (!items[itemKey]) {
-                                items[itemKey] = {
-                                    description: description,
-                                    unit: unit,
-                                    qty: 0,
-                                    amount: 0,
-                                    rate: 0, 
-                                    totQTY : 0
-                                };
-                            }
-        
-                            items[itemKey].qty += Number(qty);
-                            items[itemKey].totQTY += Number(totQTY);
-                            items[itemKey].amount += Number(amount);
-                            items[itemKey].rate = rate;
+                       
+                        var qty = poRecord[index].quantity;
+                        var totQTY = poRecord[index].totQTY
+                        var description = poRecord[index].itemdesc;
+                        var amount = poRecord[index].amount
+                        var rate = poRecord[index].rate;
+    
+                        // Create a unique key combining itemId and unit
+                        var itemKey = itemId + '_' + unit;
+    
+                        if (!items[itemKey]) {
+                            items[itemKey] = {
+                                description: description,
+                                unit: unit,
+                                qty: 0,
+                                amount: 0,
+                                rate: 0, 
+                                totQTY : 0
+                            };
                         }
+    
+                        items[itemKey].qty += Number(qty);
+                        items[itemKey].totQTY += Number(totQTY);
+                        items[itemKey].amount += Number(amount);
+                        items[itemKey].rate = rate;
+                        
                     }
                 }
         

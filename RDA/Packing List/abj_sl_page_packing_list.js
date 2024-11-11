@@ -7,8 +7,8 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
     function onRequest(context) {
         if (context.request.method === 'GET') {
             let currentUser = runtime.getCurrentUser();
-            let subsidiaryId = currentUser.subsidiary;
-            log.debug('subsidiaryId', subsidiaryId)
+            // let subsidiaryId = currentUser.subsidiary;
+            // log.debug('subsidiaryId', subsidiaryId)
 
             var form = serverWidget.createForm({
                 title: 'Packing List'
@@ -41,7 +41,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 type: serverWidget.FieldType.SELECT,
                 container: "filteroption",
                 label: 'Sub Area',
-                source: 'customrecord_rda_vehicle_detail'
             });
             var salesMan = form.addField({
                 id: 'custpage_sales', 
@@ -88,38 +87,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 label: 'Nopol'
             });
             nopolList.isMandatory = true
-            nopolList.addSelectOption({
-                value: '', 
-                text: '-Select-'
-            });
-            var allAsset = []
-            var customrecord_ncfar_assetSearchObj = search.create({
-                type: "customrecord_ncfar_asset",
-                filters:
-                [
-                ],
-                columns:
-                [
-                    search.createColumn({name: "custrecord_rda_nopol_", label: "NOPOL"}),
-                    search.createColumn({name: "altname", label: "Name"})
-                ]
-            });
-            var searchResultCount = customrecord_ncfar_assetSearchObj.runPaged().count;
-            log.debug("customrecord_ncfar_assetSearchObj result count",searchResultCount);
-            customrecord_ncfar_assetSearchObj.run().each(function(result){
-                var nopol = result.getValue({
-                    name: "custrecord_rda_nopol_"
-                });
-                allAsset.push(nopol)
-                return true;
-            });
-            
-            allAsset.forEach(data =>{
-                nopolList.addSelectOption({
-                    value: data,
-                    text: data
-                });
-            })
+           
             var accountingPeriod = form.addField({
                 id: 'custpage_accperiod', 
                 type: serverWidget.FieldType.SELECT,
@@ -204,6 +172,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             });
             subsidiary.isMandatory = true;
             var nameGudang = ''
+            var subsidiaryId = 7
             if(subsidiaryId){
                 var subsidiarySearchObj = search.create({
                     type: "subsidiary",
@@ -383,6 +352,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 var armada = context.request.parameters.custpage_armada_id;
                 var nopol = context.request.parameters.custpage_nopol;
                 var salesRep = context.request.parameters.custpage_sales;
+                var subAreaId = context.request.parameters.custpage_sub_area;
                 var lineCount = context.request.getLineCount({
                     group: 'custpage_sublist'
                 });
@@ -536,7 +506,12 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         });
                         createRec.setValue({
                             fieldId: "custbody_rda_packlist_subarea",
-                            value: subAreaSet || '',
+                            value: subAreaId || '',
+                            ignoreFieldChange: true,
+                        });
+                        createRec.setValue({
+                            fieldId: "custbody_from_script",
+                            value: true,
                             ignoreFieldChange: true,
                         });
                         
@@ -555,27 +530,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         var saveCreate = createRec.save();
                         log.debug('saveCreate', saveCreate)
                         if(saveCreate){
-                            allIdFul.forEach(function(id) {
-                                log.debug('id', id)
-                                if(id){
-                                    var recIf = record.load({
-                                        type: "itemfulfillment",
-                                        id : id,
-                                        isDynamic: true
-                                    });
-                                    recIf.setValue({
-                                        fieldId : "custbody_rda_flag_centangpackinglist",
-                                        value : true,
-                                    });
-                                    log.debug('nopol to set', nopol)
-                                    recIf.setValue({
-                                        fieldId : "custbody_rda_nopol",
-                                        value : nopol,
-                                        ignoreFieldChange: true,
-                                    });
-                                    recIf.save();
-                                }
-                            });
                         
                             var html = "<html><body>";
                             html += "<h3>Success</h3>";

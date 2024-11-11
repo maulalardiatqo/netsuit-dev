@@ -117,6 +117,7 @@
           let filterVendor = context.request.parameters.custpage_vendor;
           let filterItem = context.request.parameters.custpage_item_name;
           let filterPR = context.request.parameters.custpage_pr;
+          let newFilterPR = context.request.parameters.custpage_pr_new;
           vendorField.defaultValue = filterVendor;
           if(!filterVendor && !filterItem){
               var errorField = form.addField({
@@ -169,10 +170,18 @@
             );
             prSelect.defaultValue = filterPR;
           }
-  
+          if(newFilterPR){
+              prToPO.filters.push(
+                search.createFilter({
+                  name: "internalid",
+                  operator: search.Operator.ANYOF,
+                  values: newFilterPR,
+                })
+            );
+          }
           var prToPOSet = prToPO.run();
           var prToPO = prToPOSet.getRange(0, 1000);
-  
+          var allIdPoselected = []
           var currentRecord = createSublist("custpage_sublist_item", form);
           if (prToPO.length > 0) {
             for (let i = 0; i < prToPO.length; i++) {
@@ -221,6 +230,13 @@
               let internalID = prToPO[i].getValue({
                 name: prToPOSet.columns[11],
               });
+              let docNumber = prToPO[i].getValue({
+                name: prToPOSet.columns[18],
+              });
+              allIdPoselected.push({
+                internalID : internalID,
+                docNumber : docNumber,
+              })
               let osPO = prToPO[i].getValue({
                 name: prToPOSet.columns[12],
               });
@@ -236,9 +252,7 @@
               let unitsText = prToPO[i].getText({
                 name: prToPOSet.columns[17],
               });
-              let docNumber = prToPO[i].getValue({
-                name: prToPOSet.columns[18],
-              });
+              
               let soNO = prToPO[i].getValue({
                 name: prToPOSet.columns[19],
               });
@@ -538,6 +552,41 @@
               }
               
             }
+            prSelect.updateDisplayType({
+              displayType: serverWidget.FieldDisplayType.HIDDEN,
+            });
+            var prSelectNew = form.addField({
+                id: 'custpage_pr_new', 
+                type: serverWidget.FieldType.SELECT,
+                container: "filteroption",
+                label: 'PR Number',
+            });
+            prSelectNew.addSelectOption({
+                value: '', 
+                text: '-Select-'
+            });
+            function removeDuplicates(data) {
+                const uniqueData = [];
+                const idSet = new Set();
+            
+                data.forEach((item) => {
+                    if (!idSet.has(item.internalID)) {
+                        idSet.add(item.internalID);
+                        uniqueData.push(item);
+                    }
+                });
+            
+                return uniqueData;
+            }
+            const uniqueAllIdPoselected = removeDuplicates(allIdPoselected);
+            uniqueAllIdPoselected.forEach(function (poData) {
+                prSelectNew.addSelectOption({
+                    value: poData.internalID,
+                    text: poData.docNumber
+                });
+            });
+        
+            prSelectNew.defaultValue = filterPR;
           }
           context.response.writePage(form);
       }
@@ -670,6 +719,8 @@
           id: "custpage_sublist_total_packaging",
           label: "TOTAL PACKAGING",
           type: serverWidget.FieldType.TEXT,
+        }).updateDisplayType({
+          displayType: serverWidget.FieldDisplayType.ENTRY
         });
         sublist_in.addField({
           id: "custpage_sublist_qty_po",
