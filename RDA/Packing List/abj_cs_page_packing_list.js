@@ -19,8 +19,7 @@
             console.log("masuk client");
             var vrecord = context.currentRecord;
             let currentUser = runtime.getCurrentUser();
-            // let subsidiaryId = currentUser.subsidiary;
-            let subsidiaryId = 7;
+            let subsidiaryId = currentUser.subsidiary;
             console.log('subsidiaryId', subsidiaryId);
         
             if (subsidiaryId) {

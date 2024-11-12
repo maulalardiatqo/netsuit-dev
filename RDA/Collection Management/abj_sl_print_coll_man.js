@@ -87,6 +87,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         "AND", 
                         ["cogs","is","F"],
                         "AND",
+                        ["mainline","is","F"],
+                        "AND",
                         ["internalid", "anyof"].concat(allIdInvArray)
                     ],
                     columns:
@@ -130,6 +132,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var classId = result.getText({
                         name : "classnohierarchy"
                     });
+                    log.debug('classId', classId)
                     var cussId = result.getText({
                         name: "entity"
                     });
@@ -161,7 +164,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         join: "applyingTransaction",
                     });
                     if(applyingTrans == 'creditmemo'){
-                        log.debug('app is credit')
                         applyingAmount = result.getValue({
                             name: "applyinglinkamount",
                         })
@@ -187,7 +189,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     return true;
                 });
                 var allClass = [];
-                var groupedData = {};
+                var groupedData = {};   
+                log.debug('allData', allData)
                 
                 allData.forEach(function(data) {
                     if (data.classId && !allClass.includes(data.classId)) {

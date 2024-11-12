@@ -6,6 +6,9 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
 
     function onRequest(context) {
         if (context.request.method === 'GET') {
+            let currentUser = runtime.getCurrentUser();
+            let subsidiaryId = currentUser.subsidiary;
+            log.debug('subsidiaryId', subsidiaryId)
             var form = serverWidget.createForm({
                 title: 'Collection Management'
             });
@@ -28,7 +31,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 value: '', 
                 text: '-Select-'
             });
-
+            
             var salesMan = form.addField({
                 id: 'custpage_sales', 
                 type: serverWidget.FieldType.SELECT,
@@ -72,6 +75,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 })
                 return true;
             });
+            kolektor.isMandatory = true
             var date_field_from = form.addField({
                 id: 'custpage_date_from', 
                 type: serverWidget.FieldType.DATE,
@@ -93,7 +97,28 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 source: 'subsidiary'
             });
             subsidiary.isMandatory = true
-
+            if(subsidiaryId){
+                var subsidiarySearchObj = search.create({
+                    type: "subsidiary",
+                    filters: [
+                        ["internalid", "anyof", subsidiaryId]
+                    ],
+                    columns: [
+                        search.createColumn({name: "namenohierarchy", label: "Name (no hierarchy)"})
+                    ]
+                });
+                 
+                 // Ambil satu hasil saja
+                var result = subsidiarySearchObj.run().getRange({start: 0, end: 1})[0];
+                
+                if (result) {
+                    var nameG = result.getValue("namenohierarchy")
+                    if(nameG){
+                        nameGudang = 'InTransit Outbound - ' + nameG
+                    }
+                }
+                subsidiary.defaultValue = subsidiaryId
+            }
 
             // create sublist
             var sublist = form.addSublist({
@@ -263,29 +288,49 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
         
                 if (lineCount > 0) {
                     let allIdInv = new Set(), isCreate = false, subsSet, dateSet, divisionSet, currSet, excSet, reasonSet, actionPlanSet;
-        
+                    var dataLinetoSet = [];
+                    
                     for (let i = 0; i < lineCount; i++) {
                         const fulfill = context.request.getSublistValue({
                             group: 'custpage_sublist',
                             name: 'custpage_sublist_item_select',
                             line: i
                         });
-        
+                    
                         if (fulfill === 'T') {
                             const subsId = context.request.getSublistValue({
                                 group: 'custpage_sublist',
                                 name: 'custpage_sublist_subsidiary_id',
                                 line: i
                             });
-        
+                    
                             if (subsId) {
                                 isCreate = true;
                                 subsSet = subsId;
-                                allIdInv.add(context.request.getSublistValue({
+                                const idInv = context.request.getSublistValue({
                                     group: 'custpage_sublist',
                                     name: 'custpage_sublist_id_inv',
                                     line: i
-                                }));
+                                });
+                                allIdInv.add(idInv);
+                                
+                                const reason = context.request.getSublistValue({
+                                    group: 'custpage_sublist',
+                                    name: 'custpage_sublist_reason',
+                                    line: i
+                                });
+                                const actionPlan = context.request.getSublistValue({
+                                    group: 'custpage_sublist',
+                                    name: 'custpage_sublist_action',
+                                    line: i
+                                });
+                                
+                                dataLinetoSet.push({
+                                    idInv,
+                                    reason,
+                                    actionPlan
+                                });
+                    
                                 dateSet = context.request.getSublistValue({
                                     group: 'custpage_sublist',
                                     name: 'custpage_sublist_date',
@@ -306,20 +351,16 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     name: 'custpage_sublist_exc_rate',
                                     line: i
                                 }) || excSet;
-                                reasonSet = context.request.getSublistValue({
-                                    group: 'custpage_sublist',
-                                    name: 'custpage_sublist_reason',
-                                    line: i
-                                }) || reasonSet;
-                                actionPlanSet = context.request.getSublistValue({
-                                    group: 'custpage_sublist',
-                                    name: 'custpage_sublist_action',
-                                    line: i
-                                }) || actionPlanSet;
                             }
                         }
                     }
-        
+                    
+                    // Remove duplicates based on idInv
+                    dataLinetoSet = dataLinetoSet.filter((value, index, self) =>
+                        index === self.findIndex((t) => t.idInv === value.idInv)
+                    );
+                    log.debug('dataLinetoSet', dataLinetoSet)
+                    
                     if (isCreate) {
                         const dateConvert = convertToDate(dateSet);
                         const createRec = record.create({ type: "customtransaction_rda_collection_mgm" });
@@ -330,40 +371,34 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         createRec.setValue({ fieldId: "subsidiary", value: subsSet, ignoreFieldChange: true });
                         createRec.setValue({ fieldId: "custbody_rda_kolektor", value: kolektorSelect, ignoreFieldChange: true });
                         createRec.setValue({ fieldId: "custbody_rda_invoice_number", value: [...allIdInv], ignoreFieldChange: true });
-                        
+                    
+                        for (let lineData of dataLinetoSet) {
+                            createRec.insertLine({ sublistId: 'recmachcustrecord_transaction', line: 0 });
+                            createRec.setSublistValue({
+                                sublistId: 'recmachcustrecord_transaction',
+                                fieldId: 'custrecord_invoice_number',
+                                line: 0,
+                                value: lineData.idInv
+                            });
+                            createRec.setSublistValue({
+                                sublistId: 'recmachcustrecord_transaction',
+                                fieldId: 'custrecord_rda_reason',
+                                line: 0,
+                                value: lineData.reason
+                            });
+                            createRec.setSublistValue({
+                                sublistId: 'recmachcustrecord_transaction',
+                                fieldId: 'custrecord_rda_action',
+                                line: 0,
+                                value: lineData.actionPlan
+                            });
+                        }
+                    
                         const saveCreate = createRec.save();
                         if (saveCreate) {
-                            function removeDuplicates(array) {
-                                return [...new Set(array)];
-                            }
-                            const uniqueAllIdInv = removeDuplicates(allIdInv);
-                            uniqueAllIdInv.forEach(id => {
-                                const recInv = record.load({ type: "invoice", id, isDynamic: true });
-                                const cekNumber = recInv.getValue("custbody_rda_sjp_count");
-                                recInv.setValue({
-                                    fieldId: "custbody_rda_sjp_count",
-                                    value: cekNumber ? Number(cekNumber) + 1 : 1,
-                                    ignoreFieldChange: true
-                                });
-                                log.debug('reasonSet', reasonSet)
-                                if(reasonSet){
-                                    recInv.setValue({
-                                        fieldId: "custbody_rda_reason",
-                                        value: reasonSet,
-                                        ignoreFieldChange: true
-                                    });
-                                }
-                                log.debug('actionPlanSet', actionPlanSet)
-                                recInv.setValue({
-                                    fieldId: "custbody_rda_action_plan",
-                                    value: actionPlanSet || '',
-                                    ignoreFieldChange: true
-                                });
-                                recInv.save();
-                            });
                             context.response.writePage(createSuccessPage(saveCreate));
                         }
-                    } else {
+                    }else {
                         context.response.writePage(createErrorPage("Gagal Menyimpan"));
                     }
                 } else {
