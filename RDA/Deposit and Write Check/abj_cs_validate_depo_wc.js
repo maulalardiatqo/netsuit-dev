@@ -4,7 +4,7 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog) {
+define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog", "N/log"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog, log) {
     function pageInit(context) {
        log.debug('init masuk');
     }
@@ -21,7 +21,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             [
                 search.createColumn({name: "name", label: "Name"}),
                 search.createColumn({name: "internalid", label: "Internal ID"}),
-                search.createColumn({name: "type", label: "Account Type"})
+                search.createColumn({name: "type", label: "Account Type"}),
+                search.createColumn({name: "custrecord_is_allow", label: "Allow to make deposits and write checks"})
             ]
         });
         var searchResultCount = accountSearchObj.runPaged().count;
@@ -30,17 +31,25 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var idCoa = result.getValue({
                 name : "internalid"
             })
-            if(idCoa){
-                allId.push(idCoa)
+            var isAllow = result.getValue({
+                name : "custrecord_is_allow"
+            });
+            if(isAllow){
+                log.debug('isAllow', isAllow)
+            }else{
+                if(idCoa){
+                    allId.push(idCoa)
+                }
             }
+            
             return true;
         });
-        console.log('allId', allId)
+        log.debug('allId', allId)
         var currentRecordObj = context.currentRecord;
         var typeTrans = currentRecordObj.getValue('type');
-        console.log('typeTrans', typeTrans);
+        log.debug('typeTrans', typeTrans);
         if(typeTrans == 'deposit'){
-            console.log('deposit');
+            log.debug('deposit');
             var lineOther = currentRecordObj.getLineCount({ sublistId: 'other' });
            
             if(lineOther > 0){
@@ -51,16 +60,16 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: 'account',
                         line: i
                     });
-                    console.log('coaOther', coaOther)
+                    log.debug('coaOther', coaOther)
                     if(coaOther){
                         allIdinDep.push(coaOther)
                     }
                 }
-                console.log('allIdinDep', allIdinDep)
+                log.debug('allIdinDep', allIdinDep)
                 var foundMatch = allIdinDep.some(function (id) {
                     return allId.includes(id);
                 });
-                console.log('foundMatch', foundMatch)
+                log.debug('foundMatch', foundMatch)
                 if (foundMatch) {
                     dialog.alert({
                         title: 'Warning!',
@@ -73,9 +82,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
         }
         if(typeTrans == 'check'){
-            console.log('check');
+            log.debug('check');
             var lineExp = currentRecordObj.getLineCount({ sublistId: 'expense' });
-            console.log('lineExp', lineExp)
+            log.debug('lineExp', lineExp)
             if(lineExp > 0){
                 var allIdinExp = []
                 for (var j = 0; j < lineExp; j++) {
@@ -85,16 +94,16 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: 'account',
                         line: j
                     });
-                    console.log('coaExp', coaExp)
+                    log.debug('coaExp', coaExp)
                     if(coaExp){
                         allIdinExp.push(coaExp)
                     }
                 }
-                console.log('allIdinExp', allIdinExp)
+                log.debug('allIdinExp', allIdinExp)
                 var foundMatchExp = allIdinExp.some(function (id) {
                     return allId.includes(id);
                 });
-                console.log('foundMatchExp', foundMatchExp)
+                log.debug('foundMatchExp', foundMatchExp)
                 if (foundMatchExp) {
                     dialog.alert({
                         title: 'Warning!',

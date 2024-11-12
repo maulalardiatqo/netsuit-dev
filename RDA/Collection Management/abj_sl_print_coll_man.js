@@ -93,6 +93,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     ],
                     columns:
                     [
+                        search.createColumn({name: "internalid", label: "Internal ID"}),
                         search.createColumn({name: "tranid", label: "Document Number"}),
                         search.createColumn({name: "amountremaining", label: "Amount Remaining"}),
                         search.createColumn({name: "total", label: "Amount (Transaction Total)"}),
@@ -120,19 +121,22 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
                 var searchResultCount = invoiceSearchObj.runPaged().count;
                 invoiceSearchObj.run().each(function(result){
+                    var invId = result.getValue({
+                        name: "internalid"
+                    })
                     var docNumber = result.getValue({
                         name: "tranid"
                     })
                     var amtRemaining = result.getValue({
                         name: "amountremaining"
                     })
+                    log.debug('amount remaining', amtRemaining)
                     var amtTotal = result.getValue({
                         name: "total"
                     })
                     var classId = result.getText({
                         name : "classnohierarchy"
                     });
-                    log.debug('classId', classId)
                     var cussId = result.getText({
                         name: "entity"
                     });
@@ -158,20 +162,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         name: "entityid",
                         join: "customer",
                     })
-                    var applyingAmount = 0
-                    var applyingTrans = result.getValue({
-                        name: "recordtype",
-                        join: "applyingTransaction",
-                    });
-                    if(applyingTrans == 'creditmemo'){
-                        applyingAmount = result.getValue({
-                            name: "applyinglinkamount",
-                        })
-                    }
+                    
                     var daysOverDue = result.getValue({
                         name: "daysoverdue"
                     })
                     allData.push({
+                        invId : invId,
                         docNumber : docNumber,
                         amtRemaining : amtRemaining,
                         amtTotal : amtTotal,
@@ -183,14 +179,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         area : area,
                         sjpCount : sjpCount,
                         entityId : entityId,
-                        applyingAmount : applyingAmount,
                         daysOverDue : daysOverDue
                     })
                     return true;
                 });
                 var allClass = [];
                 var groupedData = {};   
-                log.debug('allData', allData)
                 
                 allData.forEach(function(data) {
                     if (data.classId && !allClass.includes(data.classId)) {
@@ -237,12 +231,85 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         if (!existingData.daysOverDue && data.daysOverDue) {
                             existingData.daysOverDue = data.daysOverDue;
                         }
-                        existingData.applyingAmount += (parseFloat(data.applyingAmount) || 0); 
+                        if (!existingData.idInv && data.idInv) {
+                            existingData.idInv = data.idInv;
+                        }
                     }
                 });
-                
+                // search for applying amount
+                var allDataApply = []
+                var searchInvApp = search.create({
+                    type: "invoice",
+                    settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
+                    filters:
+                    [
+                        ["type","anyof","CustInvc"], 
+                        "AND", 
+                        ["taxline","is","F"], 
+                        "AND", 
+                        ["cogs","is","F"],
+                        "AND",
+                        ["mainline","is","T"],
+                        "AND",
+                        ["internalid", "anyof"].concat(allIdInvArray)
+                    ],
+                    columns:
+                    [
+                        search.createColumn({name: "internalid", label: "Internal ID"}),
+                        search.createColumn({name: "applyinglinkamount", label: "Applying Transaction"}),
+                        search.createColumn({
+                            name: "recordtype",
+                            join: "applyingTransaction",
+                            label: "Record Type"
+                        }),
+                        search.createColumn({name: "amountremaining", label: "Amount Remaining"}),
+                    
+                    ]
+                });
+                var searchResultCount = searchInvApp.runPaged().count;
+                searchInvApp.run().each(function(dataResult){
+                    var idInv = dataResult.getValue({
+                        name: "internalid"
+                    });
+                    var applyingAmt = 0;
+                    var applyingTrans = dataResult.getValue({
+                        name: "recordtype",
+                        join: "applyingTransaction",
+                    });
+                    var cekAmount =  dataResult.getValue({
+                        name: "applyinglinkamount",
+                    })
+                    if(applyingTrans == 'creditmemo'){
+                        applyingAmt =cekAmount
+                    }
+                    var remainAmount = 0
+                    var cekRmnAmt = dataResult.getValue({
+                        name: "amountremaining",
+                    })
+                    if(cekRmnAmt){
+                        remainAmount = cekRmnAmt
+                    }
+                    allDataApply.push({
+                        idInv : idInv,
+                        applyingAmt : applyingAmt,
+                        remainAmount : remainAmount
+                    });
+                    return true
+                })
                 
                 var finalData = Object.values(groupedData);
+                log.debug('allDataApply', allDataApply)
+                log.debug('finalData', finalData)
+                allDataApply.forEach(function(applyData) {
+                    finalData.forEach(function(finalDataItem) {
+                        if (finalDataItem.invId === applyData.idInv) {
+                            finalDataItem.applyingAmount = applyData.applyingAmt;
+                            finalDataItem.amtRemaining = applyData.remainAmount;
+                        }
+                    });
+                });
+                
+                log.debug('Updated finalData', finalData);
 
                 var allClassString = allClass.join(', ');
                 var subsId = collRecord.getValue({name : 'subsidiary'});

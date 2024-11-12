@@ -104,7 +104,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     fieldId : 'custcol_abj_total_packaging',
                     line : index
                 })
-                log.debug('totalPackaging', totalPackaging)
                 allData.push({
                     soNo : soNo,
                     packSizeOrder : packSizeOrder,
@@ -127,6 +126,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
 
             var groupedData = {};
+            log.debug('allData length', allData.length)
             allData.forEach(function(data) {
                 var groupKey = data.item + '-' + data.salesRep + '-' + data.customerId + '-' + data.packSizeOrder;
             
@@ -204,9 +204,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         return [data, newRow];
                     }else{
                         var newTotal = Number(calculationResult)  - Number(data.foreCastBuffer)
-                       log.debug('newTotal', newTotal)
                         data.totalOrder = newTotal;
-                        // data.soNo = ''
+                        data.soNo = ''
                         return data;
                     }
                 }
@@ -243,6 +242,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: 'custrecord_iss_pr_item',
                         value: item
                     });
+                    log.debug('packSizeOrder', packSizeOrder)
                     currentRecordObj.setCurrentSublistValue({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
                         fieldId: 'custrecord_iss_pack_size',

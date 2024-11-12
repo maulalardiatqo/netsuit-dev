@@ -4,7 +4,7 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/runtime"], function (runtime, log, url, currentRecord, currency, record, search, message, runtime) {
+define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message"], function (runtime, log, url, currentRecord, currency, record, search, message) {
     var records = currentRecord.get();
     
     function pageInit(context) {
@@ -19,6 +19,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         if (countLine > 0) {
             var allData = [];
             for (var index = 0; index < countLine; index++) {
+                var soNo = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'custcol_abj_no_so',
+                    line: index
+                });
                 var item = currentRecordObj.getSublistValue({
                     sublistId: 'item',
                     fieldId: 'item',
@@ -59,6 +64,16 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     fieldId: 'custcol_pr_total_order',
                     line: index
                 });
+                var packSizeOrder = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'custcol_abj_pack_size_order',
+                    line: index
+                })
+                var packSizeOrderText = currentRecordObj.getSublistText({
+                    sublistId: 'item',
+                    fieldId: 'custcol_abj_pack_size_order',
+                    line: index
+                })
                 var poCustomer = currentRecordObj.getSublistValue({
                     sublistId: 'item',
                     fieldId: 'custcol_abj_po_customer',
@@ -95,6 +110,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     line : index
                 })
                 allData.push({
+                    soNo : soNo,
+                    packSizeOrder : packSizeOrder,
                     item: item,
                     salesRep: salesRep,
                     customerId: customerId,
@@ -109,22 +126,26 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     avgPengBusdev : avgPengBusdev,
                     avgPengAcc : avgPengAcc,
                     leadTimeKirim : leadTimeKirim,
-                    totalPackaging : totalPackaging
+                    totalPackaging : totalPackaging,
+                    packSizeOrderText : packSizeOrderText
                 });
             }
 
             var groupedData = {};
-
+            log.debug('allData length', allData.length)
             allData.forEach(function(data) {
-                var groupKey = data.item + '-' + data.salesRep + '-' + data.customerId;
+                var groupKey = data.item + '-' + data.salesRep + '-' + data.customerId + '-' + data.packSizeOrder;
             
                 if (!groupedData[groupKey]) {
                     groupedData[groupKey] = {
+                        soNo : data.soNo,
                         item: data.item,
                         salesRep: data.salesRep,
                         customerId: data.customerId,
+                        packSizeOrder: data.packSizeOrder,
+                        packSizeOrderText : data.packSizeOrderText,
                         tanggalKirim: data.tanggalKirim,
-                        totalPackaging: data.totalPackaging,
+                        totalPackaging : 0,
                         rumusPerhitungan: 0,
                         avgPengBusdev: 0,
                         avgPengAcc: 0,
@@ -138,45 +159,74 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     };
                 }
             
-                groupedData[groupKey].onHand += data.onHand;
-                groupedData[groupKey].incomingStock += data.incomingStock;
-                groupedData[groupKey].osPo += data.osPo;
+                groupedData[groupKey].onHand += Number(data.onHand);
+                groupedData[groupKey].incomingStock += Number(data.incomingStock);
+                groupedData[groupKey].osPo += Number(data.osPo);
                 groupedData[groupKey].foreCastBuffer += Number(data.foreCastBuffer);
-                groupedData[groupKey].totalOrder += data.totalOrder;
-                groupedData[groupKey].avgPengAcc += data.avgPengAcc;
-                groupedData[groupKey].avgPengBusdev += data.avgPengBusdev;
-                groupedData[groupKey].rumusPerhitungan += data.rumusPerhitungan;
-            
+                groupedData[groupKey].totalOrder += Number(data.totalOrder);
+                groupedData[groupKey].totalPackaging += Number(data.totalPackaging);
+                groupedData[groupKey].avgPengAcc += Number(data.avgPengAcc);
+                groupedData[groupKey].avgPengBusdev += Number(data.avgPengBusdev);
+                groupedData[groupKey].rumusPerhitungan += Number(data.rumusPerhitungan);
+                
                 if (data.poCustomer && data.poCustomer.trim() !== "") {
-                    if (!groupedData[groupKey].poCustomer.includes(data.poCustomer)) {
-                        groupedData[groupKey].poCustomer.push(data.poCustomer);
-                    }
+                    groupedData[groupKey].poCustomer.push(data.poCustomer);
                 }
             });
-            
             
             log.debug('groupedData', groupedData);
             
             var countLineInCustom = currentRecordObj.getLineCount({
-                sublistId: "recmachcustrecord_pr_id_parent"
+                sublistId: "recmachcustrecord_iss_pr_parent"
             });
-            log.debug('countLineInCustom', countLineInCustom)
             if (countLineInCustom > 0) {
-                var lineCount = currentRecordObj.getLineCount({ sublistId: 'recmachcustrecord_pr_id_parent' });
-                log.debug('deletedLineSUms')
+                var lineCount = currentRecordObj.getLineCount({ sublistId: 'recmachcustrecord_iss_pr_parent' });
                 for (var i = lineCount - 1; i >= 0; i--) {
-                    currentRecordObj.selectLine({ sublistId: 'recmachcustrecord_pr_id_parent', line: i });
-                    currentRecordObj.removeLine({ sublistId: 'recmachcustrecord_pr_id_parent', line: i, ignoreRecalc: true });
+                    currentRecordObj.selectLine({ sublistId: 'recmachcustrecord_iss_pr_parent', line: i });
+                    currentRecordObj.removeLine({ sublistId: 'recmachcustrecord_iss_pr_parent', line: i, ignoreRecalc: true });
                 }
             }
             var result = Object.keys(groupedData).map(function(key) {
                 var data = groupedData[key];
                 data.poCustomer = data.poCustomer.join(', ');
+                if (data.foreCastBuffer > 0) {
+                    var calculationResult = data.onHand + data.incomingStock - data.osPo;
+            
+                    // Jika hasil perhitungan negatif
+                    if (calculationResult < 0) {
+                        var newRow = JSON.parse(JSON.stringify(data));
+                        newRow.onHand = 0;
+                        newRow.incomingStock = 0;
+                        newRow.osPo = 0;
+                        newRow.foreCastBuffer = data.foreCastBuffer;
+                        newRow.totalOrder = -Math.abs(data.foreCastBuffer);
+                        newRow.totalPackaging = data.totalPackaging;
+                        newRow.poCustomer = '';
+                        newRow.soNo = '';
+                        newRow.tanggalKirim = data.tanggalKirim
+                        data.foreCastBuffer = 0;
+                        data.totalOrder = calculationResult;
+                        
+            
+                        return [data, newRow];
+                    }else{
+                        var newTotal = Number(calculationResult)  - Number(data.foreCastBuffer)
+                        data.totalOrder = newTotal;
+                        data.soNo = ''
+                        return data;
+                    }
+                }
                 return data;
             });
-            log.debug('resultLength', result.length)
+            result = result.flat(); 
+           log.debug('resultLength', result.length)
             if (result.length > 0) {
+
                 result.forEach(function(data) {
+                    log.debug('data', data)
+                    var soNo = data.soNo
+                    var packSizeOrder = data.packSizeOrder
+                    var packSizeOrderText = data.packSizeOrderText
                     var item = data.item;
                     var salesRep = data.salesRep;
                     var customerId = data.customerId;
@@ -191,84 +241,126 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     var avgPengBusdev = data.avgPengBusdev
                     var avgPengAcc = data.avgPengAcc
                     var tanggalKirim = data.tanggalKirim
-                    var keyItem = item + "-" + salesRep + "-" + customerId;
+                    var totalPackaging = data.totalPackaging
+                    var keyItem = item + "-" + salesRep + "-" + customerId + "-" + packSizeOrder;
                    
-                    currentRecordObj.selectNewLine({ sublistId: 'recmachcustrecord_pr_id_parent' });
+                    currentRecordObj.selectNewLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_pr_sum_item',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_pr_item',
                         value: item
                     });
+                    log.debug('packSizeOrderText', packSizeOrderText)
+                    var unitstypeSearchObj = search.create({
+                        type: "unitstype",
+                        filters: [
+                            ["unitname","is",packSizeOrderText]
+                        ],
+                        columns: [
+                            search.createColumn({ name: "pluralname", label: "Unit Name(Plural)" }),
+                            search.createColumn({ name: "conversionrate", label: "Rate" })
+                        ]
+                    });
+                     
+                    var searchResultCount = unitstypeSearchObj.runPaged().count;
+                    log.debug("unitstypeSearchObj result count", searchResultCount);
+                    
+                    // Ambil hanya satu hasil
+                    var results = unitstypeSearchObj.run().getRange({ start: 0, end: 1 });
+                    if (results.length > 0) {
+                        var firstResult = results[0];
+                        var pluralName = firstResult.getValue({ name: "pluralname" });
+                        var rate = firstResult.getValue({ name: "conversionrate" });
+                        log.debug("First Result", "Plural Name: " + pluralName + ", Rate: " + rate);
+                    }
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_sales_rep',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_pack_size',
+                        value: packSizeOrder
+                    });
+                    currentRecordObj.setCurrentSublistValue({
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_no_po',
+                        value: soNo
+                    });
+                    currentRecordObj.setCurrentSublistValue({
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_prsum_salesrep',
                         value: salesRep
                     });
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_pr_sum_customer',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_prsum_customer',
                         value: customerId
                     });
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_pr_sum_currenctstock',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_pr_stock',
                         value: onHand
                     });
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_pr_sum_incomingstock',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_pr_incoming_stock',
                         value: incomingStock
                     });
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_pr_sum_ospo',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_os_po',
                         value: osPo
                     });
+                    
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_pr_sum_totalorder',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_total_order',
                         value: totalOrder
                     });
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_pr_sum_forecastbuffer',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_forecast_buffer',
                         value: foreCastBuffer
                     });
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_pr_sum_pocustomer',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_prsum_po_customer',
                         value: poCustomer
                     });
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_pr_sum_leadtime',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_lead_time',
                         value: leadTimeKirim
                     });
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_pr_sum_rumus_perhitungan',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_rumus_perhitungan',
                         value: rumusPerhitungan
                     });
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_pr_sum_avgdeliverybusdev',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_avg_busdev',
                         value: avgPengBusdev
                     });
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_pr_sum_avgdeliveryacc',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_avg_accounting',
                         value: avgPengAcc
                     });
                     currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_pr_id_parent',
-                        fieldId: 'custrecord_pr_sum_tglkirim',
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_total_order_formula',
+                        value: totalPackaging
+                    });
+                    currentRecordObj.setCurrentSublistValue({
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_tgl_kirim',
                         value: tanggalKirim
                     });
-                    currentRecordObj.commitLine({ sublistId: 'recmachcustrecord_pr_id_parent'});
+                   
+                    currentRecordObj.commitLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
                     
                     
                 });
             }
+            
         }
         var scriptObj = runtime.getCurrentScript();
         log.debug({
