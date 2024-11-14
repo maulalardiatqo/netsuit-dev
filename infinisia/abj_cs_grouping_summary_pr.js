@@ -12,7 +12,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     }
     function getNumberFromString(input) {
         const match = input.match(/^\d+/);
-        return match ? parseInt(match[0]) : null;
+        return match ? parseInt(match[0]) : 1;
     }
     function calculate(context) {
         var currentRecordObj = records;

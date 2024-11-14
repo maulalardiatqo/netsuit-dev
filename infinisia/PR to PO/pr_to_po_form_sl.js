@@ -298,6 +298,9 @@
               let poCust = prToPO[i].getValue({
                 name : prToPOSet.columns[34]
               });
+              let ratePackSIze = prToPO[i].getValue({
+                name : prToPOSet.columns[37]
+              }) || 0;
               var totalPackaging = 0
               var customrecord_pr_summary_customerSearchObj = search.create({
                 type: "customrecord_pr_summary_customer",
@@ -532,9 +535,16 @@
                   line: i,
                 });
                 currentRecord.setSublistValue({
+                    sublistId: "custpage_sublist_item",
+                    id: "custpage_sublist_rate_packsize",
+                    value: ratePackSIze || " ",
+                    line: i,
+                });
+                var setTotalPacking = Number(totalOrder) / Number(ratePackSIze)
+                currentRecord.setSublistValue({
                   sublistId: "custpage_sublist_item",
                   id: "custpage_sublist_total_packaging",
-                  value: totalPackaging || " ",
+                  value: setTotalPacking || " ",
                   line: i,
                 });
                 // currentRecord.setSublistValue({
@@ -873,6 +883,14 @@
             type: serverWidget.FieldType.TEXT,
           })
           .updateDisplayType({
+            displayType: serverWidget.FieldDisplayType.HIDDEN,
+          });
+          sublist_in
+          .addField({
+            id: "custpage_sublist_rate_packsize",
+            label: "Rate Pack SIze",
+            type: serverWidget.FieldType.TEXT,
+          }) .updateDisplayType({
             displayType: serverWidget.FieldDisplayType.HIDDEN,
           });
           sublist_in
