@@ -401,12 +401,7 @@
                   value: avgAccounting || " ",
                   line: i,
                 });
-                currentRecord.setSublistValue({
-                  sublistId: "custpage_sublist_item",
-                  id: "custpage_sublist_total_order",
-                  value: Math.abs(totalOrder),
-                  line: i,
-                });
+               
                 currentRecord.setSublistValue({
                   sublistId: "custpage_sublist_item",
                   id: "custpage_sublist_packsize",
@@ -540,11 +535,17 @@
                     value: ratePackSIze || " ",
                     line: i,
                 });
-                var setTotalPacking = Number(totalOrder) / Number(ratePackSIze)
+                var setTotalOrder = Number(totalPackaging) * Number(ratePackSIze)
+                currentRecord.setSublistValue({
+                  sublistId: "custpage_sublist_item",
+                  id: "custpage_sublist_total_order",
+                  value: Math.abs(setTotalOrder),
+                  line: i,
+                });
                 currentRecord.setSublistValue({
                   sublistId: "custpage_sublist_item",
                   id: "custpage_sublist_total_packaging",
-                  value: setTotalPacking || " ",
+                  value: totalPackaging || " ",
                   line: i,
                 });
                 // currentRecord.setSublistValue({
@@ -729,9 +730,7 @@
           id: "custpage_sublist_total_packaging",
           label: "TOTAL PACKAGING",
           type: serverWidget.FieldType.TEXT,
-        }).updateDisplayType({
-          displayType: serverWidget.FieldDisplayType.ENTRY
-        });
+        })
         sublist_in.addField({
           id: "custpage_sublist_qty_po",
           label: "QTY PO",

@@ -194,6 +194,11 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               fieldId: "custpage_sublist_pocust",
               line: j,
             });
+            var ratePackSIze = records.getSublistValue({
+              sublistId: "custpage_sublist_item",
+              fieldId: "custpage_sublist_rate_packsize",
+              line: j,
+            });
             console.log('totalPackaging', totalPackaging)
             if(currency){
               currencySet = currency
@@ -229,7 +234,8 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
               totalPackaging : totalPackaging,
               lastPurchise : lastPurchise,
               poCust:poCust,
-              packSizeText : packSizeText
+              packSizeText : packSizeText,
+              ratePackSIze : ratePackSIze
             });
           }
         }

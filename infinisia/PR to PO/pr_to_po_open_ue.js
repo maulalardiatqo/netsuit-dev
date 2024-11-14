@@ -129,7 +129,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             var poCust = POLine.poCust
             var lineId = POLine.lineId
             var packSizeText = POLine.packSizeText
-            log.debug('packSizeText', packSizeText)
+            var ratePackSIzeSet = POLine.ratePackSIze
+            log.debug('ratePackSIzeSet', ratePackSIzeSet)
             arrayPR.push(internalIDPR);
             if (poItem) {
               var lastPurchase = 0
@@ -301,6 +302,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 fieldId: "unit",
                 line: line_idx,
                 value: units,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_abj_ratepacksize",
+                line: line_idx,
+                value: ratePackSIzeSet,
               });
              
               
