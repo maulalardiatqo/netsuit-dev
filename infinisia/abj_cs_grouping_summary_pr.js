@@ -10,7 +10,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     function pageInit(context) {
         log.debug('init masuk');
     }
-    
+    function getNumberFromString(input) {
+        const match = input.match(/^\d+/);
+        return match ? parseInt(match[0]) : null;
+    }
     function calculate(context) {
         var currentRecordObj = records;
         var countLine = currentRecordObj.getLineCount({
@@ -109,6 +112,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     fieldId : 'custcol_abj_total_packaging',
                     line : index
                 })
+                var ratePackSize = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol_abj_ratepacksize',
+                    line : index
+                })
                 allData.push({
                     soNo : soNo,
                     packSizeOrder : packSizeOrder,
@@ -127,7 +135,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     avgPengAcc : avgPengAcc,
                     leadTimeKirim : leadTimeKirim,
                     totalPackaging : totalPackaging,
-                    packSizeOrderText : packSizeOrderText
+                    packSizeOrderText : packSizeOrderText,
+                    ratePackSize : ratePackSize
                 });
             }
 
@@ -145,6 +154,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         packSizeOrder: data.packSizeOrder,
                         packSizeOrderText : data.packSizeOrderText,
                         tanggalKirim: data.tanggalKirim,
+                        ratePackSize: data.ratePackSize,
                         totalPackaging : 0,
                         rumusPerhitungan: 0,
                         avgPengBusdev: 0,
@@ -201,6 +211,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         newRow.foreCastBuffer = data.foreCastBuffer;
                         newRow.totalOrder = -Math.abs(data.foreCastBuffer);
                         newRow.totalPackaging = data.totalPackaging;
+                        newRow.ratePackSize = data.ratePackSize;
                         newRow.poCustomer = '';
                         newRow.soNo = '';
                         newRow.tanggalKirim = data.tanggalKirim
@@ -242,6 +253,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     var avgPengAcc = data.avgPengAcc
                     var tanggalKirim = data.tanggalKirim
                     var totalPackaging = data.totalPackaging
+                    var ratePackSize = data.ratePackSize
                     var keyItem = item + "-" + salesRep + "-" + customerId + "-" + packSizeOrder;
                    
                     currentRecordObj.selectNewLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
@@ -250,29 +262,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: 'custrecord_iss_pr_item',
                         value: item
                     });
-                    log.debug('packSizeOrderText', packSizeOrderText)
-                    var unitstypeSearchObj = search.create({
-                        type: "unitstype",
-                        filters: [
-                            ["unitname","is",packSizeOrderText]
-                        ],
-                        columns: [
-                            search.createColumn({ name: "pluralname", label: "Unit Name(Plural)" }),
-                            search.createColumn({ name: "conversionrate", label: "Rate" })
-                        ]
-                    });
-                     
-                    var searchResultCount = unitstypeSearchObj.runPaged().count;
-                    log.debug("unitstypeSearchObj result count", searchResultCount);
                     
-                    // Ambil hanya satu hasil
-                    var results = unitstypeSearchObj.run().getRange({ start: 0, end: 1 });
-                    if (results.length > 0) {
-                        var firstResult = results[0];
-                        var pluralName = firstResult.getValue({ name: "pluralname" });
-                        var rate = firstResult.getValue({ name: "conversionrate" });
-                        log.debug("First Result", "Plural Name: " + pluralName + ", Rate: " + rate);
-                    }
+                  
                     currentRecordObj.setCurrentSublistValue({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
                         fieldId: 'custrecord_iss_pack_size',
@@ -344,17 +335,37 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: 'custrecord_iss_avg_accounting',
                         value: avgPengAcc
                     });
-                    currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_total_order_formula',
-                        value: totalPackaging
-                    });
+                    // currentRecordObj.setCurrentSublistValue({
+                    //     sublistId: 'recmachcustrecord_iss_pr_parent',
+                    //     fieldId: 'custrecord_iss_total_order_formula',
+                    //     value: totalPackaging
+                    // });
                     currentRecordObj.setCurrentSublistValue({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
                         fieldId: 'custrecord_iss_tgl_kirim',
                         value: tanggalKirim
                     });
-                   
+                    var setRatePackSize
+                    if(ratePackSize){
+                        setRatePackSize = ratePackSize
+                    }else{
+                        setRatePackSize = getNumberFromString(packSizeOrderText)
+                    }
+                    currentRecordObj.setCurrentSublistValue({
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_abj_pr_ratepacksize',
+                        value: setRatePackSize
+                    });
+                    log.debug('packSizeOrderText', packSizeOrderText)
+                    log.debug('totalOrder', totalOrder);
+                    log.debug('setRatePackSize', setRatePackSize)
+                    var totalPackagingCount = Number(totalOrder) / Number(setRatePackSize);
+                    log.debug('totalPackagingCount', totalPackagingCount)
+                    currentRecordObj.setCurrentSublistValue({
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_total_order_formula',
+                        value: totalPackagingCount
+                    });
                     currentRecordObj.commitLine({ sublistId: 'recmachcustrecord_iss_pr_parent' });
                     
                     

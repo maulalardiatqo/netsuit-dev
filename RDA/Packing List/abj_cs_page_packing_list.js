@@ -56,6 +56,42 @@
         
                     return true;
                 });
+                var subsidiaryFIeld = vrecord.getField({ fieldId: 'custpage_subsidiary' });
+            //     function getAllSubsidiaries(parentId) {
+            //         var subsidiaries = [];
+    
+            //         var searchObj = search.create({
+            //             type: "subsidiary",
+            //             filters: [
+            //                 ["parent", "anyof", parentId]
+            //             ],
+            //             columns: [
+            //                 search.createColumn({name: "internalid", label: "ID"}),
+            //                 search.createColumn({name: "name", label: "Name"})
+            //             ]
+            //         });
+    
+            //         searchObj.run().each(function(result) {
+            //             let id = result.getValue({name: "internalid"});
+            //             let name = result.getValue({name: "name"});
+            //             subsidiaries.push({ id: id, name: name });
+                        
+            //             subsidiaries = subsidiaries.concat(getAllSubsidiaries(id));
+            //             return true;
+            //         });
+    
+            //         return subsidiaries;
+            //     }
+    
+            //     let subsidiaries = getAllSubsidiaries(subsidiaryId);
+            //    console.log('subsidiaries', subsidiaries)
+    
+                // subsidiaries.forEach(function(subsidiary) {
+                //     subsidiaryFIeld.insertSelectOption({
+                //         value: subsidiary.id,
+                //         text: subsidiary.name
+                //     });
+                // });
             }
         }
         

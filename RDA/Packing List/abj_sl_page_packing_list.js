@@ -7,8 +7,8 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
     function onRequest(context) {
         if (context.request.method === 'GET') {
             let currentUser = runtime.getCurrentUser();
-            // let subsidiaryId = currentUser.subsidiary;
-            // log.debug('subsidiaryId', subsidiaryId)
+            let subsidiaryId = currentUser.subsidiary;
+            log.debug('subsidiaryId', subsidiaryId)
 
             var form = serverWidget.createForm({
                 title: 'Packing List'
@@ -167,12 +167,12 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 id: 'custpage_subsidiary', 
                 type: serverWidget.FieldType.SELECT,
                 label: 'Subsidiary',
-                container: "filteroption",
-                source: 'subsidiary'
+                container: "filteroption"
             });
             subsidiary.isMandatory = true;
+           
+
             var nameGudang = ''
-            var subsidiaryId = 7
             if(subsidiaryId){
                 var subsidiarySearchObj = search.create({
                     type: "subsidiary",
@@ -193,7 +193,8 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         nameGudang = 'InTransit Outbound - ' + nameG
                     }
                 }
-                subsidiary.defaultValue = subsidiaryId
+
+              
             }
             var supir = form.addField({
                 id: 'custpage_supir', 

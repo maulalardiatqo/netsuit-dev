@@ -490,7 +490,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             ]
                         });
                         var searchResultCount = unitstypeSearchObj.runPaged().count;
-                        log.debug("unitstypeSearchObj result count",searchResultCount);
                         unitstypeSearchObj.run().each(function(result){
                             var rate = result.getValue({
                                 name : "conversionrate"
@@ -507,6 +506,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             sublistId: "item",
                             fieldId: "custcol_abj_total_packaging",
                             value: conversi || 0,
+                        });
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "custcol_abj_ratepacksize",
+                            value: ratePackSize || 0,
                         });
                     }
 
