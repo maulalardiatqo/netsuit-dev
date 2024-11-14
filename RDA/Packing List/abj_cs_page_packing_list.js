@@ -14,12 +14,44 @@
             const year = date.getFullYear();
             return `${day}/${month}/${year}`;
         }
+        function getAllChildSubsidiariesWithNames(allSubs, subsidiaryId) {
+            let result = [];
         
+            subsidiaryId = String(subsidiaryId);
+        
+            function findChildren(parentId) {
+                console.log('Checking children of', parentId);
+                let children = allSubs.filter(sub => sub.parent === parentId);
+                console.log('Found children:', children);
+        
+                children.forEach(child => {
+                    result.push({
+                        internalId: child.internalId,
+                        nameSubs: child.nameSubs
+                    });
+                    findChildren(child.internalId); 
+                });
+            }
+        
+            let initialSubsidiary = allSubs.find(sub => sub.internalId === subsidiaryId);
+            if (initialSubsidiary) {
+                result.push({
+                    internalId: initialSubsidiary.internalId,
+                    nameSubs: initialSubsidiary.nameSubs
+                });
+                findChildren(subsidiaryId); 
+            } else {
+                console.log('Initial subsidiary not found', subsidiaryId);
+            }
+        
+            return result;
+        }
         function pageInit(context) {
             console.log("masuk client");
             var vrecord = context.currentRecord;
             let currentUser = runtime.getCurrentUser();
             let subsidiaryId = currentUser.subsidiary;
+            
             console.log('subsidiaryId', subsidiaryId);
         
             if (subsidiaryId) {
@@ -57,41 +89,46 @@
                     return true;
                 });
                 var subsidiaryFIeld = vrecord.getField({ fieldId: 'custpage_subsidiary' });
-            //     function getAllSubsidiaries(parentId) {
-            //         var subsidiaries = [];
-    
-            //         var searchObj = search.create({
-            //             type: "subsidiary",
-            //             filters: [
-            //                 ["parent", "anyof", parentId]
-            //             ],
-            //             columns: [
-            //                 search.createColumn({name: "internalid", label: "ID"}),
-            //                 search.createColumn({name: "name", label: "Name"})
-            //             ]
-            //         });
-    
-            //         searchObj.run().each(function(result) {
-            //             let id = result.getValue({name: "internalid"});
-            //             let name = result.getValue({name: "name"});
-            //             subsidiaries.push({ id: id, name: name });
-                        
-            //             subsidiaries = subsidiaries.concat(getAllSubsidiaries(id));
-            //             return true;
-            //         });
-    
-            //         return subsidiaries;
-            //     }
-    
-            //     let subsidiaries = getAllSubsidiaries(subsidiaryId);
-            //    console.log('subsidiaries', subsidiaries)
-    
-                // subsidiaries.forEach(function(subsidiary) {
-                //     subsidiaryFIeld.insertSelectOption({
-                //         value: subsidiary.id,
-                //         text: subsidiary.name
-                //     });
-                // });
+                var allSubs = []
+                var subsidiarySearchObj = search.create({
+                    type: "subsidiary",
+                    filters:
+                    [
+                    ],
+                    columns:
+                    [
+                        search.createColumn({name: "internalid", label: "Internal ID"}),
+                        search.createColumn({name: "name", label: "Name"}),
+                        search.createColumn({name: "parent", label: "Parent Subsidiary"})
+                    ]
+                });
+                var searchResultCount = subsidiarySearchObj.runPaged().count;
+                console.log("subsidiarySearchObj result count",searchResultCount);
+                subsidiarySearchObj.run().each(function(result){
+                    var internalId = result.getValue({name: "internalid"});
+                    var parent = result.getValue({name: "parent"});
+                    var nameSubs = result.getValue({name: "name"});
+                    allSubs.push({
+                        internalId : internalId,
+                        parent : parent,
+                        nameSubs : nameSubs
+                    })
+                    return true;
+                });
+                console.log('allSubs', allSubs)
+                var childSubs = getAllChildSubsidiariesWithNames(allSubs, subsidiaryId);
+                console.log('childSubs', childSubs)
+                if(childSubs){
+                    childSubs.forEach(function(subsidiary) {
+                        // Mengambil internalId dan nameSubs dari tiap subsidiary
+                        var internalId = subsidiary.internalId;
+                        var nameSubs = subsidiary.nameSubs;
+                        subsidiaryFIeld.insertSelectOption({
+                            value: internalId,
+                            text: nameSubs
+                        });
+                    })
+                }
             }
         }
         

@@ -2,8 +2,8 @@
  *@NApiVersion 2.1
  *@NScriptType ClientScript
  */
-define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", "N/search"],
-    function(error,dialog,url,record,currentRecord,log, search) {
+ define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", "N/search", "N/runtime"],
+    function(error,dialog,url,record,currentRecord,log, search, runtime) {
         var allIdIr = []
         var records = currentRecord.get();
         function convertDate(dateStr) {
@@ -14,8 +14,86 @@ define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", 
             const year = date.getFullYear();
             return `${day}/${month}/${year}`;
         }
+        function getAllChildSubsidiariesWithNames(allSubs, subsidiaryId) {
+            let result = [];
         
+            subsidiaryId = String(subsidiaryId);
+        
+            function findChildren(parentId) {
+                console.log('Checking children of', parentId);
+                let children = allSubs.filter(sub => sub.parent === parentId);
+                console.log('Found children:', children);
+        
+                children.forEach(child => {
+                    result.push({
+                        internalId: child.internalId,
+                        nameSubs: child.nameSubs
+                    });
+                    findChildren(child.internalId); 
+                });
+            }
+        
+            let initialSubsidiary = allSubs.find(sub => sub.internalId === subsidiaryId);
+            if (initialSubsidiary) {
+                result.push({
+                    internalId: initialSubsidiary.internalId,
+                    nameSubs: initialSubsidiary.nameSubs
+                });
+                findChildren(subsidiaryId); 
+            } else {
+                console.log('Initial subsidiary not found', subsidiaryId);
+            }
+        
+            return result;
+        }
         function pageInit(context) {
+            var vrecord = context.currentRecord;
+            let currentUser = runtime.getCurrentUser();
+            // let subsidiaryId = currentUser.subsidiary;
+            let subsidiaryId = 6;
+            if (subsidiaryId) {
+                var subsidiaryFIeld = vrecord.getField({ fieldId: 'custpage_subsidiary' });
+                var allSubs = []
+                var subsidiarySearchObj = search.create({
+                    type: "subsidiary",
+                    filters:
+                    [
+                    ],
+                    columns:
+                    [
+                        search.createColumn({name: "internalid", label: "Internal ID"}),
+                        search.createColumn({name: "name", label: "Name"}),
+                        search.createColumn({name: "parent", label: "Parent Subsidiary"})
+                    ]
+                });
+                var searchResultCount = subsidiarySearchObj.runPaged().count;
+                console.log("subsidiarySearchObj result count",searchResultCount);
+                subsidiarySearchObj.run().each(function(result){
+                    var internalId = result.getValue({name: "internalid"});
+                    var parent = result.getValue({name: "parent"});
+                    var nameSubs = result.getValue({name: "name"});
+                    allSubs.push({
+                        internalId : internalId,
+                        parent : parent,
+                        nameSubs : nameSubs
+                    })
+                    return true;
+                });
+                console.log('allSubs', allSubs)
+                var childSubs = getAllChildSubsidiariesWithNames(allSubs, subsidiaryId);
+                console.log('childSubs', childSubs)
+                if(childSubs){
+                    childSubs.forEach(function(subsidiary) {
+                        // Mengambil internalId dan nameSubs dari tiap subsidiary
+                        var internalId = subsidiary.internalId;
+                        var nameSubs = subsidiary.nameSubs;
+                        subsidiaryFIeld.insertSelectOption({
+                            value: internalId,
+                            text: nameSubs
+                        });
+                    })
+                }
+            }
             console.log("masuk client");
         }
         window.onCustomButtonClick = function(context) {

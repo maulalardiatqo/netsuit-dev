@@ -8,7 +8,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
         if (context.request.method === 'GET') {
             let currentUser = runtime.getCurrentUser();
             let subsidiaryId = currentUser.subsidiary;
-            log.debug('subsidiaryId', subsidiaryId)
 
             var form = serverWidget.createForm({
                 title: 'Packing List'
@@ -66,7 +65,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 ]
             });
             var searchResultCount = employeeSearchObj.runPaged().count;
-            log.debug("employeeSearchObj result count",searchResultCount);
             employeeSearchObj.run().each(function(result){
                 var nameSales = result.getValue({
                     name: "entityid"
@@ -140,10 +138,8 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 const date = new Date(dateString);
                 return date.toLocaleDateString('en-GB', options);
             }
-            log.debug('currDate', currDate)
             date_field.defaultValue = currDate;
             var formatedDateConv = formatDate(currDate);
-            log.debug('formatedDateConv', formatedDateConv)
             if(formatedDateConv){
                 var accountingperiodSearchObj = search.create({
                     type: "accountingperiod",
@@ -159,7 +155,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 var searchResults = accountingperiodSearchObj.run().getRange({ start: 0, end: 1 });
                 if (searchResults.length > 0) {
                     var accountingperiodId = searchResults[0].getValue("internalid");
-                    log.debug('accountingperiodId', accountingperiodId)
                     accountingPeriod.defaultValue = accountingperiodId;
                 }
             }
@@ -184,7 +179,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                     ]
                 });
                  
-                 // Ambil satu hasil saja
                 var result = subsidiarySearchObj.run().getRange({start: 0, end: 1})[0];
                 
                 if (result) {
@@ -194,7 +188,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                     }
                 }
 
-              
             }
             var supir = form.addField({
                 id: 'custpage_supir', 
@@ -448,13 +441,8 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         }
  
                     }
-                    log.debug('isCreate', isCreate)
                     if(isCreate == true){
-                        log.debug('masuk create');
-                        log.debug('dateSet', dateSet)
                         var dateConvert = convertToDate(dateSet);
-                        log.debug('dateConvert', dateConvert)
-                        log.debug('allIdFul', allIdFul)
                         var createRec = record.create({
                             type: "customtransaction_rda_packing_list",
                         });
@@ -463,13 +451,11 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                             value: dateConvert,
                             ignoreFieldChange: true,
                         });
-                        log.debug('postingSet', postingSet)
                         createRec.setValue({
                             fieldId: "postingperiod",
                             value: postingSet,
                             ignoreFieldChange: true,
                         }); 
-                        log.debug('subsSet', subsSet)
                         createRec.setValue({
                             fieldId: "subsidiary",
                             value: subsSet,
@@ -505,6 +491,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                             value: areaSet,
                             ignoreFieldChange: true,
                         });
+                        log.debug('subAreaId', subAreaId)
                         createRec.setValue({
                             fieldId: "custbody_rda_packlist_subarea",
                             value: subAreaId || '',
@@ -517,7 +504,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         });
                         
                         var formatFulfill = formatFulfillmentText(fulfillText)
-                        log.debug('formatFulfill', formatFulfill)
                         createRec.setValue({
                             fieldId: "custbody_rda_do_number_text",
                             value: formatFulfill,

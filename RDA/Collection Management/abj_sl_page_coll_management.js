@@ -94,7 +94,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 type: serverWidget.FieldType.SELECT,
                 label: 'Subsidiary',
                 container: "filteroption",
-                source: 'subsidiary'
             });
             subsidiary.isMandatory = true
             if(subsidiaryId){
@@ -117,7 +116,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         nameGudang = 'InTransit Outbound - ' + nameG
                     }
                 }
-                subsidiary.defaultValue = subsidiaryId
             }
 
             // create sublist
