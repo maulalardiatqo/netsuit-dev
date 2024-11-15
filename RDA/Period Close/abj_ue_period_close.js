@@ -10,7 +10,10 @@ define(['N/record', 'N/log'], function(record, log) {
             var newRecord = context.newRecord;
        
             var arLocked = newRecord.getValue('closed');
-
+            newRecord.setValue({
+                fieldId : "closed", 
+                value : false
+            })
             log.debug('arLocked', arLocked)
             if (arLocked == true) {
                 throw new Error('End date harus lebih besar dari start date.');

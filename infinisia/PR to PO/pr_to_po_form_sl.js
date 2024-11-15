@@ -180,11 +180,13 @@
             );
           }
           var prToPOSet = prToPO.run();
-          var prToPO = prToPOSet.getRange(0, 1000);
+          var prToPO = prToPOSet.getRange(0, 300);
+          log.debug('prToPO.length', prToPO.length)
           var allIdPoselected = []
           var currentRecord = createSublist("custpage_sublist_item", form);
           if (prToPO.length > 0) {
             for (let i = 0; i < prToPO.length; i++) {
+              
               let itemName = prToPO[i].getText({
                 name: prToPOSet.columns[0],
               });
@@ -249,15 +251,9 @@
               let units = prToPO[i].getValue({
                 name: prToPOSet.columns[17],
               });
-              let unitsText = prToPO[i].getText({
-                name: prToPOSet.columns[17],
-              });
               
               let soNO = prToPO[i].getValue({
                 name: prToPOSet.columns[19],
-              });
-              let taxItem = prToPO[i].getValue({
-                name: prToPOSet.columns[20],
               });
               let taxItemRate = prToPO[i].getValue({
                 name: prToPOSet.columns[21],
@@ -277,9 +273,6 @@
               let soNumberText = prToPO[i].getText({
                 name: prToPOSet.columns[19],
               });
-              let totalOrder = prToPO[i].getValue({
-                name: prToPOSet.columns[28],
-              })
               let qtyPO = prToPO[i].getValue({
                 name: prToPOSet.columns[27],
               })
@@ -292,38 +285,17 @@
               let idSum = prToPO[i].getValue({
                 name : prToPOSet.columns[32]
               });
-              let lastPurchise = prToPO[i].getValue({
-                name : prToPOSet.columns[33]
-              });
               let poCust = prToPO[i].getValue({
                 name : prToPOSet.columns[34]
               });
               let ratePackSIze = prToPO[i].getValue({
                 name : prToPOSet.columns[37]
               }) || 0;
-              var totalPackaging = 0
-              var customrecord_pr_summary_customerSearchObj = search.create({
-                type: "customrecord_pr_summary_customer",
-                filters: [
-                    ["internalid", "anyof", idSum]
-                ],
-                columns: [
-                    search.createColumn({name: "custrecord_iss_total_order_formula", label: "Total Packaging"})
-                ]
-              });
-              var searchResult = customrecord_pr_summary_customerSearchObj.run().getRange({
-                  start: 0,
-                  end: 1
-              });
+              var cekTotalPackaging = prToPO[i].getValue({
+                name : prToPOSet.columns[35]
+              }) || 0;
               
-              if (searchResult.length > 0) {
-                  var package = searchResult[0].getValue("custrecord_iss_total_order_formula");
-                  if(package){
-                    totalPackaging = package
-                  }
-              }
-              log.debug('currency', currency)
-              totalPackaging = Math.abs(parseFloat(totalPackaging || 0)) - parseFloat(qtyPO || 0);
+              var totalPackaging = Math.abs(parseFloat(cekTotalPackaging || 0)) - parseFloat(qtyPO || 0) 
               var itemRate
               let cek1 = prToPO[i].getValue({
                 name: prToPOSet.columns[25],
@@ -334,13 +306,7 @@
                 }else{
                   itemRate = cek2
                 }
-                log.debug('internalID', internalID)
-                // currentRecord.setSublistValue({
-                //   sublistId: "custpage_sublist_item",
-                //   id: "custpage_sublist_view_link",
-                //   value: `https://9274135.app.netsuite.com/app/accounting/transactions/purchord.nl?id=${internalID}&whence=`,
-                //   line: i,
-                // });
+                
                 currentRecord.setSublistValue({
                   sublistId: "custpage_sublist_item",
                   id: "custpage_sublist_item_name",
