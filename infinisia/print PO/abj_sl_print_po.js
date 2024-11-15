@@ -414,7 +414,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             totalWhTaxamount = totalWhTaxamountItem + totalWhTaxamountExp;
             var totalWHTaxToCount = totalWhTaxamount
             if (totalWhTaxamount) {
-                totalWhTaxamount = pembulatan(totalWhTaxamount);
                 totalWhTaxamount = format.format({
                     value: totalWhTaxamount,
                     type: format.Type.CURRENCY
@@ -433,7 +432,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
             }
             if (subTotal) {
-                subTotal = pembulatan(subTotal)
                 subTotal = format.format({
                     value: subTotal,
                     type: format.Type.CURRENCY
@@ -441,14 +439,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             }
 
             if (taxtotal) {
-                taxtotal = pembulatan(taxtotal)
                 taxtotal = format.format({
                     value: taxtotal,
                     type: format.Type.CURRENCY
                 });
             }
             if (total) {
-                total = pembulatan(total)
                 total = format.format({
                     value: total,
                     type: format.Type.CURRENCY
@@ -474,7 +470,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             // }
             var amountRecieved = Number(totalToCount) - Number(totalWHTaxToCount);
             if (amountRecieved) {
-                amountRecieved = pembulatan(amountRecieved);
                 amountRecieved = format.format({
                     value: amountRecieved,
                     type: format.Type.CURRENCY
@@ -608,7 +603,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-f_body'>SUBTOTAL</td>"
-            body += "<td class='tg-f_body'>" + removeDecimalFormat(subTotal) + "</td>"
+            body += "<td class='tg-f_body'>" + subTotal + "</td>"
             body += "</tr>"
             if (taxRateList != '') {
                 body += "<tr>"
@@ -617,7 +612,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-f_body'>VAT " + taxtRate + " %</td>"
-                body += "<td class='tg-f_body'>" + removeDecimalFormat(taxtotal) + "</td>"
+                body += "<td class='tg-f_body'>" + taxtotal + "</td>"
                 body += "</tr>"
             }
             if (allItemLanded || allItemLanded.length > 0) {
@@ -638,7 +633,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-f_body'>TOTAL</td>"
-            body += "<td class='tg-f_body'>" + removeDecimalFormat(total) + "</td>"
+            body += "<td class='tg-f_body'>" + total + "</td>"
             body += "</tr>"
 
 
@@ -649,7 +644,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td style='align: right;font-size:12px;border-bottom: solid black 2px;'>" + whTaxCodetoPrint + "</td>"
-                body += "<td class='tg-f_body'>" + removeDecimalFormat(totalWhTaxamount) + "</td>"
+                body += "<td class='tg-f_body'>" + totalWhTaxamount + "</td>"
                 body += "</tr>"
             }
 
@@ -659,7 +654,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td style='align: right;font-size:14px;border-top: solid black 2px; font-weight: bold;'>BALANCE DUE</td>"
-            body += "<td style='align: right;font-size:15px;border-top: solid black 2px; font-weight: bold;'>" + removeDecimalFormat(amountRecieved) + "</td>"
+            body += "<td style='align: right;font-size:15px;border-top: solid black 2px; font-weight: bold;'>" + amountRecieved + "</td>"
             body += "</tr>"
             body += "<tr style='height:30px;'></tr>"
             body += "<tr>"
@@ -797,7 +792,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type: format.Type.CURRENCY
                     });
         
-                    var amountFormatted = pembulatan(item.amount);
+                    var amountFormatted = item.amount;
                     amountFormatted = format.format({
                         value: amountFormatted,
                         type: format.Type.CURRENCY
@@ -808,8 +803,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td class='tg-b_body'>" + item.unit + "</td>";
                     body += "<td class='tg-b_body'>" + item.qty + "</td>";
                     body += "<td class='tg-b_body'>" + item.totQTY + "</td>";
-                    body += "<td class='tg-b_body' style='align:right'>" + removeDecimalFormat(rateFormatted) + "</td>";
-                    body += "<td class='tg-b_body' style='align:right;'>" + removeDecimalFormat(amountFormatted) + "</td>";
+                    body += "<td class='tg-b_body' style='align:right'>" + rateFormatted + "</td>";
+                    body += "<td class='tg-b_body' style='align:right;'>" + amountFormatted + "</td>";
                     body += "</tr>";
                 }
         
@@ -837,7 +832,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         if (amount) {
                             var amountBef = amount
     
-                            amount = pembulatan(amount)
+                            amount = amount
                             amount = format.format({
                                 value: amount,
                                 type: format.Type.CURRENCY
@@ -845,7 +840,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         }
                         var taxamt_exp = poRecord[index].taxamount
                         if (taxamt_exp) {
-                            taxamt_exp = pembulatan(taxamt_exp)
+                            taxamt_exp = taxamt_exp
                             taxamt_exp = format.format({
                                 value: taxamt_exp,
                                 type: format.Type.CURRENCY
@@ -853,7 +848,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         }
                         var grosamt_exp = Number(amountBef) * Number(qty)
                         if (grosamt_exp) {
-                            grosamt_exp = pembulatan(grosamt_exp)
+                            grosamt_exp = grosamt_exp
                             grosamt_exp = format.format({
                                 value: grosamt_exp,
                                 type: format.Type.CURRENCY
@@ -862,8 +857,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<tr>";
                         body += "<td class='tg-b_body'>" + description + "</td>";
                         body += "<td class='tg-b_body'>" + qty + "</td>";
-                        body += "<td class='tg-b_body' style='align:right'>" + removeDecimalFormat(amount) + "</td>";
-                        body += "<td class='tg-b_body' style='align:right;'>" + removeDecimalFormat(grosamt_exp) + "</td>";
+                        body += "<td class='tg-b_body' style='align:right'>" + amount + "</td>";
+                        body += "<td class='tg-b_body' style='align:right;'>" + grosamt_exp + "</td>";
                         body += "</tr>";
                     }
                 }
