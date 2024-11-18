@@ -21,20 +21,16 @@ define(['N/record', 'N/log', 'N/runtime'], (record, log, runtime) => {
                 id: accountingPeriodId,
                 isDynamic: true
             });
-
-            accountingPeriodRecord.setValue({
-                fieldId: 'aplock',
-                value: true
-            });
-            accountingPeriodRecord.setValue({
-                fieldId: 'arlock',
-                value: true
-            });
-            accountingPeriodRecord.setValue({
-                fieldId: 'close',
-                value: true
-            });
-
+            var getName = accountingPeriodRecord.getValue('periodname');
+            log.debug('getName', getName);
+            if(getName){
+                var newName = getName + ' - (Test)' 
+                accountingPeriodRecord.setValue({
+                    fieldId: 'periodname',
+                    value: newName
+                });
+            }
+            
             const recordId = accountingPeriodRecord.save({
                 enableSourcing: true,
                 ignoreMandatoryFields: true
