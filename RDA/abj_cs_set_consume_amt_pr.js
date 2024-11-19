@@ -7,6 +7,8 @@
 define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog) {
     try{
         var records = currentRecord.get();
+        var budgetContorlGolbal
+        var msgGlobal
         function pageInit(context) {
             console.log('init masuk')
         }
@@ -62,7 +64,17 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         name: "custrecord_bm_status_header_msg",
                         join: "CUSTBODY_BM_BUDGET_CONTROL",
                         label: "Status Message (Within Budget)"
-                    })
+                    }),
+                    search.createColumn({
+                        name: "custrecord_bm_control_pref",
+                        join: "CUSTBODY_BM_BUDGET_CONTROL",
+                        label: "Budget Control Action"
+                    }),
+                    search.createColumn({
+                        name: "custrecord_bm_budget_head_msg",
+                        join: "CUSTBODY_BM_BUDGET_CONTROL",
+                        label: "Status Message (Exceeds Budget)"
+                     })
                 ]
             });
             var transSearchResult = transactionSearchObj.run().getRange({ start: 0, end: 1 });
@@ -81,6 +93,20 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     name: "custrecord_bm_status_header_msg",
                     join: "CUSTBODY_BM_BUDGET_CONTROL",
                 });
+                var budgetCOntrol = transSearchResult[0].getValue({
+                    name: "custrecord_bm_control_pref",
+                    join: "CUSTBODY_BM_BUDGET_CONTROL",
+                })
+                if(budgetCOntrol){
+                    budgetContorlGolbal = budgetCOntrol
+                }
+                var msg =  transSearchResult[0].getValue({
+                    name: "custrecord_bm_budget_head_msg",
+                    join: "CUSTBODY_BM_BUDGET_CONTROL",
+                })
+                if(msg)[
+                    msgGlobal = msg
+                ]
                 allDataBudget.push({
                     budget : budget,
                     statusErr : statusErr,
@@ -327,7 +353,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         }
         function saveRecord(context) {
             var currentRecordObj = context.currentRecord;
-        
+            log.debug('masuk save record')
             var cekLineExp = currentRecordObj.getLineCount({ sublistId: 'expense' });
             if (cekLineExp > 0) {
                 for (var i = 0; i < cekLineExp; i++) {
@@ -343,11 +369,22 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     });
                     if(budget && consumed){
                         if (consumed > budget) {
-                            dialog.alert({
-                                title: 'Warning!',
-                                message: '<div style="color: red;">One or more transaction lines in the "Expense" sublist either do not have a matching budget or are exceeding budget. Check the transaction lines and update.</div>'
-                            });
-                            return false;
+                            log.debug('budgetContorlGolbal', budgetContorlGolbal)
+                            if(budgetContorlGolbal == "1"){
+                                log.debug('msgGlobal', msgGlobal);
+                                currentRecordObj.setValue({
+                                    fieldId : "custbody_bm_budgetstatus",
+                                    value : msgGlobal
+                                });
+                                return true
+                            }else{
+                                dialog.alert({
+                                    title: 'Warning!',
+                                    message: '<div style="color: red;">One or more transaction lines in the "Expense" sublist either do not have a matching budget or are exceeding budget. Check the transaction lines and update.</div>'
+                                });
+                                return false;
+                            }
+                            
                         }
                     }
                     
@@ -370,11 +407,22 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     });
                     if(budget && consumed){
                         if (consumed > budget) {
-                            dialog.alert({
-                                title: 'Warning!',
-                                message: '<div style="color: red;">One or more transaction lines in the "Item" sublist either do not have a matching budget or are exceeding budget. Check the transaction lines and update.</div>'
-                            });
-                            return false;
+                            log.debug('budgetContorlGolbal', budgetContorlGolbal)
+                            if(budgetContorlGolbal == "1"){
+                                log.debug('msgGlobal', msgGlobal);
+                                currentRecordObj.setValue({
+                                    fieldId : "custbody_bm_budgetstatus",
+                                    value : msgGlobal
+                                });
+                                return true
+                            }else{
+                                dialog.alert({
+                                    title: 'Warning!',
+                                    message: '<div style="color: red;">One or more transaction lines in the "Item" sublist either do not have a matching budget or are exceeding budget. Check the transaction lines and update.</div>'
+                                });
+                                return false;
+                            }
+                            
                         }
                     }
                     
