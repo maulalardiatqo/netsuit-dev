@@ -163,7 +163,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             return newAmount
         }
         function setSblValue(currentRecordObj, subsId, department, account, period, periodText, estAmount, additionalAmt, sblsId){
-            var newAmount = callSearch(subsId, account, department, estAmount, period)
+            var newAmount = 0
+            if(subsId && account && department && estAmount && period){
+                newAmount = callSearch(subsId, account, department, estAmount, period)
+            }
+            
             log.debug('newAmount', newAmount)
             var amtSet = Number(newAmount) + Number(additionalAmt)
             log.debug('amtSet', amtSet)
@@ -174,7 +178,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     value: amtSet || 0,
                 });
             }
-            var dataBudget = getBudget(periodText, subsId, account, department)
+            var dataBudget = []
+            if(periodText && subsId && account && department){
+                dataBudget = getBudget(periodText, subsId, account, department)
+            }
+            
             if(dataBudget.length > 0){
                 var budgetAmt = dataBudget[0].budget
                 var statLine = ''
@@ -220,11 +228,24 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     sublistId: sblsId,
                     fieldId: accountName,
                 });
-                
                 var estAmount = currentRecordObj.getCurrentSublistValue({
                     sublistId: sblsId,
                     fieldId: "estimatedamount",
                 });
+                if(sblsId == "item"){
+                    var qty = currentRecordObj.getCurrentSublistValue({
+                        sublistId: sblsId,
+                        fieldId: "quantity",
+                    });
+                    var estRate = currentRecordObj.getCurrentSublistValue({
+                        sublistId: sblsId,
+                        fieldId: "estimatedrate",
+                    });
+                    estAmount = Number(estRate) * Number(qty);
+                    log.debug('estAmount', estAmount);
+                }
+                
+               
                 
                 if (department) {
                     var additionalAmt = 0;
@@ -256,6 +277,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             });
                             
                             if (departmentCek == department && accountCek == account) {
+                                log.debug('department dan account Sama');
                                 var amtLine = currentRecordObj.getSublistValue({  
                                     sublistId: sblsId,
                                     fieldId: "estimatedamount",
@@ -268,7 +290,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             }
                         }
                     }
-                    log.debug('additionalAmt', additionalAmt)
                     setSblValue(currentRecordObj, subsId, department, account, period, periodText, estAmount, additionalAmt, sblsId);
                 }
             }
@@ -298,7 +319,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 if(sublistFieldName == 'department'){
                     actionSublist(currentRecordObj, sblsId)
                 }
+                if(sublistFieldName == 'estimatedrate'){
+                    actionSublist(currentRecordObj, sblsId)
+                }
             }
+
         }
         function saveRecord(context) {
             var currentRecordObj = context.currentRecord;
