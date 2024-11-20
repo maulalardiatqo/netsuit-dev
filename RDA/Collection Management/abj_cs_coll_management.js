@@ -49,13 +49,13 @@
         function pageInit(context) {
             var vrecord = context.currentRecord;
             let currentUser = runtime.getCurrentUser();
-            // let subsidiaryId = currentUser.subsidiary;
-            let subsidiaryId = 6;
+            let subsidiaryId = currentUser.subsidiary;
+            log.debug('subsidiaryId',subsidiaryId)
             if (subsidiaryId) {
                 var subsidiaryFIeld = vrecord.getField({ fieldId: 'custpage_subsidiary' });
                 var allSubs = []
                 var subsidiarySearchObj = search.create({
-                    type: "subsidiary",
+                    type: "subsidiary", 
                     filters:
                     [
                     ],

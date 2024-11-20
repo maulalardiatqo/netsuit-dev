@@ -388,7 +388,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "<td style='border: solid black 1px; border-right:none;'>Tanggal Jt Tempo</td>";
                 header += "<td style='border: solid black 1px; border-right:none;'>Salesman atau No Kontra Bon</td>";
                 header += "<td style='border: solid black 1px; border-right:none;'>Nilai Faktur</td>";
-                header += "<td style='border: solid black 1px; border-right:none;'>Out Standing</td>";
+                header += "<td style='border: solid black 1px; border-right:none;'>Outstanding</td>";
                 header += "<td style='border: solid black 1px; border-right:none;'>Over Due</td>";
                 header += "<td style='border: solid black 1px; border-right:none;'>Retur</td>";
                 header += "<td style='border: solid black 1px; border-right:none;'>Tunai</td>";
