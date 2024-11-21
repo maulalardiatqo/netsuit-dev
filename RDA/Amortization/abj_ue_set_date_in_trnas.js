@@ -271,47 +271,47 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                     });
                     log.debug('saveRec', saveRec)
                 }
-                // var countLineItem = recordLoad.getLineCount({
-                //     sublistId : "item"
-                // });
-                // log.debug('countLine', countLine)
-                // if(countLineItem > 0){
-                //     for(var i = 0; i < countLine; i++){
-                //         recordLoad.selectLine({
-                //             sublistId : "item",
-                //             line : i
-                //         })
-                //         recordLoad.setCurrentSublistValue({
-                //             sublistId : 'item',
-                //             fieldId : 'rate',
-                //             line : i,
-                //             value : 0
-                //         });
-                //         recordLoad.setCurrentSublistValue({
-                //             sublistId : 'item',
-                //             fieldId : 'taxcode',
-                //             line : i,
-                //             value : 5
-                //         });
+                var countLineItem = recordLoad.getLineCount({
+                    sublistId : "item"
+                });
+                log.debug('countLine', countLine)
+                if(countLineItem > 0){
+                    for(var i = 0; i < countLine; i++){
+                        recordLoad.selectLine({
+                            sublistId : "item",
+                            line : i
+                        })
+                        recordLoad.setCurrentSublistValue({
+                            sublistId : 'item',
+                            fieldId : 'rate',
+                            line : i,
+                            value : 0
+                        });
+                        recordLoad.setCurrentSublistValue({
+                            sublistId : 'item',
+                            fieldId : 'taxcode',
+                            line : i,
+                            value : 5
+                        });
                         
-                //         recordLoad.commitLine("item")
-                //     }
-                //     var saveRec = recordLoad.save({
-                //         enableSourcing: true,
-                //         ignoreMandatoryFields: true,
-                //     });
-                //     log.debug('saveRec', saveRec)
-                // }
-                // var mapReduceTask = task.create({
-                //     taskType: task.TaskType.MAP_REDUCE,
-                //     scriptId: 'customscript_your_mapreduce_script', 
-                //     deploymentId: 'customdeploy_your_mapreduce_script',
-                //     params: {
-                //         custscript_amortization_id: amortizationScheduleId,
-                //         custscript_recamount: recAmount,
-                //         custscript_postingperiod: postingPeriod
-                //     }
-                // });
+                        recordLoad.commitLine("item")
+                    }
+                    var saveRec = recordLoad.save({
+                        enableSourcing: true,
+                        ignoreMandatoryFields: true,
+                    });
+                    log.debug('saveRec', saveRec)
+                }
+                var mapReduceTask = task.create({
+                    taskType: task.TaskType.MAP_REDUCE,
+                    scriptId: 'customscript_your_mapreduce_script', 
+                    deploymentId: 'customdeploy_your_mapreduce_script',
+                    params: {
+                        custscript_amortization_id: amortizationScheduleId,
+                        custscript_recamount: recAmount,
+                        custscript_postingperiod: postingPeriod
+                    }
+                });
             }catch(e){
                 log.debug('error', e)
             }
