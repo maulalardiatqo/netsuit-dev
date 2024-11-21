@@ -153,11 +153,84 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var trandateafter = getNextMonth(trandate);
             log.debug('trandateafter', trandateafter);
             var cekLineExp = currentRecordObj.getLineCount({ sublistId: 'expense' });
-    
+            
             if (cekLineExp > 0) {
                 for (var i = 0; i < cekLineExp; i++) {
                     var cekAmor = currentRecordObj.getSublistValue({
                         sublistId: 'expense',
+                        fieldId: 'amortizationsched',
+                        line: i
+                    });
+                    log.debug('cekAmor', cekAmor);
+    
+                    if (cekAmor) {
+                        var recAmor = record.load({
+                            type: 'revRecTemplate',
+                            id: cekAmor
+                        });
+                        var amorPeriod = recAmor.getValue('amortizationperiod');
+                        var periodOffset = recAmor.getValue('periodoffset');
+                        var startOffset = recAmor.getValue('revrecoffset');
+                        log.debug('amorPeriod', amorPeriod);
+                        
+                        var trandateafterFormat = formatTrandate(trandateafter);
+                        log.debug('trandateafterFormat (before offset)', trandateafterFormat);
+                        
+                        if (periodOffset) {
+                            var trandateafterDate = new Date(trandateafterFormat);
+                            trandateafterDate.setMonth(trandateafterDate.getMonth() + periodOffset);
+                            trandateafterFormat = formatTrandate(trandateafterDate);
+                        }
+                        log.debug('trandateafterFormat (after periodOffset)', trandateafterFormat);
+                        
+                        var arrayDate = getEndOfMonthDates(trandateafterFormat, amorPeriod);
+                        log.debug('arrayDate (before startOffset)', arrayDate);
+                        
+                        if (startOffset) {
+                            arrayDate = arrayDate.slice(startOffset);
+                        }
+                        log.debug('arrayDate (after startOffset)', arrayDate);
+    
+                        var isValid = true;
+    
+                        arrayDate.forEach(function (date) {
+                            if (!isValid) return; 
+                            log.debug('date', date);
+    
+                            var cekAp = cekApDate(date);
+                            log.debug('cekAp', cekAp);
+                            if (cekAp.length == 0) {
+                                dialog.alert({
+                                    title: 'Warning!',
+                                    message: '<div style="color: red;">Accounting Period untuk ammortization Belum dibuat, silahkan buat terlebih dulu!</div>'
+                                });
+                                isValid = false;
+                                return; 
+                            }
+    
+                            var cekTp = cekTpDate(date);
+                            log.debug('cekTp', cekTp);
+                            if (cekTp.length == 0) {
+                                dialog.alert({
+                                    title: 'Warning!',
+                                    message: '<div style="color: red;">Tax Period untuk ammortization Belum dibuat, silahkan buat terlebih dulu!</div>'
+                                });
+                                isValid = false;
+                                return; 
+                            }
+                        });
+    
+                        if (!isValid) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            var cekLineItem = currentRecordObj.getLineCount({ sublistId: 'item' });
+            if (cekLineItem > 0) {
+                for (var i = 0; i < cekLineExp; i++) {
+                    var cekAmor = currentRecordObj.getSublistValue({
+                        sublistId: 'item',
                         fieldId: 'amortizationsched',
                         line: i
                     });

@@ -41,6 +41,121 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                 var postingPeriodText = getEndOfNextMonth(prefPostingPeriod);
                 log.debug('prefPostingPeriod', prefPostingPeriod)
                 log.debug('postingPeriodText', postingPeriodText)
+
+                var idAmortTemp
+                var idAmortSched
+                var vendorbillSearchObj = search.create({
+                    type: "vendorbill",
+                    settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
+                    filters:
+                    [
+                        ["type","anyof","VendBill"], 
+                        "AND", 
+                        ["internalid","anyof",recId], 
+                        "AND", 
+                        ["amortizationschedule.internalid","noneof","@NONE@"]
+                    ],
+                    columns:
+                    [
+                        search.createColumn({
+                            name: "internalid",
+                            join: "amortizationSchedule",
+                            label: "Internal ID"
+                        }),
+                        search.createColumn({
+                            name: "amortemplate",
+                            join: "amortizationSchedule",
+                            label: "Template Name"
+                        })
+                    ]
+                });
+                var searchResultCount = vendorbillSearchObj.runPaged().count;
+                vendorbillSearchObj.run().each(function(result){
+                    var tempAmort = result.getValue({
+                        name: "amortemplate",
+                        join: "amortizationSchedule",
+                    });
+                    if(tempAmort){
+                        idAmortTemp = tempAmort
+                    }
+                    var schedAmort = result.getValue({
+                        name: "internalid",
+                        join: "amortizationSchedule",
+                    });
+                    if(schedAmort){
+                        if(context.type === context.UserEventType.CREATE){
+                            idAmortSched = Number(schedAmort) + Number(1)
+                        }else{
+                            idAmortSched = schedAmort
+                        }
+                        
+                    }
+                    return true;
+                });
+
+                function getMonthYearFromText(postingPeriodText) {
+                    const parts = postingPeriodText.split(' '); 
+                    const monthText = parts[1]; 
+                    const year = parseInt(parts[2]);
+                
+                    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    const month = months.indexOf(monthText) + 1;
+                
+                    return { month, year };
+                }
+                
+                function addMonths(month, year, monthsToAdd) {
+                    let newMonth = month + monthsToAdd; 
+                    let newYear = year;
+                
+                    while (newMonth > 12) {
+                        newMonth -= 12;
+                        newYear++;
+                    }
+                
+                    return { newMonth, newYear };
+                }
+                
+                // Function to subtract months from a given month/year
+                
+                function getLastDayOfMonth(year, month) {
+                    const lastDay = new Date(year, month, 0); 
+                    const day = String(lastDay.getDate()).padStart(2, '0');
+                    const monthFormatted = String(lastDay.getMonth() + 1).padStart(2, '0');
+                    const yearFormatted = lastDay.getFullYear();
+                
+                    return `${day}/${monthFormatted}/${yearFormatted}`;
+                }
+                
+                function getAmortizationDates(postingPeriodText, amortPeriod, periodOffset, startOffset) {
+                    const { month: startMonth, year: startYear } = getMonthYearFromText(postingPeriodText);
+                    
+                    const { newMonth: endMonth, newYear: endYear } = addMonths(startMonth, startYear, amortPeriod - 1);
+                
+                    let dateAwal = getLastDayOfMonth(startYear, startMonth);
+                    let dateAhir = getLastDayOfMonth(endYear, endMonth);
+                
+                    if (periodOffset > 0) {
+                        const { newMonth: adjStartMonth, newYear: adjStartYear } = addMonths(startMonth, startYear, periodOffset);
+                        const { newMonth: adjEndMonth, newYear: adjEndYear } = addMonths(endMonth, endYear, periodOffset);
+                
+                        dateAwal = getLastDayOfMonth(adjStartYear, adjStartMonth);
+                        dateAhir = getLastDayOfMonth(adjEndYear, adjEndMonth);
+                    }
+                
+                    if (startOffset > 0) {
+                        const { newMonth: adjStartMonth, newYear: adjStartYear } = addMonths(startMonth, startYear, startOffset);
+                        dateAwal = getLastDayOfMonth(adjStartYear, adjStartMonth);
+                    }
+                
+                    return { dateAwal, dateAhir };
+                }
+                
+                function convertToDate(dateString) {
+                    var dateParts = dateString.split('/');
+                    return new Date(dateParts[2], dateParts[1] - 1, dateParts[0]); 
+                }
+
                 var countLineExpense = recordLoad.getLineCount({
                     sublistId : "expense"
                 });
@@ -57,57 +172,7 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             fieldId : 'amount',
                             line : i
                         });
-                        var idAmortTemp
-                        var idAmortSched
-                        var vendorbillSearchObj = search.create({
-                            type: "vendorbill",
-                            settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
-                            filters:
-                            [
-                                ["type","anyof","VendBill"], 
-                                "AND", 
-                                ["internalid","anyof",recId], 
-                                "AND", 
-                                ["amortizationschedule.internalid","noneof","@NONE@"]
-                            ],
-                            columns:
-                            [
-                                search.createColumn({
-                                    name: "internalid",
-                                    join: "amortizationSchedule",
-                                    label: "Internal ID"
-                                }),
-                                search.createColumn({
-                                    name: "amortemplate",
-                                    join: "amortizationSchedule",
-                                    label: "Template Name"
-                                })
-                            ]
-                        });
-                        var searchResultCount = vendorbillSearchObj.runPaged().count;
-                        vendorbillSearchObj.run().each(function(result){
-                            var tempAmort = result.getValue({
-                                name: "amortemplate",
-                                join: "amortizationSchedule",
-                            });
-                            if(tempAmort){
-                                idAmortTemp = tempAmort
-                            }
-                            var schedAmort = result.getValue({
-                                name: "internalid",
-                                join: "amortizationSchedule",
-                            });
-                            if(schedAmort){
-                                if(context.type === context.UserEventType.CREATE){
-                                    idAmortSched = Number(schedAmort) + Number(1)
-                                }else{
-                                    idAmortSched = schedAmort
-                                }
-                                
-                            }
-                            return true;
-                        });
-                       
+
                         if(idAmortTemp){
                             var recTempAmor = record.load({
                                 type: 'amortizationtemplate',
@@ -116,65 +181,6 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             });
                             
                             var account = recTempAmor.getValue('accttarget');
-                            
-                            function getMonthYearFromText(postingPeriodText) {
-                                const parts = postingPeriodText.split(' '); 
-                                const monthText = parts[1]; 
-                                const year = parseInt(parts[2]);
-                            
-                                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                                const month = months.indexOf(monthText) + 1;
-                            
-                                return { month, year };
-                            }
-                            
-                            function addMonths(month, year, monthsToAdd) {
-                                let newMonth = month + monthsToAdd; 
-                                let newYear = year;
-                            
-                                while (newMonth > 12) {
-                                    newMonth -= 12;
-                                    newYear++;
-                                }
-                            
-                                return { newMonth, newYear };
-                            }
-                            
-                            // Function to subtract months from a given month/year
-                            
-                            function getLastDayOfMonth(year, month) {
-                                const lastDay = new Date(year, month, 0); 
-                                const day = String(lastDay.getDate()).padStart(2, '0');
-                                const monthFormatted = String(lastDay.getMonth() + 1).padStart(2, '0');
-                                const yearFormatted = lastDay.getFullYear();
-                            
-                                return `${day}/${monthFormatted}/${yearFormatted}`;
-                            }
-                            
-                            function getAmortizationDates(postingPeriodText, amortPeriod, periodOffset, startOffset) {
-                                const { month: startMonth, year: startYear } = getMonthYearFromText(postingPeriodText);
-                                
-                                const { newMonth: endMonth, newYear: endYear } = addMonths(startMonth, startYear, amortPeriod - 1);
-                            
-                                let dateAwal = getLastDayOfMonth(startYear, startMonth);
-                                let dateAhir = getLastDayOfMonth(endYear, endMonth);
-                            
-                                if (periodOffset > 0) {
-                                    const { newMonth: adjStartMonth, newYear: adjStartYear } = addMonths(startMonth, startYear, periodOffset);
-                                    const { newMonth: adjEndMonth, newYear: adjEndYear } = addMonths(endMonth, endYear, periodOffset);
-                            
-                                    dateAwal = getLastDayOfMonth(adjStartYear, adjStartMonth);
-                                    dateAhir = getLastDayOfMonth(adjEndYear, adjEndMonth);
-                                }
-                            
-                                if (startOffset > 0) {
-                                    const { newMonth: adjStartMonth, newYear: adjStartYear } = addMonths(startMonth, startYear, startOffset);
-                                    dateAwal = getLastDayOfMonth(adjStartYear, adjStartMonth);
-                                }
-                            
-                                return { dateAwal, dateAhir };
-                            }
-                            
                             var amortPeriod = recTempAmor.getValue('amortizationperiod'); 
                             var periodOffset = recTempAmor.getValue('periodoffset');      
                             var startOffset = recTempAmor.getValue('revrecoffset');        
@@ -202,10 +208,7 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             var endDateParts = result.endDate.split('/');
                             var endDateFor = new Date(endDateParts[2], endDateParts[1] - 1, endDateParts[0]);
 
-                            function convertToDate(dateString) {
-                                var dateParts = dateString.split('/');
-                                return new Date(dateParts[2], dateParts[1] - 1, dateParts[0]); 
-                            }
+                           
                             
                             var startDate = convertToDate(result.lastDate);
                             var endDate = convertToDate(result.endDate);
@@ -265,53 +268,125 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             log.debug('Map/Reduce Task Submitted', taskId);
                         }
                     }
-                    var saveRec = recordLoad.save({
-                        enableSourcing: true,
-                        ignoreMandatoryFields: true,
-                    });
-                    log.debug('saveRec', saveRec)
+                  
                 }
                 var countLineItem = recordLoad.getLineCount({
                     sublistId : "item"
                 });
-                log.debug('countLine', countLine)
+                log.debug('countLine', countLineItem)
                 if(countLineItem > 0){
-                    for(var i = 0; i < countLine; i++){
-                        recordLoad.selectLine({
-                            sublistId : "item",
+                    for(var i = 0; i < countLineItem; i++){
+                        var idLine = recordLoad.getSublistValue({
+                            sublistId : 'item',
+                            fieldId : 'line',
                             line : i
                         })
-                        recordLoad.setCurrentSublistValue({
+                        var amount = recordLoad.getSublistValue({
                             sublistId : 'item',
-                            fieldId : 'rate',
-                            line : i,
-                            value : 0
+                            fieldId : 'amount',
+                            line : i
                         });
-                        recordLoad.setCurrentSublistValue({
-                            sublistId : 'item',
-                            fieldId : 'taxcode',
-                            line : i,
-                            value : 5
-                        });
-                        
-                        recordLoad.commitLine("item")
+
+                        if(idAmortTemp){
+                            var recTempAmor = record.load({
+                                type: 'amortizationtemplate',
+                                id: idAmortTemp,
+                                isDynamic: true,
+                            });
+                            
+                            var account = recTempAmor.getValue('accttarget');
+                            var amortPeriod = recTempAmor.getValue('amortizationperiod'); 
+                            var periodOffset = recTempAmor.getValue('periodoffset');      
+                            var startOffset = recTempAmor.getValue('revrecoffset');        
+                            
+                            
+                            const { dateAwal, dateAhir } = getAmortizationDates(postingPeriodText, amortPeriod, periodOffset, startOffset);
+                            function sysDate(dateAwal, dateAhir) {
+                                var date = new Date();
+                                var tdate = date.getUTCDate();
+                                var month = date.getUTCMonth() + 1;
+                                var year = date.getUTCFullYear();
+                                
+                                return {
+                                    lastDate: dateAwal,
+                                    endDate: dateAhir
+                                };
+                            }
+
+                            var result = sysDate(dateAwal, dateAhir);
+
+                            var lastDateParts = result.lastDate.split('/');
+                            var lastDate = new Date(lastDateParts[2], lastDateParts[1] - 1, lastDateParts[0]);
+
+                            var endDateParts = result.endDate.split('/');
+                            var endDateFor = new Date(endDateParts[2], endDateParts[1] - 1, endDateParts[0]);
+
+                           
+                            
+                            var startDate = convertToDate(result.lastDate);
+                            var endDate = convertToDate(result.endDate);
+
+                            if(startOffset > 0){
+                                amortPeriod = Number(amortPeriod) - Number(startOffset)
+                            }
+                            var amounttoSet = Number(amount) / Number(amortPeriod)
+                            recordLoad.selectLine({
+                                sublistId : "item",
+                                line : i
+                            })
+                            recordLoad.setCurrentSublistValue({
+                                sublistId : 'item',
+                                fieldId : 'amortizstartdate',
+                                line : i,
+                                value : startDate
+                            });
+                            recordLoad.setCurrentSublistValue({
+                                sublistId : 'item',
+                                fieldId : 'amortizationenddate',
+                                line : i,
+                                value : endDate
+                            });
+                            recordLoad.commitLine("item")
+                           
+                            var amortizationscheduleSearchObj = search.create({
+                                type: "amortizationschedule",
+                                filters:
+                                [
+                                        ["internalid","anyof",idAmortSched]
+                                ],
+                                columns:
+                                [
+                                    search.createColumn({name: "recuramount", label: "Amount"})
+                                ]
+                            });
+                            var searchResultCount = amortizationscheduleSearchObj.runPaged().count;
+                            if(searchResultCount < 0 || searchResultCount == null || searchResultCount == ''){
+                                idAmortSched = Number(idAmortSched) + 1
+                            }
+                            var mapReduceTask = task.create({
+                                taskType: task.TaskType.MAP_REDUCE,
+                                scriptId: 'customscript_abj_mr_set_amortization', 
+                                deploymentId: 'customdeploy_abj_mr_set_amortization',
+                                params: {
+                                    custscript_amortization_id: idAmortSched,
+                                    custscript_recamount: amounttoSet,
+                                    custscript_startdate: startDate,
+                                    custscript_enddate: endDate,
+                                    custscript_account : account,
+                                    custscript_id_trans : recId
+
+                                }
+                            });
+                            var taskId = mapReduceTask.submit();
+                            log.debug('Map/Reduce Task Submitted', taskId);
+                        }
                     }
-                    var saveRec = recordLoad.save({
-                        enableSourcing: true,
-                        ignoreMandatoryFields: true,
-                    });
-                    log.debug('saveRec', saveRec)
                 }
-                var mapReduceTask = task.create({
-                    taskType: task.TaskType.MAP_REDUCE,
-                    scriptId: 'customscript_your_mapreduce_script', 
-                    deploymentId: 'customdeploy_your_mapreduce_script',
-                    params: {
-                        custscript_amortization_id: amortizationScheduleId,
-                        custscript_recamount: recAmount,
-                        custscript_postingperiod: postingPeriod
-                    }
+                var saveRec = recordLoad.save({
+                    enableSourcing: true,
+                    ignoreMandatoryFields: true,
                 });
+                log.debug('saveRec', saveRec)
             }catch(e){
                 log.debug('error', e)
             }
