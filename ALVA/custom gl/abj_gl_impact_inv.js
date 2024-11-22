@@ -62,33 +62,35 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                             }
                         }
                         var accIdInv 
-                        if(amountTotalLine > 0){
-                            var newLine = customLines.addNewLine();
-                            newLine.setAccountId(318);
-                            newLine.setCreditAmount(amountTotalLine);
-                            // newLine.setEntityId(parseInt(entity_id));
-                            newLine.setMemo('Journal Balik');
-
-                            allLines.forEach(function(line) {
-                                var accId = line.accId;
-                                var amtDebit = line.amtDebit;
-                                var amtCredit = line.amtCredit;
-                                
-                                if(accId){
-                                    accIdInv = accId
-                                    var newLine = customLines.addNewLine();
-                                    newLine.setAccountId(parseInt(accId));
-                                    // newLine.setEntityId(parseInt(entity_id));
-                                    newLine.setDebitAmount(amtCredit);
-                                    newLine.setMemo('Journal Balik');
-                                    
-                                }
-                                
-                            });
-                            
-
-                        }
+                        
                         if(lineSo > 0){
+                            if(amountTotalLine > 0){
+                                var newLine = customLines.addNewLine();
+                                newLine.setAccountId(318);
+                                newLine.setCreditAmount(amountTotalLine);
+                                // newLine.setEntityId(parseInt(entity_id));
+                                newLine.setMemo('Journal Balik');
+    
+                                allLines.forEach(function(line) {
+                                    var accId = line.accId;
+                                    var amtDebit = line.amtDebit;
+                                    var amtCredit = line.amtCredit;
+                                    
+                                    if(accId){
+                                        accIdInv = accId
+                                        var newLine = customLines.addNewLine();
+                                        newLine.setAccountId(parseInt(accId));
+                                        // newLine.setEntityId(parseInt(entity_id));
+                                        newLine.setDebitAmount(amtCredit);
+                                        newLine.setMemo('Journal Balik');
+                                        
+                                    }
+                                    
+                                });
+                                
+    
+                            }
+                            nlapiLogExecution('DEBUG', 'ada line SO');
                             var pembobotanPerItem = []
                             for(var i = 1;i <= lineSo;i++){
                                 var itemSo = sorecord.getLineItemValue('recmachcustrecord_ajb_pembobotan_so_id','custrecord_abj_pembobotan_item', i);
@@ -110,40 +112,47 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                                     memoText : memoText
                                 })
                             }
-                        }
-                        allItemInv.forEach(function(itemInvInfo) {
-                            var itemId = itemInvInfo.itemInv;
-                            
-                            var itemAmount = parseFloat(itemInvInfo.item_amount);
-                            var berapaLooping = 0
-                            for (var i = 0; i < pembobotanPerItem.length; i++) {
-                                var pembobotanItem = pembobotanPerItem[i];
-                                var itemSoId = pembobotanItem.itemSo
-                                if(itemId == itemSoId){
-                                    berapaLooping ++
-                                    var department = pembobotanItem.departmentSo;
-                                    var pembobotan = parseFloat(pembobotanItem.pembobotan);
-                                    var persentasePembobotan = pembobotan * itemAmount / 100;
-                                    var memoText = pembobotanItem.memoText
-                                    
-
-                                    var newLineDebit = customLines.addNewLine();
-                                    newLineDebit.setAccountId(318);
-                                    newLineDebit.setDebitAmount(persentasePembobotan);
-                                    newLineDebit.setDepartmentId(parseInt(department));
-                                    // newLineDebit.setEntityId(parseInt(entity_id));
-                                    newLineDebit.setMemo(memoText);
-
-                                    var newLineCredit = customLines.addNewLine();
-                                    newLineCredit.setAccountId(parseInt(accIdInv));
-                                    newLineCredit.setDepartmentId(parseInt(department));
-                                    newLineCredit.setCreditAmount(persentasePembobotan);
-                                    // newLineCredit.setEntityId(parseInt(entity_id));
-                                    newLineCredit.setMemo(memoText);
-
+                            allItemInv.forEach(function(itemInvInfo) {
+                                var itemId = itemInvInfo.itemInv;
+                                
+                                var itemAmount = parseFloat(itemInvInfo.item_amount);
+                                var berapaLooping = 0
+                                
+                                nlapiLogExecution('DEBUG', 'pembobotanPerItem', pembobotanPerItem);
+                                if(pembobotanPerItem.length > 0){
+                                    nlapiLogExecution('DEBUG', 'pembobotanPerItem length', pembobotanPerItem.length);
+                                    for (var i = 0; i < pembobotanPerItem.length; i++) {
+                                        var pembobotanItem = pembobotanPerItem[i];
+                                        var itemSoId = pembobotanItem.itemSo
+                                        if(itemId == itemSoId){
+                                            berapaLooping ++
+                                            var department = pembobotanItem.departmentSo;
+                                            var pembobotan = parseFloat(pembobotanItem.pembobotan);
+                                            var persentasePembobotan = pembobotan * itemAmount / 100;
+                                            var memoText = pembobotanItem.memoText
+                                            
+        
+                                            var newLineDebit = customLines.addNewLine();
+                                            newLineDebit.setAccountId(318);
+                                            newLineDebit.setDebitAmount(persentasePembobotan);
+                                            newLineDebit.setDepartmentId(parseInt(department));
+                                            // newLineDebit.setEntityId(parseInt(entity_id));
+                                            newLineDebit.setMemo(memoText);
+        
+                                            var newLineCredit = customLines.addNewLine();
+                                            newLineCredit.setAccountId(parseInt(accIdInv));
+                                            newLineCredit.setDepartmentId(parseInt(department));
+                                            newLineCredit.setCreditAmount(persentasePembobotan);
+                                            // newLineCredit.setEntityId(parseInt(entity_id));
+                                            newLineCredit.setMemo(memoText);
+        
+                                        }
+                                    }
                                 }
-                            }
-                        });
+                                
+                            });
+                        }
+                        
                     }
                 }
             }else{
@@ -161,6 +170,7 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                         var amountPemb = transactionRecord.getLineItemValue('recmachcustrecord_ajb_pembobotan_so_id','custrecord_alva_fix_amount', i);
                         var pembobotanPr = Number(amountPemb / totalAmountPemb) * 100
                         var textDepartment = transactionRecord.getLineItemText('recmachcustrecord_ajb_pembobotan_so_id','custrecord_abj_pembobotan_department', i);
+                       
                         nlapiLogExecution('DEBUG', 'amountPemb', amountPemb);
                         
                         if(pembobotanPr){
@@ -273,6 +283,9 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                     });
                 }
             }
+            
+            
+            
         }	
         if(rectype == "customerpayment"){
             var linePaymnet = transactionRecord.getLineItemCount('apply');

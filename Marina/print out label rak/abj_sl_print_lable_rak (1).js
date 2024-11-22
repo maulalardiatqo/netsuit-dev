@@ -41,24 +41,24 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
                 xml += '<pdf>';
                 xml += '<head>';
                 xml += '<style type="text/css">';
-                xml += 'body {font-family: sans-serif; margin: 0; padding: 1mm 1mm 2mm 7mm; width: 91mm; height: 60mm;}';
+                xml += 'body {font-family: sans-serif; margin: 0; font-size:8pt; padding: 1mm 1mm 1mm 1mm; width: 60mm; height: 40mm;}';
                 xml += 'table {border-collapse: collapse;}'; 
                 xml += 'td {padding: 0; vertical-align: middle;}'; 
-                xml += '.green {/* green */ height: 28.57%; font-size: 10pt; text-align: center; font-weight:bold;}';
+                xml += '.green {/* green */ height: 28.57%; font-size: 8pt; text-align: center; font-weight:bold;}';
                 xml += '.yellow { /* yellow */ height: 71.43%; font-size: 14pt; padding: 0mm; font-weight:bold;}';
                 xml += '.itemName {font-size: 12pt; font-weight:bold;}';
                 xml += '</style>';
                 xml += '</head>';
-                xml += '<body padding="1mm 2mm 0mm 7mm" size="custom" width="91mm" height="60mm">';
+                xml += '<body padding="1mm 1mm 0mm 1mm" size="custom" width="60mm" height="40mm">';
                 
-                xml += '<table width="100%" height="28.57%;" cellpadding="0" cellspacing="0">';
+                xml += '<table width="100%" cellpadding="0" cellspacing="0" style="font-size:7pt;">';
                 xml += '<tr style="">';
                 xml += '<td class="green" style="align:center;">';
                 xml += item.internalID + ' / ' + item.upcCode + ' / ' + formatDate(new Date()) + ' <br/>';
                 xml += '</td>';
                 xml += '</tr>';
                 xml += '<tr>'
-                xml += '<td class="green" style="align:center; font-size:12pt; font-weight:bold;">' + itemName + '</td>';
+                xml += '<td class="green" style="align:center; font-size:10pt; font-weight:bold;">' + itemName + '</td>';
                 xml += '</tr>';
                 xml += '<tr style="height:5%">';
                 xml += '</tr>';
@@ -67,12 +67,12 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
                 item.rangeHarga.forEach(function (hargaItem) {
                     
                     var batasVolume = hargaItem.batasVolume == 0 ? 1 : hargaItem.batasVolume;
-                    xml += '<table width="100%" height="71.43%" cellpadding="0" cellspacing="0">';
+                    xml += '<table width="100%" height="71.43%" cellpadding="0" cellspacing="0" style="font-size:12pt;">';
                     xml += '<tr>';
                     xml += '<td style="width:5%; "></td>';
                     xml += '<td style="width:45%; align:Left;"> Rp. ' + removeDecimalFormat(hargaItem.harga) + '</td>';
                     xml += '<td style="width:15%;"></td>';
-                    xml += '<td style="width:30%; padding-left:3mm; font-size:14pt">' + batasVolume + ' PCS</td>';
+                    xml += '<td style="width:30%; padding-left:3mm; font-size:12pt">' + batasVolume + ' PCS</td>';
                     xml += '<td style="width:5%;"></td>';
                     xml += '</tr>';
                     xml += '</table>';

@@ -3,8 +3,8 @@
  * @NScriptType Suitelet
  */
 // This sample shows how to render search results into a PDF file.
-define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
-    function(render, search, record, log, file, http, config, format, email, runtime) {
+define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime', './dateUtils'],
+    function(render, search, record, log, file, http, config, format, email, runtime, dateUtils) {
 
         function escapeXmlSymbols(input) {
             if (!input || typeof input !== "string") {
@@ -37,28 +37,29 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
         
 
-                const currentDate = new Date();
+                const currentDate = dateUtils.formatDateToJakarta();
 
-                // Format day of the week
-                const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-                const dayName = days[currentDate.getDay()];
+                // // Format day of the week
+                // const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                // const dayName = days[currentDate.getDay()];
 
-                // Format date
-                const year = currentDate.getUTCFullYear();
-                const month = String(currentDate.getUTCMonth() + 1).padStart(2, "0");
-                const date = String(currentDate.getUTCDate()).padStart(2, "0");
-                const formattedDate = `${dayName} ${year}/${month}/${date}`;
+                // // Format date
+                // const year = currentDate.getUTCFullYear();
+                // const month = String(currentDate.getUTCMonth() + 1).padStart(2, "0");
+                // const date = String(currentDate.getUTCDate()).padStart(2, "0");
+                // const formattedDate = `${dayName} ${year}/${month}/${date}`;
 
-                const timezoneOffset = currentDate.getTimezoneOffset() * 60000; // Mengubah offset ke milidetik
-                const localTime = new Date(currentDate.getTime() - timezoneOffset);
+                // const timezoneOffset = currentDate.getTimezoneOffset() * 60000; 
+                // const localTime = new Date(currentDate.getTime() - timezoneOffset);
                 
-                const hours = String(localTime.getHours()).padStart(2, "0");
-                const minutes = String(localTime.getMinutes()).padStart(2, "0");
-                const formattedTime = `${hours}:${minutes}`;
+                // const hours = String(localTime.getHours()).padStart(2, "0");
+                // const minutes = String(localTime.getMinutes()).padStart(2, "0");
+                // const formattedTime = `${hours}:${minutes}`;
 
 
 
                 var recid = context.request.parameters.id;
+                log.debug('recid', recid)
                 var searchCreate = search.load({
                     id: "customsearch875",
                 });
@@ -68,11 +69,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var searchCreateSet = searchCreate.run();
                 var result = searchCreateSet.getRange(0, 1);
                 var collRecord = result[0];
+                log.debug('collRecord', collRecord)
 
                 var docNo = collRecord.getValue({name :'tranid'})
                 var areaToPrint = ''
                 var allData = []
                 var allIdInv = collRecord.getValue({ name :'custbody_rda_invoice_number'});
+                log.debug('allIdInv', allIdInv)
                 var allIdInvArray = allIdInv.split(',').map(function(id) {
                     return id.trim(); // Menghapus spasi jika ada
                 });
@@ -527,7 +530,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 footer += "<tr>"
                 footer += "<td style='' colspan='2'><i>*/n setelah nofaktur menunjukan faktur sudah berapakali ditagih</i></td>"
-                footer += "<td style='align:right;' colspan='2'>"+formattedDate+" "+formattedTime+ " " +escapeXmlSymbols(roleName)+"</td>"
+                footer += "<td style='align:right;' colspan='2'> "+currentDate+ " " +escapeXmlSymbols(roleName)+"</td>"
                 footer += "</tr>"
               
                 footer += "</tbody>";
