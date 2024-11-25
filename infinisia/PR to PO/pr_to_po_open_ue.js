@@ -22,13 +22,174 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
     try {
       if (context.type == context.UserEventType.CREATE) {
         var poData = context.newRecord;
-        var PO_lines, vendorID, currencySet;
+        var PO_lines = []
+        var vendorID, currencySet;
         if (context.request) {
           if (context.request.parameters) {
             vendorID = context.request.parameters.vendorID;
             currencySet = context.request.parameters.currencySet;
             var POlinesStr = context.request.parameters.PO_lines;
-            PO_lines = JSON.parse(POlinesStr);
+            var allIdSummary = JSON.parse(POlinesStr); 
+            log.debug('allIdSummary', allIdSummary);
+              var prToPO = search.load({
+                  id: "customsearch1021",
+              });
+          
+              prToPO.filters.push(
+                  search.createFilter({
+                      name: "internalid",
+                      join: "custrecord_iss_pr_parent", 
+                      operator: search.Operator.ANYOF, 
+                      values: allIdSummary, 
+                  })
+              );
+          
+              var prToPOSet = prToPO.run();
+              var prToPO = prToPOSet.getRange(0, 300);
+              log.debug('prToPO.length', prToPO.length); 
+              if(prToPO.length > 0) {
+                for (let i = 0; i < prToPO.length; i++) {
+
+                  let itemName = prToPO[i].getText({
+                    name: prToPOSet.columns[0],
+                  });
+                  let itemID = prToPO[i].getValue({
+                    name: prToPOSet.columns[0],
+                  });
+                  let vendorName = prToPO[i].getValue({
+                    name: prToPOSet.columns[1],
+                  });
+                  let currentStock = prToPO[i].getValue({
+                    name: prToPOSet.columns[2],
+                  });
+                  let incomingStock = prToPO[i].getValue({
+                    name: prToPOSet.columns[3],
+                  });
+                  let salesRep = prToPO[i].getText({
+                    name: prToPOSet.columns[4],
+                  });
+                  let salesRepID = prToPO[i].getValue({
+                    name: prToPOSet.columns[4],
+                  });
+                  let customerName = prToPO[i].getText({
+                    name: prToPOSet.columns[26],
+                  });
+                  let customerID = prToPO[i].getValue({
+                    name: prToPOSet.columns[26],
+                  });
+                  let forecastBusdev = prToPO[i].getValue({
+                    name: prToPOSet.columns[6],
+                  });
+                  let forecastPerhitungan = prToPO[i].getValue({
+                    name: prToPOSet.columns[7],
+                  });
+                  let avgBusdev = prToPO[i].getValue({
+                    name: prToPOSet.columns[8],
+                  });
+                  let avgAccounting = prToPO[i].getValue({
+                    name: prToPOSet.columns[9],
+                  });
+                  let note = prToPO[i].getValue({
+                    name: prToPOSet.columns[10],
+                  });
+                  let internalIDPR = prToPO[i].getValue({
+                    name: prToPOSet.columns[11],
+                  });
+                  let docNumber = prToPO[i].getValue({
+                    name: prToPOSet.columns[18],
+                  });
+                  let osPO = prToPO[i].getValue({
+                    name: prToPOSet.columns[12],
+                  });
+                  let cek2 = prToPO[i].getValue({
+                    name: prToPOSet.columns[15],
+                  });
+                  let leadTimeKirim = prToPO[i].getValue({
+                    name: prToPOSet.columns[16],
+                  });
+                  let units = prToPO[i].getValue({
+                    name: prToPOSet.columns[17],
+                  });
+                  
+                  let soNO = prToPO[i].getValue({
+                    name: prToPOSet.columns[19],
+                  });
+                  let taxItemRate = prToPO[i].getValue({
+                    name: prToPOSet.columns[21],
+                  });
+                  let tanggalKirim = prToPO[i].getValue({
+                    name: prToPOSet.columns[22],
+                  });
+                  let packSize = prToPO[i].getValue({
+                    name: prToPOSet.columns[23],
+                  });
+                  let packSizeText = prToPO[i].getText({
+                    name: prToPOSet.columns[23],
+                  });
+                  let soNumber = prToPO[i].getValue({
+                    name: prToPOSet.columns[19],
+                  });
+                  let soNumberText = prToPO[i].getText({
+                    name: prToPOSet.columns[19],
+                  });
+                  let qtyPO = prToPO[i].getValue({
+                    name: prToPOSet.columns[27],
+                  })
+                  let lineId = prToPO[i].getValue({
+                    name : prToPOSet.columns[29]
+                  })
+                  let currency = prToPO[i].getValue({
+                    name : prToPOSet.columns[31]
+                  })
+                  let idSum = prToPO[i].getValue({
+                    name : prToPOSet.columns[32]
+                  });
+                  let poCust = prToPO[i].getValue({
+                    name : prToPOSet.columns[34]
+                  });
+                  let ratePackSIze = prToPO[i].getValue({
+                    name : prToPOSet.columns[37]
+                  }) || 0;
+                  var cekTotalPackaging = prToPO[i].getValue({
+                    name : prToPOSet.columns[35]
+                  }) || 0;
+                  var idPrSUm = prToPO[i].getValue({
+                    name : prToPOSet.columns[39]
+                  }) || 0;
+                  var totalPackaging = Math.abs(parseFloat(cekTotalPackaging || 0)) - parseFloat(qtyPO || 0) 
+                  var setTotalOrder = Number(totalPackaging) * Number(ratePackSIze)
+                  PO_lines.push({
+                    salesRepID : salesRepID,
+                    customerID : customerID,
+                    incomingStock : incomingStock,
+                    currentStock : currentStock,
+                    quantity : setTotalOrder,
+                    osPO : osPO,
+                    forecastBusdev : forecastBusdev,
+                    forecastPerhitungan : forecastPerhitungan,
+                    avgBusdev : avgBusdev,
+                    avgAccounting : avgAccounting,
+                    units : units,
+                    leadTimeKirim : leadTimeKirim,
+                    itemRate : itemRate,
+                    taxItem : taxItem,
+                    soNO : soNO,
+                    taxItemRate : taxItemRate,
+                    packSize : packSize,
+                    soNumber : soNumber,
+                    internalIDPR : internalIDPR,
+                    totalOrder : setTotalOrder,
+                    totalPackaging : totalPackaging,
+                    poCust : poCust,
+                    lineId : lineId,
+                    packSizeText : packSizeText,
+                    ratePackSIze : ratePackSIze,
+                    itemID : itemID,
+                    tanggalKirim : tanggalKirim
+                  })
+                }
+              }
+            
           }
         }
         if (vendorID) {
@@ -62,7 +223,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
               value: currencySet,
             });
           }
-          log.debug('exchangerate', exchangerate)
+          // log.debug('exchangerate', exchangerate)
           var currentEmployee = runtime.getCurrentUser();
           poData.setValue({
             fieldId: "employee",
@@ -88,23 +249,21 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
           });
           var line_idx = 0;
           var arrayPR = [];
+          log.debug('PO_lines', PO_lines)
           for (var i in PO_lines) {
             var POLine = PO_lines[i];
             var poItem = POLine.itemID;
-            var poTanggalKirim = POLine.tanggalKirim;
-            var dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-            if (typeof poTanggalKirim === 'string' && dateRegex.test(poTanggalKirim)) {
-                poTanggalKirim = convertToDate(poTanggalKirim);
-            }
-            
-            
             function convertToDate(dateString) {
-                var parts = dateString.split("/");
-                var day = parseInt(parts[0], 10);
-                var month = parseInt(parts[1], 10) - 1; 
-                var year = parseInt(parts[2], 10);
-                return new Date(year, month, day);
-            }
+              var parts = dateString.split("/");
+              var day = parseInt(parts[0], 10);
+              var month = parseInt(parts[1], 10) - 1; 
+              var year = parseInt(parts[2], 10);
+              return new Date(year, month, day);
+          }
+            var poTanggalKirim = POLine.tanggalKirim;
+         
+            
+            
             var poSalesRep = POLine.salesRepID;
             var poCustomerID = POLine.customerID;
             var incomingStock = POLine.incomingStock;
@@ -130,7 +289,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             var lineId = POLine.lineId
             var packSizeText = POLine.packSizeText
             var ratePackSIzeSet = POLine.ratePackSIze
-            log.debug('ratePackSIzeSet', ratePackSIzeSet)
             arrayPR.push(internalIDPR);
             if (poItem) {
               var lastPurchase = 0
@@ -176,11 +334,11 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     rateUnit = rUnit
                   }
               } 
-              log.debug('rateUnit', rateUnit)
+              // log.debug('rateUnit', rateUnit)
               var ratePerPackSize = Number(lastPurchase) / Number(exchangerate) * Number(rateUnit)
-              log.debug('ratePerPackSize', ratePerPackSize)
+              // log.debug('ratePerPackSize', ratePerPackSize)
               var ratePerKG = Number(lastPurchase) / Number(exchangerate)
-              log.debug('ratePerKG', ratePerKG)
+              // log.debug('ratePerKG', ratePerKG)
               poData.setSublistValue({
                 sublistId: "item",
                 fieldId: "item",
@@ -265,12 +423,13 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 line: line_idx,
                 value: soNO,
               });
-              if (poTanggalKirim != " ") {
+              if (poTanggalKirim) {
+                log.debug('masuk if potanggal kirim', poTanggalKirim);
                 poData.setSublistValue({
                   sublistId: "item",
                   fieldId: "custcol14",
                   line: line_idx,
-                  value: new Date(poTanggalKirim),
+                  value: poTanggalKirim,
                 });
               }
               poData.setSublistValue({
@@ -313,7 +472,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
               
               let positivePackaging = Math.abs(totalPackaging);
               var amount = Number(ratePerPackSize) * Number(positivePackaging)
-              log.debug('positivePackaging', positivePackaging)
+              // log.debug('positivePackaging', positivePackaging)
               poData.setSublistValue({
                 sublistId: "item",
                 fieldId: "quantity",
@@ -322,14 +481,14 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
               });
               
               
-              log.debug('totalOrder', totalOrder);
+              // log.debug('totalOrder', totalOrder);
               poData.setSublistValue({
                 sublistId: "item",
                 fieldId: "custcol_pr_total_order",
                 line: line_idx,
                 value: totalOrder,
               });
-              log.debug('lastPurchase', lastPurchase)
+              // log.debug('lastPurchase', lastPurchase)
               poData.setSublistValue({
                 sublistId: "item",
                 fieldId: "rate",

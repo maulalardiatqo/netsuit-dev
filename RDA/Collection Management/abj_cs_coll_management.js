@@ -55,7 +55,7 @@
                 var subsidiaryFIeld = vrecord.getField({ fieldId: 'custpage_subsidiary' });
                 var allSubs = []
                 var subsidiarySearchObj = search.create({
-                    type: "subsidiary", 
+                    type: "subsidiary",
                     filters:
                     [
                     ],
@@ -117,27 +117,24 @@
                 }
             }
             var subsidiary = records.getValue('custpage_subsidiary');
-            var dateFrom = records.getValue('custpage_date_from');
+          
             var dateTo = records.getValue('custpage_date_to');
             var sales = records.getValue('custpage_sales');
 
             if(subsidiary){
-                if ((dateFrom && !dateTo) || (!dateFrom && dateTo)) {
-                    alert('Harap isi kedua tanggal atau kosongkan keduanya.');
-                } else {
+                
                     var dataSearch = search.load({
                         id: "customsearch_rda_collection_management",
                     });
-                    var cekDateFrom 
-                    if(dateFrom){
-                            cekDateFrom = convertDate(dateFrom)
-                    }
+                    var cekDateFrom = "1/1/1999"
+                   
                     
                     var cekDateTo
                     if(dateTo){
                         cekDateTo = convertDate(dateTo)
                     } 
                     if (cekDateFrom && cekDateTo) {
+                        console.log('cekDateFrom', cekDateFrom)
                         dataSearch.filters.push(
                             search.createFilter({
                                 name: "duedate",
@@ -380,7 +377,7 @@
                         alert("No Data Found!")
                         
                     }   
-                }
+                
                
             }else{
                 alert("Please fill in Subsidiary fields");

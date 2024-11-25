@@ -76,17 +76,17 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 return true;
             });
             kolektor.isMandatory = true
-            var date_field_from = form.addField({
-                id: 'custpage_date_from', 
-                type: serverWidget.FieldType.DATE,
-                container: "filteroption",
-                label: 'Due Date From'
-            });
+            // var date_field_from = form.addField({
+            //     id: 'custpage_date_from', 
+            //     type: serverWidget.FieldType.DATE,
+            //     container: "filteroption",
+            //     label: 'Due Date From'
+            // });
             var date_field_to = form.addField({
                 id: 'custpage_date_to', 
                 type: serverWidget.FieldType.DATE,
                 container: "filteroption",
-                label: 'Due Date To'
+                label: 'Due Date'
             });
 
             var subsidiary = form.addField({
