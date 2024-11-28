@@ -437,6 +437,7 @@
                         var Subarea = dataSearch[i].getValue({
                             name: dateSearchSet.columns[10],
                         });
+                        console.log('Subarea', Subarea)
                         allData.push({
                             doNumber : doNumber,
                             soNumber : soNumber,

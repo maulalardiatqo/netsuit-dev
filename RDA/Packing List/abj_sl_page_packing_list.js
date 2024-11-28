@@ -434,6 +434,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                 name: 'custpage_sublist_sub_area',
                                 line: i
                             });
+                            log.debug('subArea', subArea)
                             if(subArea){
                                 subAreaSet = subArea
                             }
@@ -491,10 +492,10 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                             value: areaSet,
                             ignoreFieldChange: true,
                         });
-                        log.debug('subAreaId', subAreaId)
+                        log.debug('subAreaSet', subAreaSet)
                         createRec.setValue({
                             fieldId: "custbody_rda_packlist_subarea",
-                            value: subAreaId || '',
+                            value: subAreaSet || '',
                             ignoreFieldChange: true,
                         });
                         createRec.setValue({
