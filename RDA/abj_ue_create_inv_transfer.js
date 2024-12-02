@@ -10,8 +10,9 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
             var form = context.form;
             var rec = context.newRecord;
             var cekError = rec.getValue('custbody_rda_error_message_ivnt_trf');
+            var cekInvTrans = rec.getValue('custbody_rda_inventory_trf_number');
             log.debug('cekError', cekError)
-            if(cekError){
+            if(cekError && cekInvTrans != null || cekInvTrans != ''){ 
                 form.addButton({
                     id: 'custpage_button_recreate',
                     label: "Recreate Inv Transfer",
