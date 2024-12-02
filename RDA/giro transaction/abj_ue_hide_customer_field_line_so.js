@@ -21,8 +21,27 @@ define(["N/runtime", "N/log", "N/ui/serverWidget"], (runtime, log, serverWidget)
                         displayType: serverWidget.FieldDisplayType.HIDDEN
                     });
                 }
+                const invNumb = formSublist.getField({
+                    id: "custrecord_rda_giro_invoicenum"
+                });
+
+                if (invNumb) {
+                    invNumb.updateDisplayType({
+                        displayType: serverWidget.FieldDisplayType.HIDDEN
+                    });
+                }
+                const amt = formSublist.getField({
+                    id: "custrecord_rda_giro_amountinvoice"
+                });
+
+                if (amt) {
+                    amt.updateDisplayType({
+                        displayType: serverWidget.FieldDisplayType.HIDDEN
+                    });
+                }
             }
         }
+        
     }
 
     return {

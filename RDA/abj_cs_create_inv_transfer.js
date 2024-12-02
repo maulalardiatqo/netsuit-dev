@@ -61,6 +61,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var classId = newRec.getValue('class');
         console.log('classId', classId)
         var soDate = newRec.getValue('trandate');
+        var location = newRec.getValue('location');
         console.log('soDate', soDate);
 
         var validateOnhand = true
@@ -74,22 +75,33 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     fieldId: 'item',
                     line: i
                 });
+                var unitRate = newRec.getSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'unitconversionrate',
+                    line: i
+                });
                 var itemSearchObj = search.create({
                     type: "item",
-                    filters: [
-                        ["internalid", "anyof", item]
+                    filters:
+                    [
+                        ["internalid","anyof",item], 
+                        "AND", 
+                        ["inventorylocation","anyof",location]
                     ],
-                    columns: [
-                        search.createColumn({ name: "itemid", label: "Name" }),
-                        search.createColumn({ name: "displayname", label: "Display Name" }),
-                        search.createColumn({ name: "quantityonhand", label: "On Hand" })
+                    columns:
+                    [
+                        search.createColumn({name: "itemid", label: "Name"}),
+                        search.createColumn({name: "displayname", label: "Display Name"}),
+                        search.createColumn({name: "quantityonhand", label: "On Hand"}),
+                        search.createColumn({name: "inventorylocation", label: "Inventory Location"}),
+                        search.createColumn({name: "locationquantityonhand", label: "Location On Hand"})
                     ]
                 });
                 
                 var searchResults = itemSearchObj.run().getRange({ start: 0, end: 1 });
                 
                 if (searchResults.length > 0) {
-                    var quantityOnHand = searchResults[0].getValue({ name: "quantityonhand" });
+                    var quantityOnHand = searchResults[0].getValue({ name: "locationquantityonhand" }) * Number(unitRate);
                     console.log("Quantity On Hand", quantityOnHand);
                 } 
                 

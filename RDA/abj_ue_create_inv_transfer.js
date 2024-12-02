@@ -11,13 +11,17 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
             var rec = context.newRecord;
             var cekError = rec.getValue('custbody_rda_error_message_ivnt_trf');
             var cekInvTrans = rec.getValue('custbody_rda_inventory_trf_number');
+            log.debug('cekInvTrans', cekInvTrans.length)
             log.debug('cekError', cekError)
-            if(cekError && cekInvTrans != null || cekInvTrans != ''){ 
-                form.addButton({
-                    id: 'custpage_button_recreate',
-                    label: "Recreate Inv Transfer",
-                    functionName: "createRec()"
-                });
+            if(cekError){ 
+                if(cekInvTrans.length < 1){
+                    form.addButton({
+                        id: 'custpage_button_recreate',
+                        label: "Recreate Inv Transfer",
+                        functionName: "createRec()"
+                    });
+                }
+                
             }
             context.form.clientScriptModulePath = "SuiteScripts/abj_cs_create_inv_transfer.js"
         }
@@ -54,7 +58,8 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                     var department = newRec.getValue('department');
                     var classId = newRec.getValue('class');
                     var soDate = newRec.getValue('trandate');
-                    log.debug('soDate', soDate);
+                    var location = newRec.getValue('location');
+                    log.debug('location', location);
 
                     var validateOnhand = true
                     var allItem = [];
@@ -66,23 +71,33 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                                 fieldId: 'item',
                                 line: i
                             });
+                            var unitRate = newRec.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'unitconversionrate',
+                                line: i
+                            });
                             var itemSearchObj = search.create({
                                 type: "item",
-                                filters: [
-                                    ["internalid", "anyof", item]
+                                filters:
+                                [
+                                    ["internalid","anyof",item], 
+                                    "AND", 
+                                    ["inventorylocation","anyof",location]
                                 ],
-                                columns: [
-                                    search.createColumn({ name: "itemid", label: "Name" }),
-                                    search.createColumn({ name: "displayname", label: "Display Name" }),
-                                    search.createColumn({ name: "quantityonhand", label: "On Hand" })
+                                columns:
+                                [
+                                    search.createColumn({name: "itemid", label: "Name"}),
+                                    search.createColumn({name: "displayname", label: "Display Name"}),
+                                    search.createColumn({name: "quantityonhand", label: "On Hand"}),
+                                    search.createColumn({name: "inventorylocation", label: "Inventory Location"}),
+                                    search.createColumn({name: "locationquantityonhand", label: "Location On Hand"})
                                 ]
                             });
                             
                             var searchResults = itemSearchObj.run().getRange({ start: 0, end: 1 });
                             
                             if (searchResults.length > 0) {
-                                var quantityOnHand = searchResults[0].getValue({ name: "quantityonhand" });
-                                log.debug("Quantity On Hand", quantityOnHand);
+                                var quantityOnHand = searchResults[0].getValue({ name: "locationquantityonhand" }) * Number(unitRate);
                             } 
                             
                             var units = newRec.getSublistValue({
@@ -103,6 +118,10 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                             });
 
                             if (isFulfill == true) {
+                                log.debug("data banding", {
+                                    qty : qty,
+                                    quantityOnHand : quantityOnHand
+                                });
                                 if(qty > quantityOnHand){
                                     validateOnhand = false
                                     newRec.setSublistValue({
@@ -160,7 +179,6 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                             } catch (e) {
                                 log.error('Error creating Inventory Transfer', e);
     
-                                // Set the error message on SO
                                 record.submitFields({
                                     type: 'salesorder',
                                     id: soId,

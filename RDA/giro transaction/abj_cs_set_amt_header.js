@@ -6,6 +6,7 @@
 
 define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message"], function (runtime, log, url, currentRecord, currency, record, search, message) {
     var currentRecordObj = currentRecord.get();
+    var flag = false
 
     function pageInit(context) {
         console.log('test')
@@ -74,17 +75,141 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         }
         return true;
     }
+    
     function fieldChanged(context){
+        var rec = currentRecord.get();
+        var vrecord = context.currentRecord;
         var fieldNam = context.fieldId;
+        var sublistName = context.sublistId;
         if (fieldNam == 'custbody_rda_giro_customer') {
             console.log('trigerred')
-            var rec = currentRecord.get();
+            
 
             var custId = rec.getValue('custbody_rda_giro_customer');
             console.log('custId', custId)
+            var allInv = []
             if(custId){
-                setSublist(custId)
+                setSublist(custId);
+
+                var invoiceSearchObj = search.create({
+                    type: "invoice",
+                    settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
+                    filters:
+                    [
+                        ["type","anyof","CustInvc"], 
+                        "AND", 
+                        ["status","anyof","CustInvc:A"], 
+                        "AND", 
+                        ["customer.internalid","anyof",custId], 
+                        "AND", 
+                        ["mainline","is","T"]
+                    ],
+                    columns:
+                    [
+                        search.createColumn({name: "tranid", label: "Document Number"}),
+                        search.createColumn({name: "internalid", label: "Internal ID"})
+                    ]
+                });
+                var searchResultCount = invoiceSearchObj.runPaged().count;
+                log.debug("invoiceSearchObj result count",searchResultCount);
+                invoiceSearchObj.run().each(function(result){
+                    var idInv = result.getValue({
+                        name: "internalid"
+                    });
+                    var docNumb = result.getValue({
+                        name: "tranid"
+                    })
+                    if(idInv){
+                        allInv.push({
+                            idInv : idInv,
+                            docNumb : docNumb
+                        })
+                    }
+                    return true;
+                });
             }
+            if(allInv.length > 0){
+                console.log('ada inv')
+                var invField = vrecord.getCurrentSublistField({
+                    sublistId: 'recmachcustrecord_rda_giro_id',
+                    fieldId: 'custpage_sublist_list_field',
+               });
+                console.log('invField', invField)
+                allInv.forEach(function(inv) {
+                    var idInv = inv.idInv;
+                    console.log('idInv', idInv)
+                    var docNumb = inv.docNumb;
+                    invField.insertSelectOption({
+                        value: idInv,
+                        text: docNumb
+                    });
+                })
+                
+
+            }
+        }
+        if(sublistName == 'recmachcustrecord_rda_giro_id'){
+            if(fieldNam == 'custpage_sublist_list_field'){
+                var valInv = vrecord.getCurrentSublistValue({
+                    sublistId : 'recmachcustrecord_rda_giro_id',
+                    fieldId : 'custpage_sublist_list_field'
+                });
+                console.log('valInv',valInv)
+                if(valInv){
+                    rec.setCurrentSublistValue({
+                        sublistId: 'recmachcustrecord_rda_giro_id',
+                        fieldId: 'custrecord_rda_giro_invoicenum',
+                        value: valInv
+                    });
+                }
+               
+            }   
+        }
+        if(sublistName == 'recmachcustrecord_rda_giro_id'){
+            if(fieldNam == 'custrecord_rda_giro_amountinvoice'){
+                if(flag){
+                    return false
+                }
+                var amtInv = vrecord.getCurrentSublistValue({
+                    sublistId : 'recmachcustrecord_rda_giro_id',
+                    fieldId : 'custrecord_rda_giro_amountinvoice'
+                });
+                console.log('amtInv',amtInv)
+                
+                if(amtInv){
+                    flag = true
+                    rec.setCurrentSublistValue({
+                        sublistId: 'recmachcustrecord_rda_giro_id',
+                        fieldId: 'custpage_sublist_amount',
+                        value: amtInv
+                    });
+                    flag = false
+                }
+               
+            }   
+        }
+        if(sublistName == 'recmachcustrecord_rda_giro_id'){
+            if(fieldNam == 'custpage_sublist_amount'){
+                if(flag){
+                    return false
+                }
+                var amtCustom = vrecord.getCurrentSublistValue({
+                    sublistId : 'recmachcustrecord_rda_giro_id',
+                    fieldId : 'custpage_sublist_amount'
+                });
+                console.log('amtCustom',amtCustom)
+                
+                if(amtCustom){
+                    flag = true
+                    rec.setCurrentSublistValue({
+                        sublistId: 'recmachcustrecord_rda_giro_id',
+                        fieldId: 'custrecord_rda_giro_amountinvoice',
+                        value: amtCustom
+                    });
+                    flag = false
+                }
+               
+            }   
         }
         
     }
