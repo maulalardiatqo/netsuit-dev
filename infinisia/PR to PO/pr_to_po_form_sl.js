@@ -297,6 +297,9 @@
               var idPrSUm = prToPO[i].getValue({
                 name : prToPOSet.columns[39]
               }) || 0;
+              var memo = prToPO[i].getValue({
+                name : prToPOSet.columns[40]
+              })
               
               var totalPackaging = Math.abs(parseFloat(cekTotalPackaging || 0)) - parseFloat(qtyPO || 0) 
               var itemRate
@@ -314,6 +317,13 @@
                   sublistId: "custpage_sublist_item",
                   id: "custpage_sublist_item_name",
                   value: itemName || " ",
+                  line: i,
+                });
+                
+                currentRecord.setSublistValue({
+                  sublistId: "custpage_sublist_item",
+                  id: "custpage_sublist_memo",
+                  value:  memo || " ",
                   line: i,
                 });
                 currentRecord.setSublistValue({
@@ -612,6 +622,11 @@
         sublist_in.addField({
           id: "custpage_sublist_item_name",
           label: "ITEM",
+          type: serverWidget.FieldType.TEXT,
+        });
+        sublist_in.addField({
+          id: "custpage_sublist_memo",
+          label: "MEMO",
           type: serverWidget.FieldType.TEXT,
         });
     
