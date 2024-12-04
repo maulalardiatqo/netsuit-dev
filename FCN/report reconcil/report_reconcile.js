@@ -45,6 +45,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           year: entry.year,
           total: 0,
           billing: 0,
+          //added by kurnia
+          amntServF: 0,
+          //
           amntRetainer: 0,
           amntCF: 0,
           amntSF: 0,
@@ -56,6 +59,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       }
       groupedData[key].total += parseFloat(entry.total || 0);
       groupedData[key].billing += parseFloat(entry.billing || 0);
+      //added by kurnia
+      groupedData[key].amntServF += parseFloat(entry.amnServF || 0);
+      //
       groupedData[key].amntRetainer += parseFloat(entry.amntRetainer || 0);
       groupedData[key].amntCF += parseFloat(entry.amntCF || 0);
       groupedData[key].amntSF += parseFloat(entry.amntSF || 0);
@@ -68,6 +74,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
     resultArray.forEach((group) => {
       group.total = group.total.toFixed(2);
       group.billing = group.billing.toFixed(2);
+      //added by kurnia
+      group.amntServF = group.amntServF.toFixed(2);
+      //
       group.amntRetainer = group.amntRetainer.toFixed(2);
       group.amntCF = group.amntCF.toFixed(2);
       group.amntSF = group.amntSF.toFixed(2);
@@ -327,7 +336,8 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           if(item == '2880'){
             amount = 0
           }
-          var amntRetainer,
+          var amntServF,
+            amntRetainer,
             amntCF,
             amntSF,
             amntMF,
@@ -336,6 +346,11 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             amntOthers = "";
             // selain 6 masuk ke others
           switch (revenue) {
+            //added by kurnia
+            case "Agency Service Fee":
+              amntServF = amount;
+              break;
+            //
             case "Retainer":
               amntRetainer = amount;
               break;
@@ -374,6 +389,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             invoiceNumberVal: invoiceNumberVal,
             billingBeforeVat: billingBeforeVat,
             amountBill: amount,
+            //added by kurnia
+            amntServF: amntServF || "",
+            //
             amntRetainer: amntRetainer || "",
             amntCF: amntCF || "",
             amntSF: amntSF || "",
@@ -426,7 +444,8 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           if(item == '2880'){
             amount = 0
           }
-          var amntRetainer,
+          var amntServF,
+            amntRetainer,
             amntCF,
             amntSF,
             amntMF,
@@ -434,6 +453,11 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             amntAdditionalCF,
             amntOthers = "";
           switch (revenue) {
+            //added by kurnia
+            case "Agency Service Fee":
+              amntServF = amount;
+              break;
+            //
             case "Retainer":
               amntRetainer = amount;
               break;
@@ -471,6 +495,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             invoiceNumberVal: invoiceNumberVal,
             billingBeforeVat: billingBeforeVat,
             amountBill: amount,
+            //added by kurnia
+            amntServF: amntServF || "",
+            //
             amntRetainer: amntRetainer || "",
             amntCF: amntCF || "",
             amntSF: amntSF || "",
@@ -490,8 +517,12 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         myResultsPO.forEach(function (result) {
           let poNo = result.getValue("tranid");
           let vendorName = result.getValue({
-            name: "companyname",
+            name: "altname",
             join: "vendor",
+          }) 
+          var vendorVormula = result.getValue({
+            name: "formulatext",
+            formula: "{entity}",
           });
           let memo = result.getValue("memomain");
           let amount = result.getValue("amount");
@@ -511,13 +542,15 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             deliverablesVal: deliverables,
           });
         });
-
         const groupedPendingBillArray = pendingBillDataArr.reduce((acc, curr) => {
           const index = acc.findIndex((item) => item.quoteNumberVal === curr.quoteNumberVal);
           if (index !== -1) {
             const accQty = parseInt(acc[index].qty) || 0;
             const currQty = parseInt(curr.qty) || 0;
             acc[index].qty = (accQty + currQty).toString();
+            //added by kurnia
+            acc[index].amntServF = ((parseFloat(acc[index].amntServF) || 0) + (parseFloat(curr.amntServF) || 0)).toFixed(2);
+            //
             acc[index].amntRetainer = ((parseFloat(acc[index].amntRetainer) || 0) + (parseFloat(curr.amntRetainer) || 0)).toFixed(2);
             acc[index].amntCF = ((parseFloat(acc[index].amntCF) || 0) + (parseFloat(curr.amntCF) || 0)).toFixed(2);
             acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
@@ -536,6 +569,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             const accQty = parseInt(acc[index].qty) || 0;
             const currQty = parseInt(curr.qty) || 0;
             acc[index].qty = (accQty + currQty).toString();
+            //added by kurnia
+            acc[index].amntServF = ((parseFloat(acc[index].amntServF) || 0) + (parseFloat(curr.amntServF) || 0)).toFixed(2);
+            //
             acc[index].amntRetainer = ((parseFloat(acc[index].amntRetainer) || 0) + (parseFloat(curr.amntRetainer) || 0)).toFixed(2);
             acc[index].amntCF = ((parseFloat(acc[index].amntCF) || 0) + (parseFloat(curr.amntCF) || 0)).toFixed(2);
             acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
@@ -581,6 +617,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             mergedPendingBillArray.push(mergedItem);
           }
         });
+        log.debug('mergedPendingBillArray', mergedPendingBillArray)
         let mergedJobDoneArray = [];
         groupedJobDoneArray.forEach((jobDoneItem) => {
           let matchingPOs = poDataArr.filter((poItem) => {
@@ -614,8 +651,12 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             mergedJobDoneArray.push(mergedItem);
           }
         });
+        log.debug('mergedJobDoneArray', mergedJobDoneArray)
         var totalWIPBilling = 0,
           totalWIPTotal = 0,
+          //added by kurnia
+          totalWIPServF = 0,
+          //
           totalWIIPRetainer = 0,
           totalWIPCF = 0,
           totalWIPSf = 0,
@@ -662,6 +703,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             row.deliverables = "";
             row.qty = "";
             row.invoiceNumber = "";
+            //added by kurnia
+            row.amntServF = "";
+            //
             row.amntRetainer = "";
             row.amntCF = "";  
             row.amntSF = "";
@@ -671,7 +715,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             row.amntOthers = "";
             row.billingBeforeVat = "";
           }
-          log.debug('row.pic', row.pic)
           qContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
           qContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/salesord.nl?id=' + row.quoteNumberVal + '&whence=" target="_blank" >' + row.quoteNumber || "" + "</a></td>";
           qContent += '            <td class="uir-list-row-cell">' + row.jobNumber || "" + "</td>";
@@ -683,6 +726,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           qContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/custinvc.nl?id=' + row.invoiceNumberVal + '&whence=" target="_blank">' + row.invoiceNumber || "" + "</a></td>";
           qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (row.billingBeforeVat ? numberWithCommas(row.billingBeforeVat) : "") + "</td>";
           qContent += '            <td class="uir-list-row-cell" style="text-align: right; background: #f4b083 !important;">' + numberWithCommas(totalRev) || "" + "</td>";
+          // add by kurnia
+          qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntServF) || "" + "</td>";
+          //
           qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntRetainer) || "" + "</td>";
           qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntCF) || "" + "</td>";
           qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntSF) || "" + "</td>";
@@ -699,6 +745,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           qContent += "        </tr>";
           totalWIPBilling += row.quoteNumberVal !== mergedPendingBillArray[index - 1]?.quoteNumberVal ? Number(row.billingBeforeVat || 0) : 0;
           totalWIPTotal += totalRev || 0;
+          //added by kurnia
+          totalWIPServF += Number(row.amntServF || 0);
+          //
           totalWIIPRetainer += Number(row.amntRetainer || 0);
           totalWIPCF += Number(row.amntCF || 0);
           totalWIPSf += Number(row.amntSF || 0);
@@ -725,6 +774,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           jContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/custinvc.nl?id=' + row.invoiceNumberVal + '&whence=" target="_blank">' + row.invoiceNumber || "" + "</a></td>";
           jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (row.billingBeforeVat ? numberWithCommas(row.billingBeforeVat) : "") + "</td>";
           jContent += '            <td class="uir-list-row-cell" style="text-align: right; background: #f4b083 !important;">' + numberWithCommas(totalRev) || "" + "</td>";
+          //added by kurnia
+          jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntServF) || "" + "</td>";
+          //
           jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntRetainer) || "" + "</td>";
           jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntCF) || "" + "</td>";
           jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntSF) || "" + "</td>";
@@ -832,7 +884,8 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                 amount = 0;
             }
             
-            var amntRetainer = 0,
+            var amntServF = 0,
+                amntRetainer = 0,
                 amntCF = 0,
                 amntSF = 0,
                 amntMF = 0,
@@ -841,6 +894,11 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                 amntOthers = 0;
         
             switch (revenue) {
+                //added by kurnia
+                case "Agency Service Fee":
+                    amntServF = amount;
+                    break;
+                //
                 case "Retainer":
                     amntRetainer = amount;
                     break;
@@ -873,6 +931,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                 year,
                 billingBeforeVat,
                 amount,
+                //added by kurnia
+                amntServF,
+                //
                 amntRetainer,
                 amntCF,
                 amntSF,
@@ -888,6 +949,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             const accQty = parseInt(acc[index].qty) || 0;
             const currQty = parseInt(curr.qty) || 0;
             acc[index].qty = (accQty + currQty).toString();
+            //added by kurnia
+            acc[index].amntServF = ((parseFloat(acc[index].amntServF) || 0) + (parseFloat(curr.amntServF) || 0)).toFixed(2);
+            //
             acc[index].amntRetainer = ((parseFloat(acc[index].amntRetainer) || 0) + (parseFloat(curr.amntRetainer) || 0)).toFixed(2);
             acc[index].amntCF = ((parseFloat(acc[index].amntCF) || 0) + (parseFloat(curr.amntCF) || 0)).toFixed(2);
             acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
@@ -944,6 +1008,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                     year: data.year,
                     totalBillingBeforeVat: 0,
                     totalAmountBill: 0,
+                    //added by kurnia
+                    totalAmntServF: 0,
+                    //
                     totalAmntRetainer: 0,
                     totalAmntCF: 0,
                     totalAmntSF: 0,
@@ -963,6 +1030,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             }
         
             groupedData[key].totalAmountBill += Number(data.amount);
+            //added by kurnia
+            groupedData[key].totalAmntServF += Number(data.amntServF);
+            //
             groupedData[key].totalAmntRetainer += Number(data.amntRetainer);
             groupedData[key].totalAmntCF += Number(data.amntCF);
             groupedData[key].totalAmntSF += Number(data.amntSF);
@@ -980,6 +1050,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                 year: groupedData[key].year,
                 totalBillingBeforeVat: groupedData[key].totalBillingBeforeVat,
                 totalAmountBill: groupedData[key].totalBillingBeforeVat,
+                //added by kurnia
+                totalAmntServF: groupedData[key].totalAmntServF,
+                //
                 totalAmntRetainer: groupedData[key].totalAmntRetainer,
                 totalAmntCF: groupedData[key].totalAmntCF,
                 totalAmntSF: groupedData[key].totalAmntSF,
@@ -995,6 +1068,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         const groupedNewSummaryData = newsummaryDataArr;
         var totalBilling = 0,
             totalTotal = 0,
+            //added by kurnia
+            totalServF = 0,
+            //
             totalRetainer = 0,
             totalCF = 0,
             totalSf = 0,
@@ -1045,6 +1121,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                     month: monthInfo.month,
                     year: monthInfo.year,
                     totalAmountBill: 0,
+                    //added by kurnia
+                    totalAmntServF: 0,
+                    //
                     totalAmntRetainer: 0,
                     totalAmntCF: 0,
                     totalAmntSF: 0,
@@ -1060,6 +1139,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             dContent += '            <td class="uir-list-row-cell">' + (getMonthName(parseInt(row.month)) || "") + "</td>";
             dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalBillingBeforeVat || 0) + "</td>";
             dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalUse || 0) + "</td>";
+            //added by kurnia
+            dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalAmntServF || 0) + "</td>";
+            //
             dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalAmntRetainer || 0) + "</td>";
             dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalAmntCF || 0) + "</td>";
             dContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + convertCurr(row.totalAmntSF || 0) + "</td>";
@@ -1070,6 +1152,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             dContent += "        </tr>";
             totalBilling += Number(row.totalBillingBeforeVat || 0);
             totalTotal += Number(row.totalUse || 0);
+            //added by kurnia
+            totalServF += Number(row.totalAmntServF || 0);
+            //
             totalRetainer += Number(row.totalAmntRetainer || 0);
             totalCF += Number(row.totalAmntCF || 0);
             totalSf += Number(row.totalAmntSF || 0);
@@ -1160,6 +1245,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       }else{
           var totalWIPBilling = 0
           totalWIPTotal = 0
+          //added by kurnia
+          totalWIPServF = 0
+          //
           totalWIIPRetainer = 0
           totalWIPCF = 0
           totalWIPSf = 0
@@ -1169,6 +1257,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           totalWIPOthers = 0
           totalBilling = 0
           totalTotal = 0
+          //added by kurnia
+          totalServF = 0
+          //
           totalRetainer = 0
           totalCF = 0
           totalSf = 0
@@ -1191,7 +1282,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += "    <table>";
       sContent += '        <tr class="uir-list-headerrow">';
       sContent += '            <th colspan="7" class="uir-list-header-td" style="text-align: center;font-weight: bold;"></th>';
-      sContent += '            <th colspan="8" class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #ed7c39 !important;">REVENUE</th>';
+      sContent += '            <th colspan="9" class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #ed7c39 !important;">REVENUE</th>';
       sContent += '            <th colspan="6" class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #45a147 !important;">COST OF BILLING</th>';
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
@@ -1208,6 +1299,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">INVOICE NUMBER</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">BILLING<br/>(BEFORE VAT)</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #c65b2c !important;">TOTAL</th>';
+      // add by kurnia 
+      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Agency Service Fee</th>';
+      //
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Retainer</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Agency<br/>Commission/Creative<br/>Fee</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">Supervision Fee</th>';
@@ -1237,6 +1331,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;"></th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #bdd6ee !important;">' + numberWithCommas(totalWIPBilling) + "</th>";
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #bdd6ee !important;">' + numberWithCommas(totalWIPTotal) + "</th>";
+      //added by kurnia
+      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #bdd6ee !important;">' + numberWithCommas(totalWIPServF) + "</th>";
+      //
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #bdd6ee !important;">' + numberWithCommas(totalWIIPRetainer) + "</th>";
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #bdd6ee !important;">' + numberWithCommas(totalWIPCF) + "</th>";
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #bdd6ee !important;">' + numberWithCommas(totalWIPSf) + "</th>";
@@ -1267,6 +1364,10 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">MONTH</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold;">BILLING</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">TOTAL</th>';
+      
+      //added by kurnia
+      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">AGENCY SERVICE FEE</th>';
+      //
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">RETAINER</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">CREATIVE FEE</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #f7caac !important;">SUPERVISION FEE</th>';
@@ -1283,6 +1384,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #d5a6bd !important;">TOTAL</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalBilling) + "</th>";
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalTotal) + "</th>";
+      //added by kurnia
+      sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalServF) + "</th>";
+      //
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalRetainer) + "</th>";
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalCF) + "</th>";
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalSf) + "</th>";
