@@ -10,7 +10,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     function pageInit(context) {
         console.log('init masuk');
     }
-    function createRec(context) {
+    function createInv(context) {
         var processMsg = message.create({
             title: "Processing",
             message: "On Process. Please wait...",
@@ -20,6 +20,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
         setTimeout(function () {
             try {
+                console.log('triggered')
                 processTransaction(processMsg);
             } catch (e) {
                 processMsg.hide(); 
@@ -29,17 +30,16 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     message: "An unexpected error occurred: " + e.message
                 });
             }
-        }, 500); 
+        }, 300); 
     }
-    function processTransaction(processMsg){
+    function processTransaction(processMsg) {
         var rec = records;
-        var soId = rec.id;
+        var ifId = rec.id;
         var newRec = record.load({
-            type : record.Type.SALES_ORDER,
-            id : soId,
+            type : 'itemfulfillment',
+            id : ifId,
             isDynamic : false
         });
-        console.log('soId', soId);
         var subsId = newRec.getValue('subsidiary');
         console.log('subsId', subsId);
         var goodStock;
@@ -55,14 +55,41 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         }
         console.log('goodStock', goodStock);
         console.log('outbound',Outbound);
-        var department = newRec.getValue('department');
-        console.log('department', department);
-        var classId = newRec.getValue('class');
-        console.log('classId', classId);
+        var department = ''
+        var classId = ''
         var soDate = newRec.getValue('trandate');
-        var location = newRec.getValue('location');
-        console.log('soDate', soDate);
-    
+        var location = ''
+        var itemfulfillmentSearchObj = search.create({
+            type: "itemfulfillment",
+            settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
+            filters:
+            [
+                ["type","anyof","ItemShip"], 
+                "AND", 
+                ["taxline","is","F"], 
+                "AND", 
+                ["mainline","is","T"], 
+                "AND", 
+                ["internalid","anyof",ifId]
+            ],
+            columns:
+            [
+                search.createColumn({name: "department", label: "Department"}),
+                search.createColumn({name: "class", label: "Division"}),
+                search.createColumn({name: "location", label: "Location"})
+            ]
+        });
+        var searchResults = itemfulfillmentSearchObj.run().getRange({ start: 0, end: 1 });
+        if (searchResults.length > 0) {
+            department = searchResults[0].getValue({ name: "department" }) 
+            classId = searchResults[0].getValue({ name: "class" })
+            location = searchResults[0].getValue({ name: "location" })
+        } 
+        console.log('data', {
+            department: department,
+            classId: classId,
+            location : location
+        })
         var validateOnhand = true;
         var allItem = [];
         var cekLineCount = newRec.getLineCount('item');
@@ -76,9 +103,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 });
                 var unitRate = newRec.getSublistValue({
                     sublistId: 'item',
-                    fieldId: 'unitconversionrate',
+                    fieldId: 'unitconversion',
                     line: i
                 });
+                console.log('unitRate', unitRate)
+                console.log('item', item)
                 var itemSearchObj = search.create({
                     type: "item",
                     filters: [
@@ -95,10 +124,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     ]
                 });
                 
-                var searchResults = itemSearchObj.run().getRange({ start: 0, end: 1 });
+                var searchOnHand = itemSearchObj.run().getRange({ start: 0, end: 1 });
+                console.log('searchOnHand', searchOnHand)
                 
-                if (searchResults.length > 0) {
-                    var quantityOnHand = searchResults[0].getValue({ name: "locationquantityonhand" }) * Number(unitRate);
+                if (searchOnHand.length > 0) {
+                    var quantityOnHand = searchOnHand[0].getValue({ name: "locationquantityonhand" }) * Number(unitRate);
                     console.log("Quantity On Hand", quantityOnHand);
                 } 
                 
@@ -113,41 +143,37 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     line: i
                 });
                 
-                var isFulfill = newRec.getSublistValue({
-                    sublistId: 'item',
-                    fieldId: 'fulfillable',
-                    line: i
-                });
-    
-                if (isFulfill == true) {
-                    if(qty > quantityOnHand){
-                        console.log('quantity lebih besar');
-                        validateOnhand = false;
-                        newRec.setSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_rda_error_message_line',
-                            line: i,
-                            value: 'Sales order quantity is greater than the quantity on hand'
-                        });
-                    }else{
-                        console.log('quantity lebih kecil');
-                        newRec.setSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_rda_error_message_line',
-                            line: i,
-                            value: ''
-                        });
-                    }
-                    allItem.push({ item: item, units: units, qty: qty });
+                if(qty > quantityOnHand){
+                    console.log('quantity lebih besar');
+                    validateOnhand = false;
+                    newRec.setSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_rda_it_error_for_do_line',
+                        line: i,
+                        value: 'Sales order quantity is greater than the quantity on hand'
+                    });
+                }else{
+                    console.log('quantity lebih kecil');
+                    newRec.setSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_rda_it_error_for_do_line',
+                        line: i,
+                        value: ''
+                    });
                 }
+                allItem.push({ item: item, units: units, qty: qty });
+                
             }
         }
+        console.log('allItem', allItem)
+        console.log('validateOnhand', validateOnhand)
+
         if (!validateOnhand) {
             var msg = 'One of the lines in transaction has a Quantity Onhand that is smaller than the Quantity Transfer.';
             record.submitFields({
-                type: 'salesorder',
-                id: soId,
-                values: { custbody_rda_error_message_ivnt_trf: msg },
+                type: 'itemfulfillment',
+                id: ifId,
+                values: { custbody_rda_it_error_for_do_header: msg },
                 options: { enableSourcing: false, ignoreMandatoryFields: true }
             });
             processMsg.hide();
@@ -162,6 +188,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     
         if (validateOnhand == true && allItem.length > 0) {
             try {
+                console.log('masuk kondisi')
                 var createRecord = record.create({
                     type: 'inventorytransfer',
                     isDynamic: true
@@ -171,10 +198,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 createRecord.setValue({ fieldId: 'department', value: department });
                 createRecord.setValue({ fieldId: 'class', value: classId });
                 createRecord.setValue({ fieldId: 'trandate', value: soDate });
-                createRecord.setValue({ fieldId: 'custbody_rda_so_number', value: soId });
+                createRecord.setValue({ fieldId: 'custbody_rda_if_number_inv_tran', value: ifId });
                 createRecord.setValue({ fieldId: 'custbody_rda_inventory_transfer_type', value: '2' });
-                createRecord.setValue({ fieldId: 'location', value: goodStock });
-                createRecord.setValue({ fieldId: 'transferlocation', value: Outbound });
+                createRecord.setValue({ fieldId: 'location', value: Outbound });
+                createRecord.setValue({ fieldId: 'transferlocation', value: goodStock });
     
                 allItem.forEach(function (data) {
                     createRecord.selectNewLine({ sublistId: 'inventory' });
@@ -188,15 +215,15 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 console.log('saveCreate', saveCreate);
                 if(saveCreate){
                     record.submitFields({
-                        type: 'salesorder',
-                        id: soId,
-                        values: { custbody_rda_inventory_trf_number: saveCreate },
+                        type: 'itemfulfillment',
+                        id: ifId,
+                        values: { custbody_rda_do_trf_to_gs: saveCreate},
                         options: { enableSourcing: false, ignoreMandatoryFields: true }
                     });
                     record.submitFields({
-                        type: 'salesorder',
-                        id: soId,
-                        values: { custbody_rda_error_message_ivnt_trf: '' },
+                        type: 'itemfulfillment',
+                        id: ifId,
+                        values: { custbody_rda_it_error_for_do_header: '' },
                         options: { enableSourcing: false, ignoreMandatoryFields: true }
                     });
                     processMsg.hide();
@@ -211,11 +238,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             } catch (e) {
                 log.error('Error creating Inventory Transfer', e);
     
-                // Set the error message on SO
                 record.submitFields({
-                    type: 'salesorder',
-                    id: soId,
-                    values: { custbody_rda_error_message_ivnt_trf: e.message },
+                    type: 'itemfulfillment',
+                    id: ifId,
+                    values: { custbody_rda_it_error_for_do_header: e.message },
                     options: { enableSourcing: false, ignoreMandatoryFields: true }
                 });
                 processMsg.hide();
@@ -228,9 +254,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
         }
     }
-    
     return {
         pageInit: pageInit,
-        createRec: createRec
+        createInv: createInv
     };
 });

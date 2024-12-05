@@ -16,8 +16,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var sublistName = context.sublistId;
         if (sublistName === 'recmachcustrecord_rda_giro_id') {
             var currentRecordObj = context.currentRecord;
-            
-            
 
             var amtHeader = currentRecordObj.getValue('custbody_rda_giro_amount') || 0;
 
@@ -83,7 +81,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var sublistName = context.sublistId;
         if (fieldNam == 'custbody_rda_giro_customer') {
             console.log('trigerred')
-            
 
             var custId = rec.getValue('custbody_rda_giro_customer');
             console.log('custId', custId)
@@ -132,7 +129,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 console.log('ada inv')
                 var invField = vrecord.getCurrentSublistField({
                     sublistId: 'recmachcustrecord_rda_giro_id',
-                    fieldId: 'custpage_sublist_list_field',
+                    fieldId: 'custpage_rda_invoice_number',
                });
                 console.log('invField', invField)
                 allInv.forEach(function(inv) {
@@ -149,10 +146,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
         }
         if(sublistName == 'recmachcustrecord_rda_giro_id'){
-            if(fieldNam == 'custpage_sublist_list_field'){
+            if(fieldNam == 'custpage_rda_invoice_number'){
                 var valInv = vrecord.getCurrentSublistValue({
                     sublistId : 'recmachcustrecord_rda_giro_id',
-                    fieldId : 'custpage_sublist_list_field'
+                    fieldId : 'custpage_rda_invoice_number'
                 });
                 console.log('valInv',valInv)
                 if(valInv){
@@ -180,7 +177,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     flag = true
                     rec.setCurrentSublistValue({
                         sublistId: 'recmachcustrecord_rda_giro_id',
-                        fieldId: 'custpage_sublist_amount',
+                        fieldId: 'custpage_rda_amount',
                         value: amtInv
                     });
                     flag = false
@@ -189,13 +186,13 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }   
         }
         if(sublistName == 'recmachcustrecord_rda_giro_id'){
-            if(fieldNam == 'custpage_sublist_amount'){
+            if(fieldNam == 'custpage_rda_amount'){
                 if(flag){
                     return false
                 }
                 var amtCustom = vrecord.getCurrentSublistValue({
                     sublistId : 'recmachcustrecord_rda_giro_id',
-                    fieldId : 'custpage_sublist_amount'
+                    fieldId : 'custpage_rda_amount'
                 });
                 console.log('amtCustom',amtCustom)
                 
