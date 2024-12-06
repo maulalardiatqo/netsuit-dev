@@ -238,7 +238,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
           log.debug('PoLineLength', PO_lines.length)
           log.debug('PO_lines', PO_lines);
 
-            PO_lines.forEach((POLine) => {
+            PO_lines.forEach(function(POLine) {
                 var poItem = POLine.itemID;
                 function convertToDate(dateString) {
                     var parts = dateString.split("/");
@@ -276,7 +276,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 if (poItem) {
                     var lastPurchase = 0;
             
-                    // Fetch last purchase price
                     var itemSearchObj = search.create({
                         type: "item",
                         filters: [["internalid", "anyof", poItem]],
@@ -290,7 +289,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         if (lastPurchasePrice) lastPurchase = Number(lastPurchasePrice);
                     }
             
-                    // Fetch unit conversion rate
                     var rateUnit = 1;
                     var unitstypeSearchObj = search.create({
                         type: "unitstype",
@@ -312,12 +310,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             
                     log.debug('ratePerPackSize', ratePerPackSize);
                     log.debug('ratePerKG', ratePerKG);
-            
-                    // Select new line in sublist for the current PO line
                     poData.selectNewLine({ sublistId: "item" });
-                    // Set values for the current line
                     poData.setCurrentSublistValue({ sublistId: "item", fieldId: "item", value: poItem });
-                    poData.setCurrentSublistValue({ sublistId: "item", fieldId: "custcol_abj_pr_number", value: internalIDPR });
+                    
                     poData.setCurrentSublistValue({ sublistId: "item", fieldId: "custcol_abj_onhand", value: currentStock });
                     poData.setCurrentSublistValue({ sublistId: "item", fieldId: "custcol_msa_id_line_from_pr", value: lineId });
                     poData.setCurrentSublistValue({ sublistId: "item", fieldId: "custcol5", value: incomingStock });
@@ -339,6 +334,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     poData.setCurrentSublistValue({ sublistId: "item", fieldId: "custcol_abj_sales_rep_line", value: poSalesRep });
                     poData.setCurrentSublistValue({ sublistId: "item", fieldId: "custcol_abj_pack_size_order", value: poPackSize });
                     poData.setCurrentSublistValue({ sublistId: "item", fieldId: "custcol_abj_sales_order_number", value: poSoNumber });
+                    poData.setCurrentSublistValue({ sublistId: "item", fieldId: "lastpurchaseprice", value: "0"})
                     poData.setCurrentSublistValue({ sublistId: "item", fieldId: "custcol_abj_po_customer", value: poCust });
                     poData.setCurrentSublistValue({ sublistId: "item", fieldId: "unit", value: units });
                     poData.setCurrentSublistValue({ sublistId: "item", fieldId: "custcol_abj_ratepacksize", value: ratePackSIzeSet });
@@ -356,6 +352,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     poData.setCurrentSublistValue({ sublistId: "item", fieldId: "custcol_abj_purchase_price_per_kg", value: ratePerKG });
                     poData.setCurrentSublistValue({ sublistId: "item", fieldId: "amount", value: amount });
                     poData.setCurrentSublistValue({ sublistId: "item", fieldId: "taxcode", value: 5 });
+                    poData.setCurrentSublistValue({ sublistId: "item", fieldId: "custcol_abj_pr_number", value: internalIDPR });
                     
                     try {
                         poData.commitLine({ sublistId: "item" });
