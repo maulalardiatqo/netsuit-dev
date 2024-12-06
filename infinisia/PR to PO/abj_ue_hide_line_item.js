@@ -53,6 +53,14 @@ define(["N/runtime", "N/log", "N/ui/serverWidget"], (runtime, log, serverWidget)
                                 displayType: serverWidget.FieldDisplayType.HIDDEN
                             });
                         }
+                        const units = formSublist.getField({
+                            id: "units"
+                        });
+                        if (units && typeof units !== 'undefined' && units !== null) {
+                            units.updateDisplayType({
+                                displayType: serverWidget.FieldDisplayType.HIDDEN
+                            });
+                        }
                     }
                 } catch(error) {
                     log.error({

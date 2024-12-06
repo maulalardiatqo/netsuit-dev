@@ -15,6 +15,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var sublistName = context.sublistId;
         var record = context.currentRecord;
         var cFrom = record.getValue('customform');
+        var cekTrigger = records.getValue('custbody_abj_trigger_client')
         if (sublistName == 'recmachcustrecord_iss_pr_parent'){
             if(sublistFieldName == 'custrecord_iss_avg_busdev'){
                 var currentRecordObj = context.currentRecord;
@@ -42,62 +43,128 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         }
         if (sublistName == 'item'){
             if(sublistFieldName == 'quantity'){
-                console.log('cForm', cFrom);
-                if(cFrom == '104'){
-                    if(flag){
-                        return false
-                    }
-                    var quantity = record.getCurrentSublistValue({
-                        sublistId: "item",
-                        fieldId : "quantity"
-                    });
-                    var convRate = record.getCurrentSublistValue({
-                        sublistId: "item",
-                        fieldId : "custcol_abj_ratepacksize"
-                    });
-                    console.log('convRate', convRate);
-                    console.log('quantity', quantity);
-                    var setOrder = Number(quantity) *  Number(convRate);
-                    console.log('setOrder', setOrder);
-                    flag = true
-                    record.setCurrentSublistValue({
-                        sublistId: "item",
-                        fieldId: "custcol_pr_total_order",
-                        value: setOrder,
-                    });
-                    flag = false
+                console.log('cekTrigger', cekTrigger)
+                if(cekTrigger == false){
+                    console.log('cForm', cFrom);
+                    if(cFrom == '104'){
+                        if(flag){
+                            return false
+                        }
+                        var quantity = record.getCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId : "quantity"
+                        });
+                        var convRate = record.getCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId : "custcol_abj_ratepacksize"
+                        });
+                        console.log('convRate', convRate);
+                        console.log('quantity', quantity);
+                        var setOrder = Number(quantity) *  Number(convRate);
+                        console.log('setOrder', setOrder);
+                        flag = true
+                        record.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "custcol_pr_total_order",
+                            value: setOrder,
+                        });
+                        flag = false
 
+                    }
                 }
+                
             }
         }
         if (sublistName == 'item'){
             if(sublistFieldName == 'custcol_pr_total_order'){
-                console.log('cForm', cFrom);
-                if(cFrom == '104'){
-                    if(flag){
-                        return false
-                    }
-                    var order = record.getCurrentSublistValue({
-                        sublistId: "item",
-                        fieldId : "custcol_pr_total_order"
-                    });
-                    var convRate = record.getCurrentSublistValue({
-                        sublistId: "item",
-                        fieldId : "custcol_abj_ratepacksize"
-                    });
-                    console.log('convRate', convRate);
-                    console.log('order', order);
-                    var setQty = Number(order) /  Number(convRate);
-                    console.log('setQty', setQty);
-                    flag = true
-                    record.setCurrentSublistValue({
-                        sublistId: "item",
-                        fieldId: "quantity",
-                        value: setQty,
-                    });
-                    flag = false
+                console.log('cekTrigger', cekTrigger)
+                if(cekTrigger == false){
+                    console.log('cForm', cFrom);
+                    if(cFrom == '104'){
+                        if(flag){
+                            return false
+                        }
+                        var order = record.getCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId : "custcol_pr_total_order"
+                        });
+                        var convRate = record.getCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId : "custcol_abj_ratepacksize"
+                        });
+                        console.log('convRate', convRate);
+                        console.log('order', order);
+                        var setQty = Number(order) /  Number(convRate);
+                        console.log('setQty', setQty);
+                        flag = true
+                        record.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "quantity",
+                            value: setQty,
+                        });
+                        flag = false
 
+                    }
                 }
+                
+            }
+        }
+        if (sublistName == 'item'){
+            if(sublistFieldName == 'custcol_abj_pack_size_order'){
+                console.log('cForm', cFrom);
+                if(cekTrigger == false){
+                    if(cFrom == '104'){
+                        if(flag){
+                            return false
+                        }
+                        var order = record.getCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId : "custcol_pr_total_order"
+                        });
+                        var packSizeOrder = record.getCurrentSublistText({
+                            sublistId: "item",
+                            fieldId : "custcol_abj_pack_size_order"
+                        });
+                        console.log('packSizeOrder', packSizeOrder);
+                        console.log('order', order);
+                        var rateUnit = 1
+                        var unitstypeSearchObj = search.create({
+                            type: "unitstype",
+                            filters:
+                            [
+                                ["unitname","is",packSizeOrder]
+                            ],
+                            columns:
+                            [
+                                search.createColumn({name: "conversionrate", label: "Rate"})
+                            ]
+                        });
+                        var searchResultUnit = unitstypeSearchObj.run().getRange({start: 0, end: 1});
+                        
+                        if (searchResultUnit.length > 0) {
+                            var rUnit = searchResultUnit[0].getValue({name: "conversionrate"});
+                            if(rUnit){
+                                rateUnit = rUnit
+                            }
+                        } 
+                        console.log('rateUnit', rateUnit)
+                        var setQty = Number(order) /  Number(rateUnit);
+                        console.log('setQty', setQty);
+                        flag = true
+                        record.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "quantity",
+                            value: setQty,
+                        });
+                        record.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "custcol_abj_ratepacksize",
+                            value: rateUnit,
+                        });
+                        flag = false
+                    }
+                }
+                
             }
         }
     }
