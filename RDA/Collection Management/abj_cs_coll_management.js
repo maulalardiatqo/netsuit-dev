@@ -53,6 +53,7 @@
             log.debug('subsidiaryId',subsidiaryId)
             if (subsidiaryId) {
                 var subsidiaryFIeld = vrecord.getField({ fieldId: 'custpage_subsidiary' });
+                var kolektorField = vrecord.getField({ fieldId: 'custpage_kolektor' });
                 var allSubs = []
                 var subsidiarySearchObj = search.create({
                     type: "subsidiary",
@@ -93,11 +94,107 @@
                         });
                     })
                 }
+                var allSales = []
+                var employeeSearchObj = search.create({
+                    type: "employee",
+                    filters:
+                    [
+                        ["salesrep","is","T"], 
+                        "AND", 
+                        ["subsidiary","anyof",subsidiaryId]
+                    ],
+                    columns:
+                    [
+                        search.createColumn({name: "entityid", label: "ID"}),
+                        search.createColumn({name: "internalid", label: "Internal ID"}),
+                        search.createColumn({name: "firstname", label: "First Name"}),
+                        search.createColumn({name: "middlename", label: "Middle Name"}),
+                        search.createColumn({name: "lastname", label: "Last Name"}),
+                        search.createColumn({name: "subsidiary", label: "Subsidiary"})
+                    ]
+                    });
+                    var searchResultCount = employeeSearchObj.runPaged().count;
+                    log.debug("employeeSearchObj result count",searchResultCount);
+                    employeeSearchObj.run().each(function(empData){
+                        var idEmp = empData.getValue({
+                            name: "internalid"
+                        })
+                        var fName = empData.getValue({
+                            name: "firstname"
+                        })
+                        var mName = empData.getValue({
+                            name: "middlename"
+                        })
+                        var lName = empData.getValue({
+                            name: "lastname"
+                        })
+                        var empName = fName + ' ' + mName + ' ' + lName
+                        kolektorField.insertSelectOption({
+                            value : idEmp,
+                            text : empName
+                        })
+                        return true;
+                    });
             }
             console.log("masuk client");
         }
         window.onCustomButtonClick = function(context) {
             searchFilter(context)
+        }
+        function fieldChanged(context) {
+            if(context.fieldId == 'custpage_subsidiary'){
+                var cekSub = records.getValue('custpage_subsidiary');
+                if(cekSub){
+                    var kolektorField = records.getField({ fieldId: 'custpage_kolektor' })
+                    var kolektorFieldCount = kolektorField.getSelectOptions().length;
+                    for (var i = kolektorFieldCount - 1; i >= 0; i--) {
+                        kolektorField.removeSelectOption({
+                            value: kolektorField.getSelectOptions()[i].value
+                        });
+                    }
+                    var employeeSearchObj = search.create({
+                        type: "employee",
+                        filters:
+                        [
+                            ["salesrep","is","T"], 
+                            "AND", 
+                            ["subsidiary","anyof",cekSub]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({name: "entityid", label: "ID"}),
+                            search.createColumn({name: "internalid", label: "Internal ID"}),
+                            search.createColumn({name: "firstname", label: "First Name"}),
+                            search.createColumn({name: "middlename", label: "Middle Name"}),
+                            search.createColumn({name: "lastname", label: "Last Name"}),
+                            search.createColumn({name: "subsidiary", label: "Subsidiary"})
+                        ]
+                        });
+                        var searchResultCount = employeeSearchObj.runPaged().count;
+                        log.debug("employeeSearchObj result count",searchResultCount);
+                        employeeSearchObj.run().each(function(empData){
+                            var idEmp = empData.getValue({
+                                name: "internalid"
+                            })
+                            var fName = empData.getValue({
+                                name: "firstname"
+                            })
+                            var mName = empData.getValue({
+                                name: "middlename"
+                            })
+                            var lName = empData.getValue({
+                                name: "lastname"
+                            })
+                            var empName = fName + ' ' + mName + ' ' + lName
+                            kolektorField.insertSelectOption({
+                                value : idEmp,
+                                text : empName
+                            })
+                            return true;
+                        });
+                }
+
+            }
         }
         function searchFilter(context){
             var cekLine = records.getLineCount({sublistId : "custpage_sublist"});
@@ -419,7 +516,8 @@
             pageInit: pageInit,
             markAll : markAll,
             unmarkAll : unmarkAll,
-            searchFilter : searchFilter
+            searchFilter : searchFilter,
+            fieldChanged : fieldChanged
         };
     }
 ); 

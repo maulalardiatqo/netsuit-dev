@@ -27,10 +27,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 container: "valueRedord",
                 label: 'Kolektor'
             });
-            kolektor.addSelectOption({
-                value: '', 
-                text: '-Select-'
-            });
+            
             
             var salesMan = form.addField({
                 id: 'custpage_sales', 
@@ -69,10 +66,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                     value: idEmp, 
                     text: nameSales 
                 });
-                kolektor.addSelectOption({
-                    value: idEmp, 
-                    text: nameSales 
-                })
                 return true;
             });
             kolektor.isMandatory = true

@@ -6,7 +6,19 @@
 define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", "N/redirect", "N/format"], function (record, search, serverWidget, runtime, currency, redirect, format) {
   
   function beforeLoad(context) {
-    
+    function remove_duplicates_in_list(arr) {
+      var uniques = [];
+      var itemsFound = {};
+      for (var i = 0, l = arr.length; i < l; i++) {
+        var stringified = JSON.stringify(arr[i]);
+        if (itemsFound[stringified]) {
+          continue;
+        }
+        uniques.push(arr[i]);
+        itemsFound[stringified] = true;
+      }
+      return uniques;
+    }
     try {
       if (context.type == context.UserEventType.CREATE) {
         var poData = context.newRecord;
@@ -18,24 +30,197 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             currencySet = context.request.parameters.currencySet;
             var POlinesStr = context.request.parameters.PO_lines;
             var allIdSummary = JSON.parse(POlinesStr); 
-            const arrayString = allIdSummary.join(',');
-            poData.setValue({
-              fieldId : 'custbody_abj_all_id_pr_sum',
-              value : arrayString
-            })
+            var itemIds = [];
+            var unitNames = [];
             log.debug('allIdSummary', allIdSummary);
+              var prToPO = search.load({
+                  id: "customsearch1021",
+              });
+          
+              prToPO.filters.push(
+                  search.createFilter({
+                      name: "internalid",
+                      join: "custrecord_iss_pr_parent", 
+                      operator: search.Operator.ANYOF, 
+                      values: allIdSummary, 
+                  })
+              );
+              
+              var prToPOSet = prToPO.run();
+              var prToPO = prToPOSet.getRange(0, 300);
+              log.debug('prToPO.length', prToPO.length); 
+              if(prToPO.length > 0) {
+                for (let i = 0; i < prToPO.length; i++) {
+
+                  let itemName = prToPO[i].getText({
+                    name: prToPOSet.columns[0],
+                  });
+                  let itemID = prToPO[i].getValue({
+                    name: prToPOSet.columns[0],
+                  });
+                  let vendorName = prToPO[i].getValue({
+                    name: prToPOSet.columns[1],
+                  });
+                  let currentStock = prToPO[i].getValue({
+                    name: prToPOSet.columns[2],
+                  });
+                  let incomingStock = prToPO[i].getValue({
+                    name: prToPOSet.columns[3],
+                  });
+                  let salesRep = prToPO[i].getText({
+                    name: prToPOSet.columns[4],
+                  });
+                  let salesRepID = prToPO[i].getValue({
+                    name: prToPOSet.columns[4],
+                  });
+                  let customerName = prToPO[i].getText({
+                    name: prToPOSet.columns[26],
+                  });
+                  let customerID = prToPO[i].getValue({
+                    name: prToPOSet.columns[26],
+                  });
+                  let forecastBusdev = prToPO[i].getValue({
+                    name: prToPOSet.columns[6],
+                  });
+                  let forecastPerhitungan = prToPO[i].getValue({
+                    name: prToPOSet.columns[7],
+                  });
+                  let avgBusdev = prToPO[i].getValue({
+                    name: prToPOSet.columns[8],
+                  });
+                  let avgAccounting = prToPO[i].getValue({
+                    name: prToPOSet.columns[9],
+                  });
+                  let note = prToPO[i].getValue({
+                    name: prToPOSet.columns[10],
+                  });
+                  let internalIDPR = prToPO[i].getValue({
+                    name: prToPOSet.columns[11],
+                  });
+                  let docNumber = prToPO[i].getValue({
+                    name: prToPOSet.columns[18],
+                  });
+                  let osPO = prToPO[i].getValue({
+                    name: prToPOSet.columns[12],
+                  });
+                  let cek2 = prToPO[i].getValue({
+                    name: prToPOSet.columns[15],
+                  });
+                  let leadTimeKirim = prToPO[i].getValue({
+                    name: prToPOSet.columns[16],
+                  });
+                  let units = prToPO[i].getValue({
+                    name: prToPOSet.columns[17],
+                  });
+                  
+                  let soNO = prToPO[i].getValue({
+                    name: prToPOSet.columns[19],
+                  });
+                  let taxItemRate = prToPO[i].getValue({
+                    name: prToPOSet.columns[21],
+                  });
+                  let tanggalKirim = prToPO[i].getValue({
+                    name: prToPOSet.columns[22],
+                  });
+                  let packSize = prToPO[i].getValue({
+                    name: prToPOSet.columns[23],
+                  });
+                  let packSizeText = prToPO[i].getText({
+                    name: prToPOSet.columns[23],
+                  });
+                  let soNumber = prToPO[i].getValue({
+                    name: prToPOSet.columns[19],
+                  });
+                  let soNumberText = prToPO[i].getText({
+                    name: prToPOSet.columns[19],
+                  });
+                  let qtyPO = prToPO[i].getValue({
+                    name: prToPOSet.columns[27],
+                  })
+                  let lineId = prToPO[i].getValue({
+                    name : prToPOSet.columns[29]
+                  })
+                  let currency = prToPO[i].getValue({
+                    name : prToPOSet.columns[31]
+                  })
+                  let idSum = prToPO[i].getValue({
+                    name : prToPOSet.columns[32]
+                  });
+                  let poCust = prToPO[i].getValue({
+                    name : prToPOSet.columns[34]
+                  });
+                  let ratePackSIze = prToPO[i].getValue({
+                    name : prToPOSet.columns[37]
+                  }) || 0;
+                  var cekTotalPackaging = prToPO[i].getValue({
+                    name : prToPOSet.columns[35]
+                  }) || 0;
+                  var idPrSUm = prToPO[i].getValue({
+                    name : prToPOSet.columns[39]
+                  }) || 0;
+                  log.debug('unitNames', unitNames)
+                  if (itemID) itemIds.push(itemID);
+                  if (packSizeText) unitNames.push(packSizeText);
+                  var totalPackaging = Math.abs(parseFloat(cekTotalPackaging || 0)) - parseFloat(qtyPO || 0) 
+                  var setTotalOrder = Number(totalPackaging) * Number(ratePackSIze)
+                  PO_lines.push({
+                    salesRepID : salesRepID,
+                    customerID : customerID,
+                    incomingStock : incomingStock,
+                    currentStock : currentStock,
+                    quantity : setTotalOrder,
+                    osPO : osPO,
+                    forecastBusdev : forecastBusdev,
+                    forecastPerhitungan : forecastPerhitungan,
+                    avgBusdev : avgBusdev,
+                    avgAccounting : avgAccounting,
+                    units : units,
+                    leadTimeKirim : leadTimeKirim,
+                    itemRate : itemRate,
+                    taxItem : taxItem,
+                    soNO : soNO,
+                    taxItemRate : taxItemRate,
+                    packSize : packSize,
+                    soNumber : soNumber,
+                    internalIDPR : internalIDPR,
+                    totalOrder : setTotalOrder,
+                    totalPackaging : totalPackaging,
+                    poCust : poCust,
+                    lineId : lineId,
+                    packSizeText : packSizeText,
+                    ratePackSIze : ratePackSIze,
+                    itemID : itemID,
+                    tanggalKirim : tanggalKirim
+                  })
+                }
+              }
             
           }
         }
+        itemIds = [...new Set(itemIds)];
+        unitNames = [...new Set(unitNames)];
+        var itemData = {};
+        search
+          .create({
+            type: "item",
+            filters: [["internalid", "anyof", itemIds]],
+            columns: ["internalid", "lastpurchaseprice"],
+          })
+          .run()
+          .each((result) => {
+            itemData[result.id] = {
+              lastPurchasePrice: result.getValue({ name: "lastpurchaseprice" }),
+            };
+            return true;
+          });
+
+       
+          log.debug('itemData', itemData);
         if (vendorID) {
           poData.setValue({
             fieldId: "customform",
             value: 104,
           });
-          poData.setValue({
-            fieldId: "custbody_abj_trigger_client",
-            value : true
-          })
           var exchangerate = 0
           if(currencySet){
             var currencySearchObj = search.create({
@@ -62,7 +247,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
               value: currencySet,
             });
           }
-          // log.debug('exchangerate', exchangerate)
           var currentEmployee = runtime.getCurrentUser();
           poData.setValue({
             fieldId: "employee",
@@ -85,6 +269,236 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
           poData.setValue({
             fieldId: "customform",
             value: 104,
+          });
+          var line_idx = 0;
+          var arrayPR = [];
+          log.debug('PO_lines', PO_lines)
+          for (var i in PO_lines) {
+            var POLine = PO_lines[i];
+            var poItem = POLine.itemID;
+            function convertToDate(dateString) {
+              var parts = dateString.split("/");
+              var day = parseInt(parts[0], 10);
+              var month = parseInt(parts[1], 10) - 1; 
+              var year = parseInt(parts[2], 10);
+              return new Date(year, month, day);
+            }
+            var poTanggalKirim = POLine.tanggalKirim;
+            var poSalesRep = POLine.salesRepID;
+            var poCustomerID = POLine.customerID;
+            var incomingStock = POLine.incomingStock;
+            var currentStock = POLine.currentStock;
+            var quantity = POLine.quantity;
+            var osPO = POLine.osPO;
+            var forecastBusdev = POLine.forecastBusdev;
+            var forecastPerhitungan = POLine.forecastPerhitungan;
+            var avgBusdev = POLine.avgBusdev;
+            var avgAccounting = POLine.avgAccounting;
+            var units = POLine.units;
+            var leadTimeKirim = POLine.leadTimeKirim;
+            var itemRate = POLine.itemRate;
+            var taxItem = POLine.taxItem;
+            var soNO = POLine.soNO;
+            var taxItemRate = POLine.taxItemRate;
+            var poPackSize = POLine.packSize;
+            var poSoNumber = POLine.soNumber;
+            var internalIDPR = POLine.internalIDPR;
+            var totalOrder = POLine.totalOrder;
+            var totalPackaging = POLine.totalPackaging
+            var poCust = POLine.poCust
+            var lineId = POLine.lineId
+            var packSizeText = POLine.packSizeText
+            var ratePackSIzeSet = POLine.ratePackSIze
+            arrayPR.push(internalIDPR);
+            if (poItem) {
+              var lastPurchase = itemData[poItem]?.lastPurchasePrice || 0;
+              log.debug('lastPurchase', lastPurchase)
+              poData.insertLine({
+                sublistId: "item",
+                line: line_idx,
+              });
+              var ratePerPackSize = Number(lastPurchase) / Number(exchangerate) * Number(ratePackSIzeSet)
+              var ratePerKG = Number(lastPurchase) / Number(exchangerate)
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "item",
+                line: line_idx,
+                value: poItem,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_abj_pr_number",
+                line: line_idx,
+                value: internalIDPR,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_abj_onhand",
+                line: line_idx,
+                value: currentStock,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_msa_id_line_from_pr",
+                line: line_idx,
+                value: lineId,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol5",
+                line: line_idx,
+                value: incomingStock,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol9",
+                line: line_idx,
+                value: forecastBusdev,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol8",
+                line: line_idx,
+                value: leadTimeKirim,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_pr_rumus_perhitungan",
+                line: line_idx,
+                value: forecastPerhitungan,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol10",
+                line: line_idx,
+                value: avgBusdev,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol11",
+                line: line_idx,
+                value: avgAccounting,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol6",
+                line: line_idx,
+                value: osPO,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "customer",
+                line: line_idx,
+                value: poCustomerID,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_abj_customer_line",
+                line: line_idx,
+                value: poCustomerID,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_abj_no_so",
+                line: line_idx,
+                value: soNO,
+              });
+              if (poTanggalKirim) {
+                poData.setSublistValue({
+                  sublistId: "item",
+                  fieldId: "custcol14",
+                  line: line_idx,
+                  value: poTanggalKirim,
+                });
+              }
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_abj_sales_rep_line",
+                line: line_idx,
+                value: poSalesRep,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_abj_pack_size_order",
+                line: line_idx,
+                value: poPackSize,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_abj_sales_order_number",
+                line: line_idx,
+                value: poSoNumber,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_abj_po_customer",
+                line: line_idx,
+                value: poCust,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "unit",
+                line: line_idx,
+                value: units,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_abj_ratepacksize",
+                line: line_idx,
+                value: ratePackSIzeSet,
+              });
+             
+              
+              let positivePackaging = Math.abs(totalPackaging);
+              var amount = Number(ratePerPackSize) * Number(positivePackaging)
+              // log.debug('positivePackaging', positivePackaging)
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "quantity",
+                line: line_idx,
+                value: positivePackaging,
+              });
+              
+              
+              // log.debug('totalOrder', totalOrder);
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_pr_total_order",
+                line: line_idx,
+                value: totalOrder,
+              });
+              // log.debug('lastPurchase', lastPurchase)
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "rate",
+                line: line_idx,
+                value: ratePerPackSize,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_abj_purchase_price_per_kg",
+                line: line_idx,
+                value: ratePerKG,
+              });
+              poData.setSublistValue({
+                sublistId: "item",
+                fieldId: "amount",
+                line: line_idx,
+                value: amount,
+              });
+              line_idx++;
+            }
+          }
+
+          arrayPR = remove_duplicates_in_list(arrayPR);
+          poData.setValue({
+            fieldId: "custbody_convert_from_prid",
+            value: arrayPR,
+          });
+          var dataTerakhir = arrayPR[arrayPR.length - 1];
+            poData.setValue({
+              fieldId: "custbody_abj_pr_number",
+              value: dataTerakhir,
           });
        
           
