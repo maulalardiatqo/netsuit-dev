@@ -286,7 +286,7 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             fieldId : 'amount',
                             line : i
                         });
-
+                        log.debug('amount', amount)
                         if(idAmortTemp){
                             var recTempAmor = record.load({
                                 type: 'amortizationtemplate',
@@ -363,6 +363,14 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             if(searchResultCount < 0 || searchResultCount == null || searchResultCount == ''){
                                 idAmortSched = Number(idAmortSched) + 1
                             }
+                            log.debug('params', {
+                                idAmortSched : idAmortSched,
+                                amounttoSet : amounttoSet,
+                                startDate : startDate,
+                                endDate : endDate,
+                                account : account,
+                                recId : recId
+                            })
                             var mapReduceTask = task.create({
                                 taskType: task.TaskType.MAP_REDUCE,
                                 scriptId: 'customscript_abj_mr_set_amortization', 

@@ -15,23 +15,29 @@ define(["N/runtime", "N/log"], (runtime, log) => {
         var status = rec.getValue('approvalstatus');
         log.debug('status', status)
         if(cForm.indexOf('PR') !== -1){
-           
+            // var cekLinePR = rec.getLineCount({
+            //     sublistId : 'recmachcustrecord_iss_pr_parent'
+            // })
+            // log.debug('cekLinePR', cekLinePR)
+            // if(cekLinePR > 0){
                 form.addButton({
                     id: 'custpage_button_pr',
                     label: "Print PR",
                     functionName: "printPDFPR()"
                 });
                 context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js "
+            // }
+               
            
         }else{
-            if(status == '2'){
+            //if(status == '2'){
                 form.addButton({
                     id: 'custpage_button_po',
                     label: "Print PO",
                     functionName: "printPDF()"
                 });
                 context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js "
-            }
+            //}
         }
        
         

@@ -167,6 +167,7 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
                     }
                     return false;
                 });
+                log.debug('idPeriod', idPeriod)
                 if(idPeriod){
                     forSave = true
                     log.debug('idPeriod', idPeriod)

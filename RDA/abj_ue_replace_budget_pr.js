@@ -40,6 +40,33 @@ define(["N/record", "N/search", "N/config"], function(
                             }
                         }
                     }
+                    
+                    var lineCountItem = recNew.getLineCount({sublistId : "item" })
+                    log.debug('lineCountItem', lineCountItem)
+                    if(lineCountItem > 0){
+                        for(var z = 0; i < lineCountItem; z++){
+                            var estAmtExp = recNew.getSublistValue({
+                                sublistId : 'item',
+                                fieldId : 'estimatedamount',
+                                line : z
+                            });
+                            var cekBudgetAmount = recNew.getSublistValue({
+                                sublistId : 'item',
+                                fieldId : 'custcol_bm_budgetamount',
+                                line : z
+                            });
+                            log.debug('estAmtExp', estAmtExp);
+                            log.debug('cekBudgetAmount', cekBudgetAmount);
+                            if(estAmtExp && cekBudgetAmount){
+                                recNew.setSublistValue({
+                                    sublistId:'item',
+                                    fieldId:'custcol_bm_budgetamountconsumed',
+                                    line:z,
+                                    value:estAmtExp
+                                });
+                            }
+                        }
+                    }
                 }
             }catch(e){
                 log.debug('error', e)
