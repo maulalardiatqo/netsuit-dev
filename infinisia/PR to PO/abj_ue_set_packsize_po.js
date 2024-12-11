@@ -87,13 +87,6 @@ define(["N/record", "N/search", "N/config"], function(
                                     line:i,
                                     value:taxCode
                                 });
-                                // log.debug('quantity', quantity)
-                                // dataRec.setSublistValue({
-                                //     sublistId:'item',
-                                //     fieldId:'quantity',
-                                //     line:i,
-                                //     value:quantity
-                                // });
                                 var prId = dataRec.getSublistValue({
                                     sublistId : "item",
                                     fieldId : "custcol_abj_pr_number",

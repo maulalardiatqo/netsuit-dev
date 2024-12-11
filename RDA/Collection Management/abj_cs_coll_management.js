@@ -323,7 +323,7 @@
                             allData.push({
                                 doNumber : doNumber,
                                 customerId : customerId,
-                                customerId : customerText,
+                                customerText : customerText,
                                 dueDate : dueDate,
                                 invAmt : invAmt,
                                 amtDue : amtDue,
@@ -344,7 +344,7 @@
                         console.log('allData', allData)
                         allData.forEach(function(data) {
                             var doNumber = data.doNumber
-                            var customerId = data.customerId
+                            var customerText = data.customerText
                             var customerId = data.customerId
                             var dueDate = data.dueDate
                             var invAmt = data.invAmt
@@ -378,6 +378,7 @@
                                 fieldId: 'custpage_sublist_type',
                                 value: 'Invoice'
                             });
+                            console.log('customerText', customerText)
                             records.setCurrentSublistValue({
                                 sublistId: 'custpage_sublist', 
                                 fieldId: 'custpage_sublist_vendor',

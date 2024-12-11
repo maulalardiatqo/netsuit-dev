@@ -27,7 +27,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             log.debug('recid', recid)
             // load PO
 
-
+            var sTotal = 0;
             var poSearch = search.create({
                 type: search.Type.PURCHASE_ORDER,
                 columns: [
@@ -81,7 +81,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         formula: "{taxitem.rate}",
                         label: 'taxrate'
                     }),
-
+                    search.createColumn({
+                        name: "formulanumeric",
+                        formula: "{total}",
+                        label: "Formula (Numeric)"
+                     }),
+                    search.createColumn({
+                        name: "formulatext",
+                        formula: "{taxtotal}",
+                        label: "Formula (Text)"
+                     })
                 ],
                 filters: [
                     ['mainline', 'is', 'any'],
@@ -112,7 +121,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var unit = result.getValue('unit');
                 var totQTY = result.getValue('custcol_pr_total_order');
                 log.debug('totQTY', totQTY)
-               
+                var taxTotal = result.getValue({
+                    name: "formulatext",
+                    formula: "{taxtotal}",
+                })
+                var totalVal = result.getValue({
+                    name: "formulanumeric",
+                    formula: "{total}",
+                })
                 var vendorId = result.getValue({
                     name: 'formulatext1',
                     label: 'vendorid'
@@ -145,6 +161,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var taxamount = result.getValue('taxamount')
                 var rate = result.getValue('custcol_abj_purchase_price_per_kg');
                 log.debug('rate', rate)
+                sTotal += Number(amount)
                 resultArray.push({
                     internalid: internalid,
                     currency: currency,
@@ -175,17 +192,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     memo: memo,
                     taxamount: taxamount,
                     rate : rate,
-                    totQTY : totQTY
-
+                    totQTY : totQTY,
+                    taxTotal : taxTotal,
+                    totalVal : totalVal
                 })
                 return true
             })
 
             log.debug('resultArray', resultArray)
+            log.debug('sTotal', sTotal)
 
             var poRecord = resultArray
             var poId = poRecord[0].internalid
-            log.debug('poId', poId)
+            // log.debug('poId', poId)
             // search item landed cost
             var allItemLanded = []
             var customrecord_abj_add_landed_cost_poSearchObj = search.create({
@@ -296,6 +315,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
             // PO data
             var tandId = poRecord[0].tranid
+            var taxTotal = poRecord[0].taxTotal
+            var totalVal = poRecord[0].totalVal
             var POdate = poRecord[0].trandate
             var terms = poRecord[0].terms
             var poTotal = poRecord[0].total
@@ -468,7 +489,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             //         type: format.Type.DATE
             //     });
             // }
-            var amountRecieved = Number(totalToCount) - Number(totalWHTaxToCount);
+            var amountRecieved = Number(totalVal) - Number(totalWHTaxToCount);
             if (amountRecieved) {
                 amountRecieved = format.format({
                     value: amountRecieved,
@@ -584,18 +605,18 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "</tr>";
             body += "</tbody>";
             body += "</table>";
-
+            var poItemData = getPOItem(context, poRecord);
             body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
             body += "<tbody>";
-            body += "<tr>"
-            body += "<td class='tg-head_body' style='width:30%'> DESCRIPTION </td>"
-            body += "<td class='tg-head_body' style='width:13%'> PACK SIZE </td>"
-            body += "<td class='tg-head_body' style='width:10%'> QTY </td>"
-            body += "<td class='tg-head_body' style='width:13%'> TOTAL QTY </td>"
+            body += "<tr>" 
+            body += "<td class='tg-head_body' style='width:29%'> DESCRIPTION </td>"
+            body += "<td class='tg-head_body' style='width:11%'> PACK SIZE </td>"
+            body += "<td class='tg-head_body' style='width:8%'> QTY </td>"
+            body += "<td class='tg-head_body' style='width:12%'> TOTAL QTY </td>"
             body += "<td class='tg-head_body' style='align:right; width:19%'> UNIT PRICE (" + tlcCurr + ") </td>"
-            body += "<td class='tg-head_body' style='align:right; width:15%'> AMOUNT (" + tlcCurr + ") </td>"
+            body += "<td class='tg-head_body' style='align:right; width:22%'> AMOUNT (" + tlcCurr + ") </td>"
             body += "</tr>"
-            body += getPOItem(context, poRecord);
+            body += poItemData.body
             body += getPOExpense(context, poRecord);
             body += "<tr>"
             body += "<td class='tg-headerrow_left'></td>"
@@ -603,7 +624,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-f_body'>SUBTOTAL</td>"
-            body += "<td class='tg-f_body'>" + subTotal + "</td>"
+            body += "<td class='tg-f_body'>" + format.format({
+                value: poItemData.subTotal,
+                type: format.Type.CURRENCY
+            }) + "</td>";
             body += "</tr>"
             if (taxRateList != '') {
                 body += "<tr>"
@@ -612,7 +636,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-f_body'>VAT " + taxtRate + " %</td>"
-                body += "<td class='tg-f_body'>" + taxtotal + "</td>"
+                body += "<td class='tg-f_body'>" + format.format({
+                    value: Math.abs(taxTotal),
+                    type: format.Type.CURRENCY
+                })  + "</td>"
                 body += "</tr>"
             }
             if (allItemLanded || allItemLanded.length > 0) {
@@ -633,7 +660,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-f_body'>TOTAL</td>"
-            body += "<td class='tg-f_body'>" + total + "</td>"
+            body += "<td class='tg-f_body'>" + format.format({
+                value: totalVal,
+                type: format.Type.CURRENCY
+            }) + "</td>"
             body += "</tr>"
 
 
@@ -779,7 +809,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         
                     }
                 }
-        
+                var ssubTotal = 0
                 for (var itemKey in items) {
                     var item = items[itemKey];
         
@@ -791,7 +821,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         value: item.rate, 
                         type: format.Type.CURRENCY
                     });
-        
+                    ssubTotal += Number(item.amount)
                     var amountFormatted = item.amount;
                     amountFormatted = format.format({
                         value: amountFormatted,
@@ -807,8 +837,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td class='tg-b_body' style='align:right;'>" + amountFormatted + "</td>";
                     body += "</tr>";
                 }
-        
-                return body;
+                log.debug('ssubTotal', ssubTotal)
+                return { body: body, subTotal: ssubTotal };
             }
         }
         
