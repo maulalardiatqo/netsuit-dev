@@ -11,7 +11,7 @@ define(["N/record", "N/search", "N/config"], function (
 ) {
     function afterSubmit(context) {
         try {
-            if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT) {
+            if (context.type == context.UserEventType.CREATE) {
                 var rec = context.newRecord;
                 var dataRec = record.load({
                     type: rec.type,

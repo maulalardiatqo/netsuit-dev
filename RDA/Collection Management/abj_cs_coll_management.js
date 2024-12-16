@@ -85,7 +85,6 @@
                 console.log('childSubs', childSubs)
                 if(childSubs){
                     childSubs.forEach(function(subsidiary) {
-                        // Mengambil internalId dan nameSubs dari tiap subsidiary
                         var internalId = subsidiary.internalId;
                         var nameSubs = subsidiary.nameSubs;
                         subsidiaryFIeld.insertSelectOption({

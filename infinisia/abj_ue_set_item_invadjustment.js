@@ -16,7 +16,9 @@ define(["N/record", "N/search"], function (record, search) {
                     isDynamic: true,
                 });
                 var customForm = recordLoad.getValue("customform");
-                if (customForm == 151) {
+                // 151  ISS - Inventory Adjustment (Accounting)
+                // 133  ISS - Inventory Adjustment
+                if (customForm == 151 || customForm == 133) { 
                     var lineCount = recordLoad.getLineCount({
                         sublistId : "inventory"
                     });
@@ -31,12 +33,22 @@ define(["N/record", "N/search"], function (record, search) {
                             })
                             var noSo = recordLoad.getSublistValue({
                                 sublistId : "inventory",
-                                fieldId : "custcol_abj_no_so",
+                                fieldId : "custcol_abj_so_no_invadj",
+                                line : i
+                            })
+                            var units = recordLoad.getSublistValue({
+                                sublistId : "inventory",
+                                fieldId : "units",
                                 line : i
                             })
                             var customerId = recordLoad.getSublistValue({
                                 sublistId : "inventory",
-                                fieldId : "custcol_abj_customer_line",
+                                fieldId : "custcol_abj_customer_invadj",
+                                line : i
+                            })
+                            var poCustomer = recordLoad.getSublistValue({
+                                sublistId : "inventory",
+                                fieldId : "custcol_abj_pocustomer_invadj",
                                 line : i
                             })
                             var salesRepId = recordLoad.getSublistValue({
@@ -101,6 +113,20 @@ define(["N/record", "N/search"], function (record, search) {
                                                     recNumbered.setValue({
                                                         fieldId : "custitemnumber_lot_so_number",
                                                         value : noSo,
+                                                        ignoreFieldChange: true
+                                                    })
+                                                }
+                                                if(units){
+                                                    recNumbered.setValue({
+                                                        fieldId : "custitemnumber_abj_pack_size_order",
+                                                        value : units,
+                                                        ignoreFieldChange: true
+                                                    })
+                                                }
+                                                if(poCustomer){
+                                                    recNumbered.setValue({
+                                                        fieldId : "custitemnumber_abj_po_customer",
+                                                        value : poCustomer,
                                                         ignoreFieldChange: true
                                                     })
                                                 }

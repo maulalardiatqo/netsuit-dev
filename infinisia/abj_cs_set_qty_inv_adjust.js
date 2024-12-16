@@ -56,6 +56,12 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: "adjustqtyby",
                         value: qtyToSet || 0,
                     });
+                    console.log('ratePackSize', ratePackSize)
+                    currentRecordObj.setCurrentSublistValue({
+                        sublistId: "inventory",
+                        fieldId: "custcol_abj_ratepacksize",
+                        value: ratePackSize || 0,
+                    });
                 }
             }
         }
