@@ -6,7 +6,7 @@
 
 define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog", "N/log"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog, log) {
     function pageInit(context) {
-       log.debug('init masuk');
+        log.debug('init masuk');
     }
 
     function saveRecord(context) {
@@ -79,6 +79,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 }else{
                     return true;
                 }
+            }else{
+                return true
             }
         }
         if(typeTrans == 'check'){
@@ -113,8 +115,39 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 }else{
                     return true;
                 }
+            }else{
+                return true
             }
-            
+            // var lineItem = currentRecordObj.getLineCount({ sublistId: 'item' });
+            // console.log('lineItem', lineItem);
+            // if(lineItem > 0){
+            //     var allIdinItem = [];
+            //     for (var k = 0; k < lineItem; k++) {
+            //         var coaItem = currentRecordObj.getSublistValue({
+            //             sublistId: 'item',
+            //             fieldId: 'account',
+            //             line: k
+            //         });
+            //         log.debug('coaItem', coaItem)
+            //         if(coaItem){
+            //             allIdinItem.push(coaItem)
+            //         }
+            //     }
+            //     log.debug('allIdinItem', allIdinItem)
+            //     var foundMatchItem = allIdinItem.some(function (idItem) {
+            //         return allId.includes(idItem);
+            //     });
+            //     log.debug('foundMatchItem', foundMatchItem)
+            //     if (foundMatchItem) {
+            //         dialog.alert({
+            //             title: 'Warning!',
+            //             message: '<div style="color: red;">Anda tidak bisa menambahkan Account type Receivable dan Payable Pada Transaksi Ini !</div>'
+            //         });
+            //         return false;
+            //     }else{
+            //         return true;
+            //     }
+            // }
         }
 
     }
