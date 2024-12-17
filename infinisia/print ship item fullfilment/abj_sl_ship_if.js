@@ -26,13 +26,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             function onRequest(context) {
                 var recid = context.request.parameters.id;
                 log.debug('recid', recid);
-                var ifRec = record.load({
-                    type: "itemfulfillment",
-                    id: recid,
-                    isDynamic: false,
-                });
+                var searchRec = search.load({
+                    id : "customsearch_if_printout_header"
+                })
+                if(recid){
+                    searchRec.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
+                }
+                var ifSearch = searchRec.run();
+                var result = ifSearch.getRange(0, 1);
+                var ifRec = result[0];
                 
-                var soId = ifRec.getValue('createdfrom');
+                var soId = ifRec.getValue({name :'createdfrom'});
                 log.debug('soId', soId);
                 var orderDate
                 var order 
@@ -51,21 +55,20 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var shippingDate = ifRec.getValue('trandate');
                 // var dikirim = ifRec.getValue('shipcarrier') || '';
               
-                var docnumber = ifRec.getValue('tranid');
+                var docnumber = ifRec.getValue({name:'tranid'});
                 log.debug('dikirim', dikirim)
-                var ekspedisi = ifRec.getText('shipmethod');
-                var shipTo = ifRec.getValue('shipaddress');
-                var customers = ifRec.getText('entity');
-                var nopolMobil = ifRec.getValue('custbody_abj_nopol_mobil')
-                var driverName = ifRec.getValue('custbody_abj_driver_name') //added by kurnia
+                var ekspedisi = ifRec.getText({name:'shipmethod'});
+                var shipTo = ifRec.getValue({name:'shipaddress'});
+                var nopolMobil = ifRec.getValue({name:'custbody_abj_nopol_mobil'})
+                var driverName = ifRec.getValue({name:'custbody_abj_driver_name'}) //added by kurnia
                 if(ekspedisi.includes('&')){
                     ekspedisi = ekspedisi.replace(/&/g, ' &amp; ');
                 }
-                var noResi = ifRec.getValue('custbodyiss_no_resi');
-                var alamatEks = ifRec.getValue('custbody_abj_ala-mat_ekspedisi')
+                var noResi = ifRec.getValue({name:'custbodyiss_no_resi'});
+                var alamatEks = ifRec.getValue({name:'custbody_abj_alamat_ekspedisi'})
                 
                 //added by kurnia
-                var busDevRep = ifRec.getText('custbody_abj_sales_rep_fulfillment')
+                var busDevRep = ifRec.getText({name:'custbody_abj_sales_rep_fulfillment'})
                 var nameArr = busDevRep.split(' ')
                 var busDevRepName = []
                 for(let i=1; i<nameArr.length; i++){
@@ -83,17 +86,22 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     dikirim = ekspedisi
                 }
                 //
-
-                var itemCount = ifRec.getLineCount({
-                    sublistId: 'item'
-                });
+                var itemSearch = search.load({
+                    id : 'customsearch_if_print_out_line'
+                })
+                if(recid){
+                    itemSearch.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
+                }
+                var itemSearchSet = itemSearch.run();
+                var itemCount = itemSearchSet.getRange(0, 100);
+                log.debug('itemCount', itemCount)
+                var allDataItem = []
                 var location
-                if(itemCount > 0){
+                if(itemCount.length > 0){
                     for(var index = 0; index < itemCount; index++){
-                        var locationItem = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'location',
-                            line: index
+                        var ifItemRec = itemCount[index]
+                        var locationItem = ifItemRec.getValue({
+                            name: 'location',
                         });
                         if(locationItem){
                             var locationRec =  record.load({
@@ -104,6 +112,33 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             var locationName = locationRec.getValue('name');
                             location = locationName
                         }
+                        var item = ifRec.getValue({
+                            name: 'itemname'
+                        });
+                        var description = ifRec.getValue({
+                            name: 'description'
+                        });
+                        var qty = ifRec.getValue({
+                            name: 'quantity'
+                        });
+                        var units = ifRec.getValue({
+                            name: 'unitsdisplay'
+                        });
+                        log.debug('units', units);
+                        // var unitConvertion = ifRec.getValue({
+                        //     fieldId: 'unitconversion'
+                        // });
+                        var idInvDetail = ifRec.getValue({
+                            name: "internalid",
+                            join: "inventoryDetail",
+                        });
+                        allDataItem.push({
+                            item: item,
+                            description : description,
+                            qty : qty,
+                            units : units,
+                            idInvDetail : idInvDetail
+                        })
                     }
                 }
                 var companyInfo = config.load({
