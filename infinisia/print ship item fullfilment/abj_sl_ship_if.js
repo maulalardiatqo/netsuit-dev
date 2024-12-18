@@ -52,7 +52,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     order = trandId
                     var poCust = recSo.getValue('otherrefnum');
                 }
-                var shippingDate = ifRec.getValue('trandate');
+                var shippingDate = ifRec.getValue({name : 'trandate'});
                 // var dikirim = ifRec.getValue('shipcarrier') || '';
               
                 var docnumber = ifRec.getValue({name:'tranid'});
@@ -97,8 +97,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 log.debug('itemCount', itemCount)
                 var allDataItem = []
                 var location
+                log.debug('itemCount.length', itemCount.length)
                 if(itemCount.length > 0){
-                    for(var index = 0; index < itemCount; index++){
+                    for(var index = 0; index < itemCount.length; index++){
                         var ifItemRec = itemCount[index]
                         var locationItem = ifItemRec.getValue({
                             name: 'location',
@@ -112,23 +113,40 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             var locationName = locationRec.getValue('name');
                             location = locationName
                         }
-                        var item = ifRec.getValue({
-                            name: 'itemname'
+                        var item = ifItemRec.getText({
+                            name: 'item'
                         });
-                        var description = ifRec.getValue({
-                            name: 'description'
+                        var description = ifItemRec.getValue({
+                            name: 'memo'
                         });
-                        var qty = ifRec.getValue({
+                        var qty = ifItemRec.getValue({
                             name: 'quantity'
                         });
-                        var units = ifRec.getValue({
-                            name: 'unitsdisplay'
+                        var units = ifItemRec.getValue({
+                            name: 'unit'
                         });
                         log.debug('units', units);
-                        // var unitConvertion = ifRec.getValue({
-                        //     fieldId: 'unitconversion'
-                        // });
-                        var idInvDetail = ifRec.getValue({
+                        var unitConvertion = 1
+                        var unitstypeSearchObj = search.create({
+                            type: "unitstype",
+                            filters: [
+                                ["unitname", "is", units]
+                            ],
+                            columns: [
+                                search.createColumn({ name: "conversionrate", label: "Rate" })
+                            ]
+                        });
+                        
+                        // Mendapatkan hasil pencarian pertama saja
+                        var searchResults = unitstypeSearchObj.run().getRange({ start: 0, end: 1 });
+                        
+                        if (searchResults.length > 0) {
+                            var conversionRate = searchResults[0].getValue("conversionrate");
+                            unitConvertion = conversionRate
+                            log.debug("Conversion Rate", conversionRate);
+                        } 
+                        
+                        var idInvDetail = ifItemRec.getValue({
                             name: "internalid",
                             join: "inventoryDetail",
                         });
@@ -137,10 +155,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             description : description,
                             qty : qty,
                             units : units,
-                            idInvDetail : idInvDetail
+                            idInvDetail : idInvDetail,
+                            unitConvertion : unitConvertion,
+                            locationItem : locationItem
                         })
                     }
                 }
+                log.debug('allDataItem', allDataItem)
                 var companyInfo = config.load({
                     type: config.Type.COMPANY_INFORMATION
                 });
@@ -171,16 +192,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     orderDate = sysDate();   
                 }
-                if(shippingDate){
-                    function sysDate() {
-                        var date = shippingDate;
-                        var tdate = date.getUTCDate();
-                        var month = date.getUTCMonth() + 1; // jan = 0
-                        var year = date.getUTCFullYear();
-                        return tdate + '/' + month + '/' + year;
-                    }
-                    shippingDate = sysDate();   
-                }
+                // if(shippingDate){
+                //     function sysDate() {
+                //         var date = shippingDate;
+                //         var tdate = date.getUTCDate();
+                //         var month = date.getUTCMonth() + 1; // jan = 0
+                //         var year = date.getUTCFullYear();
+                //         return tdate + '/' + month + '/' + year;
+                //     }
+                //     shippingDate = sysDate();   
+                // }
                 var response = context.response;
                 var xml = "";
                 var header = "";
@@ -304,7 +325,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body1 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Unit</td>";
                 body1 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Total QTY</td>";
                 body1 += "</tr>";  
-                body1 += getLine(context, ifRec);
+                body1 += getLine(context, allDataItem);
                 body1 += "</tbody>";
                 body1 += "</table>";
                 body1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
@@ -404,7 +425,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Unit Kemasan</td>";
                 body2 += "<td style='border-top:1px solid black; border-bottom:2px solid black'>Total QTY</td>";//kurnia
                 body2 += "</tr>";  
-                body2 += getLine2(context, ifRec);
+                body2 += getLine2(context, allDataItem);
 
                 body2 += "<tr>";
                 body2 += "<td style='border-bottom:2px solid black; height:20px;' colspan='7'></td>"
@@ -501,39 +522,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
                 
             }
-            function getLine(context, ifRec){
-                var itemCount = ifRec.getLineCount({
-                    sublistId: 'item'
-                });
-                var nomor = 0
-                if(itemCount > 0){
+            function getLine(context, allDataItem){
+                if(allDataItem.length > 0){
+                    var nomor = 0
                     var body = "";
-                    for(var index = 0; index < itemCount; index++){
-                        var item = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'itemname',
-                            line: index
-                        });
-                        var description = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'description',
-                            line: index
-                        });
-                        var qty = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'quantity',
-                            line: index
-                        });
-                        var units = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'unitsdisplay',
-                            line: index
-                        });
-                        var unitConvertion = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'unitconversion',
-                            line: index
-                        });
+                    for(var index = 0; index < allDataItem.length; index++){
+                        log.debug('allDataItem line', allDataItem)
+                        var dataItem = allDataItem[index];
+                        log.debug('dataItem', dataItem)
+                        var item = dataItem.item
+                        var description = dataItem.description
+                        var qty = dataItem.qty
+                        var units = dataItem.units
+                        var unitConvertion = dataItem.unitConvertion
 
                         var konversi
                         if(unitConvertion){
@@ -541,63 +542,34 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         }
                         nomor++;
                         body += "<tr>";
-                        body += "<td style=''>"+nomor+"</td>";
-                        body += "<td style=''>"+item+"</td>";
-                        body += "<td style='' colspan='2'>"+description+"</td>";
-                        body += "<td style=''>"+qty+"</td>";
-                        body += "<td style=''>"+units+"</td>";
-                        body += "<td style=''>"+konversi+"</td>";
+                        body += "<td style=''>" + nomor + "</td>";
+                        body += "<td style=''>" + item + "</td>";
+                        body += "<td style='' colspan='2'>" + (description || item) + "</td>"; 
+                        body += "<td style=''>" + qty + "</td>";
+                        body += "<td style=''>" + units + "</td>";
+                        body += "<td style=''>" + konversi + "</td>";
                         body += "</tr>";
+                        
                     }
                     return body;
                 }
+                
             }
-            function getLine2(context, ifRec){
-                var recid = ifRec.getValue('id');
-                var itemCount = ifRec.getLineCount({
-                    sublistId: 'item'
-                });
-                var nomor = 0
-                if(itemCount > 0){
+            function getLine2(context, allDataItem){
+                if(allDataItem.length > 0){
+                    var nomor = 0
                     var body = "";
-                    for(var index = 0; index < itemCount; index++){
-                        var item = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'itemname',
-                            line: index
-                        });
-                        var itemId = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'item',
-                            line: index
-                        });
-                        var idInvDetail = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'inventorydetail',
-                            line: index
-                        });
-                        var description = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'description',
-                            line: index
-                        });
-                        var qty = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'quantity',
-                            line: index
-                        });
-                        var units = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'unitsdisplay',
-                            line: index
-                        });
+                    for(var index = 0; index < allDataItem.length; index++){
+                        var dataItem = allDataItem[index];
+                        var item = dataItem.item
+                        var itemId = dataItem.itemId
+                        var idInvDetail = dataItem.idInvDetail
+                        var description = dataItem.description
+                        var qty = dataItem.qty
+                        var units = dataItem.units
 
                         //added by kurnia
-                        var unitConvertion = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'unitconversion',
-                            line: index
-                        });
+                        var unitConvertion = dataItem.unitConvertion
 
                         var konversi
                         if(unitConvertion){
@@ -605,11 +577,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         }
                         //
 
-                        var locationItem = ifRec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'location',
-                            line: index
-                        });
+                        var locationItem = dataItem.locationItem
                         var locationLine
                         if(locationItem){
                             var locationRec =  record.load({
@@ -696,6 +664,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     return body;
                 }
+                
+                    
+                
             }
         }catch(e){
             log.debug('error',e)
