@@ -120,11 +120,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             name: 'memo'
                         });
                         var qty = ifItemRec.getValue({
-                            name: 'quantity'
+                            name: 'quantityuom'
                         });
                         var units = ifItemRec.getValue({
                             name: 'unit'
                         });
+                        var totalOrder = ifItemRec.getValue({
+                            name : 'custcol_pr_total_order'
+                        })
                         log.debug('units', units);
                         var unitConvertion = 1
                         var unitstypeSearchObj = search.create({
@@ -157,7 +160,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             units : units,
                             idInvDetail : idInvDetail,
                             unitConvertion : unitConvertion,
-                            locationItem : locationItem
+                            locationItem : locationItem,
+                            totalOrder : totalOrder
                         })
                     }
                 }
@@ -535,6 +539,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var qty = dataItem.qty
                         var units = dataItem.units
                         var unitConvertion = dataItem.unitConvertion
+                        var totalOrder = dataItem.totalOrder
 
                         var konversi
                         if(unitConvertion){
@@ -545,9 +550,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<td style=''>" + nomor + "</td>";
                         body += "<td style=''>" + item + "</td>";
                         body += "<td style='' colspan='2'>" + (description || item) + "</td>"; 
-                        body += "<td style=''>" + qty + "</td>";
                         body += "<td style=''>" + units + "</td>";
-                        body += "<td style=''>" + konversi + "</td>";
+                        body += "<td style=''>" + qty + "</td>";
+                        body += "<td style=''>" + totalOrder + "</td>";
                         body += "</tr>";
                         
                     }
@@ -657,8 +662,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         // body += "<td style='' colspan='2'>"+locationLine+"</td>";
                         body += "<td style=''>"+locationLine+"</td>";//kurnia
                         body += "<td style=''>"+convLot+"</td>";
-                        body += "<td style=''>"+qty+"</td>";
                         body += "<td style=''>"+units+"</td>";
+                        body += "<td style=''>"+qty+"</td>";
                         body += "<td>"+konversi+"</td>"; //kurnia
                         body += "</tr>";
                     }
