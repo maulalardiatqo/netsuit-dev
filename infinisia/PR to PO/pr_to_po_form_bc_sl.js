@@ -300,10 +300,8 @@
               var memo = prToPO[i].getValue({
                 name : prToPOSet.columns[40]
               })
-              log.debug('cekTotalPackaging', cekTotalPackaging);
-              log.debug('qtyPo', qtyPO);
               var totalPackaging = Math.abs(parseFloat(cekTotalPackaging || 0)) - parseFloat(qtyPO || 0) 
-              log.debug('totalPackaging', totalPackaging)
+              log.debug('dataCek', {totalPackaging : totalPackaging, cekTotalPackaging : cekTotalPackaging, qtyPO : qtyPO, ratePackSIze : ratePackSIze})
               var itemRate
               let cek1 = prToPO[i].getValue({
                 name: prToPOSet.columns[25],
@@ -522,7 +520,6 @@
                     value: ratePackSIze || " ",
                     line: i,
                 });
-                log.debug('ratePacksize', ratePackSIze)
                 var setTotalOrder = Number(totalPackaging) * Number(ratePackSIze)
                 currentRecord.setSublistValue({
                   sublistId: "custpage_sublist_item",
