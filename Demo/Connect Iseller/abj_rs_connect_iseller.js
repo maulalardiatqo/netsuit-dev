@@ -1,49 +1,42 @@
 /**
- * @NApiVersion 2.1
+ * @NApiVersion 2.x
  * @NScriptType Restlet
  */
-define(['N/record', 'N/crypto', 'N/log', 'N/error'], (record, crypto, log, error) => {
-
-    function post(requestBody) {
+define(['N/record', 'N/log'], function(record, log) {
+    function doPost(requestBody) {
         try {
-            log.debug('triggered')
-            const apiKey = 'd57e72e99557459984a8b3ea6219c97e';
-            const signatureHeader = requestBody.headers['Signature'];
-            const timestamp = requestBody.headers['Timestamp'];
-            const jsonBody = JSON.stringify(requestBody.body);
-
-            const inputString = `${apiKey}${jsonBody}${timestamp}`;
-            log.debug('inputString', inputString)
-            const generatedSignature = crypto.createHash({
-                algorithm: crypto.HashAlg.SHA256
-            }).update(inputString).digest('hex').toUpperCase();
-
-            if (generatedSignature !== signatureHeader) {
-                throw error.create({
-                    name: 'SIGNATURE_VALIDATION_FAILED',
-                    message: 'Signature validation failed.',
-                    notifyOff: false
-                });
-            }
-
-            // Save data to Custom Record
-            const orderData = requestBody.body;
-            log.debug('orderData', orderData)
-            // const customRecord = record.create({ type: 'customrecord_order_data' });
+            // Proses data yang diterima dari webhook
+            var data = JSON.parse(requestBody);
             
-            // customRecord.setValue({ fieldId: 'custrecord_order_id', value: orderData.order_id });
-            // customRecord.setValue({ fieldId: 'custrecord_customer_name', value: `${orderData.customer_first_name} ${orderData.customer_last_name}` });
-            // customRecord.setValue({ fieldId: 'custrecord_total_amount', value: orderData.total_amount });
-            // customRecord.setValue({ fieldId: 'custrecord_payment_status', value: orderData.payment_status });
-            // customRecord.save();
+            // Lakukan operasi di NetSuite, misalnya membuat transaksi atau update record
+            var salesOrder = record.create({
+                type: record.Type.SALES_ORDER,
+                isDynamic: true
+            });
 
-            // return { success: true, message: 'Data saved successfully.' };
+            salesOrder.setValue({
+                fieldId: 'entity',
+                value: data.customerId
+            });
 
+            salesOrder.setValue({
+                fieldId: 'trandate',
+                value: new Date()
+            });
+
+            // Menyimpan Sales Order
+            var salesOrderId = salesOrder.save();
+
+            log.debug('Sales Order Created', 'Sales Order ID: ' + salesOrderId);
+
+            return { success: true, salesOrderId: salesOrderId };
         } catch (e) {
-            log.error('Error in RESTlet', e.message);
+            log.error('Error processing webhook', e);
             return { success: false, message: e.message };
         }
     }
 
-    return { post };
+    return {
+        post: doPost
+    };
 });

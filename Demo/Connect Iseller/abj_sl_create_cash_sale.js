@@ -1,80 +1,78 @@
 /**
- * @NApiVersion 2.x
+ * @NApiVersion 2.1
  * @NScriptType Suitelet
  */
-define(['N/record', 'N/log', 'N/https', 'N/crypto', 'N/runtime'], function(record, log, https, crypto, runtime) {
-    
+define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error'], function(log, http, record, crypto, error) {
+
     function onRequest(context) {
-       
-        if (context.request.method === 'GET') {
-            log.debug('trigerred')
-            var headers = context.request.headers;
-            var body = context.request.body;
-            
-            var timestamp = headers['Timestamp'];
-            var signature = headers['Signature'];
-            var apiKey = 'd57e72e99557459984a8b3ea6219c97e'; 
-            
-            // Verifikasi signature
-            var computedSignature = computeSignature(apiKey, body, timestamp);
-            
-            if (signature === computedSignature) {
-                try {
-                    var data = JSON.parse(body);
-                    log.debug('data', data)
-                    // Simpan data ke Custom Record
-                    // var customRecord = record.create({
-                    //     type: 'customrecord_iseller_order', // Ganti dengan tipe Custom Record yang sesuai
-                    //     isDynamic: true
-                    // });
-                    
-                    // // Contoh memasukkan data ke dalam Custom Record
-                    // customRecord.setValue({
-                    //     fieldId: 'custrecord_external_customer_id', 
-                    //     value: data.external_customer_id
-                    // });
-                    
-                    // customRecord.setValue({
-                    //     fieldId: 'custrecord_order_id',
-                    //     value: data.order_id
-                    // });
-                    
-                    // customRecord.setValue({
-                    //     fieldId: 'custrecord_total_amount',
-                    //     value: data.total_amount
-                    // });
+        if (context.request.method === 'POST') {
+            try {
+                // Membaca body request POST dari iseller
+                var requestBody = context.request.body;
+                log.debug('requestBody', requestBody)
+                // Timestamp dan APIKey dari header request iseller
+                var timestamp = context.request.headers['Timestamp'];
+                var apiKey = context.request.headers['APIKey'];
+                var signature = context.request.headers['Signature'];
 
-                    // // Simpan custom record
-                    // var recordId = customRecord.save();
-                    // log.debug('Custom Record Created', 'Record ID: ' + recordId);
-                    
-                    // // Setelah data masuk ke custom record, lanjutkan ke proses Cash Sales jika diperlukan
-                    // // Implementasi Cash Sales...
-
-                    // context.response.write('Success');
-                } catch (e) {
-                    log.error('Error Processing Webhook', e);
-                    context.response.write('Error processing data');
+                // Verifikasi signature
+                if (!isValidSignature(apiKey, requestBody, timestamp, signature)) {
+                    throw new Error('Invalid Signature');
                 }
-            } else {
-                log.error('Invalid Signature', 'The signature does not match');
-                context.response.write('Invalid signature');
+
+                // Jika signature valid, lanjutkan proses lainnya
+                log.debug('Valid Request', 'Signature is valid');
+
+                // Proses data sesuai kebutuhan
+                // Misalnya, simpan data ke record NetSuite
+                // var customRecord = record.create({ type: 'customrecord_example' });
+                // customRecord.setValue({ fieldId: 'custrecord_example_field', value: requestBody });
+                // customRecord.save();
+
+                // Kirimkan response sukses
+                context.response.write({
+                    output: JSON.stringify({
+                        status: 'success',
+                        message: 'Data received and processed successfully!'
+                    })
+                });
+
+            } catch (e) {
+                log.error('Error', e);
+                context.response.write({
+                    output: JSON.stringify({
+                        status: 'error',
+                        message: e.message
+                    })
+                });
             }
         } else {
-            context.response.write('Only POST requests are allowed');
+            context.response.write({
+                output: JSON.stringify({
+                    status: 'error',
+                    message: 'Only POST requests are accepted'
+                })
+            });
         }
     }
+
+    // Fungsi untuk memverifikasi signature
+    function isValidSignature(apiKey, jsonBody, timestamp, receivedSignature) {
+        var inputString = apiKey + jsonBody + timestamp;
+        
+        // Perbaikan: Menyediakan algoritma hashing SHA-256
+        var hash = crypto.createHash({ algorithm: crypto.HashAlg.SHA_256 });
+        hash.update(inputString);
+        
+        // Mendapatkan hasil hash dan mengubahnya menjadi format hex
+        var calculatedSignature = hash.digest().toString('hex').toUpperCase();
     
-    /**
-     * Fungsi untuk menghitung signature menggunakan APIKey, JsonBody, dan Timestamp
-     */
-    function computeSignature(apiKey, jsonBody, timestamp) {
-        var input = apiKey + jsonBody + timestamp;
-        var hash = crypto.createHash({ algorithm: crypto.HashAlg.SHA_256 }).update(input).digest();
-        return hash.toString(crypto.Encoding.HEX).toUpperCase();
+        // Bandingkan signature yang diterima dengan signature yang dihitung
+        return calculatedSignature === receivedSignature;
     }
 
     return {
         onRequest: onRequest
     };
+
 });
