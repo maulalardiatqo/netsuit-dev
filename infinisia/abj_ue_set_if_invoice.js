@@ -21,7 +21,8 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                         })
                         var dateIf = recIf.getValue('trandate')
                         var newRecord = context.newRecord;
-
+                        var soId = recIf.getValue('createdfrom');
+                        log.debug('soId', soId)
                         newRecord.setValue({
                             fieldId: 'custbody3',
                             value: itemship
