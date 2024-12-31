@@ -19,7 +19,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error'], function(log, htt
                 var customRecord = record.create({
                     type: 'customrecord_cs_iseller'
                 });
-
+                
                 // Jika signature valid, lanjutkan proses lainny
 
                 // Proses data sesuai kebutuhan
