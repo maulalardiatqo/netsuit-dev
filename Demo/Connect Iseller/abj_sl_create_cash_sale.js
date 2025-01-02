@@ -7,27 +7,52 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
     function onRequest(context) {
         if (context.request.method === 'POST') {
             try {
+                
                 // Parse request body
                 var requestBody = JSON.parse(context.request.body);
                 var requestHeader = context.request.headers;
                 log.debug('Parsed requestBody', requestBody);
-
+                function convertToNetSuiteDate(dateTimeString) {
+                    if (!dateTimeString) {
+                        throw new Error("Invalid date string");
+                    }
+                
+                    // Create a Date object from the string
+                    const dateObject = new Date(dateTimeString);
+                
+                    // Validate the created date
+                    if (isNaN(dateObject)) {
+                        throw new Error("Invalid date format");
+                    }
+                
+                    return dateObject;
+                }
                 var timestamp = requestHeader['Timestamp'];
                 var apiKey = requestHeader['APIKey'];
                 var signature = requestHeader['Signature'];
 
                 // Create a new custom record
                 var customRecord = record.create({
-                    type: 'customrecord_cs_iseller'
+                    type: 'customrecord_cs_iseller',
+                    isDynamic: true,
                 });
 
                 customRecord.setValue({
                     fieldId: "custrecord_cs_customer",
                     value: 2922
                 });
+                var dateIsel = requestBody.order_date
+                log.debug('dateIsel', dateIsel)
+                var dateNs = convertToNetSuiteDate(dateIsel);
+                log.debug('dateNs', dateNs)
                 customRecord.setValue({
                     fieldId: "custrecord_cs_date",
-                    value: requestBody.order_date
+                    value: dateNs
+                });
+                var orderId = requestBody.order_id
+                customRecord.setValue({
+                    fieldId: "name",
+                    value: 'Order' + orderId
                 });
                 customRecord.setValue({
                     fieldId: "custrecord_cs_sales_channel",
@@ -41,10 +66,10 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                     fieldId: "custrecord_cs_location",
                     value: 131
                 });
-                customRecord.setValue({
-                    fieldId: "custrecord_cs_class",
-                    value: 1
-                });
+                // customRecord.setValue({
+                //     fieldId: "custrecord_cs_class",
+                //     value: 1
+                // });
 
                 // Process order details
                 if (requestBody.order_details && Array.isArray(requestBody.order_details)) {
