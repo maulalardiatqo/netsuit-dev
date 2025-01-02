@@ -7,7 +7,56 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
     function onRequest(context) {
         if (context.request.method === 'POST') {
             try {
-                
+                function createCashSales(data, allDataItem){
+                    var dateIsel = data.order_date
+                    log.debug('dateIselCs', dateIsel)
+                    var dateNs = convertToNetSuiteDate(dateIsel);
+                    log.debug('dateNsCs', dateNs)
+                    const cashSale = record.create({
+                        type: record.Type.CASH_SALE,
+                        isDynamic: true
+                    });
+                    cashSale.setValue({ fieldId: 'entity', value: 2922 }); 
+                    cashSale.setValue({ fieldId: 'memo', value: data.notes });
+                    cashSale.setValue({ fieldId: 'trandate', value: dateNs });
+                    cashSale.setValue({ fieldId: 'subsidiary', value: 7 });
+                    cashSale.setValue({ fieldId: 'location', value: 131 });
+                    cashSale.setValue({ fieldId: 'custbody_csegafa_channel', value: 1 });
+                    allDataItem.forEach(function(result) {
+                        cashSale.selectNewLine({ sublistId: 'item' });
+                        log.debug('itemCs', result.idItem)
+                        cashSale.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'item',
+                            value: result.idItem 
+                        });
+                        log.debug('qtyCs', result.quantity)
+                        cashSale.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'quantity',
+                            value: result.quantity 
+                        });
+                        cashSale.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'rate',
+                            value: result.basePrice 
+                        });
+                        cashSale.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'taxcode',
+                            value: result.taxCode 
+                        });
+                        cashSale.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'amount',
+                            value: result.totalOrderAmount 
+                        });
+                        cashSale.commitLine({ sublistId: 'item' });
+        
+                    })
+                    const cashSaleId = cashSale.save();
+                    log.debug('Cash Sale Created', `Cash Sale ID: ${cashSaleId}`);
+                }
                 // Parse request body
                 var requestBody = JSON.parse(context.request.body);
                 var requestHeader = context.request.headers;
@@ -54,6 +103,11 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                     fieldId: "name",
                     value: 'Order' + orderId
                 });
+                
+                customRecord.setValue({
+                    fieldId: "custrecord_cs_memo_iseller",
+                    value: requestBody.notes || ""
+                });
                 customRecord.setValue({
                     fieldId: "custrecord_cs_sales_channel",
                     value: 1
@@ -72,6 +126,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                 // });
 
                 // Process order details
+                var allDataItem = []
                 if (requestBody.order_details && Array.isArray(requestBody.order_details)) {
                     requestBody.order_details.forEach((detail) => {
                         customRecord.selectNewLine({ sublistId: 'recmachcustrecord_csd_id' });
@@ -82,7 +137,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                         // Search for item by UPC Code
                         var itemSearchObj = search.create({
                             type: "item",
-                            filters: [["upccode", "is", upcCode]],
+                            filters: [["name", "is", upcCode]],
                             columns: ["internalid", "upccode"]
                         });
                         var searchResults = itemSearchObj.run().getRange({ start: 0, end: 1 });
@@ -100,10 +155,16 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                             fieldId: 'custrecord_csd_item',
                             value: idItem || ''
                         });
+                        
                         customRecord.setCurrentSublistValue({
                             sublistId: 'recmachcustrecord_csd_id',
                             fieldId: 'custrecord_csd_qty',
                             value: detail.quantity
+                        });
+                        customRecord.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_csd_id',
+                            fieldId: 'custrecord_csd_unit',
+                            value: 1
                         });
                         customRecord.setCurrentSublistValue({
                             sublistId: 'recmachcustrecord_csd_id',
@@ -115,6 +176,20 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                             fieldId: 'custrecord_csd_amount',
                             value: detail.total_order_amount
                         });
+                        
+                        customRecord.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_csd_id',
+                            fieldId: 'custrecord_csd_tax_code',
+                            value: 2224
+                        });
+                        allDataItem.push({
+                            idItem : idItem,
+                            quantity : detail.quantity,
+                            basePrice : detail.base_price,
+                            totalOrderAmount : detail.total_order_amount,
+                            units : 1,
+                            taxCode : 2224
+                        })
                         customRecord.commitLine({ sublistId: 'recmachcustrecord_csd_id' });
                     });
                 } else {
@@ -122,7 +197,10 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                 }
 
                 // Save custom record
-                customRecord.save();
+                var saveCustRec = customRecord.save();
+                if(saveCustRec){
+                    createCashSales(requestBody, allDataItem)
+                }
 
                 // Send success response
                 context.response.write({
