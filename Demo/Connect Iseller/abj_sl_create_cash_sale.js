@@ -19,7 +19,35 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error'], function(log, htt
                 var customRecord = record.create({
                     type: 'customrecord_cs_iseller'
                 });
-                
+                customRecord.setValue({
+                    fieldId : "custrecord_cs_customer",
+                    value : requestBody.external_customer_id
+                });
+                customRecord.setValue({
+                    fieldId : "custrecord_cs_date",
+                    value : requestBody.order_date
+                });
+                requestBody.order_details.forEach((detail) => {
+                    customRecord.selectNewLine({ sublistId: 'item' });
+    
+                    customRecord.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'item',
+                        value: detail.sku // Assuming SKU maps to Item ID
+                    });
+                    customRecord.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'quantity',
+                        value: detail.quantity
+                    });
+                    customRecord.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'rate',
+                        value: detail.base_price
+                    });
+    
+                    customRecord.commitLine({ sublistId: 'item' });
+                });
                 // Jika signature valid, lanjutkan proses lainny
 
                 // Proses data sesuai kebutuhan
