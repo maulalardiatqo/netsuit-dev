@@ -98,7 +98,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                     fieldId: "custrecord_cs_date",
                     value: dateNs
                 });
-                var orderId = requestBody.order_id
+                var orderId = requestBody.order_reference
                 customRecord.setValue({
                     fieldId: "name",
                     value: 'Order' + orderId
