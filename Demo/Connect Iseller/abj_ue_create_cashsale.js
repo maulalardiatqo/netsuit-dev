@@ -4,143 +4,128 @@
  */
 define(['N/record', 'N/log', 'N/error'], (record, log, error) => {
     function afterSubmit(context) {
-        if (context.type == context.UserEventType.CREATE) {
-            try{
-                log.debug('trigerred')
+        if (context.type === context.UserEventType.CREATE) {
+            try {
+                log.debug('Triggered');
                 const newRecord = context.newRecord;
-                var idIsell = newRecord.id
-                log.debug('idIsell', idIsell)
-                // Ambil data dari custrecord_cs_customer
-                var dateRec = newRecord.getValue('custrecord_cs_date');
-                var customer = newRecord.getValue('custrecord_cs_customer');
-                var memo = newRecord.getValue('custrecord_cs_memo');
-                var subsidiary = newRecord.getValue('custrecord_cs_subsidiaries');
-                var location = newRecord.getValue('custrecord_cs_location');
-                var salesChanel = newRecord.getValue('custrecord_cs_sales_channel');
-                var memoIseller = newRecord.getValue('custrecord_cs_memo_iseller');
-                var allDataItem = []
-                var cekItem = newRecord.getLineCount({sublistId : 'recmachcustrecord_csd_id'});
-                if(cekItem > 0){
-                    for(var i = 0; i < cekItem; i++){
-                        var item = newRecord.getSublistValue({
-                            sublistId : 'recmachcustrecord_csd_id',
-                            fieldId : 'custrecord_csd_item',
-                            line : i
-                        })
-                        var qty = newRecord.getSublistValue({
-                            sublistId : 'recmachcustrecord_csd_id',
-                            fieldId : 'custrecord_csd_qty',
-                            line : i
-                        })
-                        var rate = newRecord.getSublistValue({
-                            sublistId : 'recmachcustrecord_csd_id',
-                            fieldId : 'custrecord_csd_rate',
-                            line : i
-                        })
-                        var taxCode = newRecord.getSublistValue({
-                            sublistId : 'recmachcustrecord_csd_id',
-                            fieldId : 'custrecord_csd_tax_code',
-                            line : i
-                        })
-                        var Unit = newRecord.getSublistValue({
-                            sublistId : 'recmachcustrecord_csd_id',
-                            fieldId : 'custrecord_csd_unit',
-                            line : i
-                        })
-                        var amount = newRecord.getSublistValue({
-                            sublistId : 'recmachcustrecord_csd_id',
-                            fieldId : 'custrecord_csd_amount',
-                            line : i
-                        })
-                        allDataItem.push({
-                            item : item,
-                            qty : qty,
-                            rate : rate,
-                            taxCode : taxCode,
-                            Unit : Unit,
-                            amount : amount
-                        })
+                const idIsell = newRecord.id;
+                log.debug('idIsell', idIsell);
+
+                // Ambil data dari record custom
+                const dateRec = newRecord.getValue('custrecord_cs_date');
+                const customer = newRecord.getValue('custrecord_cs_customer');
+                const memo = newRecord.getValue('custrecord_cs_memo');
+                const subsidiary = newRecord.getValue('custrecord_cs_subsidiaries');
+                const location = newRecord.getValue('custrecord_cs_location');
+                const salesChanel = newRecord.getValue('custrecord_cs_sales_channel');
+                const memoIseller = newRecord.getValue('custrecord_cs_memo');
+
+                const allDataItem = [];
+                const cekItem = newRecord.getLineCount({ sublistId: 'recmachcustrecord_csd_id' });
+
+                if (cekItem > 0) {
+                    for (let i = 0; i < cekItem; i++) {
+                        const item = newRecord.getSublistValue({
+                            sublistId: 'recmachcustrecord_csd_id',
+                            fieldId: 'custrecord_csd_item',
+                            line: i
+                        });
+                        const qty = newRecord.getSublistValue({
+                            sublistId: 'recmachcustrecord_csd_id',
+                            fieldId: 'custrecord_csd_qty',
+                            line: i
+                        });
+                        const rate = newRecord.getSublistValue({
+                            sublistId: 'recmachcustrecord_csd_id',
+                            fieldId: 'custrecord_csd_rate',
+                            line: i
+                        });
+                        const taxCode = newRecord.getSublistValue({
+                            sublistId: 'recmachcustrecord_csd_id',
+                            fieldId: 'custrecord_csd_tax_code',
+                            line: i
+                        });
+                        const unit = newRecord.getSublistValue({
+                            sublistId: 'recmachcustrecord_csd_id',
+                            fieldId: 'custrecord_csd_unit',
+                            line: i
+                        });
+                        const amount = newRecord.getSublistValue({
+                            sublistId: 'recmachcustrecord_csd_id',
+                            fieldId: 'custrecord_csd_amount',
+                            line: i
+                        });
+
+                        allDataItem.push({ item, qty, rate, taxCode, unit, amount });
                     }
-                    
                 }
-                // Buat Cash Sale baru
-                const cashSale = record.create({
-                    type: record.Type.CASH_SALE,
-                    isDynamic: true
-                });
-                cashSale.setValue({ fieldId: 'entity', value: customer }); 
-                cashSale.setValue({ fieldId: 'memo', value: memoIseller });
-                cashSale.setValue({ fieldId: 'trandate', value: dateRec });
-                cashSale.setValue({ fieldId: 'subsidiary', value: subsidiary });
-                cashSale.setValue({ fieldId: 'location', value: location });
-                cashSale.setValue({ fieldId: 'custbody_abj_cashsale_cust_rec', value: idIsell });
-                cashSale.setValue({ fieldId: 'custbody_csegafa_channel', value: salesChanel });
-                allDataItem.forEach(function(data) {
+
+                let idSuccesCreate = null;
+                let errorMessage = null;
+
+                try {
+                    const cashSale = record.create({
+                        type: record.Type.CASH_SALE,
+                        isDynamic: true
+                    });
+
+                    cashSale.setValue({ fieldId: 'entity', value: customer });
+                    cashSale.setValue({ fieldId: 'memo', value: memoIseller });
+                    cashSale.setValue({ fieldId: 'trandate', value: dateRec });
+                    cashSale.setValue({ fieldId: 'subsidiary', value: subsidiary });
+                    cashSale.setValue({ fieldId: 'location', value: location });
+                    cashSale.setValue({ fieldId: 'custbody_abj_cashsale_cust_rec', value: idIsell });
+                    cashSale.setValue({ fieldId: 'custbody_csegafa_channel', value: salesChanel });
+                    cashSale.setValue({fieldId: 'account', value : 423})
+                    var totalAmount = 0
+                    allDataItem.forEach((data) => {
+                        cashSale.selectNewLine({ sublistId: 'item' });
+                        cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: data.item });
+                        cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: data.qty });
+                        cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'rate', value: data.rate });
+                        cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'taxcode', value: data.taxCode });
+                        cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'amount', value: data.amount });
+                        totalAmount += Number(data.amount)
+                        cashSale.commitLine({ sublistId: 'item' });
+                    });
                     cashSale.selectNewLine({ sublistId: 'item' });
-                    log.debug('item', data.item)
-                    cashSale.setCurrentSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'item',
-                        value: data.item 
-                    });
-                    log.debug('qty', data.qty)
-                    cashSale.setCurrentSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'quantity',
-                        value: data.qty 
-                    });
-                    cashSale.setCurrentSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'rate',
-                        value: data.rate 
-                    });
-                    cashSale.setCurrentSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'taxcode',
-                        value: data.taxCode 
-                    });
-                    cashSale.setCurrentSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'amount',
-                        value: data.amount 
-                    });
+                    cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: 2812});
+                    cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: 1});
+                    cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'rate', value: -totalAmount });
+                    cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'taxcode', value: 2224 });
+                    cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'amount', value: -totalAmount });
                     cashSale.commitLine({ sublistId: 'item' });
-    
-                })
-                const cashSaleId = cashSale.save();
-                log.debug('Cash Sale Created', `Cash Sale ID: ${cashSaleId}`);
-                var recCustRec = record.load({
-                    type: 'customrecord_cs_iseller',
-                    id : idIsell,
-                    isDynamic: true,
-                })
-                if(cashSaleId){
-                    recCustRec.setValue({
-                        fieldId : 'custrecord_cs_transaction_no',
-                        value : cashSaleId
-                    });
-                    recCustRec.setValue({
-                        fieldId : 'custrecord_cs_status',
-                        value : 'Success'
-                    })
-                }else{
-                    recCustRec.setValue({
-                        fieldId : 'custrecord_cs_status',
-                        value : 'Error'
-                    })
-                    recCustRec.setValue({
-                        fieldId : 'custrecord_cs_memo_iseller',
-                        value : 'Error when create Cash Sale'
-                    })
+
+                    idSuccesCreate = cashSale.save();
+                    log.debug('Cash Sale Created', `Cash Sale ID: ${idSuccesCreate}`);
+                } catch (e) {
+                    log.error('Error Creating Cash Sale', e.message);
+                    errorMessage = e.message;
                 }
-                var saveRec = recCustRec.save();
-                log.debug('saveRec', saveRec)
-            }catch(e){
-                log.debug('error', e)
+
+                // Update record custom
+                const recCustRec = record.load({
+                    type: 'customrecord_cs_iseller',
+                    id: idIsell,
+                    isDynamic: true,
+                });
+
+                if (idSuccesCreate) {
+                    recCustRec.setValue({ fieldId: 'custrecord_cs_transaction_no', value: idSuccesCreate });
+                    recCustRec.setValue({ fieldId: 'custrecord_cs_status', value: 'Success' });
+                } else {
+                    recCustRec.setValue({ fieldId: 'custrecord_cs_status', value: 'Error' });
+                    recCustRec.setValue({ fieldId: 'custrecord_cs_memo_iseller', value: errorMessage || 'Unknown error during Cash Sale creation.' });
+                }
+
+                const saveRec = recCustRec.save();
+                log.debug('Record Updated', saveRec);
+            } catch (e) {
+                log.error('Unexpected Error', e.message);
             }
         }
     }
     return {
-        afterSubmit : afterSubmit
+        afterSubmit
     };
 });

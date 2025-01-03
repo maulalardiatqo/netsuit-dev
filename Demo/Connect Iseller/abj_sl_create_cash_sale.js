@@ -7,66 +7,15 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
     function onRequest(context) {
         if (context.request.method === 'POST') {
             try {
-                // function createCashSales(data, allDataItem){
-                //     var dateIsel = data.order_date
-                //     log.debug('dateIselCs', dateIsel)
-                //     var dateNs = convertToNetSuiteDate(dateIsel);
-                //     log.debug('dateNsCs', dateNs)
-                //     const cashSale = record.create({
-                //         type: record.Type.CASH_SALE,
-                //         isDynamic: true
-                //     });
-                //     cashSale.setValue({ fieldId: 'entity', value: 2922 }); 
-                //     cashSale.setValue({ fieldId: 'memo', value: data.notes });
-                //     cashSale.setValue({ fieldId: 'trandate', value: dateNs });
-                //     cashSale.setValue({ fieldId: 'subsidiary', value: 7 });
-                //     cashSale.setValue({ fieldId: 'location', value: 131 });
-                //     cashSale.setValue({ fieldId: 'custbody_csegafa_channel', value: 1 });
-                //     allDataItem.forEach(function(result) {
-                //         cashSale.selectNewLine({ sublistId: 'item' });
-                //         log.debug('itemCs', result.idItem)
-                //         cashSale.setCurrentSublistValue({
-                //             sublistId: 'item',
-                //             fieldId: 'item',
-                //             value: result.idItem 
-                //         });
-                //         log.debug('qtyCs', result.quantity)
-                //         cashSale.setCurrentSublistValue({
-                //             sublistId: 'item',
-                //             fieldId: 'quantity',
-                //             value: result.quantity 
-                //         });
-                //         cashSale.setCurrentSublistValue({
-                //             sublistId: 'item',
-                //             fieldId: 'rate',
-                //             value: result.basePrice 
-                //         });
-                //         cashSale.setCurrentSublistValue({
-                //             sublistId: 'item',
-                //             fieldId: 'taxcode',
-                //             value: result.taxCode 
-                //         });
-                //         cashSale.setCurrentSublistValue({
-                //             sublistId: 'item',
-                //             fieldId: 'amount',
-                //             value: result.totalOrderAmount 
-                //         });
-                //         cashSale.commitLine({ sublistId: 'item' });
-        
-                //     })
-                //     const cashSaleId = cashSale.save();
-                //     log.debug('Cash Sale Created', `Cash Sale ID: ${cashSaleId}`);
-                // }
-                // Parse request body
                 var requestBody = JSON.parse(context.request.body);
                 var requestHeader = context.request.headers;
+                log.debug('requestHeader', requestHeader)
                 log.debug('Parsed requestBody', requestBody);
                 function convertToNetSuiteDate(dateTimeString) {
                     if (!dateTimeString) {
                         throw new Error("Invalid date string");
                     }
                 
-                    // Create a Date object from the string
                     const dateObject = new Date(dateTimeString);
                 
                     // Validate the created date
@@ -85,11 +34,40 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                     type: 'customrecord_cs_iseller',
                     isDynamic: true,
                 });
-
-                customRecord.setValue({
-                    fieldId: "custrecord_cs_customer",
-                    value: 2922
-                });
+                var exIdCust = requestBody.external_customer_id
+                log.debug('exIdCust', exIdCust)
+                if(exIdCust){
+                    var customerSearchObj = search.create({
+                        type: "customer",
+                        filters: [
+                            ["entityid", "is", exIdCust]
+                        ],
+                        columns: [
+                            search.createColumn({name: "internalid", label: "Internal ID"})
+                        ]
+                    });
+                     
+                    var results = customerSearchObj.run().getRange({start: 0, end: 1});
+                    if (results.length > 0) {
+                        var internalId = results[0].getValue({name: "internalid"});
+                        log.debug('internalId cust', internalId)
+                        customRecord.setValue({
+                            fieldId: "custrecord_cs_customer",
+                            value: internalId
+                        });
+                    } else {
+                        customRecord.setValue({
+                            fieldId: "custrecord_cs_customer",
+                            value: 2922
+                        });
+                    }
+                }else{
+                    customRecord.setValue({
+                        fieldId: "custrecord_cs_customer",
+                        value: 2922
+                    });
+                }
+                
                 var dateIsel = requestBody.order_date
                 log.debug('dateIsel', dateIsel)
                 var dateNs = convertToNetSuiteDate(dateIsel);
@@ -110,7 +88,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                 });
                 customRecord.setValue({
                     fieldId: "custrecord_cs_sales_channel",
-                    value: 1
+                    value: 3
                 });
                 customRecord.setValue({
                     fieldId: "custrecord_cs_subsidiaries",
@@ -118,12 +96,16 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                 });
                 customRecord.setValue({
                     fieldId: "custrecord_cs_location",
-                    value: 131
+                    value: 130
                 });
-                // customRecord.setValue({
-                //     fieldId: "custrecord_cs_class",
-                //     value: 1
-                // });
+                customRecord.setValue({
+                    fieldId: "custrecord_cs_payment_status",
+                    value: requestBody.payment_status || ""
+                });
+                customRecord.setValue({
+                    fieldId: "custrecord_cs_fulfillment_status",
+                    value: requestBody.fulfillment_status || ""
+                });
 
                 // Process order details
                 var allDataItem = []
@@ -166,7 +148,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                             sublistId: 'recmachcustrecord_csd_id',
                             fieldId: 'custrecord_csd_unit',
                             value: 1
-                        });
+                        }); 
                         customRecord.setCurrentSublistValue({
                             sublistId: 'recmachcustrecord_csd_id',
                             fieldId: 'custrecord_csd_rate',
