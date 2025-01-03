@@ -7,56 +7,56 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
     function onRequest(context) {
         if (context.request.method === 'POST') {
             try {
-                function createCashSales(data, allDataItem){
-                    var dateIsel = data.order_date
-                    log.debug('dateIselCs', dateIsel)
-                    var dateNs = convertToNetSuiteDate(dateIsel);
-                    log.debug('dateNsCs', dateNs)
-                    const cashSale = record.create({
-                        type: record.Type.CASH_SALE,
-                        isDynamic: true
-                    });
-                    cashSale.setValue({ fieldId: 'entity', value: 2922 }); 
-                    cashSale.setValue({ fieldId: 'memo', value: data.notes });
-                    cashSale.setValue({ fieldId: 'trandate', value: dateNs });
-                    cashSale.setValue({ fieldId: 'subsidiary', value: 7 });
-                    cashSale.setValue({ fieldId: 'location', value: 131 });
-                    cashSale.setValue({ fieldId: 'custbody_csegafa_channel', value: 1 });
-                    allDataItem.forEach(function(result) {
-                        cashSale.selectNewLine({ sublistId: 'item' });
-                        log.debug('itemCs', result.idItem)
-                        cashSale.setCurrentSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'item',
-                            value: result.idItem 
-                        });
-                        log.debug('qtyCs', result.quantity)
-                        cashSale.setCurrentSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'quantity',
-                            value: result.quantity 
-                        });
-                        cashSale.setCurrentSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'rate',
-                            value: result.basePrice 
-                        });
-                        cashSale.setCurrentSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'taxcode',
-                            value: result.taxCode 
-                        });
-                        cashSale.setCurrentSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'amount',
-                            value: result.totalOrderAmount 
-                        });
-                        cashSale.commitLine({ sublistId: 'item' });
+                // function createCashSales(data, allDataItem){
+                //     var dateIsel = data.order_date
+                //     log.debug('dateIselCs', dateIsel)
+                //     var dateNs = convertToNetSuiteDate(dateIsel);
+                //     log.debug('dateNsCs', dateNs)
+                //     const cashSale = record.create({
+                //         type: record.Type.CASH_SALE,
+                //         isDynamic: true
+                //     });
+                //     cashSale.setValue({ fieldId: 'entity', value: 2922 }); 
+                //     cashSale.setValue({ fieldId: 'memo', value: data.notes });
+                //     cashSale.setValue({ fieldId: 'trandate', value: dateNs });
+                //     cashSale.setValue({ fieldId: 'subsidiary', value: 7 });
+                //     cashSale.setValue({ fieldId: 'location', value: 131 });
+                //     cashSale.setValue({ fieldId: 'custbody_csegafa_channel', value: 1 });
+                //     allDataItem.forEach(function(result) {
+                //         cashSale.selectNewLine({ sublistId: 'item' });
+                //         log.debug('itemCs', result.idItem)
+                //         cashSale.setCurrentSublistValue({
+                //             sublistId: 'item',
+                //             fieldId: 'item',
+                //             value: result.idItem 
+                //         });
+                //         log.debug('qtyCs', result.quantity)
+                //         cashSale.setCurrentSublistValue({
+                //             sublistId: 'item',
+                //             fieldId: 'quantity',
+                //             value: result.quantity 
+                //         });
+                //         cashSale.setCurrentSublistValue({
+                //             sublistId: 'item',
+                //             fieldId: 'rate',
+                //             value: result.basePrice 
+                //         });
+                //         cashSale.setCurrentSublistValue({
+                //             sublistId: 'item',
+                //             fieldId: 'taxcode',
+                //             value: result.taxCode 
+                //         });
+                //         cashSale.setCurrentSublistValue({
+                //             sublistId: 'item',
+                //             fieldId: 'amount',
+                //             value: result.totalOrderAmount 
+                //         });
+                //         cashSale.commitLine({ sublistId: 'item' });
         
-                    })
-                    const cashSaleId = cashSale.save();
-                    log.debug('Cash Sale Created', `Cash Sale ID: ${cashSaleId}`);
-                }
+                //     })
+                //     const cashSaleId = cashSale.save();
+                //     log.debug('Cash Sale Created', `Cash Sale ID: ${cashSaleId}`);
+                // }
                 // Parse request body
                 var requestBody = JSON.parse(context.request.body);
                 var requestHeader = context.request.headers;
@@ -101,11 +101,11 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                 var orderId = requestBody.order_reference
                 customRecord.setValue({
                     fieldId: "name",
-                    value: 'Order' + orderId
+                    value: orderId
                 });
                 
                 customRecord.setValue({
-                    fieldId: "custrecord_cs_memo_iseller",
+                    fieldId: "custrecord_cs_memo",
                     value: requestBody.notes || ""
                 });
                 customRecord.setValue({
@@ -127,6 +127,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
 
                 // Process order details
                 var allDataItem = []
+                var errMsg = ''
                 if (requestBody.order_details && Array.isArray(requestBody.order_details)) {
                     requestBody.order_details.forEach((detail) => {
                         customRecord.selectNewLine({ sublistId: 'recmachcustrecord_csd_id' });
@@ -147,7 +148,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                             idItem = result.getValue({ name: "internalid" });
                             log.debug("Item Found", `Internal ID: ${idItem}, UPC Code: ${upcCode}`);
                         } else {
-                            log.error("Item Not Found", `UPC Code: ${upcCode}`);
+                            errMsg = 'Item Not Found In Netsuite in SKU' + upcCode
                         }
 
                         customRecord.setCurrentSublistValue({
@@ -197,10 +198,15 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                 }
 
                 // Save custom record
+                customRecord.setValue({
+                    fieldId : 'custrecord_cs_memo_iseller',
+                    value : errMsg
+                })
                 var saveCustRec = customRecord.save();
-                if(saveCustRec){
-                    createCashSales(requestBody, allDataItem)
-                }
+                log.debug('saveCustRec', saveCustRec)
+                // if(saveCustRec){
+                //     createCashSales(requestBody, allDataItem)
+                // }
 
                 // Send success response
                 context.response.write({

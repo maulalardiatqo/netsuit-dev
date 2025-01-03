@@ -8,7 +8,8 @@ define(['N/record', 'N/log', 'N/error'], (record, log, error) => {
             try{
                 log.debug('trigerred')
                 const newRecord = context.newRecord;
-    
+                var idIsell = newRecord.id
+                log.debug('idIsell', idIsell)
                 // Ambil data dari custrecord_cs_customer
                 var dateRec = newRecord.getValue('custrecord_cs_date');
                 var customer = newRecord.getValue('custrecord_cs_customer');
@@ -72,6 +73,7 @@ define(['N/record', 'N/log', 'N/error'], (record, log, error) => {
                 cashSale.setValue({ fieldId: 'trandate', value: dateRec });
                 cashSale.setValue({ fieldId: 'subsidiary', value: subsidiary });
                 cashSale.setValue({ fieldId: 'location', value: location });
+                cashSale.setValue({ fieldId: 'custbody_abj_cashsale_cust_rec', value: idIsell });
                 cashSale.setValue({ fieldId: 'custbody_csegafa_channel', value: salesChanel });
                 allDataItem.forEach(function(data) {
                     cashSale.selectNewLine({ sublistId: 'item' });
@@ -107,6 +109,32 @@ define(['N/record', 'N/log', 'N/error'], (record, log, error) => {
                 })
                 const cashSaleId = cashSale.save();
                 log.debug('Cash Sale Created', `Cash Sale ID: ${cashSaleId}`);
+                var recCustRec = record.load({
+                    type: 'customrecord_cs_iseller',
+                    id : idIsell,
+                    isDynamic: true,
+                })
+                if(cashSaleId){
+                    recCustRec.setValue({
+                        fieldId : 'custrecord_cs_transaction_no',
+                        value : cashSaleId
+                    });
+                    recCustRec.setValue({
+                        fieldId : 'custrecord_cs_status',
+                        value : 'Success'
+                    })
+                }else{
+                    recCustRec.setValue({
+                        fieldId : 'custrecord_cs_status',
+                        value : 'Error'
+                    })
+                    recCustRec.setValue({
+                        fieldId : 'custrecord_cs_memo_iseller',
+                        value : 'Error when create Cash Sale'
+                    })
+                }
+                var saveRec = recCustRec.save();
+                log.debug('saveRec', saveRec)
             }catch(e){
                 log.debug('error', e)
             }
