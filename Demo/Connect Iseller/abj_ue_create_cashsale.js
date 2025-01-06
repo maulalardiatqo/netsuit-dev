@@ -55,8 +55,13 @@ define(['N/record', 'N/log', 'N/error'], (record, log, error) => {
                             fieldId: 'custrecord_csd_amount',
                             line: i
                         });
+                        const description = newRecord.getSublistValue({
+                            sublistId: 'recmachcustrecord_csd_id',
+                            fieldId : 'custrecord_csd_description',
+                            line : i
+                        })
 
-                        allDataItem.push({ item, qty, rate, taxCode, unit, amount });
+                        allDataItem.push({ item, qty, rate, taxCode, unit, amount, description });
                     }
                 }
 
@@ -85,16 +90,10 @@ define(['N/record', 'N/log', 'N/error'], (record, log, error) => {
                         cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'rate', value: data.rate });
                         cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'taxcode', value: data.taxCode });
                         cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'amount', value: data.amount });
+                        cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'description', value: data.description });
                         totalAmount += Number(data.amount)
                         cashSale.commitLine({ sublistId: 'item' });
                     });
-                    cashSale.selectNewLine({ sublistId: 'item' });
-                    cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: 2812});
-                    cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: 1});
-                    cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'rate', value: -totalAmount });
-                    cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'taxcode', value: 2224 });
-                    cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'amount', value: -totalAmount });
-                    cashSale.commitLine({ sublistId: 'item' });
 
                     idSuccesCreate = cashSale.save();
                     log.debug('Cash Sale Created', `Cash Sale ID: ${idSuccesCreate}`);

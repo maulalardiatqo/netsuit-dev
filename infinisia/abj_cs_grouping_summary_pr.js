@@ -11,8 +11,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         log.debug('init masuk');
     }
     function getNumberFromString(input) {
-        const match = input.match(/^\d+/);
-        return match ? parseInt(match[0]) : 1;
+        const match = input.match(/^[\d.]+/); 
+        return match ? parseFloat(match[0]) : 1; 
     }
     function calculate(context) {
         var currentRecordObj = records;
@@ -346,6 +346,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         value: tanggalKirim
                     });
                     var setRatePackSize
+                    log.debug('ratePackSize', ratePackSize)
                     if(ratePackSize){
                         setRatePackSize = ratePackSize
                     }else{

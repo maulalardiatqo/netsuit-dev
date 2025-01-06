@@ -220,6 +220,7 @@
                 let idSum = prToPO[i].getValue({ name: prToPOSet.columns[32] });
                 let poCust = prToPO[i].getValue({ name: prToPOSet.columns[34] });
                 let ratePackSIze = prToPO[i].getValue({ name: prToPOSet.columns[37] }) || 0;
+                log.debug('ratePackSIze 1', ratePackSIze)
                 var cekTotalPackaging = prToPO[i].getValue({ name: prToPOSet.columns[35] }) || 0;
                 var idPrSUm = prToPO[i].getValue({ name: prToPOSet.columns[39] }) || 0;
                 var memo = prToPO[i].getValue({ name: prToPOSet.columns[40] });
@@ -344,6 +345,7 @@
               var idSum = data.idSum;
               var poCust = data.poCust;
               var ratePackSIze = data.ratePackSIze;
+              log.debug('ratePackSIze 2', ratePackSIze)
               var cekTotalPackaging = data.cekTotalPackaging;
               var idPrSUm = data.idPrSUm;
               var memo = data.memo;
@@ -566,7 +568,7 @@
                   value: ratePackSIze || " ",
                   line: i,
               });
-              var setTotalOrder = Number(totalPackaging) * Number(ratePackSIze)
+              var setTotalOrder = Number(totalPackaging) * parseFloat(ratePackSIze)
               log.debug('dataCek', {totalPackaging : totalPackaging, cekTotalPackaging : cekTotalPackaging, qtyPO : qtyPO, ratePackSIze : ratePackSIze, setTotalOrder : setTotalOrder})
               currentRecord.setSublistValue({
                 sublistId: "custpage_sublist_item",
