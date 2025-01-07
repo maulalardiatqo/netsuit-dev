@@ -224,6 +224,8 @@
                 var cekTotalPackaging = prToPO[i].getValue({ name: prToPOSet.columns[35] }) || 0;
                 var idPrSUm = prToPO[i].getValue({ name: prToPOSet.columns[39] }) || 0;
                 var memo = prToPO[i].getValue({ name: prToPOSet.columns[40] });
+                var ratePackSizeDecimal = prToPO[i].getValue({ name: prToPOSet.columns[42] }) || 0;
+                log.debug('ratePackSizeDecimal', ratePackSizeDecimal)
                 let cek1 = prToPO[i].getValue({
                   name: prToPOSet.columns[25],
                 });
@@ -273,6 +275,7 @@
                     cekTotalPackaging,
                     idPrSUm,
                     memo,
+                    ratePackSizeDecimal,
                     cek1
                 });
             }
@@ -349,6 +352,7 @@
               var cekTotalPackaging = data.cekTotalPackaging;
               var idPrSUm = data.idPrSUm;
               var memo = data.memo;
+              var ratePackSizeDecimal = data.ratePackSizeDecimal
               var totalPackaging = Math.abs(parseFloat(cekTotalPackaging || 0)) - parseFloat(qtyPO || 0) 
               
               allIdPoselected.push({
@@ -562,13 +566,22 @@
                 value: currency || " ",
                 line: i,
               });
+              var packSizeRate = 0
+              if(ratePackSIze > 0){
+                log.debug('masuk kondisi if')
+                  packSizeRate = ratePackSIze
+              }else{
+                packSizeRate = ratePackSizeDecimal
+                log.debug('masuk kondisi else')
+              }
               currentRecord.setSublistValue({
                   sublistId: "custpage_sublist_item",
                   id: "custpage_sublist_rate_packsize",
-                  value: ratePackSIze || " ",
+                  value: packSizeRate || " ",
                   line: i,
               });
-              var setTotalOrder = Number(totalPackaging) * parseFloat(ratePackSIze)
+              log.debug('packSizeRate', packSizeRate)
+              var setTotalOrder = Number(totalPackaging) * parseFloat(packSizeRate)
               log.debug('dataCek', {totalPackaging : totalPackaging, cekTotalPackaging : cekTotalPackaging, qtyPO : qtyPO, ratePackSIze : ratePackSIze, setTotalOrder : setTotalOrder})
               currentRecord.setSublistValue({
                 sublistId: "custpage_sublist_item",

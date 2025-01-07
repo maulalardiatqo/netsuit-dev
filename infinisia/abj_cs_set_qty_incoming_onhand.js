@@ -466,7 +466,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 var formId = currentRecordObj.getValue('customform');
                 console.log('formId', formId)
                 if(formId == 138){
-                   
                     var totalOrder = currentRecordObj.getCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "custcol_pr_total_order",
@@ -507,9 +506,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             fieldId: "custcol_abj_total_packaging",
                             value: conversi || 0,
                         });
+                        
                         currentRecordObj.setCurrentSublistValue({
                             sublistId: "item",
-                            fieldId: "custcol_abj_ratepacksize",
+                            fieldId: "custcol_abj_rate_units_decimal",
                             value: ratePackSize || 0,
                         });
                     }

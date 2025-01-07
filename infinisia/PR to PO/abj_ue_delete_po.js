@@ -40,65 +40,69 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     })
                     dataFromPR.push(
                         {
-                        itemIdData : itemIdData,
-                        qtyData : qtyData,
-                        internalidPR : internalidPR,
-                        lineId : lineId
+                            itemIdData : itemIdData,
+                            qtyData : qtyData,
+                            internalidPR : internalidPR,
+                            lineId : lineId
                         }
                     )
                     }
                 }
                 fromPRID.forEach(function (internalid) {
                     var prData = record.load({
-                    type: "purchaseorder",
-                    id: internalid,
-                    isDynamic: false,
+                        type: "purchaseorder",
+                        id: internalid,
+                        isDynamic: false,
                     });
                     prData.setValue({
-                    fieldId: "custbody_po_converted",
-                    value: dataRecID,
-                    ignoreFieldChange: true,
+                        fieldId: "custbody_po_converted",
+                        value: dataRecID,
+                        ignoreFieldChange: true,
                     });
                     var lineinPr = prData.getLineCount({
-                    sublistId : "recmachcustrecord_iss_pr_parent"
+                        sublistId : "recmachcustrecord_iss_pr_parent"
                     });
+                    log.debug('lineinPr', lineinPr)
                     if(lineinPr > 0){
-                    for(var i = 0; i < lineinPr; i++){
-                        var itemId = prData.getSublistValue({
-                            sublistId : "recmachcustrecord_iss_pr_parent",
-                            fieldId : "custrecord_iss_pr_item",
-                            line : i
-                        });
-                        var line_id = prData.getSublistValue({
-                        sublistId : "recmachcustrecord_iss_pr_parent",
-                        fieldId : "id",
-                        line : i
-                        });
-                        var currntQtyPO = prData.getSublistValue({
-                        sublistId : "recmachcustrecord_iss_pr_parent",
-                        fieldId : "custrecord_prsum_qtypo",
-                        line : i
-                        }) || 0;
-                        
-                        var matchingData = dataFromPR.find(function (data) {
-                        return data.internalidPR === internalid && data.itemIdData === itemId && data.lineId == line_id;
-                        });
-                        if (matchingData) {
-                        var qtyPo  = Number(currntQtyPO) - Number(matchingData.qtyData)
-                        
-                        prData.setSublistValue({
-                            sublistId: "recmachcustrecord_iss_pr_parent",
-                            fieldId: "custrecord_prsum_qtypo",
-                            line: i,
-                            value: qtyPo
-                        });
+                        for(var i = 0; i < lineinPr; i++){
+                            var itemId = prData.getSublistValue({
+                                sublistId : "recmachcustrecord_iss_pr_parent",
+                                fieldId : "custrecord_iss_pr_item",
+                                line : i
+                            });
+                            var line_id = prData.getSublistValue({
+                                sublistId : "recmachcustrecord_iss_pr_parent",
+                                fieldId : "id",
+                                line : i
+                            });
+                            log.debug('line_id', line_id)
+                            var currntQtyPO = prData.getSublistValue({
+                                sublistId : "recmachcustrecord_iss_pr_parent",
+                                fieldId : "custrecord_prsum_qtypo",
+                                line : i
+                            }) || 0;
+                            
+                            var matchingData = dataFromPR.find(function (data) {
+                                return data.internalidPR === internalid && data.itemIdData === itemId && data.lineId == line_id;
+                            });
+                            log.debug('matchingData', matchingData)
+                            if (matchingData) {
+                                var qtyPo  = Number(currntQtyPO) - Number(matchingData.qtyData)
+                                log.debug('qtyPo', qtyPo)
+                                
+                                prData.setSublistValue({
+                                    sublistId: "recmachcustrecord_iss_pr_parent",
+                                    fieldId: "custrecord_prsum_qtypo",
+                                    line: i,
+                                    value: qtyPo
+                                });
+                            }
                         }
                     }
-                    }
                 
-                    prData.save({
-                    enableSourcing: true,
-                    ignoreMandatoryFields: true,
+                        prData.save({
+                        enableSourcing: true,
+                        ignoreMandatoryFields: true,
                     });
                 });
             }
@@ -186,7 +190,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                             fieldId : "custrecord_iss_pr_item",
                             line : i
                         });
-                            var line_id = prData.getSublistValue({
+                        var line_id = prData.getSublistValue({
                             sublistId : "recmachcustrecord_iss_pr_parent",
                             fieldId : "id",
                             line : i
@@ -224,8 +228,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     }
                 
                     prData.save({
-                    enableSourcing: true,
-                    ignoreMandatoryFields: true,
+                        enableSourcing: true,
+                        ignoreMandatoryFields: true,
                     });
                 });
             }

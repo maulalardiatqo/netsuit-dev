@@ -11,8 +11,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         log.debug('init masuk');
     }
     function getNumberFromString(input) {
-        const match = input.match(/^[\d.]+/); 
-        return match ? parseFloat(match[0]) : 1; 
+        const match = input.match(/^\d+/);
+        return match ? parseInt(match[0]) : 1;
     }
     function calculate(context) {
         var currentRecordObj = records;
@@ -114,9 +114,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 })
                 var ratePackSize = currentRecordObj.getSublistValue({
                     sublistId: 'item',
-                    fieldId : 'custcol_abj_ratepacksize',
+                    fieldId : 'custcol_abj_rate_units_decimal',
                     line : index
                 })
+                log.debug('ratePackSize 1', ratePackSize)
                 allData.push({
                     soNo : soNo,
                     packSizeOrder : packSizeOrder,
@@ -346,7 +347,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         value: tanggalKirim
                     });
                     var setRatePackSize
-                    log.debug('ratePackSize', ratePackSize)
                     if(ratePackSize){
                         setRatePackSize = ratePackSize
                     }else{
@@ -354,7 +354,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     }
                     currentRecordObj.setCurrentSublistValue({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_abj_pr_ratepacksize',
+                        fieldId: 'custrecord_abj_pr_rate_units_decimal',
                         value: setRatePackSize
                     });
                     log.debug('packSizeOrderText', packSizeOrderText)

@@ -34,7 +34,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             var unitNames = [];
             log.debug('allIdSummary', allIdSummary);
               var prToPO = search.load({
-                  id: "customsearch1021",
+                  id: "customsearch1094",
               });
           
               prToPO.filters.push(
@@ -149,9 +149,20 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                   let poCust = prToPO[i].getValue({
                     name : prToPOSet.columns[34]
                   });
-                  let ratePackSIze = prToPO[i].getValue({
+                  var ratePackSIze = 0
+                  let ratePackSIzeInteger = prToPO[i].getValue({
                     name : prToPOSet.columns[37]
                   }) || 0;
+                  log.debug('ratePackSIzeInteger', ratePackSIzeInteger)
+                  let ratePackSizeDecimal = prToPO[i].getValue({
+                    name : prToPOSet.columns[42]
+                  }) || 0;
+                  log.debug('ratePackSizeDecimal', ratePackSizeDecimal)
+                  if(ratePackSIzeInteger > 0){
+                    ratePackSIze = ratePackSIzeInteger
+                  }else{
+                    ratePackSIze = ratePackSizeDecimal
+                  }
                   var cekTotalPackaging = prToPO[i].getValue({
                     name : prToPOSet.columns[35]
                   }) || 0;
@@ -443,7 +454,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
               });
               poData.setSublistValue({
                 sublistId: "item",
-                fieldId: "custcol_abj_ratepacksize",
+                fieldId: "custcol_abj_rate_units_decimal",
                 line: line_idx,
                 value: ratePackSIzeSet,
               });
