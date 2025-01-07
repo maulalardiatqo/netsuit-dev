@@ -33,6 +33,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                     var signature = requestHeader['Signature'];
                     var cekTransaction = requestBody.transactions;
                     var allTransaction = [];
+                    var totalAmount = requestBody.total_amount
                     cekTransaction.forEach(transaction => {
                         const paymentTypeName = transaction.gateway;
                         const amount = transaction.amount;
@@ -126,6 +127,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                     var allDiscount = []
                     var errMsg = ''
                     var commitedLine = 0
+                    var amountItem = 0
                     if (requestBody.order_details && Array.isArray(requestBody.order_details)) {
                         requestBody.order_details.forEach((detail) => {
                             customRecord.selectNewLine({ sublistId: 'recmachcustrecord_csd_id' });
@@ -172,6 +174,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                                 value: detail.base_price
                             });
                             var amountTotal = Number(detail.base_price) * Number(detail.quantity)
+                            amountItem += amountTotal
                             customRecord.setCurrentSublistValue({
                                 sublistId: 'recmachcustrecord_csd_id',
                                 fieldId: 'custrecord_csd_amount',
@@ -196,7 +199,8 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                     log.debug('allDiscount', allDiscount)
                     log.debug('allDiscountlength', allDiscount.length)
                     log.debug('commitedLine', commitedLine)
-                    if(allDiscount.length > 0){
+                    var realDiscount = Number(amountItem) - Number(totalAmount) || 0
+                    log.debug('realDiscount', realDiscount);
                         var discountDesc = '';
                         var totalDiscAmount = 0;
                         var uniqueDiscountNames = new Set(); 
@@ -220,7 +224,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                         discountDesc = Array.from(uniqueDiscountNames).join(', ');
                         log.debug('discountDesc', discountDesc);
                         log.debug('totalDiscAmount', totalDiscAmount)
-                        if(discountTotal > 0){
+                        if(realDiscount > 0){
                             customRecord.selectNewLine({ sublistId: 'recmachcustrecord_csd_id' });
                             customRecord.setCurrentSublistValue({
                                 sublistId: 'recmachcustrecord_csd_id',
@@ -247,12 +251,12 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                             customRecord.setCurrentSublistValue({
                                 sublistId: 'recmachcustrecord_csd_id',
                                 fieldId: 'custrecord_csd_rate',
-                                value: -(discountTotal)
+                                value: -(realDiscount)
                             });
                             customRecord.setCurrentSublistValue({
                                 sublistId: 'recmachcustrecord_csd_id',
                                 fieldId: 'custrecord_csd_amount',
-                                value: -(discountTotal)
+                                value: -(realDiscount)
                             });
                             
                             customRecord.setCurrentSublistValue({
@@ -263,7 +267,6 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                             customRecord.commitLine({ sublistId: 'recmachcustrecord_csd_id' });
                         }
                        
-                    }
                     allTransaction.forEach(trans=>{
                         var paymentMethon = trans.paymentTypeName
                         var amountPayment = trans.amount
