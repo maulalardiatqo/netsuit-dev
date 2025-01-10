@@ -436,7 +436,7 @@ define(['N/log', 'N/record', 'N/search',"./abj_script_iseller_integration"], (lo
                     log.debug('dateIr', dateIr)
                     recCreate.setValue({
                         fieldId : 'custrecord_ir_date',
-                        value : data.dateIr 
+                        value : dateIr 
                     });
                     recCreate.setValue({
                         fieldId : 'custrecord_ir_created_from',

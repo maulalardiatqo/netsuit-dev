@@ -2,7 +2,34 @@
  * @NApiVersion 2.1
  * @NScriptType UserEventScript
  */
-define(['N/record', 'N/log', 'N/error'], (record, log, error) => {
+define(['N/record', 'N/log', 'N/error', 'N/search'], (record, log, error, search) => {
+    function beforeSubmit(context) {
+        if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.EDIT) {
+            var newRecord = context.newRecord;
+            var orderId = newRecord.getValue({ fieldId: 'name' }); 
+            log.debug('orderId', orderId)
+            if (isDuplicate(orderId, newRecord.id)) {
+                throw error.create({
+                    name: 'DUPLICATE_RECORD',
+                    message: 'Record dengan Order ID ' + orderId + ' sudah ada!',
+                    notifyOff: true
+                });
+            }
+        }
+    }
+    function isDuplicate(orderId, recordId) {
+        var duplicateSearch = search.create({
+            type: 'customrecord_cs_iseller', 
+            filters: [
+                ['name', 'is', orderId]
+            ],
+            columns: ['internalid']
+        });
+
+        var results = duplicateSearch.run().getRange({ start: 0, end: 1 });
+        log.debug('results', results)
+        return results.length > 0; // Return true jika ditemukan duplikat
+    }
     function afterSubmit(context) {
         if (context.type === context.UserEventType.CREATE) {
             try {
@@ -125,6 +152,7 @@ define(['N/record', 'N/log', 'N/error'], (record, log, error) => {
         }
     }
     return {
-        afterSubmit
+        beforeSubmit : beforeSubmit,
+        afterSubmit : afterSubmit
     };
 });

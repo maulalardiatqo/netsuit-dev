@@ -1,0 +1,148 @@
+{
+    "order_id": "151a8560-8395-4af1-ba87-511fcf116e43",
+    "order_reference": "#4-1055",
+    "channel": "pos",
+    "order_date": "2025-01-10T04:32:38.757",
+    "closed_date": "2025-01-10T04:33:11.193",
+    "status": "completed",
+    "payment_status": "paid",
+    "fulfillment_status": "fulfilled",
+    "notes": "",
+    "processing_method": "checkout",
+    "cancel_reason": "",
+    "outlet_id": "ead06e9b-ae9f-48c9-ac01-aed1a6c40d40",
+    "outlet_name": "Sudirman Outlet",
+    "outlet_code": "12345",
+    "register_id": "93ca026f-3fd6-487c-a37c-7e851628c5ad",
+    "currency": "IDR",
+    "total_order_amount": 455357.1428571429,
+    "total_discount_amount": 26785.714285714283,
+    "total_promotion_amount": 151785.7142857143,
+    "subtotal": 276785.7142857143,
+    "total_tax_amount": 33214.2857,
+    "total_additional_final_amount": 0,
+    "total_additional_subtotal_amount": 0,
+    "total_additional_order_amount": 0,
+    "rounding_amount": 0,
+    "total_amount": 310000,
+    "buying_price": 0,
+    "total_shipping_amount": 0,
+    "total_weight": 0,
+    "tax_inclusive": true,
+    "on_account": false,
+    "remaining_on_account": 0,
+    "device_location": {},
+    "order_details": [
+      {
+        "order_id": "151a8560-8395-4af1-ba87-511fcf116e43",
+        "order_detail_id": "657b478a-e4a1-401a-be2a-4788aa7bc08b",
+        "product_id": "9a9a9e66-0291-4c43-af20-e22ce4fbd9af",
+        "product_name": "STAN 40OZ QNCHR CARRY-ALL",
+        "product_generic_name": "STAN 40OZ QNCHR CARRY-ALL",
+        "product_variant_name": "Cream",
+        "product_modifier_name": "",
+        "vendor": "vendor 2",
+        "sku": "3178",
+        "fulfillment_status": "fulfilled",
+        "quantity": 1,
+        "base_price": 170000,
+        "total_order_amount": 151785.7142857143,
+        "subtotal": 0,
+        "additional_charge": 0,
+        "discount_amount": 0,
+        "discount_order_amount": 0,
+        "taxable": true,
+        "tax_percentage": 12,
+        "tax_amount": 0,
+        "require_shipping": false,
+        "type": "variant",
+        "track_inventory": true,
+        "modifier_product_composites": [],
+        "promotions": [
+          {
+            "promotion_id": "4c2cbdee-ec61-e16a-09e9-9b4598a90f57",
+            "promotion_name": "Buy 2 get 1 STAN 40OZ QNCHR CARRY-ALL (Rose) - GET CREAM",
+            "promotion_type": "buy_get",
+            "promotion_amount": 170000
+          }
+        ],
+        "discounts": [],
+        "units_used": [
+          {
+            "product_id": "9a9a9e66-0291-4c43-af20-e22ce4fbd9af",
+            "product_name": "STAN 40OZ QNCHR CARRY-ALL",
+            "sku": "3178",
+            "stock": 1
+          }
+        ],
+        "sequence": 1
+      },
+      {
+        "order_id": "151a8560-8395-4af1-ba87-511fcf116e43",
+        "order_detail_id": "d34a1f8a-3bbe-453b-b985-f89f448733fe",
+        "product_id": "98db74b2-223b-4e33-ad18-ff5316c37583",
+        "product_name": "STAN 40OZ QNCHR CARRY-ALL",
+        "product_generic_name": "STAN 40OZ QNCHR CARRY-ALL",
+        "product_variant_name": "Rose",
+        "product_modifier_name": "",
+        "vendor": "vendor 2",
+        "sku": "3179",
+        "fulfillment_status": "fulfilled",
+        "quantity": 2,
+        "base_price": 170000,
+        "total_order_amount": 303571.4285714286,
+        "subtotal": 340000,
+        "additional_charge": 0,
+        "discount_amount": 0,
+        "discount_percentage": 0,
+        "discount_order_amount": 0,
+        "taxable": true,
+        "tax_percentage": 12,
+        "tax_amount": 33214.28571428572,
+        "require_shipping": false,
+        "type": "variant",
+        "track_inventory": true,
+        "modifier_product_composites": [],
+        "promotions": [],
+        "discounts": [],
+        "units_used": [
+          {
+            "product_id": "98db74b2-223b-4e33-ad18-ff5316c37583",
+            "product_name": "STAN 40OZ QNCHR CARRY-ALL",
+            "sku": "3179",
+            "stock": 2
+          }
+        ],
+        "sequence": 2
+      }
+    ],
+    "promotions": [],
+    "discounts": [],
+    "transactions": [
+      {
+        "transaction_date": "2025-01-10T04:33:11.1966667",
+        "order_id": "151a8560-8395-4af1-ba87-511fcf116e43",
+        "transaction_id": "0f3a457f-d985-484f-a5a0-27e48e9a64d2",
+        "channel": "pos",
+        "type": "sale",
+        "status": "success",
+        "gateway": "external_credit",
+        "payment_type_name": "Visa",
+        "currency": "IDR",
+        "amount": 210000
+      },
+      {
+        "transaction_date": "2025-01-10T04:33:11.1966667",
+        "order_id": "151a8560-8395-4af1-ba87-511fcf116e43",
+        "transaction_id": "7ab8dbdc-54a1-4acb-ac3a-2b3f038ebaaa",
+        "channel": "pos",
+        "type": "sale",
+        "status": "success",
+        "gateway": "cash",
+        "payment_type_name": "Cash",
+        "currency": "IDR",
+        "amount": 100000
+      }
+    ]
+  }
+  

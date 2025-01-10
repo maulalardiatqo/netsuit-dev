@@ -156,19 +156,9 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                     var timestamp = requestHeader['Timestamp'];
                     var apiKey = requestHeader['APIKey'];
                     var signature = requestHeader['Signature'];
-                    var cekTransaction = requestBody.transactions;
-                    var allTransaction = [];
-                    var totalAmount = requestBody.total_amount
-                    cekTransaction.forEach(transaction => {
-                        const paymentTypeName = transaction.gateway;
-                        const amount = transaction.amount;
-                        allTransaction.push({
-                            paymentTypeName: paymentTypeName,
-                            amount : amount
-                        })
-                      });
-                    log.debug('cekTransaction', cekTransaction);
-                    log.debug('allTransaction', allTransaction)
+                    
+                   
+                   
                     // Create a new custom record
                     var orderId = requestBody.order_reference
                     log.debug('orderId', orderId)
@@ -222,6 +212,19 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                                 value: 2922
                             });
                         }
+                        var totalAmount = requestBody.total_amount
+                        var allTransaction = [];
+                        var cekTransaction = requestBody.transactions;
+                        cekTransaction.forEach(transaction => {
+                            const paymentTypeName = transaction.gateway;
+                            const amount = transaction.amount;
+                            allTransaction.push({
+                                paymentTypeName: paymentTypeName,
+                                amount : amount
+                            })
+                        });
+                        log.debug('cekTransaction', cekTransaction);
+                        log.debug('allTransaction', allTransaction)
                         
                         var dateIsel = requestBody.order_date
                         log.debug('dateIsel', dateIsel)
@@ -271,6 +274,8 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                         var errMsg = ''
                         var commitedLine = 0
                         var amountItem = 0
+                        var allPromotion = []
+                        var totalAmountPromotion = 0
                         if (requestBody.order_details && Array.isArray(requestBody.order_details)) {
                             requestBody.order_details.forEach((detail) => {
                                 customRecord.selectNewLine({ sublistId: 'recmachcustrecord_csd_id' });
@@ -323,23 +328,27 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                                         
                                     }))
                                 }
+                                totalAmountPromotion += Number(amountPromotion)
+                                log.debug('promName', promName)
+                                allPromotion.push(promName)
                                 var rate = 0
                                 var amountTotal = 0
     
-                                if(amountPromotion > 0){
-                                    rate = Number(detail.base_price) - Number(amountPromotion)
-                                    amountTotal = (Number(detail.base_price) * Number(detail.quantity)) - amountPromotion
-                                    customRecord.setCurrentSublistValue({
-                                        sublistId: 'recmachcustrecord_csd_id',
-                                        fieldId: 'custrecord_csd_description',
-                                        value: promName || ''
-                                    });
+                                // if(amountPromotion > 0){
+                                //     rate = Number(detail.base_price) - Number(amountPromotion)
+                                //     amountTotal = (Number(detail.base_price) * Number(detail.quantity)) - amountPromotion
+                                //     customRecord.setCurrentSublistValue({
+                                //         sublistId: 'recmachcustrecord_csd_id',
+                                //         fieldId: 'custrecord_csd_description',
+                                //         value: promName || ''
+                                //     });
                                     
-                                }else{
-                                    rate = Number(detail.base_price)
-                                    amountTotal = Number(detail.base_price) * Number(detail.quantity)
+                                // }else{
                                     
-                                }
+                                    
+                                // }
+                                rate = Number(detail.base_price)
+                                amountTotal = Number(detail.base_price) * Number(detail.quantity)
                                 customRecord.setCurrentSublistValue({
                                     sublistId: 'recmachcustrecord_csd_id',
                                     fieldId: 'custrecord_csd_rate',
@@ -374,7 +383,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                         log.debug('allDiscount', allDiscount)
                         log.debug('allDiscountlength', allDiscount.length)
                         log.debug('commitedLine', commitedLine)
-                        var realDiscount = Number(amountItem) - Number(totalAmount) || 0
+                        var realDiscount = Number(amountItem) - Number(totalAmount) - Number(totalAmountPromotion)|| 0
                         log.debug('realDiscount', realDiscount);
                             var discountDesc = '';
                             var totalDiscAmount = 0;
@@ -399,12 +408,59 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                             discountDesc = Array.from(uniqueDiscountNames).join(', ');
                             log.debug('discountDesc', discountDesc);
                             log.debug('totalDiscAmount', totalDiscAmount)
-                            if(realDiscount > 0){
+                            var cekDiscountAmountHeader = requestBody.total_discount_amount;
+                            log.debug('cekDiscountAmountHeader', cekDiscountAmountHeader)
+                            if(cekDiscountAmountHeader > 0){
+                                if(realDiscount > 0){
+                                    customRecord.selectNewLine({ sublistId: 'recmachcustrecord_csd_id' });
+                                    customRecord.setCurrentSublistValue({
+                                        sublistId: 'recmachcustrecord_csd_id',
+                                        fieldId: 'custrecord_csd_item',
+                                        value: 2818
+                                    });
+                                    
+                                    customRecord.setCurrentSublistValue({
+                                        sublistId: 'recmachcustrecord_csd_id',
+                                        fieldId: 'custrecord_csd_qty',
+                                        value: 1
+                                    });
+                                    customRecord.setCurrentSublistValue({
+                                        sublistId: 'recmachcustrecord_csd_id',
+                                        fieldId: 'custrecord_csd_unit',
+                                        value: 1
+                                    }); 
+                                    customRecord.setCurrentSublistValue({
+                                        sublistId: 'recmachcustrecord_csd_id',
+                                        fieldId: 'custrecord_csd_description',
+                                        value: discountDesc
+                                    });
+                                    
+                                    customRecord.setCurrentSublistValue({
+                                        sublistId: 'recmachcustrecord_csd_id',
+                                        fieldId: 'custrecord_csd_rate',
+                                        value: -(realDiscount)
+                                    });
+                                    customRecord.setCurrentSublistValue({
+                                        sublistId: 'recmachcustrecord_csd_id',
+                                        fieldId: 'custrecord_csd_amount',
+                                        value: -(realDiscount)
+                                    });
+                                    
+                                    customRecord.setCurrentSublistValue({
+                                        sublistId: 'recmachcustrecord_csd_id',
+                                        fieldId: 'custrecord_csd_tax_code',
+                                        value: 2224
+                                    });
+                                    customRecord.commitLine({ sublistId: 'recmachcustrecord_csd_id' });
+                                }
+                            }
+                            
+                            if(totalAmountPromotion > 0){
                                 customRecord.selectNewLine({ sublistId: 'recmachcustrecord_csd_id' });
                                 customRecord.setCurrentSublistValue({
                                     sublistId: 'recmachcustrecord_csd_id',
                                     fieldId: 'custrecord_csd_item',
-                                    value: 2818
+                                    value: 3219
                                 });
                                 
                                 customRecord.setCurrentSublistValue({
@@ -417,21 +473,24 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                                     fieldId: 'custrecord_csd_unit',
                                     value: 1
                                 }); 
+                                log.debug('allPromotion', allPromotion)
+                                const promString = allPromotion.join(', ');
+                                log.debug('promstring', promString)
                                 customRecord.setCurrentSublistValue({
                                     sublistId: 'recmachcustrecord_csd_id',
                                     fieldId: 'custrecord_csd_description',
-                                    value: discountDesc
+                                    value: promString
                                 });
                                 
                                 customRecord.setCurrentSublistValue({
                                     sublistId: 'recmachcustrecord_csd_id',
                                     fieldId: 'custrecord_csd_rate',
-                                    value: -(realDiscount)
+                                    value: -(totalAmountPromotion)
                                 });
                                 customRecord.setCurrentSublistValue({
                                     sublistId: 'recmachcustrecord_csd_id',
                                     fieldId: 'custrecord_csd_amount',
-                                    value: -(realDiscount)
+                                    value: -(totalAmountPromotion)
                                 });
                                 
                                 customRecord.setCurrentSublistValue({
@@ -441,7 +500,6 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                                 });
                                 customRecord.commitLine({ sublistId: 'recmachcustrecord_csd_id' });
                             }
-                           
                         allTransaction.forEach(trans=>{
                             var paymentMethon = trans.paymentTypeName
                             var amountPayment = trans.amount
@@ -500,15 +558,6 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                         })
                         var saveCustRec = customRecord.save();
                         log.debug('saveCustRec', saveCustRec)
-                        
-        
-                        // Send success response
-                        context.response.write({
-                            output: JSON.stringify({
-                                status: 'success',
-                                message: 'Data received and processed successfully!'
-                            })
-                        });
                     }
                      
                     
