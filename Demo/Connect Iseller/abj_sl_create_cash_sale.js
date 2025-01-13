@@ -2,7 +2,7 @@
  * @NApiVersion 2.1
  * @NScriptType Suitelet
  */
-define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], function(log, http, record, crypto, error, search) {
+define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search', 'N/task'], function(log, http, record, crypto, error, search, task) {
 
     function handleCreateRefund(context){
         try {
@@ -156,9 +156,6 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                     var timestamp = requestHeader['Timestamp'];
                     var apiKey = requestHeader['APIKey'];
                     var signature = requestHeader['Signature'];
-                    
-                   
-                   
                     // Create a new custom record
                     var orderId = requestBody.order_reference
                     log.debug('orderId', orderId)
@@ -322,7 +319,7 @@ define(['N/log', 'N/http', 'N/record', 'N/crypto', 'N/error', 'N/search'], funct
                                 if(cekPromotion.length > 0){
                                     cekPromotion.forEach((prom =>{
                                         var nameProm = prom.promotion_name
-                                        var amountProm = prom.promotion_amount
+                                        var amountProm = prom.promotion_amount2
                                         promName = nameProm
                                         amountPromotion += amountProm
                                         

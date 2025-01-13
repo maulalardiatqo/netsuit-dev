@@ -19,8 +19,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
             return months[number - 1];
         }
-        function getBudget(periodText, subsId, account, department){
-            log.debug('filter search budget', {periodText : periodText, subsId: subsId, account: account, department: department})
+        function getBudget(periodText, subsId, account, department, dateText){
+            log.debug('filter search budget', {periodText : periodText, subsId: subsId, account: account, department: department, dateText: dateText})
+            console.log('filter search budget', {periodText : periodText, subsId: subsId, account: account, department: department, dateText: dateText})
 
             var transactionSearchObj = search.create({
                 type: "transaction",
@@ -33,7 +34,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     "AND", 
                     ["custbody_bm_budget_current","is","T"], 
                     "AND", 
-                    ["custcol_bm_line_bdg_val","is",periodText], 
+                    //['formulatext: {custbody_bm_period_range}', 'contains', periodText],
+                    ["formulatext: TO_CHAR({custcol_bm_start_date}, 'MM/YYYY')","contains",dateText],
                     "AND", 
                     ["subsidiary","anyof",subsId], 
                     "AND", 
@@ -50,6 +52,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     search.createColumn({name: "amount", label: "Amount"}),
                     search.createColumn({name: "custcol_bm_line_bdg_val", label: "Budget Period"}),
                     search.createColumn({name: "custbody_bm_budget_control", label: "Budget Control"}),
+                    search.createColumn({name: "custbody_bm_period_range", label: "Period Range"}),
                     search.createColumn({
                         name: "custrecord_bm_warn_msg_tran_save",
                         join: "CUSTBODY_BM_BUDGET_CONTROL",
@@ -78,6 +81,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 ]
             });
             var transSearchResult = transactionSearchObj.run().getRange({ start: 0, end: 1 });
+            //log.debug('transSearchResult : '+transSearchResult.length, transSearchResult);
             var allDataBudget = []
             if (transSearchResult.length > 0) {
                 var budget = transSearchResult[0].getValue({ name: "amount",});
@@ -116,8 +120,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
             return allDataBudget
         }
-        function callSearch(subsId, account, department, estAmount, period){
-            log.debug('filterSearch consumed', {subsId : subsId, account : account, estAmount : estAmount, period : period})
+        function callSearch(subsId, account, department, estAmount, period, dateText){
+            log.debug('filterSearch consumed', {subsId : subsId, account : account, estAmount : estAmount, period : period, dateText: dateText})
             var purchaserequisitionSearchObj = search.create({
                 type: "purchaserequisition",
                 settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
@@ -135,7 +139,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     "AND", 
                     ["account","anyof",account],
                     "AND", 
-                    ["formulatext: TO_CHAR({trandate}, 'MM-YYYY')","is",period], 
+                    //["formulatext: TO_CHAR({trandate}, 'MM-YYYY')","is",period],
+                    ["formulatext: TO_CHAR({trandate}, 'MM/YYYY')","contains",dateText]
                 ],
                 columns:
                     [
@@ -174,6 +179,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             });
             var searchResults = purchaserequisitionSearchObj.run().getRange({ start: 0, end: 1 });
             var amtFromSearch = 0
+            log.debug('searchResults : '+searchResults.length, searchResults);
             if (searchResults.length > 0) {
                 var estimatedAmount = searchResults[0].getValue({ name: "estimatedamount", summary: "SUM", });
                 var period = searchResults[0].getValue({
@@ -188,10 +194,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var newAmount = Number(amtFromSearch) + Number(estAmount)
             return newAmount
         }
-        function setSblValue(currentRecordObj, subsId, department, account, period, periodText, estAmount, additionalAmt, sblsId){
+        function setSblValue(currentRecordObj, subsId, department, account, period, periodText, estAmount, additionalAmt, sblsId, dateText){
             var newAmount = 0
-            if(subsId && account && department && estAmount && period){
-                newAmount = callSearch(subsId, account, department, estAmount, period)
+            if(subsId && account && department && estAmount && period && dateText){
+                newAmount = callSearch(subsId, account, department, estAmount, period, dateText)
             }
             
             log.debug('newAmount', newAmount)
@@ -205,9 +211,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 });
             }
             var dataBudget = []
-            if(periodText && subsId && account && department){
-                dataBudget = getBudget(periodText, subsId, account, department)
+            if(periodText && subsId && account && department && dateText){
+                dataBudget = getBudget(periodText, subsId, account, department, dateText)
             }
+            console.log('DATA BUDGET', dataBudget)
+            log.debug('DATA BUDGET', dataBudget)
             
             if(dataBudget.length > 0){
                 var budgetAmt = dataBudget[0].budget
@@ -244,6 +252,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var period = month + '-' + year;
             var bulan = convertNumberToMonth(month);
             var periodText = bulan + ' ' + year;
+            var dateText = month + '/' + year;
             
             if (subsId) {
                 var department = currentRecordObj.getCurrentSublistValue({  
@@ -316,7 +325,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             }
                         }
                     }
-                    setSblValue(currentRecordObj, subsId, department, account, period, periodText, estAmount, additionalAmt, sblsId);
+                    setSblValue(currentRecordObj, subsId, department, account, period, periodText, estAmount, additionalAmt, sblsId, dateText);
                 }
             }
         }
@@ -367,11 +376,12 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: "custcol_bm_budgetamountconsumed",
                         line: i
                     });
+                    log.debug('msgGlobal', msgGlobal);
                     if(budget && consumed){
                         if (consumed > budget) {
                             log.debug('budgetContorlGolbal', budgetContorlGolbal)
                             if(budgetContorlGolbal == "1"){
-                                log.debug('msgGlobal', msgGlobal);
+                                
                                 currentRecordObj.setValue({
                                     fieldId : "custbody_bm_budgetstatus",
                                     value : msgGlobal
@@ -382,7 +392,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                     title: 'Warning!',
                                     message: '<div style="color: red;">One or more transaction lines in the "Expense" sublist either do not have a matching budget or are exceeding budget. Check the transaction lines and update.</div>'
                                 });
-                                return false;
+                                return true;
                             }
                             
                         }
@@ -405,6 +415,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: "custcol_bm_budgetamountconsumed",
                         line: k
                     });
+                    log.debug('SAVE budget', budget)
+                    log.debug('SAVE consumed', consumed)
                     if(budget && consumed){
                         if (consumed > budget) {
                             log.debug('budgetContorlGolbal', budgetContorlGolbal)
@@ -420,7 +432,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                     title: 'Warning!',
                                     message: '<div style="color: red;">One or more transaction lines in the "Item" sublist either do not have a matching budget or are exceeding budget. Check the transaction lines and update.</div>'
                                 });
-                                return false;
+                                return true;
                             }
                             
                         }

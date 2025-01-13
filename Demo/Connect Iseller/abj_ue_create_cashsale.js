@@ -39,6 +39,7 @@ define(['N/record', 'N/log', 'N/error', 'N/search'], (record, log, error, search
                 log.debug('idIsell', idIsell);
 
                 // Ambil data dari record custom
+                const nameCust = newRecord.getValue('name');
                 const dateRec = newRecord.getValue('custrecord_cs_date');
                 const customer = newRecord.getValue('custrecord_cs_customer');
                 const memo = newRecord.getValue('custrecord_cs_memo');
@@ -102,6 +103,7 @@ define(['N/record', 'N/log', 'N/error', 'N/search'], (record, log, error, search
                     });
 
                     cashSale.setValue({ fieldId: 'entity', value: customer });
+                    cashSale.setValue({ fieldId: 'tranid', value: nameCust });
                     cashSale.setValue({ fieldId: 'memo', value: memoIseller });
                     cashSale.setValue({ fieldId: 'trandate', value: dateRec });
                     cashSale.setValue({ fieldId: 'subsidiary', value: subsidiary });
