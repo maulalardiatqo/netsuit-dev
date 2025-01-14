@@ -24,6 +24,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     fieldId: "custrecord_iss_lead_time",
                 });
                 console.log('leadTimeKirim', leadTimeKirim)
+                log.debug('leadTimeKirim', leadTimeKirim)
                 if(leadTimeKirim){
                     var valueRumus = 0
                     var avgBusdev = currentRecordObj.getCurrentSublistValue({
@@ -54,14 +55,27 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             sublistId: "item",
                             fieldId : "quantity"
                         });
+                        var ratePack = 0
+
                         var convRate = record.getCurrentSublistValue({
                             sublistId: "item",
                             fieldId : "custcol_abj_ratepacksize"
                         });
-                        console.log('convRate', convRate);
+                        if(convRate != null && convRate != '' && convRate != undefined){
+                            ratePack = convRate
+                        }else{
+                            ratePack =  record.getCurrentSublistValue({
+                                sublistId: "item",
+                                fieldId : "custcol_abj_rate_units_decimal"
+                            });
+                        }
+                        console.log('ratePack', ratePack);
+                        log.debug('ratePack', ratePack)
                         console.log('quantity', quantity);
-                        var setOrder = Number(quantity) *  Number(convRate);
+                        log.debug('quantity', quantity);
+                        var setOrder = Number(quantity) *  Number(ratePack);
                         console.log('setOrder', setOrder);
+                        log.debug('setOrder', setOrder)
                         flag = true
                         record.setCurrentSublistValue({
                             sublistId: "item",
@@ -88,14 +102,26 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             sublistId: "item",
                             fieldId : "custcol_pr_total_order"
                         });
+                        var ratePack = 0
+
                         var convRate = record.getCurrentSublistValue({
                             sublistId: "item",
                             fieldId : "custcol_abj_ratepacksize"
                         });
+                        if(convRate != null && convRate != '' && convRate != undefined){
+                            ratePack = convRate
+                        }else{
+                            ratePack =  record.getCurrentSublistValue({
+                                sublistId: "item",
+                                fieldId : "custcol_abj_rate_units_decimal"
+                            });
+                        }
                         console.log('convRate', convRate);
+                        log.debug('convRate' , convRate);
                         console.log('order', order);
-                        var setQty = Number(order) /  Number(convRate);
+                        var setQty = Number(order) /  Number(ratePack);
                         console.log('setQty', setQty);
+                        log.debug('setQty', setQty);
                         flag = true
                         record.setCurrentSublistValue({
                             sublistId: "item",
@@ -127,6 +153,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         });
                         console.log('packSizeOrder', packSizeOrder);
                         console.log('order', order);
+                        log.debug('packSizeOrder', packSizeOrder);
+                        log.debug('order', order);
                         var rateUnit = 1
                         var unitstypeSearchObj = search.create({
                             type: "unitstype",
@@ -148,8 +176,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             }
                         } 
                         console.log('rateUnit', rateUnit)
+                        log.debug('rateUnit', rateUnit)
                         var setQty = Number(order) /  Number(rateUnit);
                         console.log('setQty', setQty);
+                        log.debug('setQty', setQty);
                         flag = true
                         record.setCurrentSublistValue({
                             sublistId: "item",
@@ -158,13 +188,48 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         });
                         record.setCurrentSublistValue({
                             sublistId: "item",
-                            fieldId: "custcol_abj_ratepacksize",
+                            fieldId: "custcol_abj_rate_units_decimal",
                             value: rateUnit,
                         });
                         flag = false
                     }
                 }
                 
+            }
+        }
+        if (sublistName == 'item'){
+            if(sublistFieldName == 'custcol_abj_purchase_price_per_kg'){
+                console.log('cForm', cFrom);
+                if(cFrom == '104'){
+                    var priceKg = record.getCurrentSublistValue({
+                        sublistId: "item",
+                        fieldId : "custcol_pr_total_order"
+                    });
+                    var ratePack = 0
+
+                    var convRate = record.getCurrentSublistValue({
+                        sublistId: "item",
+                        fieldId : "custcol_abj_ratepacksize"
+                    });
+                    if(convRate != null && convRate != '' && convRate != undefined){
+                        ratePack = convRate
+                    }else{
+                        ratePack =  record.getCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId : "custcol_abj_rate_units_decimal"
+                        });
+                    }
+
+                    console.log('convRate', convRate)
+                    console.log('priceKg', priceKg)
+                    var pricePacking = Number(priceKg) * Number(ratePack);
+                    console.log('pricePacking', pricePacking)
+                    record.setCurrentSublistValue({
+                        sublistId: "item",
+                        fieldId: "rate",
+                        value: pricePacking,
+                    });
+                }
             }
         }
     }

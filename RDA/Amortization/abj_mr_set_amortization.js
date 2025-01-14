@@ -13,6 +13,7 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
         var amount = currentScript.getParameter({ name: 'custscript_recamount' });
         var account = currentScript.getParameter({ name: 'custscript_account' });
         var recId = currentScript.getParameter({ name: 'custscript_id_trans' });
+        var totalAmount = currentScript.getParameter({ name: 'custscript_total_amount' });
 
 
         log.debug('Input Parameters:', {
@@ -31,7 +32,8 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
                 endDate: endDate,
                 amount: amount,
                 account : account,
-                recId : recId
+                recId : recId,
+                totalAmount : totalAmount
             }
         ];
     }
@@ -45,6 +47,7 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
         var amount = data.amount;
         var account = data.account;
         var recId = data.recId;
+        var totalAmount = data.totalAmount
         log.debug('startDate', startDate)
         log.debug('endDate', endDate)
         var vendorbillSearchObj = search.create({
@@ -130,7 +133,6 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
             var lineCount = amortizationScheduleRec.getLineCount({ sublistId: 'recurrence' });
             log.debug('lineCount', lineCount)
             for (var i = lineCount - 1; i >= 0; i--) {
-                log.debug('masuk loopingan', i)
                 amortizationScheduleRec.selectLine({
                     sublistId: 'recurrence',
                     line: i
@@ -142,36 +144,62 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
                 });
             }
             var forSave = false
+            var cekTotalAmount = 0;
+            var allAmounts = [];
+            
             formattedDates.forEach(formattedDate => {
-                log.debug('formattedDate', formattedDate)
-                var idPeriod
+                cekTotalAmount += Number(amount); 
+                allAmounts.push(amount); 
+            });
+            
+            log.debug('cekTotalAmount', cekTotalAmount);
+            log.debug('totalAmount', totalAmount)
+            
+            var adjustedAmount = (Number(totalAmount) - Number(cekTotalAmount)).toFixed(2);;
+            log.debug('adjustedAmount', adjustedAmount)
+            var cekTotal = 0
+            formattedDates.forEach((formattedDate, index) => {
+                var amount = allAmounts[index];
+                
+                if (index === formattedDates.length - 1) { // Loop terakhir
+                    // Sesuaikan amount pada iterasi terakhir
+                    amount = (Number(amount) + Number(adjustedAmount)).toFixed(2);
+                }
+                
+                log.debug('formattedDate', formattedDate);
+                log.debug('adjustedAmount', adjustedAmount);
+                
+                var idPeriod;
                 var accountingperiodSearchObj = search.create({
                     type: "accountingperiod",
-                    filters:
-                    [
-                        ["periodname","is",formattedDate]
+                    filters: [
+                        ["periodname", "is", formattedDate]
                     ],
-                    columns:
-                    [
-                        search.createColumn({name: "internalid", label: "Internal ID"})
+                    columns: [
+                        search.createColumn({ name: "internalid", label: "Internal ID" })
                     ]
                 });
+            
                 var searchResultCount = accountingperiodSearchObj.runPaged().count;
-                log.debug("accountingperiodSearchObj result count",searchResultCount);
-                accountingperiodSearchObj.run().each(function(result){
+                log.debug("accountingperiodSearchObj result count", searchResultCount);
+                
+                accountingperiodSearchObj.run().each(function(result) {
                     var period = result.getValue({
                         name: "internalid"
-                    })
-                    if(period){
-                        idPeriod = period
+                    });
+                    
+                    if (period) {
+                        idPeriod = period;
                     }
+                    
                     return false;
                 });
-                log.debug('idPeriod', idPeriod)
-                if(idPeriod){
-                    forSave = true
-                    log.debug('idPeriod', idPeriod)
-                    log.debug('data to set', {idPeriod : idPeriod, account: account, amount : amount})
+            
+                if (idPeriod) {
+                    forSave = true;
+                    log.debug('idPeriod', idPeriod);
+                    log.debug('data to set', { idPeriod: idPeriod, account: account, amount: amount });
+                    
                     amortizationScheduleRec.selectNewLine({ sublistId: 'recurrence' });
                     amortizationScheduleRec.setCurrentSublistValue({
                         sublistId: 'recurrence',
@@ -183,6 +211,7 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
                         fieldId: 'postingperiod',
                         value: idPeriod
                     });
+                    cekTotal = (Number(cekTotal) + Number(amount)).toFixed(2)
                     amortizationScheduleRec.setCurrentSublistValue({
                         sublistId: 'recurrence',
                         fieldId: 'recamount',
@@ -190,8 +219,9 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
                     });
                     amortizationScheduleRec.commitLine({ sublistId: 'recurrence' });
                 }
-               
             });
+            log.debug('cekTotal', cekTotal)
+            
             if(forSave){
                 var saveAmor = amortizationScheduleRec.save()
                 log.debug('saveAmor', saveAmor)

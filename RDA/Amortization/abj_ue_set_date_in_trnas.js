@@ -216,7 +216,8 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             if(startOffset > 0){
                                 amortPeriod = Number(amortPeriod) - Number(startOffset)
                             }
-                            var amounttoSet = Number(amount) / Number(amortPeriod)
+                            var amounttoSet = (Number(amount) / Number(amortPeriod)).toFixed(2);
+                            log.debug('amounttoSet', amounttoSet)
                             recordLoad.selectLine({
                                 sublistId : "expense",
                                 line : i
@@ -260,7 +261,9 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                                     custscript_startdate: startDate,
                                     custscript_enddate: endDate,
                                     custscript_account : account,
-                                    custscript_id_trans : recId
+                                    custscript_id_trans : recId,
+                                    custscript_total_amount : amount
+
 
                                 }
                             });
@@ -329,7 +332,7 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             if(startOffset > 0){
                                 amortPeriod = Number(amortPeriod) - Number(startOffset)
                             }
-                            var amounttoSet = Number(amount) / Number(amortPeriod)
+                            var amounttoSet = (Number(amount) / Number(amortPeriod)).toFixed(2);
                             recordLoad.selectLine({
                                 sublistId : "item",
                                 line : i
@@ -381,7 +384,8 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                                     custscript_startdate: startDate,
                                     custscript_enddate: endDate,
                                     custscript_account : account,
-                                    custscript_id_trans : recId
+                                    custscript_id_trans : recId,
+                                    custscript_total_amount : amount
 
                                 }
                             });
