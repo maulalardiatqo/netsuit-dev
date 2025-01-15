@@ -3,9 +3,16 @@
  * @NScriptType Suitelet
  */
 // This sample shows how to render search results into a PDF file.
-define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
+define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime', 'N/format/i18n'],
     function(render, search, record, log, file, http, config, format, email, runtime) {
         try{
+            function getCurrentUserName() {
+                var currentUser = runtime.getCurrentUser();
+        
+                var userName = currentUser.name;
+        
+                return userName;
+            }
             function removeDecimalFormat(value) {
                 return value.split('.')[0];
             }
@@ -23,9 +30,27 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     return Math.ceil(angka);
                 }
             }
+            function addDaysToDate(invDate, daysToAdd) {
+                // Split the date string into day, month, and year
+                const [day, month, year] = invDate.split('/').map(Number);
+            
+                // Create a new Date object
+                const date = new Date(year, month - 1, day);
+            
+                // Add the specified number of days
+                date.setDate(date.getDate() + daysToAdd);
+            
+                // Format the new date as DD/MM/YYYY
+                const newDay = String(date.getDate()).padStart(2, '0');
+                const newMonth = String(date.getMonth() + 1).padStart(2, '0');
+                const newYear = date.getFullYear();
+            
+                return `${newDay}/${newMonth}/${newYear}`;
+            }
             function onRequest(context) {
                 var recid = context.request.parameters.id;
-                
+                var idUserNow = getCurrentUserName();
+                log.debug('idUserNow', idUserNow)
                 // load SO
                 var invoiceRecord = record.load({
                     type: "invoice",
@@ -149,6 +174,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 // PO data
                 var tandId = invoiceRecord.getValue('tranid');
+                var FakturPenjualan = invoiceRecord.getValue('custbody_msa_nofakturpenjualan');
                 var InvDate = invoiceRecord.getValue('trandate');
                 var terms = invoiceRecord.getText('terms');
                 var fakturPajak = invoiceRecord.getValue('custbody_fcn_faktur_pajak');
@@ -331,16 +357,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type: format.Type.DATE
                     });
                 }
-                // var amountRecieved = Number(subtotalB) - Number(discount) + Number(taxtotalB) / Number(totalB);
-                // log.debug('subtotal', subtotalB);
-                // log.debug('discount', discount);
-                // log.debug('total', totalB);
-                // log.debug('taxtotal', taxtotalB);
-                // log.debug('amountR', amountRecieved);
-                // amountRecieved = format.format({
-                //     value: amountRecieved,
-                //     type: format.Type.CURRENCY
-                // });
+                var empName = ''
+                var empId = invoiceRecord.getValue('custbody_fcn_sales_employee');
+                if(empId){
+                    var recEmp = record.load({
+                        type : 'employee',
+                        id : empId
+                    });
+                    var fName = recEmp.getValue('firstname');
+                    var lName = recEmp.getValue('lastname');
+                    empName = fName + ' ' + lName;
+                }
                 var response = context.response;
                 var xml = "";
                 var header = "";
@@ -383,159 +410,190 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                if (urlLogo) {
-                    body += "<td class='tg-headerlogo' style='width:50%;vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
-                }
-                body+= "<td>";
-                body+=  "<p class='tg-headerrow_legalName' style='margin-top: 10px; margin-bottom: 10px;'>"  + legalName + "</p>";
-                body+= "<p class='tg-headerrow' style='margin-top: 1px; margin-bottom: 1px;'>"+ addresSubsidiaries + "<br/>";
-                body+= ""+ retEmailAddres + "<br/>"
-                body+= "NPWP : "+ Npwp + "</p>" ;
-                body+="</td>";
+                body+= "<td style='width:50%'></td>"
+                body+= "<td style='width:15%'></td>"
+                body+= "<td style='width:1%'></td>"
+                body+= "<td style='width:34%'></td>"
                 body+= "</tr>";
-                body+= "<tr style='height:5px;'>";
-                body+= "</tr>";
+
                 body+= "<tr>";
-                body+= "<td>";
-                body+= "<p class='tg-headerrow_left'>"+ custName + "<br/>"
-                body+= "<span>"+custAddres+"</span><br/>"
-                body+= "<span>"+custEmail+"</span><br/>"
-                body+= "NPWP : "+ taxRegNo + "</p>"
-                body+= "</td>"
-                body+= "<td>"
-                body+= "<p class='tg-headerrow_legalName'> Invoice # : "+ tandId + "<br/>"
-                body+= ""+ InvDate + "</p>"
-                body+= "<p class='tg-headerrow' style='font-size:11px'> Terms : "+ terms + "<br/>"
-                body+= "Due Date :"+duedate+ "</p>"
-                // body+= "<p class='tg-headerrow_Total'> Rp."+ balance + "</p>"
-                body+= "</td>"
-                body+= "</tr>"
-                body+= "<tr style='height:10px;'>";
+                body+= "<td colspan='4' style='align:center; font-weight:bold;'><u>FAKTUR PENJUALAN</u></td>"
                 body+= "</tr>";
+
+                body+= "<tr>";
+                body+= "<td style='font-weight:bold; font-size:15px'>"+legalName+"</td>"
+                body+= "<td style=''>No. Invoice</td>"
+                body+= "<td style=''>:</td>"
+                body+= "<td style=''>"+tandId+"</td>"
+                body+= "</tr>"
+
+                body+= "<tr>";
+                body+= "<td style=''>"+addresSubsidiaries+"</td>"
+                body+= "<td style=''>Tgl. Faktur</td>"
+                body+= "<td style=''>:</td>"
+                body+= "<td style=''>"+InvDate+"</td>"
+                body+= "</tr>";
+                log.debug('cekInvdate', InvDate)
+
+                const dateAfter = addDaysToDate(InvDate, 30);
+                log.debug('dateAfter', dateAfter)
+                body+= "<tr>";
+                body+= "<td style=''>No. Faktur : "+FakturPenjualan+"</td>"
+                body+= "<td style=''>Tgl. Tempo</td>"
+                body+= "<td style=''>:</td>"
+                body+= "<td style=''>"+dateAfter+"</td>"
+                body+= "</tr>";
+
+                body+= "<tr>";
+                body+= "<td style=''></td>"
+                body+= "<td style=''>Pelanggan</td>"
+                body+= "<td style=''>:</td>"
+                body+= "<td style=''>"+custName+"</td>"
+                body+= "</tr>";
+
+                body+= "<tr style='height :20px'>";
+                body+= "</tr>";
+        
                 body+= "</tbody>";
                 body+= "</table>";
-    
+
                 body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
                 body += "<tbody>";
+
                 body += "<tr>"
-                body += "<td class='tg-head_body' style='width:12%'> QTY </td>"
-                body += "<td class='tg-head_body' style='width:31%'> ITEM </td>"
-                body += "<td class='tg-head_body' style='align:right; width:17%;'> UNIT PRICE ("+ tlcCurr +") </td>"
-                body += "<td class='tg-head_body' style='align:right'> TAXED </td>"
-                body += "<td class='tg-head_body' style='align:right; width:20%;'> AMOUNT ("+ tlcCurr +") </td>"
+                body += "<td style='width:4%; align:center; border : solid black 1px; border-right: none;'> No </td>"
+                body += "<td style='width:10%; align:center;border : solid black 1px; border-right: none;'> Kode </td>"
+                body += "<td style='width:30%; align:center; border : solid black 1px; border-right: none;'> Nama Barang </td>"
+                body += "<td style='width:13%; align:center; border : solid black 1px; border-right: none;'>  Harga Satuan </td>"
+                body += "<td style='width:5%; align:center; border : solid black 1px; border-right: none;'> QTY </td>"
+                body += "<td style='width:8%; align:center; border : solid black 1px; border-right: none;'> Satuan </td>"
+                body += "<td style='width:10%; align:center; border : solid black 1px;'> Disc [%] </td>"
+                body += "<td style='width:15%; align:center; border : solid black 1px; border-left: none;'> Jumlah </td>"
                 body += "</tr>"
-                body += getPOItem(context, invoiceRecord);
-                body += "<tr>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-f_body' colspan='2'>SUBTOTAL</td>"
-                body += "<td class='tg-f_body'>"+subTotal+"</td>"
-                body += "</tr>"
-                if(discount !== 0){
-                    
-                    body += "<tr>"
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-f_body'></td>"
-                    body += "<td class='tg-f_body'>Discount "+ prosentDiscount +" %</td>"
-                    log.debug('sampai11', prosentDiscount);
-                    body += "<td class='tg-f_body'>"+discount+"</td>"
-                    body += "</tr>"
-                }
-                if(taxItem !== 0){
-                    body += "<tr>"
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-f_body'></td>"
-                    body += "<td class='tg-f_body'>PPN "+ taxItem +" %</td>"
-                    body += "<td class='tg-f_body'>"+ taxtotal +"</td>"
-                    body += "</tr>"
-                }
+
+                var poDetails = getPOItem(context, invoiceRecord);
+                body += poDetails.body;
+
+                body += "</tbody>";
+                body += "</table>";
+
+                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
+                body += "<tbody>";
                 
                 body += "<tr>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-f_body'></td>"
-                body += "<td class='tg-f_body'>TOTAL</td>"
-                body += "<td class='tg-f_body'>"+total+"</td>"
+                body += "<td style='width:2%; align:center;'></td>"
+                body += "<td style='width:15%; align:center;'></td>"
+                body += "<td style='width:2%; align:center;'></td>"
+                body += "<td style='width:15%; align:center;'></td>"
+                body += "<td style='width:2%; align:center;'></td>"
+                body += "<td style='width:15%; align:center;'></td>"
+                body += "<td style='width:2%; align:center;'></td>"
+                body += "<td style='width:17%; align:center;'></td>"
+                body += "<td style='width:30%; align:center;'></td>"
                 body += "</tr>"
-                if(whTaxCodetoPrint){
-                    body += "<tr>"
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td style='align: right;font-size:12px;border-bottom: solid black 2px;' colspan='2'>"+whTaxCodetoPrint+" </td>"
-                    body += "<td class='tg-f_body'>"+totalWhTaxamount+"</td>"
-                    body += "</tr>"
-                }
+                var subtotalAmount = format.format({
+                    value: poDetails.subTotal,
+                    type: format.Type.CURRENCY
+                });
                 body += "<tr>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td style='align: right;font-size:14px;border-top: solid black 2px; font-weight: bold;' colspan='2'>Balance Due</td>"
-                body += "<td style='align: right;font-size:15px;border-top: solid black 2px; font-weight: bold;'>"+ amountReceive +"</td>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:center;'>Fakturing,</td>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:center;'>Pelanggan,</td>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:center;'>Mengetahui,</td>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:right; border: solid black 1px; border-bottom: none;'>Subtotal</td>"
+                body += "<td style='align:right; border: solid black 1px; border-bottom: none; border-left: none;'>"+subtotalAmount+"</td>"
                 body += "</tr>"
-                // body += "<tr>"
-                // body += "<td class='tg-headerrow_left'></td>"
-                // body += "<td class='tg-headerrow_left'></td>"
-                // body += "<td style='align: right;font-size:15px;' colspan='2'>BALANCE DUE</td>"
-                // body += "<td style='align: right;font-size:15px;'>"+balance+"</td>"
-                // body += "</tr>"
-                body += "<tr style='height:30px;'></tr>"
+                if(poDetails.totalDiscount){
+                    var potongan = format.format({
+                        value: poDetails.totalDiscount,
+                        type: format.Type.CURRENCY
+                    });
+                }
+               
+                body += "<tr style='height:30px'>"
+                body += "<td style='align:center;' colspan='7'></td>"
+                body += "<td style='align:right; border: solid black 1px; border-bottom: none; border-top: none;'>Potongan</td>"
+                body += "<td style='align:right; border: solid black 1px; border-bottom: none; border-left: none; border-top: none;'>"+potongan+"</td>"
+                body += "</tr>"
+                var totalAmount = Number(poDetails.subTotal) - Number(poDetails.totalDiscount) 
+                if(totalAmount){
+                        totalAmount = format.format({
+                        value: totalAmount,
+                        type: format.Type.CURRENCY
+                    });
+                } 
+                body += "<tr>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:center; border-bottom: solid black 1px;'></td>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:center; border-bottom: solid black 1px;'></td>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:center; border-bottom: solid black 1px;'></td>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:right; border: solid black 1px; border-top: none;'>Total</td>"
+                body += "<td style='align:right; border: solid black 1px; border-top: none; border-left: none;'>"+totalAmount+"</td>"
+                body += "</tr>"
+                function getCurrentTime() {
+                    const now = new Date();
                 
+                    const day = String(now.getDate()).padStart(2, '0'); // Format DD
+                    const month = String(now.getMonth() + 1).padStart(2, '0'); // Format MM (0-based index)
+                    const year = now.getFullYear(); // Format YYYY
+                    const hours = String(now.getHours()).padStart(2, '0'); // Format HH
+                    const minutes = String(now.getMinutes()).padStart(2, '0'); // Format mm
+                
+                    return `${day}/${month}/${year}/${hours}:${minutes}`;
+                }
+                function getIndonesianTime() {
+                    // Ambil waktu sekarang dalam UTC
+                    var currentTimeUTC = new Date();
+            
+                    // Tambahkan 7 jam untuk konversi ke WIB (GMT+7)
+                    var indonesianTime = new Date(currentTimeUTC.getTime() + 7 * 60 * 60 * 1000);
+            
+                    return indonesianTime.toISOString(); // Format ISO string (opsional)
+                }
+                function formatDate(inputDate) {
+                    const date = new Date(inputDate);
+                
+                    // Ambil komponen tanggal UTC
+                    const day = date.getUTCDate();
+                    const month = date.getUTCMonth() + 1; // Bulan dimulai dari 0
+                    const year = date.getUTCFullYear();
+                
+                    // Ambil jam dan menit dalam UTC
+                    const hours = date.getUTCHours();
+                    const minutes = date.getUTCMinutes();
+                
+                    // Format menit menjadi dua digit
+                    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+                
+                    // Gabungkan menjadi format yang diinginkan
+                    return `${day}/${month}/${year}/${hours}:${formattedMinutes}`;
+                }
+                var cekTime = getIndonesianTime();
+                var currentTime = formatDate(cekTime);
+                
+                log.debug('cekTime', cekTime)
+                log.debug('currentTime', currentTime)
+                body += "<tr>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:center;'>"+empName+"</td>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:center;'></td>"
+                body += "<td style='align:left; font-size:9px' colspan='2'>Printed : "+currentTime + '/' + idUserNow+" </td>"
+                body += "</tr>"
+
                 body += "</tbody>";
                 body += "</table>";
     
-                // body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
-                // body += "<tbody>";
-                // body += "<tr>"
-                // body += "<td style='align:left; width:20%;'></td>"
-                // body += "<td style='align:left; width:30%;'></td>"
-                // body += "<td style='align:left; width:20%;'></td>"
-                // body += "<td style='align:left; width:20%;'></td>"
-                // body += "</tr>"
-                // body += "<tr>"
-                // body += "<td style='align:left; font-weight: bold;'>Payment Detail</td>"
-                // body += "<td></td>"
-                // body += "<td style='align:left; font-weight: bold;'>Other Information</td>"
-                // body += "<td></td>"
-                // body += "</tr>"
-                // body += "<tr>"
-                // body += "<td style='align:left;'>Bank Name </td>"
-                // body += "<td style='align:left;'>: "+ bankName +"</td>"
-                // body += "<td style='align:left;'>Customer References </td>"
-                // body += "<td style='align:left;'>: "+ otehrRefNum +"</td>"
-                // body += "</tr>"
-                // body += "<tr>"
-                // body += "<td style='align:left;'>Bank Branch </td>"
-                // body += "<td style='align:left;'>: "+ bankBranch +"</td>"
-                // body += "</tr>"
-                // body += "<tr>"
-                // body += "<td style='align:left;'>Bank/Swift Code </td>"
-                // body += "<td style='align:left;'>: "+ swiftCode +"</td>"
-                // body += "</tr>"
-                // body += "<tr>"
-                // body += "<td style='align:left;'>Account Name </td>"
-                // body += "<td style='align:left;' colspan='2'>: "+ legalName +"</td>"
-                // body += "</tr>"
-                // body += "<tr>"
-                // body += "<td style='align:left;'>Account Number </td>"
-                // body += "<td style='align:left;'>: "+ accountNo +"</td>"
-                // body += "</tr>"
-                // body += "<tr>"
-                // body += "<td style='align:left;'>Payment References </td>"
-                // body += "<td style='align:left;'>: "+ tandId  +"</td>"
-                // body += "</tr>"
-                // body += "<tr>"
-                // body += "<td style='align:left;'>Faktur Pajak :</td>"
-                // body += "<td style='align:left;'>: "+ fakturPajak +"</td>"
-                // body += "</tr>"
-                // body += "<tr style='height:40px;'></tr>"
-                // // body += "<tr>"
-                // // body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='4'>"+jobNumber+"</td>"
-                // // body += "</tr>"
-                // body += "</tbody>";
-                // body += "</table>";
-                
-    
+
                 footer += "<table class='tg' style='table-layout: fixed;'>";
                 footer += "<tbody>";
                 footer += "<tr style='height:40px;'>";
@@ -583,114 +641,169 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 
                 if(itemCount > 0){
                     var body = "";
+                    var nomor = 1;
+                    var subTotal = 0
+                    var totalDiscount = 0
                     for(var index = 0; index < itemCount; index++){
-                        var qty = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'quantity',
-                            line: index
-                        });
-                        var description = invoiceRecord.getSublistText({
+                        
+                        var itemId = invoiceRecord.getSublistValue({
                             sublistId: 'item',
                             fieldId: 'item',
                             line: index
                         });
-                        if(description){
-                            if (description.includes('\\')) {
-                                // log.debug('ada tanda');
-                                description = description.replace(/\\/g, '<br/>');
+                        if(itemId != 149){
+                            var qty = invoiceRecord.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'quantity',
+                                line: index
+                            });
+                            var description = invoiceRecord.getSublistText({
+                                sublistId: 'item',
+                                fieldId: 'item',
+                                line: index
+                            });
+                            var inventoryitemSearchObj = search.create({
+                                type: "inventoryitem",
+                                filters: [
+                                    ["type", "anyof", "InvtPart"], 
+                                    "AND", 
+                                    ["internalid", "anyof", itemId]
+                                ],
+                                columns: [
+                                    search.createColumn({name: "itemid", label: "Name"})
+                                ]
+                            });
+                            var searchResults = inventoryitemSearchObj.run().getRange({
+                                start: 0,
+                                end: 1
+                            });
+                            var itemName = ''
+                            if (searchResults.length > 0) {
+                                itemName = searchResults[0].getValue({name: "itemid"});
+                                log.debug('Item Name:', itemName);
                             }
-                            if(description.includes('&') && description.includes('&&')){
-                                log.debug('masuk $')
-                                description = description.replace(/&/g, '&amp;');;
+                            if(itemName){
+                                if (itemName.includes('\\')) {
+                                    itemName = itemName.replace(/\\/g, '<br/>');
+                                }
+                                if(itemName.includes('&') && itemName.includes('&&')){
+                                    log.debug('masuk $')
+                                    itemName = itemName.replace(/&/g, '&amp;');;
+                                }
+                                if(itemName.includes('$') && itemName.includes('$$')){
+                                    log.debug('masuk $')
+                                    itemName = itemName.replace(/\$(.*?)\$\$/g, '<b>$1</b>');
+                                }
+                                if(itemName.includes('#') && itemName.includes('##')){
+                                    log.debug('masuk #')
+                                    itemName = itemName.replace(/\#(.*?)\#\#/g, '<i>$1</i>');
+                                }
+                                if(itemName.includes('*') && itemName.includes('**')){
+                                    log.debug('masuk *')
+                                    itemName = itemName.replace(/\*(.*?)\*\*/g, '<u>$1</u>');
+                                }
                             }
-                            if(description.includes('$') && description.includes('$$')){
-                                log.debug('masuk $')
-                                description = description.replace(/\$(.*?)\$\$/g, '<b>$1</b>');
-                            }
-                            if(description.includes('#') && description.includes('##')){
-                                log.debug('masuk #')
-                                description = description.replace(/\#(.*?)\#\#/g, '<i>$1</i>');
-                            }
-                            if(description.includes('*') && description.includes('**')){
-                                log.debug('masuk *')
-                                description = description.replace(/\*(.*?)\*\*/g, '<u>$1</u>');
-                            }
-                        }
-                        
-                        // if(description.includes('<b>')){
-                        //     log.debug('masukKondisi', description)
-                        //     description = description.replace(/<b>(.*?)<\/b>/g, '<strong>$1</strong>');
-                        // }
                             
-                        
-                        
-                        // description = description.replace(/\\/g, '<br/>');
-                        // log.debug('descripsi', description);
-                        var unit = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'units',
-                            line: index
-                        });
-                        var rate;
-                        var rateBef = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'rate',
-                            line: index
-                        });
-                        var ammount = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'amount',
-                            line: index
-                        });
-                        if(rateBef){
-                            rate = rateBef
-                        }else{
-                            rate = Number(ammount) / Number(qty)
-                        }
-                        if(rate){
-                            rate = pembulatan(rate);
-                            rate = format.format({
-                                value: rate,
-                                type: format.Type.CURRENCY
+                            var unit = invoiceRecord.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'units',
+                                line: index
                             });
-                            rate = removeDecimalFormat(rate)
-                        }
-                        
-                        var taxAmt = invoiceRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'tax1amt',
-                            line: index
-                        });
-                        if(taxAmt){
-                            taxAmt = pembulatan(taxAmt)
-                            taxAmt = format.format({
-                                value: taxAmt,
-                                type: format.Type.CURRENCY
+                            var rate;
+                            var rateBef = invoiceRecord.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'rate',
+                                line: index
                             });
-                            taxAmt = removeDecimalFormat(taxAmt)
-                        }
-                        
-                        // var ammount = Number(rateBefor) * Number(qty)
-                        
-                        if (ammount){
-                            ammount = pembulatan(ammount)
-                            ammount = format.format({
-                                value: ammount,
-                                type: format.Type.CURRENCY
+                            var ammount = invoiceRecord.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'amount',
+                                line: index
                             });
-                            ammount = removeDecimalFormat(ammount)
+                            if(rateBef){
+                                rate = rateBef
+                            }else{
+                                rate = Number(ammount) / Number(qty)
+                            }
+                            if(rate){
+                                rate = pembulatan(rate);
+                                rate = format.format({
+                                    value: rate,
+                                    type: format.Type.CURRENCY
+                                });
+                                rate = removeDecimalFormat(rate)
+                            }
+                            
+                            var discLine = 0;
+    
+                            var discPercen = invoiceRecord.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_msa_discount_persen',
+                                line: index
+                            });
+                            var discAmt = invoiceRecord.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_msa_discount_amount',
+                                line: index
+                            });
+                            if(discPercen){
+                                discLine = discPercen + '%';
+                            }else{
+                                if(discAmt){
+                                    var convertDisc = ((discAmt / ammount) * 100).toFixed(2);
+                                    log.debug('convertDisc', convertDisc)
+                                    discLine = convertDisc + '%';
+                                }
+                            }
+                            log.debug('disc', {discPercen : discPercen, discAmt : discAmt })
+                            subTotal += Number(ammount)
+
+                            var discountLineAmount = 0
+                            if(discAmt){
+                                discountLineAmount = discAmt
+                            }else{
+                                if(discPercen){
+                                    var disc = (ammount * (discPercen / 100))
+                                    discountLineAmount
+                                }
+                            }
+                            log.debug('discountLineAmount', discountLineAmount)
+                            totalDiscount += Number(discountLineAmount)
+                            if (ammount){
+                                ammount = pembulatan(ammount)
+                                ammount = format.format({
+                                    value: ammount,
+                                    type: format.Type.CURRENCY
+                                });
+                                ammount = removeDecimalFormat(ammount)
+                            }
+                            
+                            body += "<tr>";
+                            body += "<td  style='align:center;  border-left: solid black 1px; boder-right: solid black 1px;'>"+ nomor + "</td>";
+                            body += "<td  style='align:center;  border-left: solid black 1px;' >"+itemId+"</td>";
+                            body += "<td  style='align:left;  border-left: solid black 1px;'>"+itemName+"</td>";
+                            body += "<td  style='align:right;  border-left: solid black 1px;'>"+rate+"</td>";
+                            body += "<td  style='align:center;  border-left: solid black 1px;'>"+qty+"</td>";
+                            body += "<td  style='align:center;  border-left: solid black 1px;'>"+unit+"</td>";
+                            body += "<td  style='align:right; border-left: solid black 1px; border-right: solid black 1px;' >"+discLine+"</td>";
+                            body += "<td  style='align:right;  border-right: solid black 1px;'>"+ammount+"</td>";
+                            body += "</tr>";
+    
+                            nomor++
                         }
                         
-                        body += "<tr>";
-                        body += "<td class='tg-b_body'>"+qty+" - "+unit+ "Pcs</td>";
-                        body += "<td class='tg-b_body'>"+description+"</td>";
-                        body += "<td class='tg-b_body' style='align:right'>"+rate+"</td>";
-                        body += "<td class='tg-b_body' style='align:right'>X</td>";
-                        body += "<td class='tg-b_body' style='align:right;'>"+ammount+"</td>";
-                        body += "</tr>";
                     }
-                    return body;
+                    body += "<tr>";
+                    body += "<td colspan='8' style=' border-top: solid black 1px;'></td>";
+                    body += "</tr>";
+                    return {
+                        body: body,
+                        subTotal: subTotal,
+                        totalDiscount: totalDiscount
+                    };
                 }
+                return { body: "", subTotal: 0, totalDiscount: 0 };
+
             }
 
         }catch(e){

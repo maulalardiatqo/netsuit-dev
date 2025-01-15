@@ -15,6 +15,8 @@ define(['N/record', 'N/search', 'N/error'], function(record, search, error) {
                 log.debug('typeRec', typeRec);
                 if(typeRec == 'salesord'){
                     typeRec = 'salesorder'
+                }else if(typeRec == 'custinvc'){
+                    typeRec = 'invoice'
                 }
                 var recLoad = record.load({
                     type : typeRec,
@@ -27,8 +29,8 @@ define(['N/record', 'N/search', 'N/error'], function(record, search, error) {
                 log.debug('lineCount', lineCount);
                 var totalDiscount = 0;
                 var cekItem = false;
-                var taxCode
-                var taxRate
+               var taxCode 
+               var taxRate 
                 var totalAmt = 0;
                 if(lineCount > 0){
                     for (var i = 0; i < lineCount; i++) {
@@ -145,9 +147,12 @@ define(['N/record', 'N/search', 'N/error'], function(record, search, error) {
                 totalDiscount = totalDiscount + totalOrderDisc
                 
                 if(totalDiscount != 0){
-                    var countTaxBef = (Number(taxRate) / 100 * Number(totalDiscount));
-                    var countTax = -1 * (Number(taxRate) / 100 * Number(totalDiscount))
-                    var taxAmount = -1 * (Number(totalDiscount) + Number(countTaxBef));
+          //          var countTaxBef = (Number(taxRate) / 100 * Number(totalDiscount));
+                    var countTaxBef = 0 ;
+          //        var countTax = -1 * (Number(taxRate) / 100 * Number(totalDiscount))
+                    var countTax = 0
+          //        var taxAmount = -1 * (Number(totalDiscount) + Number(countTaxBef));
+                    var taxAmount = -1 * Number(totalDiscount);
                     var totalDiscountMin = -1 * Number(totalDiscount);
                     log.debug('taxAmount', taxAmount);
                     log.debug('totalDisc > 0')
@@ -223,12 +228,12 @@ define(['N/record', 'N/search', 'N/error'], function(record, search, error) {
                         recLoad.setCurrentSublistValue({
                             sublistId : 'item',
                             fieldId : 'taxcode',
-                            value : taxCode
+                            value : ""
                         })
                         recLoad.setCurrentSublistValue({
                             sublistId : 'item',
                             fieldId : 'taxrate1',
-                            value : taxRate
+                            value : 0
                         })
                         recLoad.setCurrentSublistValue({
                             sublistId : 'item',

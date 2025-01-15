@@ -121,7 +121,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     
                 if (isFulfill == true) {
                     if(qty > quantityOnHand){
-                        console.log('quantity lebih besar');
+                        console.log('quantity lebih besar', {qty : qty, quantityOnHand : quantityOnHand});
+                        console.log('cekLine ke', i)
                         validateOnhand = false;
                         newRec.setSublistValue({
                             sublistId: 'item',

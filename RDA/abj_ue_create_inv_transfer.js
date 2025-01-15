@@ -97,7 +97,8 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                             var searchResults = itemSearchObj.run().getRange({ start: 0, end: 1 });
                             
                             if (searchResults.length > 0) {
-                                var quantityOnHand = searchResults[0].getValue({ name: "locationquantityonhand" }) * Number(unitRate);
+                                var quantityOnHand = searchResults[0].getValue({ name: "locationquantityonhand" }) * unitRate;
+                                
                             } 
                             
                             var units = newRec.getSublistValue({
@@ -179,6 +180,7 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                             } catch (e) {
                                 log.error('Error creating Inventory Transfer', e);
     
+                                // Set the error message on SO
                                 record.submitFields({
                                     type: 'salesorder',
                                     id: soId,
