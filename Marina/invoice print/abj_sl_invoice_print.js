@@ -70,6 +70,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 
                 var subsidiari = invoiceRecord.getValue('subsidiary');
                 // load subsidiarie
+                
                 if(subsidiari){
                     var subsidiariRec = record.load({
                         type: "subsidiary",
@@ -79,6 +80,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     // load for header
                     var legalName = subsidiariRec.getValue('legalname');
                     var addresSubsidiaries = subsidiariRec.getValue('mainaddress_text');
+                    var addresParts = addresSubsidiaries.split('\n')
                     var name = subsidiariRec.getValue('name');
                     var retEmailAddres = subsidiariRec.getValue('email');
                     var Npwp = subsidiariRec.getValue('federalidnumber');
@@ -372,7 +374,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var xml = "";
                 var header = "";
                 var body = "";
-                var headerHeight = '1%';
+                var headerHeight = '0%';
                 var style = "";
                 var footer = "";
                 var pdfFile = null;
@@ -384,13 +386,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 
                 style += "<style type='text/css'>";
+                style += "body { font-family: 'Calibri Light', sans-serif; width: 210mm; height: 140mm; padding-top: 0; margin: 0; padding-bottom: 0; }";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
-                style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
-                if(subsidiari == 1){
-                    style += ".tg .tg-img-logo{width:150px; height:111px; object-vit:cover;}";
-                }else{
-                    style += ".tg .tg-img-logo{width:195px; height:90px; object-vit:cover;}";
-                }
                 style += ".tg .tg-headerrow{align: right;font-size:12px;}";
                 style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
                 style += ".tg .tg-headerrow_Total{align: right;font-size:16px;word-break:break-all; font-weight: bold;}";
@@ -402,12 +399,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 style += "</style>";
                 
     
-                header += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
-                header += "<tbody>";
-                header += "</tbody>";
-                header += "</table>";
-    
-                body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
+                body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
                 body+= "<td style='width:50%'></td>"
@@ -428,7 +420,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "</tr>"
 
                 body+= "<tr>";
-                body+= "<td style=''>"+addresSubsidiaries+"</td>"
+                body+= "<td style=''>"+addresParts[0]+"</td>"
                 body+= "<td style=''>Tgl. Faktur</td>"
                 body+= "<td style=''>:</td>"
                 body+= "<td style=''>"+InvDate+"</td>"
@@ -438,37 +430,34 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 const dateAfter = addDaysToDate(InvDate, 30);
                 log.debug('dateAfter', dateAfter)
                 body+= "<tr>";
-                body+= "<td style=''>No. Faktur : "+FakturPenjualan+"</td>"
+                body+= "<td style=''>"+addresParts[1] +"-"+addresParts[2]+"</td>"
                 body+= "<td style=''>Tgl. Tempo</td>"
                 body+= "<td style=''>:</td>"
                 body+= "<td style=''>"+dateAfter+"</td>"
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body+= "<td style=''></td>"
+                body+= "<td style=''>No. Faktur : "+FakturPenjualan+"</td>"
                 body+= "<td style=''>Pelanggan</td>"
                 body+= "<td style=''>:</td>"
                 body+= "<td style=''>"+custName+"</td>"
-                body+= "</tr>";
-
-                body+= "<tr style='height :20px'>";
                 body+= "</tr>";
         
                 body+= "</tbody>";
                 body+= "</table>";
 
-                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
+                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed; font-size:10px\">";
                 body += "<tbody>";
 
                 body += "<tr>"
                 body += "<td style='width:4%; align:center; border : solid black 1px; border-right: none;'> No </td>"
-                body += "<td style='width:10%; align:center;border : solid black 1px; border-right: none;'> Kode </td>"
-                body += "<td style='width:30%; align:center; border : solid black 1px; border-right: none;'> Nama Barang </td>"
-                body += "<td style='width:13%; align:center; border : solid black 1px; border-right: none;'>  Harga Satuan </td>"
+                body += "<td style='width:7%; align:center;border : solid black 1px; border-right: none;'> Kode </td>"
+                body += "<td style='width:43%; align:center; border : solid black 1px; border-right: none;'> Nama Barang </td>"
+                body += "<td style='width:10%; align:center; border : solid black 1px; border-right: none;'>  Harga Satuan </td>"
                 body += "<td style='width:5%; align:center; border : solid black 1px; border-right: none;'> QTY </td>"
                 body += "<td style='width:8%; align:center; border : solid black 1px; border-right: none;'> Satuan </td>"
-                body += "<td style='width:10%; align:center; border : solid black 1px;'> Disc [%] </td>"
-                body += "<td style='width:15%; align:center; border : solid black 1px; border-left: none;'> Jumlah </td>"
+                body += "<td style='width:8%; align:center; border : solid black 1px;'> Disc [%] </td>"
+                body += "<td style='width:10%; align:center; border : solid black 1px; border-left: none;'> Jumlah </td>"
                 body += "</tr>"
 
                 var poDetails = getPOItem(context, invoiceRecord);
@@ -477,7 +466,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tbody>";
                 body += "</table>";
 
-                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
+                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed; font-size:8pt;\">";
                 body += "<tbody>";
                 
                 body += "<tr>"
@@ -495,6 +484,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     value: poDetails.subTotal,
                     type: format.Type.CURRENCY
                 });
+                subtotalAmount = removeDecimalFormat(subtotalAmount)
                 body += "<tr>"
                 body += "<td style='align:center;'></td>"
                 body += "<td style='align:center;'>Fakturing,</td>"
@@ -506,13 +496,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='align:right; border: solid black 1px; border-bottom: none;'>Subtotal</td>"
                 body += "<td style='align:right; border: solid black 1px; border-bottom: none; border-left: none;'>"+subtotalAmount+"</td>"
                 body += "</tr>"
+                var potongan = 0
                 if(poDetails.totalDiscount){
-                    var potongan = format.format({
+                    potongan = format.format({
                         value: poDetails.totalDiscount,
                         type: format.Type.CURRENCY
                     });
+                    potongan = removeDecimalFormat(potongan)
                 }
-               
+                
                 body += "<tr style='height:30px'>"
                 body += "<td style='align:center;' colspan='7'></td>"
                 body += "<td style='align:right; border: solid black 1px; border-bottom: none; border-top: none;'>Potongan</td>"
@@ -524,6 +516,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         value: totalAmount,
                         type: format.Type.CURRENCY
                     });
+                    totalAmount = removeDecimalFormat(totalAmount)
                 } 
                 body += "<tr>"
                 body += "<td style='align:center;'></td>"
@@ -533,45 +526,23 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='align:center;'></td>"
                 body += "<td style='align:center; border-bottom: solid black 1px;'></td>"
                 body += "<td style='align:center;'></td>"
-                body += "<td style='align:right; border: solid black 1px; border-top: none;'>Total</td>"
-                body += "<td style='align:right; border: solid black 1px; border-top: none; border-left: none;'>"+totalAmount+"</td>"
+                body += "<td style='align:right; border: solid black 1px; border-top: none; font-size:11pt;'><b>Total</b></td>"
+                body += "<td style='align:right; border: solid black 1px; border-top: none; border-left: none; font-size:11pt;'><b>"+totalAmount+"</b></td>"
                 body += "</tr>"
-                function getCurrentTime() {
-                    const now = new Date();
-                
-                    const day = String(now.getDate()).padStart(2, '0'); // Format DD
-                    const month = String(now.getMonth() + 1).padStart(2, '0'); // Format MM (0-based index)
-                    const year = now.getFullYear(); // Format YYYY
-                    const hours = String(now.getHours()).padStart(2, '0'); // Format HH
-                    const minutes = String(now.getMinutes()).padStart(2, '0'); // Format mm
-                
-                    return `${day}/${month}/${year}/${hours}:${minutes}`;
-                }
                 function getIndonesianTime() {
-                    // Ambil waktu sekarang dalam UTC
                     var currentTimeUTC = new Date();
-            
-                    // Tambahkan 7 jam untuk konversi ke WIB (GMT+7)
                     var indonesianTime = new Date(currentTimeUTC.getTime() + 7 * 60 * 60 * 1000);
             
-                    return indonesianTime.toISOString(); // Format ISO string (opsional)
+                    return indonesianTime.toISOString();
                 }
                 function formatDate(inputDate) {
                     const date = new Date(inputDate);
-                
-                    // Ambil komponen tanggal UTC
                     const day = date.getUTCDate();
-                    const month = date.getUTCMonth() + 1; // Bulan dimulai dari 0
+                    const month = date.getUTCMonth() + 1;
                     const year = date.getUTCFullYear();
-                
-                    // Ambil jam dan menit dalam UTC
                     const hours = date.getUTCHours();
                     const minutes = date.getUTCMinutes();
-                
-                    // Format menit menjadi dua digit
                     const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-                
-                    // Gabungkan menjadi format yang diinginkan
                     return `${day}/${month}/${year}/${hours}:${formattedMinutes}`;
                 }
                 var cekTime = getIndonesianTime();
@@ -623,7 +594,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "</macro>";
                 xml += "</macrolist>";
                 xml += "</head>"
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='7%'>";
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 14cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='7%'>";
                 xml += body;
                 xml += "\n</body>\n</pdf>";
     
@@ -704,7 +675,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 }
                             }
                             
-                            var unit = invoiceRecord.getSublistValue({
+                            var unit = invoiceRecord.getSublistText({
                                 sublistId: 'item',
                                 fieldId: 'units',
                                 line: index

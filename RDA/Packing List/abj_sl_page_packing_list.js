@@ -518,14 +518,22 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         var saveCreate = createRec.save();
                         log.debug('saveCreate', saveCreate)
                         if(saveCreate){
-                        
+                            var environment = nlapiGetContext().getEnvironment(); 
+                            log.debug('environment', environment)
+                            var accountId = nlapiGetContext().getCompany(); 
+                            log.debug('accountId', accountId)
                             var html = "<html><body>";
                             html += "<h3>Success</h3>";
                         
                             html += '<input style="border: none; color: rgb(255, 255, 255); padding: 8px 30px; margin-top: 15px; cursor: pointer; text-align: center; background-color: rgb(0, 106, 255); border-color: rgb(0, 106, 255); fill: rgb(255, 255, 255); border-radius: 3px; font-weight: bold;" ' +
                                     'type="button" onclick="window.history.go(-1)" value="OK" />';
-                        
-                            html += '<br /><br /><a href="https://11069529.app.netsuite.com/app/accounting/transactions/custom.nl?id=' + saveCreate + '" ' +
+                            var url = ''
+                            if (environment === 'SANDBOX') {
+                                url = 'https://' + accountId + '-sb1.app.netsuite.com';
+                            } else {
+                                url = 'https://' + accountId + '.app.netsuite.com';
+                            }
+                            html += '<br /><br /><a href="'+ url +'/app/accounting/transactions/custom.nl?id=' + saveCreate + '" ' +
                                     'style="text-decoration:none; color:rgb(0, 106, 255); font-weight:bold;">Go to Packing List</a>';
                         
                             html += "</body></html>";
