@@ -386,7 +386,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 
                 style += "<style type='text/css'>";
-                style += "body { font-family: 'Calibri Light', sans-serif; width: 210mm; height: 140mm; padding-top: 0; margin: 0; padding-bottom: 0; }";
+                style += "body { font-family: 'Calibri Light', sans-serif; width: 210mm; height: 140mm; padding-top: 20; margin: 0; padding-bottom: 2; }";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
                 style += ".tg .tg-headerrow{align: right;font-size:12px;}";
                 style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
