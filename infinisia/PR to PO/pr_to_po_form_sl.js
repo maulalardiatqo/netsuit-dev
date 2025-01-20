@@ -220,71 +220,74 @@
                 let idSum = prToPO[i].getValue({ name: prToPOSet.columns[32] });
                 let poCust = prToPO[i].getValue({ name: prToPOSet.columns[34] });
                 let ratePackSIze = prToPO[i].getValue({ name: prToPOSet.columns[37] }) || 0;
-                log.debug('ratePackSIze 1', ratePackSIze)
                 var cekTotalPackaging = prToPO[i].getValue({ name: prToPOSet.columns[35] }) || 0;
                 var idPrSUm = prToPO[i].getValue({ name: prToPOSet.columns[39] }) || 0;
                 var memo = prToPO[i].getValue({ name: prToPOSet.columns[40] });
                 var ratePackSizeDecimal = prToPO[i].getValue({ name: prToPOSet.columns[42] }) || 0;
-                log.debug('ratePackSizeDecimal', ratePackSizeDecimal)
                 let cek1 = prToPO[i].getValue({
                   name: prToPOSet.columns[25],
                 });
 
-                if (!groupedData[itemID]) {
-                    groupedData[itemID] = {};
-                }
-
-                if (!groupedData[itemID][salesRepID]) {
-                    groupedData[itemID][salesRepID] = [];
-                }
-
-                groupedData[itemID][salesRepID].push({
-                    itemName,
-                    itemID,
-                    vendorName,
-                    currentStock,
-                    incomingStock,
-                    salesRep,
-                    salesRepID,
-                    customerName,
-                    customerID,
-                    forecastBusdev,
-                    forecastPerhitungan,
-                    avgBusdev,
-                    avgAccounting,
-                    note,
-                    internalID,
-                    docNumber,
-                    osPO,
-                    cek2,
-                    leadTimeKirim,
-                    units,
-                    soNO,
-                    taxItemRate,
-                    tanggalKirim,
-                    packSize,
-                    packSizeText,
-                    soNumber,
-                    soNumberText,
-                    qtyPO,
-                    lineId,
-                    currency,
-                    idSum,
-                    poCust,
-                    ratePackSIze,
-                    cekTotalPackaging,
-                    idPrSUm,
-                    memo,
-                    ratePackSizeDecimal,
-                    cek1
-                });
+                if (!groupedData[internalID]) {
+                  groupedData[internalID] = {};
+              }
+      
+              if (!groupedData[internalID][itemID]) {
+                  groupedData[internalID][itemID] = {};
+              }
+      
+              if (!groupedData[internalID][itemID][salesRepID]) {
+                  groupedData[internalID][itemID][salesRepID] = [];
+              }
+      
+              groupedData[internalID][itemID][salesRepID].push({
+                  itemName,
+                  itemID,
+                  vendorName,
+                  currentStock,
+                  incomingStock,
+                  salesRep,
+                  salesRepID,
+                  customerName,
+                  customerID,
+                  forecastBusdev,
+                  forecastPerhitungan,
+                  avgBusdev,
+                  avgAccounting,
+                  note,
+                  internalID,
+                  docNumber,
+                  osPO,
+                  cek2,
+                  leadTimeKirim,
+                  units,
+                  soNO,
+                  taxItemRate,
+                  tanggalKirim,
+                  packSize,
+                  packSizeText,
+                  soNumber,
+                  soNumberText,
+                  qtyPO,
+                  lineId,
+                  currency,
+                  idSum,
+                  poCust,
+                  ratePackSIze,
+                  cekTotalPackaging,
+                  idPrSUm,
+                  memo,
+                  ratePackSizeDecimal,
+                  cek1,
+              });
             }
 
             // Process grouped data
             let dataPross = [];
-            Object.keys(groupedData).forEach(itemID => {
-                Object.keys(groupedData[itemID]).forEach(salesRepID => {
-                    let lines = groupedData[itemID][salesRepID];
+            Object.keys(groupedData).forEach(internalID =>{
+              Object.keys(groupedData[internalID]).forEach(itemID => {
+                Object.keys(groupedData[internalID][itemID]).forEach(salesRepID => {
+                    let lines = groupedData[internalID][itemID][salesRepID];
                     let positives = lines.filter(line => parseFloat(line.cekTotalPackaging) > 0);
                     let negatives = lines.filter(line => parseFloat(line.cekTotalPackaging) < 0);
 
@@ -311,6 +314,8 @@
                     });
                 });
             });
+            })
+            
             
             log.debug('Processed Data', dataPross);
             dataPross.forEach((data, i) => {
@@ -348,7 +353,6 @@
               var idSum = data.idSum;
               var poCust = data.poCust;
               var ratePackSIze = data.ratePackSIze;
-              log.debug('ratePackSIze 2', ratePackSIze)
               var cekTotalPackaging = data.cekTotalPackaging;
               var idPrSUm = data.idPrSUm;
               var memo = data.memo;
@@ -568,11 +572,9 @@
               });
               var packSizeRate = 0
               if(ratePackSIze > 0){
-                log.debug('masuk kondisi if')
                   packSizeRate = ratePackSIze
               }else{
                 packSizeRate = ratePackSizeDecimal
-                log.debug('masuk kondisi else')
               }
               currentRecord.setSublistValue({
                   sublistId: "custpage_sublist_item",
@@ -580,9 +582,7 @@
                   value: packSizeRate || " ",
                   line: i,
               });
-              log.debug('packSizeRate', packSizeRate)
               var setTotalOrder = Number(totalPackaging) * parseFloat(packSizeRate)
-              log.debug('dataCek', {totalPackaging : totalPackaging, cekTotalPackaging : cekTotalPackaging, qtyPO : qtyPO, ratePackSIze : ratePackSIze, setTotalOrder : setTotalOrder})
               currentRecord.setSublistValue({
                 sublistId: "custpage_sublist_item",
                 id: "custpage_sublist_total_order",

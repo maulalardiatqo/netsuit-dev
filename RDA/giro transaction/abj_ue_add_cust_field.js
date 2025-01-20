@@ -65,12 +65,14 @@ define(['N/log', 'N/ui/serverWidget', 'N/record', 'N/search'], (log, serverWidge
                             label: 'RDA - Invoice Number',
                         });
     
-                        sublist.addField({
+                        var amountField = sublist.addField({
                             id: 'custpage_rda_amount',
                             type: serverWidget.FieldType.CURRENCY,
                             label: 'RDA - Amount',
                         });
-    
+                        amountField.updateDisplayType({
+                            displayType: serverWidget.FieldDisplayType.DISABLED
+                        });
                         log.debug('Fields Added Successfully', 'Custom fields added to the sublist');
                     } else {
                         log.error('Sublist Not Found', 'The specified sublist does not exist');
@@ -87,7 +89,7 @@ define(['N/log', 'N/ui/serverWidget', 'N/record', 'N/search'], (log, serverWidge
                         id: 'recmachcustrecord_rda_giro_id',
                     });
                 
-                    let invField; // Deklarasikan invField di luar blok if (sublist)
+                    let invField; 
                 
                     if (sublist) {
                         log.debug('Sublist Found', 'Adding custom fields');
@@ -102,6 +104,9 @@ define(['N/log', 'N/ui/serverWidget', 'N/record', 'N/search'], (log, serverWidge
                             id: 'custpage_rda_amount',
                             type: serverWidget.FieldType.CURRENCY,
                             label: 'RDA - Amount',
+                        });
+                        invField.updateDisplayType({
+                            displayType: serverWidget.FieldDisplayType.DISABLED
                         });
                         const allInv = setInv(cekCust);
                         log.debug('allInv', allInv);
