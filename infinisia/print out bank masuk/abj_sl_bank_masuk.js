@@ -260,7 +260,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style='align:center'>"+titleEmp+"</td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
-                footer += "<td style='align:center;'>"+emptitleParsing+"</td>"
+                footer += "<td style='align:center;'>FA Manager</td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
                 footer += "<td style='align:center;'>"+emptitle2+"</td>"

@@ -180,10 +180,10 @@
             );
           }
           var prToPOSet = prToPO.run();
-          var prToPO = prToPOSet.getRange(0, 300);
+          var prToPO = prToPOSet.getRange(0, 500);
           log.debug('prToPO.length', prToPO.length)
           var allIdPoselected = []
-          var currentRecord = createSublist("custpage_sublist_item", form);
+          
           if (prToPO.length > 0) {
             let groupedData = {};
             for (let i = 0; i < prToPO.length; i++) {
@@ -317,7 +317,9 @@
             })
             
             
-            log.debug('Processed Data', dataPross);
+            log.debug('Processed Data', dataPross.length);
+            var dataLength = dataPross.length
+            var currentRecord = createSublist("custpage_sublist_item", form, dataLength);
             dataPross.forEach((data, i) => {
               var itemName = data.itemName;
               var itemID = data.itemID;
@@ -652,11 +654,11 @@
       }
       }
   
-      function createSublist(sublistname, form) {
+      function createSublist(sublistname, form, dataLength) {
         var sublist_in = form.addSublist({
           id: sublistname,
           type: serverWidget.SublistType.LIST,
-          label: "PR List",
+          label: "PR List - Total Data : " + dataLength ,
           tab: "matchedtab",
         });
         sublist_in.addMarkAllButtons();

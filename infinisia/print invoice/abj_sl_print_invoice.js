@@ -6,6 +6,12 @@
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
     function(render, search, record, log, file, http, config, format, email, runtime) {
         try{
+            function escapeXmlSymbols(input) {
+                if (!input || typeof input !== "string") {
+                    return input;
+                }
+                return input.replace(/&/g, "&amp;");
+            }
             function removeDecimalFormat(number) {
                 return number.toString().substring(0, number.toString().length - 3);
             }
@@ -15,7 +21,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var desimal = angka - bulat;
                     
                     if (desimal >= 0.5) {
-                        return Math.ceil(angka);
+                        return Math.ceil(angka);    
                     } else {
                     return Math.floor(angka);
                     }
@@ -351,23 +357,23 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body += "<tr>";
                 body+= "<td style='font-weight:bold;'>Faktur/Invoice #</td>"
-                body+= "<td style='font-weight:bold;'>"+trandId+"</td>"
+                body+= "<td style='font-weight:bold;'>"+escapeXmlSymbols(trandId)+"</td>"
                 body+= "<td style='font-weight:bold;'>Pesanan Pembelian/Po#</td>"
-                body+= "<td style='font-weight:bold;'>"+noPo+"</td>"
+                body+= "<td style='font-weight:bold;'>"+escapeXmlSymbols(noPo)+"</td>"
                 body+= "</tr>"
 
                 body += "<tr>";
                 body+= "<td style='font-weight:bold;'>Tanggal/Date</td>"
                 body+= "<td style='font-weight:bold;'>"+trandate+"</td>"
                 body+= "<td style='font-weight:bold;'>Delivery Order No</td>"
-                body+= "<td style='font-weight:bold;'>"+doNo+"</td>"
+                body+= "<td style='font-weight:bold;'>"+escapeXmlSymbols(doNo)+"</td>"
                 body+= "</tr>"
 
                 body += "<tr>";
                 body+= "<td style='font-weight:bold;'>Tempo/Due in</td>"
                 body+= "<td style='font-weight:bold;'>"+duedate+"</td>" 
                 body+= "<td style='font-weight:bold;'>Sales Person</td>"
-                body+= "<td style='font-weight:bold;'>"+salesName+"</td>"
+                body+= "<td style='font-weight:bold;'>"+escapeXmlSymbols(salesName)+"</td>"
                 body+= "</tr>"
 
                 body += "</tbody>";
@@ -389,9 +395,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "</tr>"
 
                 body+= "<tr>"
-                body+= "<td style='align:left'>"+billTo+"</td>"
+                body+= "<td style='align:left'>"+escapeXmlSymbols(billTo)+"</td>"
                 body+= "<td></td>"
-                body+= "<td style='align:left'>"+shipTo+"</td>"
+                body+= "<td style='align:left'>"+escapeXmlSymbols(shipTo)+"</td>"
                 body+= "</tr>"
 
                 // body+= "<tr>"
@@ -458,7 +464,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tr>"
                 body+= "<td></td>"
                 body+= "<td style='border-bottom : 1px solid black'>PPN</td>"
-                body+= "<td style='border-bottom : 1px solid black'>"+taxPros+"%</td>"
+                body+= "<td style='border-bottom : 1px solid black'>"+escapeXmlSymbols(taxPros)+"%</td>"
                 body+= "<td style='border-bottom : 1px solid black'>IDR</td>"
                 body+= "<td style='align:right; border-bottom : 1px solid black'>"+removeDecimalFormat(taxTotal)+"</td>"
                 body += "</tr>"
@@ -516,7 +522,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style=''></td>"
                 body += "<td style='font-weight:bold;'>ACCOUNT</td>"
-                body += "<td style='font-weight:bold;'>399334999</td>"
+                body += "<td style='font-weight:bold;'>3993349999</td>"
                 body += "</tr>"
 
                 body += "</tbody>";
@@ -602,9 +608,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         }
                         body += "<tr>";
                         body += "<td class='tg-b_body' style='align:center;'>"+No+"</td>";
-                        body += "<td class='tg-b_body' style='align:center;'>"+namaBarang+"</td>";
+                        body += "<td class='tg-b_body' style='align:center;'>"+escapeXmlSymbols(namaBarang)+"</td>";
                         body += "<td class='tg-b_body' style='align:center;'>"+qty+"</td>";
-                        body += "<td class='tg-b_body' style='align:center;'>"+unit+"</td>";
+                        body += "<td class='tg-b_body' style='align:center;'>"+escapeXmlSymbols(unit)+"</td>";
                         body += "<td class='tg-b_body' style='align:center;'>"+removeDecimalFormat(rate)+"</td>";
                         body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(amount)+"</td>";
                         body += "</tr>";

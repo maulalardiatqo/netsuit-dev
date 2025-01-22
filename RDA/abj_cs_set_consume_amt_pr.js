@@ -127,7 +127,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
                 filters:
                 [
-                    ["type","anyof","PurchReq"], 
+                    ["type","anyof","PurchReq","Check"], 
                     "AND", 
                     ["account","noneof","220"], 
                     "AND", 

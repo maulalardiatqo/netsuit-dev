@@ -85,6 +85,7 @@
                 console.log('childSubs', childSubs)
                 if(childSubs){
                     childSubs.forEach(function(subsidiary) {
+                        // Mengambil internalId dan nameSubs dari tiap subsidiary
                         var internalId = subsidiary.internalId;
                         var nameSubs = subsidiary.nameSubs;
                         subsidiaryFIeld.insertSelectOption({
@@ -319,6 +320,9 @@
                             var reason = dataSearch[i].getValue({
                                 name: dateSearchSet.columns[13],
                             });
+                            var actionPlan = dataSearch[i].getValue({
+                                name: dateSearchSet.columns[14],
+                            })
                             allData.push({
                                 doNumber : doNumber,
                                 customerId : customerId,
@@ -337,7 +341,8 @@
                                 division : division,
                                 idInv : idInv,
                                 currencyId : currencyId,
-                                reason : reason
+                                reason : reason,
+                                actionPlan : actionPlan
                             })
                         }
                         console.log('allData', allData)
@@ -360,6 +365,7 @@
                             var division = data.division
                             var currencyId = data.currencyId
                             var reason = data.reason
+                            var actionPlan = data.actionPlan
                         
                             records.selectNewLine({ sublistId: 'custpage_sublist' });
                             records.setCurrentSublistValue({
@@ -465,7 +471,14 @@
                                     value: reason
                                 });
                             }
-                            
+                            if(actionPlan && actionPlan != "- None -"){
+                                console.log('actionPlan',actionPlan)
+                                records.setCurrentSublistValue({
+                                    sublistId: 'custpage_sublist', 
+                                    fieldId: 'custpage_sublist_action',
+                                    value: actionPlan
+                                });
+                            }
                             records.commitLine({ sublistId: 'custpage_sublist' });
     
                             
