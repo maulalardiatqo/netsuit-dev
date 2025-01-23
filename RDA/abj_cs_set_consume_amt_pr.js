@@ -123,7 +123,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         function callSearch(subsId, account, department, estAmount, period, dateText){
             log.debug('filterSearch consumed', {subsId : subsId, account : account, estAmount : estAmount, period : period, dateText: dateText})
             var purchaserequisitionSearchObj = search.create({
-                type: "purchaserequisition",
+                type: "transaction",
                 settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
                 filters:
                 [
@@ -133,62 +133,68 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     "AND", 
                     ["accounttype","anyof","Expense","OthExpense","DeferExpense"], 
                     "AND", 
-                    ["subsidiary","anyof", subsId], 
+                    ["subsidiary","anyof",subsId], 
                     "AND", 
                     ["department","anyof",department], 
                     "AND", 
-                    ["account","anyof",account],
+                    ["account","anyof",account], 
                     "AND", 
-                    //["formulatext: TO_CHAR({trandate}, 'MM-YYYY')","is",period],
                     ["formulatext: TO_CHAR({trandate}, 'MM/YYYY')","contains",dateText]
                 ],
                 columns:
-                    [
-                    search.createColumn({
-                        name: "estimatedamount",
-                        summary: "SUM",
-                        label: "Estimated Amount"
-                    }),
-                    search.createColumn({
-                        name: "amount",
-                        summary: "SUM",
-                        label: "Amount"
-                    }),
-                    search.createColumn({
-                        name: "account",
-                        summary: "GROUP",
-                        label: "Account"
-                    }),
-                    search.createColumn({
-                        name: "subsidiary",
-                        summary: "GROUP",
-                        label: "Subsidiary"
-                    }),
-                    search.createColumn({
-                        name: "department",
-                        summary: "GROUP",
-                        label: "Department"
-                    }),
-                    search.createColumn({
-                        name: "formulatext",
-                        summary: "GROUP",
-                        formula: "TO_CHAR({trandate}, 'MM-YYYY')",
-                        label: "Period"
-                    })
+                [
+                   search.createColumn({
+                      name: "estimatedamount",
+                      summary: "SUM",
+                      label: "Estimated Amount"
+                   }),
+                   search.createColumn({
+                      name: "amount",
+                      summary: "SUM",
+                      label: "Amount"
+                   }),
+                   search.createColumn({
+                      name: "account",
+                      summary: "GROUP",
+                      label: "Account"
+                   }),
+                   search.createColumn({
+                      name: "subsidiary",
+                      summary: "GROUP",
+                      label: "Subsidiary"
+                   }),
+                   search.createColumn({
+                      name: "department",
+                      summary: "GROUP",
+                      label: "Department"
+                   }),
+                   search.createColumn({
+                      name: "formulatext",
+                      summary: "GROUP",
+                      formula: "TO_CHAR({trandate}, 'MM-YYYY')",
+                      label: "Period"
+                   }),
+                   search.createColumn({
+                      name: "formulatext",
+                      summary: "GROUP",
+                      formula: "TO_CHAR({trandate}, 'MM/YYYY')",
+                      label: "Period Number"
+                   })
                 ]
-            });
+             });
             var searchResults = purchaserequisitionSearchObj.run().getRange({ start: 0, end: 1 });
             var amtFromSearch = 0
             log.debug('searchResults : '+searchResults.length, searchResults);
             if (searchResults.length > 0) {
-                var estimatedAmount = searchResults[0].getValue({ name: "estimatedamount", summary: "SUM", });
+                var amtSearch = searchResults[0].getValue({ name: "amount", summary: "SUM", });
+                log.debug('amtSearch cek search', amtSearch)
                 var period = searchResults[0].getValue({
                     name: "formulatext",
                     summary: "GROUP",
                     formula: "TO_CHAR({trandate}, 'MM-YYYY')",
                 });
-                if(estimatedAmount){
-                    amtFromSearch = estimatedAmount
+                if(amtSearch){
+                    amtFromSearch = amtSearch
                 }
             }
             var newAmount = Number(amtFromSearch) + Number(estAmount)

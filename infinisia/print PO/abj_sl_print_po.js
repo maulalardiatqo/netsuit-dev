@@ -28,6 +28,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             // load PO
 
             var sTotal = 0;
+            var excRate = 0
             var poSearch = search.create({
                 type: search.Type.PURCHASE_ORDER,
                 columns: [
@@ -115,6 +116,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var jobnumber = result.getValue('custbody_abj_custom_jobnumber')
                 var entity = result.getText('entity')
                 var exchangerate = result.getValue('exchangerate')
+                excRate = exchangerate
                 var amountBef = result.getValue('amount')
                 var amount = Number(amountBef) / Number(exchangerate)
                 var quantity = result.getValue('quantityuom')
@@ -489,7 +491,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             //         type: format.Type.DATE
             //     });
             // }
-            var amountRecieved = Number(totalVal) - Number(totalWHTaxToCount);
+            var amountRecieved = (Number(totalVal) - Number(totalWHTaxToCount)) / Number(excRate);
             if (amountRecieved) {
                 amountRecieved = format.format({
                     value: amountRecieved,
@@ -661,7 +663,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td class='tg-headerrow_left'></td>"
             body += "<td class='tg-f_body'>TOTAL</td>"
             body += "<td class='tg-f_body'>" + format.format({
-                value: totalVal,
+                value: Number(totalVal) / Number(excRate),
                 type: format.Type.CURRENCY
             }) + "</td>"
             body += "</tr>"
