@@ -105,6 +105,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         search.createColumn({name: "trandate", label: "Date"}),
                         search.createColumn({name: "duedate", label: "Due Date/Receive By"}),
                         search.createColumn({name: "salesrep", label: "Sales Rep"}),
+                        search.createColumn({name: "firstname", join: "salesrep"}),
+                        search.createColumn({name: "lastname", join: "salesrep"}),
                         search.createColumn({name: "custbody_rda_area", label: "RDA - AREA"}),
                         search.createColumn({name: "custbody_rda_sjp_count", label: "RDA - SJP Count"}),
                         search.createColumn({
@@ -149,9 +151,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var dueDate = result.getValue({
                         name: "duedate"
                     })
-                    var salesRep = result.getText({
-                        name: "salesrep"
+                    // var salesRep = result.getText({
+                    //     name: "salesrep"
+                    // })
+                
+                    var firstName = result.getValue({
+                        name: "firstname",
+                        join : "salesrep"
                     })
+                    var lastName = result.getValue({
+                        name: "lastname",
+                        join : "salesrep"
+                    })
+                    var salesRep = firstName + " "+ lastName;
                     var area = result.getText({
                         name: "custbody_rda_area"
                     })
@@ -328,8 +340,20 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                 }
                 var dateRec = collRecord.getValue({name : 'trandate'})
-
+                var kolektorId = collRecord.getValue({name :'custbody_rda_kolektor'});
                 var kolektor = collRecord.getText({name :'custbody_rda_kolektor'});
+                if (kolektorId) {
+                    // Use search.lookupFields to get Sales Rep details
+                    const salesRepDetails = search.lookupFields({
+                        type: search.Type.EMPLOYEE,
+                        id: kolektorId,
+                        columns: ['firstname','lastname', 'entityid','custrecord_rda_mapsales_employee_id.name']
+                    });
+                    log.debug('Sales Rep Details', salesRepDetails);
+                    // customerSalesman = `${salesRepDetails.firstname} ${salesRepDetails.lastname} - ${salesRepDetails.custrecord_rda_mapsales_employee_id.name}`
+                    kolektor = `${salesRepDetails.firstname} ${salesRepDetails.lastname}`
+                }
+               
                 var halaman = 1
                 // page print
                 var response = context.response;
@@ -343,6 +367,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 
                 // css
                 style += "<style type='text/css'>";
+                style += "*{padding : 0; margin:0;}";
+                style += "body{padding-left : 5px; padding-right : 5px;}";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
                 style += ".tg .tg-headerlogo {align:right; border:none;}";
                 style += ".tg .tg-img-logo {width:195px; height:90px; object-fit:cover;}";
@@ -385,25 +411,25 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "<td style='width:6%;'></td><td style='width:6%;'></td><td style='width:6%;'></td><td style='width:13%;'></td></tr>";
                 
                 // Kolom header baris isi tabel
-                header += "<tr><td style='border: solid black 1px; border-right:none;'>Customer</td>";
-                header += "<td style='border: solid black 1px; border-right:none;'>Nomor Faktur<br/>Performa Invoice Number</td>";
-                header += "<td style='border: solid black 1px; border-right:none;'>Tanggal Faktur</td>";
+                header += "<tr><td style='border: solid black 1px; border-right:none;font-size:11px;'>Customer</td>";
+                header += "<td style='border: solid black 1px; border-right:none;font-size:11px;'>Nomor Faktur<br/>Performa Invoice Number</td>";
+                header += "<td style='border: solid black 1px; border-right:none;font-size:11px;'>Tanggal Faktur</td>";
                 header += "<td style='border: solid black 1px; border-right:none;'>Tanggal Jt Tempo</td>";
                 header += "<td style='border: solid black 1px; border-right:none;'>Salesman atau No Kontra Bon</td>";
                 header += "<td style='border: solid black 1px; border-right:none;'>Nilai Faktur</td>";
-                header += "<td style='border: solid black 1px; border-right:none;'>Outstanding</td>";
+                header += "<td style='border: solid black 1px; border-right:none;font-size:11px;'>Outstanding</td>";
                 header += "<td style='border: solid black 1px; border-right:none;'>Over Due</td>";
                 header += "<td style='border: solid black 1px; border-right:none;'>Retur</td>";
                 header += "<td style='border: solid black 1px; border-right:none;'>Tunai</td>";
-                header += "<td style='border: solid black 1px; border-right:none;'>Nominal</td>";
-                header += "<td style='border: solid black 1px; border-left:none;'>Pembayaran Giro<br/>No Giro/Bank/Jatuh Tempo</td></tr>";
-                header += "<tr><td colspan='12' style='border: solid black 1px; border-top: none; font-size:12px; font-weight:bold;'>" + escapeXmlSymbols(areaToPrint) + "</td></tr>";
+                header += "<td style='border: solid black 1px; border-right:none;'>Giro/Bank</td>";
+                header += "<td style='border: solid black 1px;'>Alasan tidak tertagih</td></tr>";
+                header += "<tr><td colspan='12' style='border: solid black 1px; border-top: none; font-size:12px; font-weight:bold;font-size:11px;'>" + escapeXmlSymbols(areaToPrint) + "</td></tr>";
                 
                 header += "</tbody>";
                 header += "</table>";
 
                 // body
-                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
+                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
                 body += "<tbody>";
 
                 body += "<tr>"
@@ -460,18 +486,18 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     
                     body += "<tr>"
-                    body += "<td style='border: solid black 1px; border-right:none; '><b>"+escapeXmlSymbols(item.cussId)+"</b><br/># "+escapeXmlSymbols(item.entityId)+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;'>"+escapeXmlSymbols(item.docNumber)+" ("+item.sjpCount+")<br/>-</td>";
-                    body += "<td style='border: solid black 1px; border-right:none;'>"+item.tranDate+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;'>"+item.dueDate+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;'>"+escapeXmlSymbols(item.salesRep)+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none; align:right;'>"+amtTotal+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none; align:right;'>"+amtRemaining+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;'>"+item.daysOverDue+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none; align:right;'>"+applyingAmount+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;'></td>"
-                    body += "<td style='border: solid black 1px; border-right:none;'></td>"
-                    body += "<td style='border: solid black 1px; border-left:none; '></td>"
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:11px; '><b>"+escapeXmlSymbols(item.cussId)+"</b><br/># "+escapeXmlSymbols(item.entityId)+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:11px;'>"+escapeXmlSymbols(item.docNumber)+" ("+item.sjpCount+")<br/>-</td>";
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:11px;'>"+item.tranDate+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'>"+item.dueDate+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'>"+escapeXmlSymbols(item.salesRep)+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;'>"+amtTotal+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;font-weight:bold;font-size:11px;'>"+amtRemaining+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'>"+item.daysOverDue+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;'>"+applyingAmount+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'></td>"
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'></td>"
+                    body += "<td style='border: solid black 1px;border-bottom:0; '></td>"
                     body += "</tr>"
                 });
                 if(subTotal){
@@ -487,11 +513,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                 }
                 body += "<tr>"
-                body += "<td style='border: solid black 1px; border-top:none; border-right: none; font-size:12px; font-weight:bold;' colspan='4'>Jumlah Nota :"+jumlahNota+"</td>"
-                body += "<td style='border: solid black 1px; border-top:none; border-right: none; border-left:none; font-size:10px; font-weight:bold;'>TOTAL</td>"
-                body += "<td style='border: solid black 1px; border-top:none; border-right: none; font-size:10px; font-weight:bold; align:right;'>"+subTotal+"</td>"
-                body += "<td style='border: solid black 1px; border-top:none; border-right: none; font-size:10px; font-weight:bold; align:right;'>"+totalOutstand+"</td>"
-                body += "<td style='border: solid black 1px; border-top:none; font-size:12px; font-weight:bold;' colspan='5'></td>"
+                body += "<td style='border: solid black 1px; border-right: none; font-size:12px; font-weight:bold;' colspan='4'>Jumlah Nota :"+jumlahNota+"</td>"
+                body += "<td style='border: solid black 1px; border-right: none; border-left:none; font-size:10px; font-weight:bold;'>TOTAL</td>"
+                body += "<td style='border: solid black 1px; border-right: none; font-size:10px; font-weight:bold; align:right;'>"+subTotal+"</td>"
+                body += "<td style='border: solid black 1px; border-right: none; font-size:10px; font-weight:bold; align:right;'>"+totalOutstand+"</td>"
+                body += "<td style='border: solid black 1px; font-size:12px; font-weight:bold;' colspan='5'></td>"
                 body += "</tr>"
 
                 body += "</tbody>";

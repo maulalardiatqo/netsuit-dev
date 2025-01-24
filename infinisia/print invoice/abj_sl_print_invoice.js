@@ -421,11 +421,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body += "<tr>"
                 body += "<td class='tg-head_body' style='width:5%; align:center;'> No. </td>"
-                body += "<td class='tg-head_body' style='width:27%; align:center;'>Nama Barang / Goods Description</td>"
+                body += "<td class='tg-head_body' style='width:27%; align:left;'>Nama Barang / Goods Description</td>"
                 body += "<td class='tg-head_body' style='width:10%; align:center;'>QTY</td>"
                 body += "<td class='tg-head_body' style='width:10%; align:center;'>Unit</td>"
-                body += "<td class='tg-head_body' style='width:23%; align:center;'>Harga Satuan / Price</td>"
-                body += "<td class='tg-head_body' style='width:25%; align:center;'>Total</td>"
+                body += "<td class='tg-head_body' style='width:23%; align:right;'>Harga Satuan / Price</td>"
+                body += "<td class='tg-head_body' style='width:25%; align:right;'>Total</td>"
                 body += "</tr>"
 
                 body += getPOItem(context, allDataItem)
@@ -458,13 +458,26 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body+= "<td>IDR</td>"
                     body+= "<td style='align:right'>"+removeDecimalFormat(discount)+"</td>"
                     body += "</tr>"
+                }else{
+                    body+= "<tr>"
+                    body+= "<td></td>"
+                    body+= "<td>Discount</td>"
+                    body+= "<td>0.00%</td>"
+                    body+= "<td>IDR</td>"
+                    body+= "<td style='align:right'>0.00</td>"
+                    body += "</tr>"
                 }
                
-
+                log.debug('taxPros', taxPros)
+                if(taxPros){
+                    taxPros = taxPros.map(function(tax) {
+                        return tax.includes('%') ? tax : tax + '%';
+                    });
+                }
                 body+= "<tr>"
                 body+= "<td></td>"
                 body+= "<td style='border-bottom : 1px solid black'>PPN</td>"
-                body+= "<td style='border-bottom : 1px solid black'>"+escapeXmlSymbols(taxPros)+"%</td>"
+                body+= "<td style='border-bottom : 1px solid black'>"+escapeXmlSymbols(taxPros)+"</td>"
                 body+= "<td style='border-bottom : 1px solid black'>IDR</td>"
                 body+= "<td style='align:right; border-bottom : 1px solid black'>"+removeDecimalFormat(taxTotal)+"</td>"
                 body += "</tr>"
@@ -608,10 +621,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         }
                         body += "<tr>";
                         body += "<td class='tg-b_body' style='align:center;'>"+No+"</td>";
-                        body += "<td class='tg-b_body' style='align:center;'>"+escapeXmlSymbols(namaBarang)+"</td>";
+                        body += "<td class='tg-b_body' style='align:left;'>"+escapeXmlSymbols(namaBarang)+"</td>";
                         body += "<td class='tg-b_body' style='align:center;'>"+qty+"</td>";
                         body += "<td class='tg-b_body' style='align:center;'>"+escapeXmlSymbols(unit)+"</td>";
-                        body += "<td class='tg-b_body' style='align:center;'>"+removeDecimalFormat(rate)+"</td>";
+                        body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(rate)+"</td>";
                         body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(amount)+"</td>";
                         body += "</tr>";
                         No++

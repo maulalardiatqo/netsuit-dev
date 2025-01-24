@@ -2,7 +2,7 @@
  * @NApiVersion 2.1
  * @NScriptType Suitelet
  */
-define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/message', 'N/runtime'], function (serverWidget, task, search, log, record, message, runtime) {
+define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/message', 'N/runtime', 'N/config'], function (serverWidget, task, search, log, record, message, runtime, config) {
 
     function onRequest(context) {
         if (context.request.method === 'GET') {
@@ -443,7 +443,12 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
  
                     }
                     if(isCreate == true){
-                        var dateConvert = convertToDate(dateSet);
+                        log.debug('dateSet', dateSet)
+                        var dateConvert = ''
+                        if(dateSet){
+                            dateConvert = convertToDate(dateSet);
+                        }
+                        
                         var createRec = record.create({
                             type: "customtransaction_rda_packing_list",
                         });
@@ -518,21 +523,22 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         var saveCreate = createRec.save();
                         log.debug('saveCreate', saveCreate)
                         if(saveCreate){
-                            var environment = nlapiGetContext().getEnvironment(); 
-                            log.debug('environment', environment)
-                            var accountId = nlapiGetContext().getCompany(); 
+                            log.debug('test update')
+                            var companyInfo = config.load({
+                                type: config.Type.COMPANY_INFORMATION
+                            });
+                            var accountId = companyInfo.getValue("companyid");
+                            if(accountId == '11069529_SB1'){
+                                log.debug('masuk replace url')
+                                accountId = '11069529-sb1'
+                            }
                             log.debug('accountId', accountId)
                             var html = "<html><body>";
                             html += "<h3>Success</h3>";
                         
                             html += '<input style="border: none; color: rgb(255, 255, 255); padding: 8px 30px; margin-top: 15px; cursor: pointer; text-align: center; background-color: rgb(0, 106, 255); border-color: rgb(0, 106, 255); fill: rgb(255, 255, 255); border-radius: 3px; font-weight: bold;" ' +
                                     'type="button" onclick="window.history.go(-1)" value="OK" />';
-                            var url = ''
-                            if (environment === 'SANDBOX') {
-                                url = 'https://' + accountId + '-sb1.app.netsuite.com';
-                            } else {
-                                url = 'https://' + accountId + '.app.netsuite.com';
-                            }
+                            var url = 'https://' + accountId + '.app.netsuite.com';
                             html += '<br /><br /><a href="'+ url +'/app/accounting/transactions/custom.nl?id=' + saveCreate + '" ' +
                                     'style="text-decoration:none; color:rgb(0, 106, 255); font-weight:bold;">Go to Packing List</a>';
                         
