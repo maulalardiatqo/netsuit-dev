@@ -670,12 +670,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tr style=''>"
                     log.debug('signedUrl', signedUrl)
                     if(signedId == 6701	){ //iin
-                        body += "<td class='tg-headerlogo' style='width:70%;vertical-align:center; align:left;'><div style='display: flex; height:50px; width:50px; margin-left:10px;'><img class='' style='width:15%; height:15%; margin-bottom:-12px' src= '"  + escapeXmlSymbols(signedUrl) + "' ></img></div></td>";
+                        body += "<td class='tg-headerlogo' style='width:70%;vertical-align:center; align:left;'><div style='display: flex; height:50px; width:50px; margin-left:10px;'><img class='' style='width:15%; height:15%; margin-bottom:-12px' src= '"  + (signedUrl) + "' ></img></div></td>";
                     } else if(signedId == 6702){ //resti
-                        body += "<td class='tg-headerlogo' style='width:70%;vertical-align:center; align:left;' colspan='3' ><div style='display: flex; height:50px; width:50px; margin-bottom:10px; margin-left:10px;'><img class='' style='width:35%; height:35%; margin-left:15px' src= '"  + escapeXmlSymbols(signedUrl) + "' ></img></div></td>";
+                        body += "<td class='tg-headerlogo' style='width:70%;vertical-align:center; align:left;' colspan='3' ><div style='display: flex; height:50px; width:50px; margin-bottom:10px; margin-left:10px;'><img class='' style='width:35%; height:35%; margin-left:15px' src= '"  + (signedUrl) + "' ></img></div></td>";
                     } else {
                         if(signedUrl){
-                            body += "<td class='tg-headerlogo' style='width:70%;vertical-align:center; align:left;'><div style='display: flex; height:50px; width:50px; margin-left:10px;'><img class='' style='width:15%; height:15%;' src= '"  + escapeXmlSymbols(signedUrl) + "' ></img></div></td>";
+                            body += "<td class='tg-headerlogo' style='width:70%;vertical-align:center; align:left;'><div style='display: flex; height:50px; width:50px; margin-left:10px;'><img class='' style='width:15%; height:15%;' src= '"  + (signedUrl) + "' ></img></div></td>";
                         }else{
                             body += "<td class='tg-headerlogo' style='height:50px; vertical-align:center;'></td>"
                         }

@@ -2,7 +2,7 @@
  * @NApiVersion 2.1
  * @NScriptType Suitelet
  */
-define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/message', 'N/runtime'], function (serverWidget, task, search, log, record, message, runtime) {
+define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/message', 'N/runtime', 'N/format', 'N/config'], function (serverWidget, task, search, log, record, message, runtime, format, config) {
 
     function onRequest(context) {
         if (context.request.method === 'GET') {
@@ -353,9 +353,34 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                     log.debug('dataLinetoSet', dataLinetoSet)
                     
                     if (isCreate) {
+                        function getCurrentUTC7() {
+                            var now = new Date();
+                    
+                            // Dapatkan nilai UTC
+                            var utcYear = now.getUTCFullYear();
+                            var utcMonth = now.getUTCMonth(); // 0-indexed, Januari = 0
+                            var utcDate = now.getUTCDate();
+                            var utcHours = now.getUTCHours() + 7; // Tambahkan 7 jam untuk WIB
+                    
+                            // Jika penambahan jam menyebabkan perubahan hari
+                            if (utcHours >= 24) {
+                                utcHours -= 24;
+                                utcDate += 1;
+                            }
+                    
+                            return new Date(utcYear, utcMonth, utcDate, utcHours, now.getUTCMinutes(), now.getUTCSeconds());
+                        }
+                        var currentDate = getCurrentUTC7();
+                        log.debug('currentDate', currentDate)
+                        // currentDate.setHours(currentDate.getUTCHours() + 7);
+                        // var formattedDate = format.parse({
+                        //     value: currentDate,
+                        //     type: format.Type.DATE
+                        // });
+                        // log.debug('formattedDate', formattedDate)
                         const dateConvert = convertToDate(dateSet);
                         const createRec = record.create({ type: "customtransaction_rda_collection_mgm" });
-                        createRec.setValue({ fieldId: "trandate", value: dateConvert, ignoreFieldChange: true });
+                        createRec.setValue({ fieldId: "trandate", value: currentDate, ignoreFieldChange: true });
                         createRec.setValue({ fieldId: "currency", value: currSet, ignoreFieldChange: true });
                         createRec.setValue({ fieldId: "exchangerate", value: excSet, ignoreFieldChange: true });
                         createRec.setValue({ fieldId: "class", value: divisionSet, ignoreFieldChange: true });
@@ -403,12 +428,26 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
         }
         
         function createSuccessPage(recordId) {
-            const html = `<html><body><h3>Success</h3>
-                <input style="border: none; color: white; padding: 8px 30px; background-color: rgb(0, 106, 255);" 
-                type="button" onclick="window.history.go(-1)" value="OK" />
-                <br /><br /><a href="https://11069529.app.netsuite.com/app/accounting/transactions/custom.nl?id=${recordId}" 
-                style="text-decoration:none; color:rgb(0, 106, 255); font-weight:bold;">Go to Collection Management Record</a>
-                </body></html>`;
+            var companyInfo = config.load({
+                type: config.Type.COMPANY_INFORMATION
+            });
+            var accountId = companyInfo.getValue("companyid");
+            if(accountId == '11069529_SB1'){
+                log.debug('masuk replace url')
+                accountId = '11069529-sb1'
+            }
+            log.debug('accountId', accountId);
+
+            var html = "<html><body>";
+            html += "<h3>Success</h3>";
+            html += '<input style="border: none; color: rgb(255, 255, 255); padding: 8px 30px; margin-top: 15px; cursor: pointer; text-align: center; background-color: rgb(0, 106, 255); border-color: rgb(0, 106, 255); fill: rgb(255, 255, 255); border-radius: 3px; font-weight: bold;" ' +
+                                    'type="button" onclick="window.history.go(-1)" value="OK" />';
+            var url = 'https://' + accountId + '.app.netsuite.com';
+            html += '<br /><br /><a href="'+ url +'/app/accounting/transactions/custom.nl?id=' + recordId + '" ' +
+                    'style="text-decoration:none; color:rgb(0, 106, 255); font-weight:bold;">Go to Collection Management Record</a>';
+
+            html += "</body></html>";
+         
         
             const form = serverWidget.createForm({ title: "Success Create Collection Management" });
             form.addPageInitMessage({ type: message.Type.CONFIRMATION, title: "Success!", message: html });

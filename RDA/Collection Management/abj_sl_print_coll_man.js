@@ -16,6 +16,23 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         .replace(/"/g, "&quot;")
                         .replace(/'/g, "&apos;");
         }
+        function calculateDateDifference(trandate, duedate) {
+            function parseDate(dateStr) {
+                let parts = dateStr.split("/");
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+            
+            let startDate = parseDate(trandate);
+            let endDate = parseDate(duedate);
+            
+            // Hitung selisih dalam milidetik
+            let differenceInTime = endDate.getTime() - startDate.getTime();
+            
+            // Konversi milidetik ke hari
+            let differenceInDays = differenceInTime / (1000 * 3600 * 24);
+            
+            return differenceInDays;
+        }
 
         function onRequest(context) {
             try{
@@ -278,6 +295,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             label: "Record Type"
                         }),
                         search.createColumn({name: "amountremaining", label: "Amount Remaining"}),
+                        search.createColumn({
+                            name: "trandate",
+                            join: "applyingTransaction",
+                            label: "Date"
+                         }),
+                         search.createColumn({
+                            name: "tranid",
+                            join: "applyingTransaction",
+                            label: "Document Number"
+                         })
                     
                     ]
                 });
@@ -289,6 +316,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var applyingAmt = 0;
                     var applyingTrans = dataResult.getValue({
                         name: "recordtype",
+                        join: "applyingTransaction",
+                    });
+                    var dateApply = dataResult.getValue({
+                        name: "trandate",
+                        join: "applyingTransaction",
+                    });
+                    var numberApply = dataResult.getValue({
+                        name: "tranid",
                         join: "applyingTransaction",
                     });
                     var cekAmount =  dataResult.getValue({
@@ -306,6 +341,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     allDataApply.push({
                         idInv : idInv,
+                        dateApply : dateApply,
+                        numberApply : numberApply,
                         applyingAmt : applyingAmt,
                         remainAmount : remainAmount
                     });
@@ -320,6 +357,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         if (finalDataItem.invId === applyData.idInv) {
                             finalDataItem.applyingAmount = applyData.applyingAmt;
                             finalDataItem.amtRemaining = applyData.remainAmount;
+                            finalDataItem.dateApply = applyData.dateApply;
+                            finalDataItem.numberApply = applyData.numberApply;
                         }
                     });
                 });
@@ -458,11 +497,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     if(amtCount){
                         subTotal += Number(amtCount)
                     }
+                    var dateApply = item.dateApply
+                    var numberApply = item.numberApply
                     var amtRemainCount = item.amtRemaining
                     if(amtRemainCount){
                         totalOutstand += Number(amtRemainCount)
                     }
                     var amtTotal = item.amtTotal
+                    var amtTotalCount = amtTotal
                     if(amtTotal){
                         amtTotal = format.format({
                             value: amtTotal,
@@ -471,6 +513,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
 
                     var amtRemaining = item.amtRemaining
+                    var amtRemainCount = amtRemaining
                     if(amtRemaining){
                         amtRemaining = format.format({
                             value: amtRemaining,
@@ -478,27 +521,81 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         });
                     }
                     var applyingAmount = item.applyingAmount
+                    var appAmountCOunt = applyingAmount
                     if(applyingAmount){
                         applyingAmount = format.format({
                             value: applyingAmount,
                             type: format.Type.CURRENCY
                         });
                     }
-                    
+                    var tranDate = item.dueDate
+                    log.debug('trandate', tranDate);
                     body += "<tr>"
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:11px; '><b>"+escapeXmlSymbols(item.cussId)+"</b><br/># "+escapeXmlSymbols(item.entityId)+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:11px;'>"+escapeXmlSymbols(item.docNumber)+" ("+item.sjpCount+")<br/>-</td>";
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:10px;text-align:center; vertical-align:middle; '><b>"+escapeXmlSymbols(item.cussId)+"</b><br/># "+escapeXmlSymbols(item.entityId)+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:10px;'>"+escapeXmlSymbols(item.docNumber)+" ("+item.sjpCount+")<br/>-</td>";
                     body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:11px;'>"+item.tranDate+"</td>"
                     body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'>"+item.dueDate+"</td>"
                     body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'>"+escapeXmlSymbols(item.salesRep)+"</td>"
                     body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;'>"+amtTotal+"</td>"
                     body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;font-weight:bold;font-size:11px;'>"+amtRemaining+"</td>"
                     body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'>"+item.daysOverDue+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;'>"+applyingAmount+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;'></td>"
                     body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'></td>"
                     body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'></td>"
                     body += "<td style='border: solid black 1px;border-bottom:0; '></td>"
                     body += "</tr>"
+                    if(applyingAmount != 0){
+                        log.debug('dateApply', dateApply)
+                        var overdateApply = calculateDateDifference(dateApply, dateRec);
+                        log.debug('overdateApply', overdateApply)
+                        body += "<tr>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:11px; '></td>"
+                        body += "<td style='border: solid black 1px; border-right:none; border-bottom:0; font-weight:bold; font-size:10px; text-align:center; vertical-align:middle; padding:5px;'>"
+                        + escapeXmlSymbols(numberApply)
+                        + "</td>";
+
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:11px;'>"+dateApply+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'>"+dateApply+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'>"+escapeXmlSymbols(item.salesRep)+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;'>-"+applyingAmount+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;font-weight:bold;font-size:11px;'>-"+applyingAmount+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'>"+overdateApply+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;'></td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'></td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'></td>"
+                        body += "<td style='border: solid black 1px;border-bottom:0; '></td>"
+                        body += "</tr>"
+
+                        var subTotalAmt = Number(amtTotalCount) - Number(appAmountCOunt)
+                        var subAmtRemaining = Number(amtRemainCount) - Number(appAmountCOunt);
+                        if(subTotalAmt){
+                            subTotalAmt = format.format({
+                                value: subTotalAmt,
+                                type: format.Type.CURRENCY
+                            });
+                        }
+                        if(subAmtRemaining){
+                            subAmtRemaining = format.format({
+                                value: subAmtRemaining,
+                                type: format.Type.CURRENCY
+                            });
+                        }
+                        body += "<tr>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:11px; '></td>"
+                        body += "<td style='border: solid black 1px; border-right:none; border-bottom:0; font-weight:bold; font-size:11px; text-align:center; vertical-align:middle; padding:5px;'><b>Subtotal</b></td>";
+
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:11px;'></td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'></td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'></td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;'>"+subTotalAmt+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;font-weight:bold;font-size:11px;'>"+subAmtRemaining+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'></td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;'></td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'></td>"
+                        body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'></td>"
+                        body += "<td style='border: solid black 1px;border-bottom:0; '></td>"
+                        body += "</tr>"
+                    }
                 });
                 if(subTotal){
                     subTotal = format.format({
@@ -534,10 +631,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "</tr>"
 
                 footer += "<tr>"
-                footer += "<td style='border: solid black 1px; border-right:none; border-bottom:none; height:100px;'>Kolektor/Salesman,</td>"
-                footer += "<td style='border: solid black 1px; border-right:none; border-bottom:none; height:100px;'>Administrasi,</td>"
-                footer += "<td style='border: solid black 1px; border-right:none; border-bottom:none; height:100px;'>Kasir,</td>"
-                footer += "<td style='border: solid black 1px; border-bottom:none; height:100px;'>Menyetujui,</td>"
+                footer += "<td style='border: solid black 1px; border-right:none; border-bottom:none; height:70px;'>Kolektor/Salesman,</td>"
+                footer += "<td style='border: solid black 1px; border-right:none; border-bottom:none; height:70px;'>Administrasi,</td>"
+                footer += "<td style='border: solid black 1px; border-right:none; border-bottom:none; height:70px;'>Kasir,</td>"
+                footer += "<td style='border: solid black 1px; border-bottom:none; height:70px;'>Menyetujui,</td>"
                 footer += "</tr>"
 
                 footer += "<tr>"
