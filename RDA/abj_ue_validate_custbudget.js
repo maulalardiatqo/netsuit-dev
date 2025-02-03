@@ -22,13 +22,18 @@ define(["N/record", "N/search", "N/config", "N/runtime", "N/error"], function(
             log.debug('currentSubs', currentSubs);
 
             // Validasi jika subsidiaryUser dan currentSubs tidak sama
-            if (subsidiaryUser !== currentSubs) {
-                throw error.create({
-                    name: 'SUBSIDIARY_MISMATCH',
-                    message: 'Subsidiary user dan subsidiary pada record tidak sama. Harap sesuaikan sebelum menyimpan.',
-                    notifyOff: false
-                });
+            if(subsidiaryUser != 1 && subsidiaryUser != 3){
+                log.debug('masuk if pertama')
+                if (subsidiaryUser != currentSubs) {
+                    log.debug('masuk if kedua')
+                    throw error.create({
+                        name: 'SUBSIDIARY_MISMATCH',
+                        message: 'Subsidiary user dan subsidiary pada record tidak sama. Harap sesuaikan sebelum menyimpan.',
+                        notifyOff: false
+                    });
+                }
             }
+            
         }
     }
 

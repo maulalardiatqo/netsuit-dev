@@ -26,12 +26,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       var recid = context.request.parameters.id;
 
       // load SO
-      var invoiceRecord = record.load({
-        type: "invoice",
-        id: recid,
-        isDynamic: false,
+      var invSearch = search.load({
+          id: "customsearch_invoice_print_body",
       });
-      var currenc = invoiceRecord.getValue("currency");
+      if(recid){
+          invSearch.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
+      }
+      var invSearchSet = invSearch.run();
+      var result = invSearchSet.getRange(0, 1);
+      var invoiceRecord = result[0];
+
+      var currenc = invoiceRecord.getValue({ name : "currency"});
       if (currenc) {
         var recCurrenc = record.load({
           type: "currency",
@@ -40,8 +45,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         });
         var tlcCurr = recCurrenc.getValue("symbol");
       }
-      var crFrom = invoiceRecord.getValue("createdfrom");
-      var subsidiari = invoiceRecord.getValue("subsidiary");
+      var crFrom = invoiceRecord.getValue({ name :"createdfrom"});
+      var subsidiari = invoiceRecord.getValue({ name : "subsidiary"});
       // load subsidiarie
       if (subsidiari) {
         var subsidiariRec = record.load({
@@ -75,14 +80,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
           //get url
           urlLogo = filelogo.url.replace(/&/g, "&amp;");
         }
-        log.debug('urlLogo', urlLogo)
         var fileLogoFroyo = file.load({
           id: 55785,
         });
         if(fileLogoFroyo){
           logoFroyo = fileLogoFroyo.url.replace(/&/g, "&amp;");
         }
-        log.debug('logoFroyo', logoFroyo)
         if (addresSubsidiaries.includes("<br>")) {
           addresSubsidiaries = addresSubsidiaries.replace(/<br>/g, "");
         }
@@ -92,7 +95,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       }
 
       // load vendor
-      var customer_id = invoiceRecord.getValue("entity");
+      var customer_id = invoiceRecord.getValue({name: "internalid",
+          join: "customer",});
       log.debug("customer_id", customer_id);
       if (customer_id) {
         var customerRecord = record.load({
@@ -157,9 +161,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
         balance = removeDecimalFormat(balance);
       }
       // PO data
-      var tandId = invoiceRecord.getValue("tranid");
-      var InvDate = invoiceRecord.getValue("trandate");
-      var signaturedBy = invoiceRecord.getValue('custbody11');
+      var tandId = invoiceRecord.getValue({ name : "tranid"});
+      var InvDate = invoiceRecord.getValue({ name : "trandate"});
+      var signaturedBy = invoiceRecord.getValue({ name :'custbody11'});
       var nameSignatured = ''
       if(signaturedBy){
           var recEmp = record.load({
@@ -173,213 +177,205 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
           var nameEmp = fName + " " + mName + " " + lName 
           nameSignatured = nameEmp
       }
-      var template = invoiceRecord.getText('custbody10');
-      var terms = invoiceRecord.getText("terms");
-      var fakturPajak = invoiceRecord.getValue("custbody_fcn_faktur_pajak");
-      var subTotal = invoiceRecord.getValue("subtotal") || 0;
-      var taxtotal = invoiceRecord.getValue("taxtotal") || 0;
+      var template = invoiceRecord.getText({ name :'custbody10'});
+      var terms = invoiceRecord.getText({ name :"terms"});
+      var fakturPajak = invoiceRecord.getValue({ name :"custbody_fcn_faktur_pajak"});
+      var subTotal = invoiceRecord.getValue({name: "formulacurrency",
+          formula: "{totalamount}+{taxtotal}",}) || 0;
+      var taxtotal = invoiceRecord.getValue({ name :"taxtotal"}) || 0;
+      log.debug('taxtotal', taxtotal)
       var taxtotalCount = 0;
-      var poTotal = invoiceRecord.getValue("total") || 0;
+      var poTotal = invoiceRecord.getValue({ name :"total"}) || 0;
+      log.debug('poTotal', poTotal)
       var total = 0;
       var amountReceive = 0;
-      var duedate = invoiceRecord.getValue("duedate");
-      var prosentDiscount = invoiceRecord.getValue("discountrate");
-      var discount = invoiceRecord.getValue("discounttotal") || 0;
-      var jobNumber = invoiceRecord.getValue("custbody_abj_custom_jobnumber");
+      var duedate = invoiceRecord.getValue({ name :"duedate"});
+      var prosentDiscount = invoiceRecord.getValue({ name :"discountrate"});
+      var discount = invoiceRecord.getValue({ name :"discounttotal"}) || 0;
+      var jobNumber = invoiceRecord.getValue({ name :"custbody_abj_custom_jobnumber"});
       if (jobNumber.includes("\\")) {
-        log.debug("ada tanda");
-        jobNumber = jobNumber.replace(/\\/g, "<br/>");
+          log.debug("ada tanda");
+          jobNumber = jobNumber.replace(/\\/g, "<br/>");
       }
       log.debug('jobNumber',jobNumber)
       if(jobNumber == ''){
           jobNumber = tandId
       }
 
-      var bankNumber = invoiceRecord.getText('custbody8')
-      var bankDetail = invoiceRecord.getText('custbody9')
+      var bankNumber = invoiceRecord.getText({ name :'custbody8'})
+      var bankDetail = invoiceRecord.getText({ name :'custbody9'})
 
-      var otehrRefNum = invoiceRecord.getValue("otherrefnum");
+      var otehrRefNum = invoiceRecord.getValue({ name :"otherrefnum"});
       discount = Math.abs(discount);
       prosentDiscount = Math.abs(prosentDiscount);
       var totalWhTaxamount = 0;
       var totalWhTaxamountItem = 0;
       var whtaxammountItem = 0;
       var whTaxCodetoPrint = "";
-
-      var countItem = invoiceRecord.getLineCount({
-        sublistId: "item",
-      });
-      var projectName = ""
-      if (countItem > 0) {
-        var taxpphList = [];
-        for (var i = 0; i < countItem; i++) {
-          var taxpph = invoiceRecord.getSublistValue({
-            sublistId: "item",
-            fieldId: "custcol_4601_witaxrate",
-            line: i,
-          });
-          whtaxammountItem = invoiceRecord.getSublistValue({
-            sublistId: "item",
-            fieldId: "custcol_4601_witaxamount",
-            line: i,
-          });
-          var taxItem = invoiceRecord.getSublistValue({
-            sublistId: "item",
-            fieldId: "taxrate1",
-            line: i,
-          });
-          var project = invoiceRecord.getSublistValue({
-              sublistId: "item",
-              fieldId: "class_display",
-              line: i,
-          });
-          if(project){
-              projectName = project
-          }
-          var ammount = invoiceRecord.getSublistValue({
-            sublistId: "item",
-            fieldId: "amount",
-            line: i,
-          });
-          var whTaxCodeI = invoiceRecord.getSublistValue({
-            sublistId: "item",
-            fieldId: "custcol_4601_witaxcode",
-            line: i,
-          });
-
-          if (whTaxCodeI) {
-            var whRecI = record.load({
-              type: "customrecord_4601_witaxcode",
-              id: whTaxCodeI,
-              isDynamic: false,
-            });
-            whTaxCodetoPrint = whRecI.getValue("custrecord_4601_wtc_name");
-            if (whTaxCodetoPrint.includes("Prepaid Tax") || whTaxCodetoPrint.includes("Tax Article")) {
-              whTaxCodetoPrint = whTaxCodetoPrint.replace("Prepaid Tax", "PPH").replace("Tax Article", "PPH");
-            }
-          }
-          var qty = invoiceRecord.getSublistValue({
-            sublistId: "item",
-            fieldId: "quantity",
-            line: i,
-          });
-          // subTotal += ammount * qty
-          // taxtotalCount = ammount * qty * taxItem / 100
-          // log.debug('taxtotalCount', taxtotalCount);
-          // taxtotal += taxtotalCount
-          var tamount = whtaxammountItem;
-          whtaxammountItem = Math.abs(tamount);
-          totalWhTaxamountItem += whtaxammountItem;
-
-          if (taxpph) {
-            if (taxpphList.indexOf(taxpph) == -1) {
-              taxpphList.push(taxpph);
-            }
-          }
-        }
-        // log.debug('whtaxammountItem', whtaxammountItem)
-        // log.debug('totalWhTaxamountItem', totalWhTaxamountItem);
+      
+      var searchLine = search.load({
+          id : "customsearch_invoice_print_line"
+      })
+      if(recid){
+          searchLine.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
       }
-      // log.debug('taxtotal', taxtotal)
-      var whtaxToCount = whtaxammountItem;
-      var otherComment = invoiceRecord.getValue("custbody3");
+      var itemSearchSet = searchLine.run();
+      var countItem = itemSearchSet.getRange(0, 100);
+      log.debug('countItem', countItem.length)
+
+      var allDataLine = []
+      var projectName = ""
+      var taxpphList = [];
+      if (countItem.length > 0) {
+          for (var i = 0; i < countItem.length; i++) {
+              var lineRec = countItem[i];
+              // dataLine
+              var description = lineRec.getValue({
+                  name: "memo",
+              });
+              var ammount = lineRec.getValue({
+                  name: "amount",
+              });
+              log.debug('ammount', ammount)
+              allDataLine.push({
+                  description: description,
+                  ammount: ammount,
+              })
+
+              var taxpph = lineRec.getValue({
+                  name: "custcol_4601_witaxrate",
+              });
+              whtaxammountItem = lineRec.getValue({
+                  name: "custcol_4601_witaxamount",
+              });
+              var project = lineRec.getText({
+                  name: "class",
+              });
+              log.debug('project', project)
+              if(project){
+                  projectName = project
+              }
+              var whTaxCodeI = lineRec.getValue({
+                  name: "custcol_4601_witaxcode",
+              });
+  
+              if (whTaxCodeI) {
+                  var whRecI = record.load({
+                      type: "customrecord_4601_witaxcode",
+                      id: whTaxCodeI,
+                      isDynamic: false,
+                  });
+                  whTaxCodetoPrint = whRecI.getValue("custrecord_4601_wtc_name");
+                  if (whTaxCodetoPrint.includes("Prepaid Tax") || whTaxCodetoPrint.includes("Tax Article")) {
+                      whTaxCodetoPrint = whTaxCodetoPrint.replace("Prepaid Tax", "PPH").replace("Tax Article", "PPH");
+                  }
+              }
+              var tamount = whtaxammountItem;
+              whtaxammountItem = Math.abs(tamount);
+              totalWhTaxamountItem += whtaxammountItem;
+  
+              if (taxpph) {
+                  if (taxpphList.indexOf(taxpph) == -1) {
+                      taxpphList.push(taxpph);
+                  }
+              }
+          }
+      }
       totalWhTaxamount = totalWhTaxamountItem;
+      log.debug('taxpphList', taxpphList)
       if (taxpphList.length > 0) {
-        var taxpphToPrint = taxpphList.join(" & ");
+          var taxpphToPrint = taxpphList.join(" & ");
       }
       var subBefore = subTotal;
       var taxtotalBefor = taxtotal;
       total = Number(subBefore) + Number(taxtotalBefor);
       amountReceive = total;
       if (taxpphToPrint) {
-        amountReceive = amountReceive - totalWhTaxamount;
+          amountReceive = amountReceive - totalWhTaxamount;
       }
       if (totalWhTaxamount) {
-        totalWhTaxamount = pembulatan(totalWhTaxamount);
-        totalWhTaxamount = format.format({
-          value: totalWhTaxamount,
-          type: format.Type.CURRENCY,
-        });
-        totalWhTaxamount = removeDecimalFormat(totalWhTaxamount);
+          totalWhTaxamount = pembulatan(totalWhTaxamount);
+          totalWhTaxamount = format.format({
+              value: totalWhTaxamount,
+              type: format.Type.CURRENCY,
+          });
+          totalWhTaxamount = removeDecimalFormat(totalWhTaxamount);
       }
       if (amountReceive) {
-        amountReceive = pembulatan(amountReceive);
-        amountReceive = format.format({
-          value: amountReceive,
-          type: format.Type.CURRENCY,
-        });
-        amountReceive = removeDecimalFormat(amountReceive);
+          amountReceive = pembulatan(amountReceive);
+          amountReceive = format.format({
+              value: amountReceive,
+              type: format.Type.CURRENCY,
+          });
+          amountReceive = removeDecimalFormat(amountReceive);
       }
       if (poTotal) {
-        poTotal = pembulatan(poTotal);
-        poTotal = format.format({
-          value: poTotal,
-          type: format.Type.CURRENCY,
-        });
-        poTotal = removeDecimalFormat(poTotal);
+          poTotal = pembulatan(poTotal);
+          poTotal = format.format({
+              value: poTotal,
+              type: format.Type.CURRENCY,
+          });
+          poTotal = removeDecimalFormat(poTotal);
       }
       if (discount) {
-        discount = pembulatan(discount);
-        discount = format.format({
-          value: discount,
-          type: format.Type.CURRENCY,
-        });
-        discount = removeDecimalFormat(discount);
+          discount = pembulatan(discount);
+          discount = format.format({
+              value: discount,
+              type: format.Type.CURRENCY,
+          });
+          discount = removeDecimalFormat(discount);
       }
 
       if (subTotal) {
-        subTotal = pembulatan(subTotal);
-        subTotal = format.format({
-          value: subTotal,
-          type: format.Type.CURRENCY,
-        });
-        subTotal = removeDecimalFormat(subTotal);
+          subTotal = pembulatan(subTotal);
+          subTotal = format.format({
+              value: subTotal,
+              type: format.Type.CURRENCY,
+          });
+          subTotal = removeDecimalFormat(subTotal);
       }
 
       if (taxtotal) {
-        taxtotal = pembulatan(taxtotal);
-        taxtotal = format.format({
-          value: taxtotal,
-          type: format.Type.CURRENCY,
-        });
-        taxtotal = removeDecimalFormat(taxtotal);
+          taxtotal = pembulatan(taxtotal);
+          taxtotal = format.format({
+              value: taxtotal,
+              type: format.Type.CURRENCY,
+          });
+          taxtotal = removeDecimalFormat(taxtotal);
       }
 
       if (total) {
-        total = pembulatan(total);
-        total = format.format({
-          value: total,
-          type: format.Type.CURRENCY,
-        });
-        total = removeDecimalFormat(total);
+          total = pembulatan(total);
+          total = format.format({
+              value: total,
+              type: format.Type.CURRENCY,
+          });
+          total = removeDecimalFormat(total);
       }
 
       if (duedate) {
+        log.debug('duedate', duedate)
         function sysDate() {
-          var date = duedate;
-          var tdate = date.getUTCDate();
-          var month = date.getUTCMonth() + 1; // jan = 0
-          var year = date.getUTCFullYear();
-          return tdate + "/" + month + "/" + year;
+            var date = new Date(duedate); 
+            log.debug('date', date)
+            if (isNaN(date.getTime())) { 
+                log.debug('Invalid Date', duedate);
+                return duedate; // Kembalikan nilai asli jika tidak valid
+            }
+    
+            var tdate = date.getUTCDate();
+            var month = date.getUTCMonth() + 1; // jan = 0
+            var year = date.getUTCFullYear();
+            return tdate + "/" + month + "/" + year;
         }
         duedate = sysDate();
-      }
+    }
       if (InvDate) {
-        InvDate = format.format({
-          value: InvDate,
-          type: format.Type.DATE,
-        });
+          InvDate = format.format({
+              value: InvDate,
+              type: format.Type.DATE,
+          });
       }
-      // var amountRecieved = Number(subtotalB) - Number(discount) + Number(taxtotalB) / Number(totalB);
-      // log.debug('subtotal', subtotalB);
-      // log.debug('discount', discount);
-      // log.debug('total', totalB);
-      // log.debug('taxtotal', taxtotalB);
-      // log.debug('amountR', amountRecieved);
-      // amountRecieved = format.format({
-      //     value: amountRecieved,
-      //     type: format.Type.CURRENCY
-      // });
       var response = context.response;
       var xml = "";
       var header = "";
@@ -389,16 +385,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       var footer = "";
       var pdfFile = null;
       if (jobNumber.includes("&")) {
-        log.debug("masuk");
-        jobNumber = jobNumber.replace(/&/g, "&amp;");
+          log.debug("masuk");
+          jobNumber = jobNumber.replace(/&/g, "&amp;");
       }
       style += "<style type='text/css'>";
       style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%; font-family: Tahoma, 'Trebuchet MS', sans-serif;}";
       style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
       if (subsidiari == 1) {
-        style += ".tg .tg-img-logo{width:150px; height:111px; object-vit:cover;}";
+          style += ".tg .tg-img-logo{width:150px; height:111px; object-vit:cover;}";
       } else {
-        style += ".tg .tg-img-logo{width:195px; height:70px; object-vit:cover;}";
+          style += ".tg .tg-img-logo{width:195px; height:70px; object-vit:cover;}";
       }
       style += ".tg .tg-img-logo-froyo {width:195px; height:70px; object-fit:cover;left:-13px}";
       style += ".tg .tg-headerrow{align: right;font-size:12px;}";
@@ -479,7 +475,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
             <tr>
                 <td colspan="3" style="font-weight:bold;">${projectName}</td>
             </tr>
-            ${getPOItem(context, invoiceRecord)}
+            ${getPOItem(context, invoiceRecord, allDataLine)}
             
             <tr>
                 <td></td>
@@ -605,87 +601,59 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", "N/conf
       });
     }
 
-    function getPOItem(context, invoiceRecord) {
-      var itemCount = invoiceRecord.getLineCount({
-        sublistId: "item",
-      });
+    function getPOItem(context, invoiceRecord, allDataLine) {
+      var cekDataLine = allDataLine.length
+      if(cekDataLine > 0){
+          var body = "";
+          var no = 1;
+          allDataLine.forEach(data => {
+              var description = data.description;
+              var amount = data.ammount;
+              
+              if (description.includes("\\")) {
+                  log.debug("ada tanda");
+                  description = description.replace(/\\/g, "<br/>");
+              }
+              if (description.includes("$") && description.includes("$$")) {
+                  log.debug("masuk $");
+                  description = description.replace(/\$(.*?)\$\$/g, "<b>$1</b>");
+              }
+              if (description.includes("#") && description.includes("##")) {
+                  log.debug("masuk #");
+                  description = description.replace(/\#(.*?)\#\#/g, "<i>$1</i>");
+              }
+              if (description.includes("*") && description.includes("**")) {
+                  log.debug("masuk *");
+                  description = description.replace(/\*(.*?)\*\*/g, "<u>$1</u>");
+              }
+    
+              log.debug('description',description)
 
-      if (itemCount > 0) {
-        var body = "";
-        var no = 1;
-        for (var index = 0; index < itemCount; index++) {
-          var description = invoiceRecord.getSublistValue({
-            sublistId: "item",
-            fieldId: "description",
-            line: index,
+              if (amount) {
+                  amount = pembulatan(amount);
+                  amount = format.format({
+                      value: amount,
+                      type: format.Type.CURRENCY,
+                  });
+                  amount = removeDecimalFormat(amount);
+              }
+      
+              body += `
+                  <tr>
+                      <td>-${description}</td>
+                      <td>Rp</td>
+                      <td align="right">${amount}</td>
+                  </tr>
+              `
+              no++;
+              
           });
-          if (description.includes("\\")) {
-            log.debug("ada tanda");
-            description = description.replace(/\\/g, "<br/>");
-          }
-          if (description.includes("$") && description.includes("$$")) {
-            log.debug("masuk $");
-            description = description.replace(/\$(.*?)\$\$/g, "<b>$1</b>");
-          }
-          if (description.includes("#") && description.includes("##")) {
-            log.debug("masuk #");
-            description = description.replace(/\#(.*?)\#\#/g, "<i>$1</i>");
-          }
-          if (description.includes("*") && description.includes("**")) {
-            log.debug("masuk *");
-            description = description.replace(/\*(.*?)\*\*/g, "<u>$1</u>");
-          }
-
-          log.debug('description',description)
-
-          // var ammount = invoiceRecord.getSublistValue({
-          //   sublistId: "item",
-          //   fieldId: "grossamt",
-          //   line: index,
-          // });
-          var amountItem = invoiceRecord.getSublistValue({
-            sublistId: "item",
-            fieldId: "amount",
-            line: index,
-          });
-          // log.debug('grossamount',ammount)
-          log.debug('amount',amountItem)
-          var itemText = invoiceRecord.getSublistText({
-            sublistId: "item",
-            fieldId: "item",
-            line: index,
-          });
-          // if (ammount) {
-          //   ammount = pembulatan(ammount);
-          //   ammount = format.format({
-          //     value: ammount,
-          //     type: format.Type.CURRENCY,
-          //   });
-          //   ammount = removeDecimalFormat(ammount);
-          // }
-          if (amountItem) {
-            amountItem = pembulatan(amountItem);
-            amountItem = format.format({
-              value: amountItem,
-              type: format.Type.CURRENCY,
-            });
-            amountItem = removeDecimalFormat(amountItem);
-          }
-
-          body += `
-              <tr>
-                  <td>-${description}</td>
-                  <td>Rp</td>
-                  <td align="right">${amountItem}</td>
-              </tr>
-          `
-          no++;
-        }
-        return body;
+          return body;
       }
-    }
+
+      }
   } catch (e) {
-    log.debug("error", e);
+      log.debug("error", e);
   }
 
   return {

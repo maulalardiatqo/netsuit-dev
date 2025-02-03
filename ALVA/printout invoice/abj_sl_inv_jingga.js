@@ -392,6 +392,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 //     value: amountRecieved,
                 //     type: format.Type.CURRENCY
                 // });
+                
                 var response = context.response;
                 var xml = "";
                 var header = "";
@@ -405,7 +406,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     jobNumber = jobNumber.replace(/&/g, '&amp;');
                 }
                 style += "<style type='text/css'>";
-                style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%; font-family: Arial, Helvetica, sans-serif;}";
+                style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%; font-family: serif;}";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
                 if(subsidiari == 1){
                     style += ".tg .tg-img-logo{width:150px; height:111px; object-vit:cover;}";
@@ -432,16 +433,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                body += "<td style='align:left; width:60%;'></td>"
+                body += "<td style='align:left; width:50%;'></td>"
                 body += "<td style='align:left; width:8%;'></td>"
                 body += "<td style='align:left; width:12%;'></td>"
-                body += "<td style='align:left; width:20%;'></td>"
+                body += "<td style='align:left; width:30%;'></td>"
                 body+= "</tr>";
+                var nameUpper = legalName.toUpperCase();
+                log.debug('nameUpper', nameUpper)
                 body+= "<tr>"
-                body+= "<td style='font-size:25px; font-weight: bold; '>"+legalName+ " " +template+"</td>"
-                body+= "<td></td>"
-                body+= "<td></td>"
-                body+= "<td style='font-size:20px; align:right; color:#EC3333; font-weight: bold;'>INVOICE</td>"
+                body+= "<td style='font-size:25px; font-weight: bold;' colspan='3'>"+nameUpper+ " " +template+"</td>"
+                body+= "<td style='font-size:20px; align:right; color:#BA0A0AFF; font-weight: bold; font-family: serif;'>INVOICE</td>"
                 body+= "</tr>";
 
                 body+= "<tr>"
@@ -457,6 +458,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<td style='align:right;'>"+tandId+"</td>"
                 body+= "</tr>";
 
+                log.debug('fromSo', fromSo)
+                if (fromSo.startsWith("Quotation #")) {
+                    fromSo = fromSo.replace(/^Quotation #/, '');
+                }
                 body+= "<tr>"
                 body+= "<td></td>"
                 body+= "<td>Quotation #</td>"
@@ -466,7 +471,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tr>"
                 body+= "<td></td>"
                 body+= "<td></td>"
-                body+= "<td>PO No</td>"
+                body+= "<td>PO. No.</td>"
                 body+= "<td style='align:right;'>"+otehrRefNum+"</td>"
                 body+= "</tr>";
 
@@ -484,7 +489,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                body += "<td style='align:center; width:60%; font-size:15px; font-weight:bold; background-color:#868686; color:#FCF8F8;'>Bill To :</td>"
+                body += "<td style='align:center; width:60%; font-size:15px; font-weight:bold; background-color:#868686; color:#FCF8F8;'>BILL TO :</td>"
                 body += "<td style='align:left; width:40%;'></td>"
                 body+= "</tr>";
                 body+= "</tbody>";
@@ -527,7 +532,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#868686; color:#FCF8F8; border:1px solid black;' colspan='3'>Description</td>"
+                body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#868686; color:#FCF8F8; border:1px solid black;' colspan='3'>DESCRIPTION</td>"
                 body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#868686; color:#FCF8F8; border:1px solid black;' colspan='2'>AMOUNT</td>"
                 body+= "</tr>";
 
@@ -554,7 +559,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<tr style=''>";
                 footer += "<td class='tg-garis' style='align:center;font-size:15px; font-weight:bold; background-color:#949393'>OTHER COMMENTS</td>"
                 footer += "<td style=''></td>"
-                footer += "<td style=''>Sub Total</td>"
+                footer += "<td style='align:right;'>Sub Total</td>"
                 footer += "<td style=''>:</td>"
                 footer += "<td style=''>IDR</td>"
                 footer += "<td style='align:right'>"+subTotal+"</td>"
@@ -563,7 +568,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<tr style=''>";
                 footer += "<td class='tg-garis' style='align:left'>"+otherComment+"</td>"
                 footer += "<td style=''></td>"
-                footer += "<td style=''>VAT"+taxRegNo+"</td>"
+                footer += "<td style='align:right;'>VAT"+taxRegNo+"</td>"
                 footer += "<td style=''>:</td>"
                 footer += "<td style=''>IDR</td>"
                 footer += "<td style='align:right'>"+taxtotal+"</td>"
@@ -572,10 +577,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<tr style=''>";
                 footer += "<td style=''></td>"
                 footer += "<td style=''></td>"
-                footer += "<td style='font-weight:bold'>Total Invoice</td>"
+                footer += "<td style='font-weight:bold; align:right;'>Total Invoice</td>"
                 footer += "<td style=''>:</td>"
                 footer += "<td style=''>IDR</td>"
-                footer += "<td style='align:right'>"+total+"</td>"
+                footer += "<td style='align:right; font-weight:bold;'>"+total+"</td>"
                 footer += "</tr>";
 
                 footer += "<tr style='height:20px'>";
@@ -588,39 +593,33 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "</tr>";
 
                 footer += "<tr>";
-                footer += "<td style=''>Signed By</td>"
-                footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>Make All Payment To</td>"
+                footer += "<td style=''>Submitted By</td>"
+                footer += "<td style='align:center' colspan='5'>Make All Payment To</td>"
                 footer += "</tr>";
 
                 footer += "<tr>";
                 footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>"+bankBranch+"</td>"
+                footer += "<td style='align:center' colspan='5'>"+bankName+ "-" + bankBranch+"</td>"
                 footer += "</tr>";
 
                 footer += "<tr>";
                 footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>"+bankName+"</td>"
+                footer += "<td style='align:center' colspan='5'>Account Name : Jingga Kreasi Multiguna PT</td>"
                 footer += "</tr>";
 
                 footer += "<tr>";
                 footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>"+accountNo+"</td>"
+                footer += "<td style='align:center' colspan='5'>Account Number : "+accountNo+"</td>"
                 footer += "</tr>";
 
                 footer += "<tr>";
                 footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>"+Npwp+"</td>"
+                footer += "<td style='align:center' colspan='5'>NPWP : "+Npwp+"</td>"
                 footer += "</tr>";
 
                 footer += "<tr>";
                 footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>"+swiftCode+"</td>"
+                footer += "<td style='align:center' colspan='5'>Swift Code : "+swiftCode+"</td>"
                 footer += "</tr>";
 
                 footer += "<tr>";
@@ -714,13 +713,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         
 
                         body += "<tr>";
-                        body += "<td  style='border-left:1px solid black; border-right:1px solid black' colspan='3'> "+description+ "</td>";
+                        body += "<td  style='border-left:1px solid black; border-right:1px solid black; padding-left:20px;' colspan='3'> "+no+ "."+description+ "</td>";
                         body += "<td style='align:left'>IDR</td>"
                         body += "<td style='align:right; border-right:1px solid black;'>"+ammount+"</td>"
                         body += "</tr>";
                         no++
                     }
-                    var allLine = 70
+                    var allLine = 77
                     var cekLine = 1
                     for (var i=0 ; i < allLine - (no*4) + 1; i++) {
                         body += "<tr>";
