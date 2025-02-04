@@ -185,23 +185,23 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       }
       startDate.defaultValue = startDateSelected;
       endDate.defaultValue = endDateSelected;
-      log.debug("dataFilter", {
-        subsidiarySelected: subsidiarySelected,
-        customerSelected: customerSelected,
-        startDateSelected: startDateSelected,
-        endDateSelected: endDateSelected,
-      });
+      // log.debug("dataFilter", {
+      //   subsidiarySelected: subsidiarySelected,
+      //   customerSelected: customerSelected,
+      //   startDateSelected: startDateSelected,
+      //   endDateSelected: endDateSelected,
+      // });
       var userObj = runtime.getCurrentUser();
       var userRole = userObj.role;
-      log.debug('userRole', userRole)
+      // log.debug('userRole', userRole)
         var roleRecord = record.load({
             type: 'role',
             id: userRole,
         });
       var selectedSubsidiary = roleRecord.getValue('subsidiaryoption');
-      log.debug('selectedSubsidiary', selectedSubsidiary)
+      // log.debug('selectedSubsidiary', selectedSubsidiary)
       var subsRestrection = roleRecord.getValue('subsidiaryrestriction');
-      log.debug('subsRestrection', subsRestrection)
+      // log.debug('subsRestrection', subsRestrection)
       var isProcessed = true;
       if(selectedSubsidiary != 'ALL'){
           log.debug('tidak sama dengan all')
@@ -307,7 +307,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           let project = result.getText("class");
           let status = result.getText("statusref");
           let pic = result.getValue("custbody_so_pic");
-          log.debug('pic', pic)
+          // log.debug('pic', pic)
           let deliverables = result.getText("line.cseg_abjproj_cust_");
           let qty = result.getValue("quantity");
           let invoiceNumber = result.getValue({
@@ -415,7 +415,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           let project = result.getText("class");
           let status = result.getText("statusref");
           let pic = result.getValue("custbody_so_pic");
-          log.debug('pic', pic)
+          // log.debug('pic', pic)
           let deliverables = result.getText("line.cseg_abjproj_cust_");
           let qty = result.getValue("quantity");
           let invoiceNumber = result.getValue({
@@ -617,11 +617,19 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             mergedPendingBillArray.push(mergedItem);
           }
         });
-        log.debug('mergedPendingBillArray', mergedPendingBillArray)
+        // log.debug('mergedPendingBillArray', mergedPendingBillArray)
         let mergedJobDoneArray = [];
         groupedJobDoneArray.forEach((jobDoneItem) => {
           let matchingPOs = poDataArr.filter((poItem) => {
-            var nomorPO = poItem.poNo
+            var cekJobDOne = jobDoneItem.quoteNumberVal
+            
+            
+            // var nomorPO = poItem.poNo
+            // if(cekJobDOne == 507674){
+            //   if( poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal){
+            //     log.debug('nomorPO', nomorPO)
+            //   }
+            // }
             
             return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
           });
