@@ -624,13 +624,6 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             var cekJobDOne = jobDoneItem.quoteNumberVal
             
             
-            // var nomorPO = poItem.poNo
-            // if(cekJobDOne == 507674){
-            //   if( poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal){
-            //     log.debug('nomorPO', nomorPO)
-            //   }
-            // }
-            
             return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
           });
           if (matchingPOs.length > 0) {

@@ -68,8 +68,9 @@ define(["N/record", "N/search", "N/config"], function (
                                 fieldId: "custcol_abj_pack_size_order",
                                 line: i
                             });
-
+                            
                             if (packSize != "") {
+                                log.debug('packSize', packSize)
                                 dataRec.setSublistValue({
                                     sublistId: "item",
                                     fieldId: "units",
@@ -102,63 +103,70 @@ define(["N/record", "N/search", "N/config"], function (
 
                         // Cache loaded records to reduce usage
                         var prCache = {};
-
-                        allDataPr.forEach(function (prData) {
-                            var prId = prData.prId;
-                            var lineIdPr = prData.lineIdPr;
-                            var itemIdData = prData.itemIdData;
-                            var quantity = prData.quantity;
-
-                            if (!prCache[prId]) {
-                                prCache[prId] = record.load({
-                                    type: "purchaseorder",
-                                    id: prId,
-                                    isDynamic: false
-                                });
-                            }
-
-                            var prRecord = prCache[prId];
-                            prRecord.setValue({
-                                fieldId: "custbody_po_converted",
-                                value: prData.idRec,
-                                ignoreFieldChange: true
-                            });
-
-                            var lineinPr = prRecord.getLineCount({
-                                sublistId: "recmachcustrecord_iss_pr_parent"
-                            });
-
-                            if (lineinPr > 0) {
-                                for (var i = 0; i < lineinPr; i++) {
-                                    var itemId = prRecord.getSublistValue({
-                                        sublistId: "recmachcustrecord_iss_pr_parent",
-                                        fieldId: "custrecord_iss_pr_item",
-                                        line: i
-                                    });
-                                    var line_id = prRecord.getSublistValue({
-                                        sublistId: "recmachcustrecord_iss_pr_parent",
-                                        fieldId: "id",
-                                        line: i
-                                    });
-                                    var currntQtyPO = prRecord.getSublistValue({
-                                        sublistId: "recmachcustrecord_iss_pr_parent",
-                                        fieldId: "custrecord_prsum_qtypo",
-                                        line: i
-                                    }) || 0;
-
-                                    if (itemId == itemIdData && lineIdPr == line_id) {
-                                        var qtyPo = Number(currntQtyPO) + Number(quantity);
-                                        prRecord.setSublistValue({
-                                            sublistId: "recmachcustrecord_iss_pr_parent",
-                                            fieldId: "custrecord_prsum_qtypo",
-                                            line: i,
-                                            value: qtyPo
+                        if(allDataPr.length > 0){
+                            log.debug('allDataPr.length ', allDataPr.length )
+                            allDataPr.forEach(function (prData) {
+                                var prId = prData.prId;
+                                log.debug('prId', prId)
+                                if(prId){
+                                    var lineIdPr = prData.lineIdPr;
+                                    var itemIdData = prData.itemIdData;
+                                    var quantity = prData.quantity;
+        
+                                    if (!prCache[prId]) {
+                                        prCache[prId] = record.load({
+                                            type: "purchaseorder",
+                                            id: prId,
+                                            isDynamic: false
                                         });
                                     }
+        
+                                    var prRecord = prCache[prId];
+                                    prRecord.setValue({
+                                        fieldId: "custbody_po_converted",
+                                        value: prData.idRec,
+                                        ignoreFieldChange: true
+                                    });
+        
+                                    var lineinPr = prRecord.getLineCount({
+                                        sublistId: "recmachcustrecord_iss_pr_parent"
+                                    });
+        
+                                    if (lineinPr > 0) {
+                                        for (var i = 0; i < lineinPr; i++) {
+                                            var itemId = prRecord.getSublistValue({
+                                                sublistId: "recmachcustrecord_iss_pr_parent",
+                                                fieldId: "custrecord_iss_pr_item",
+                                                line: i
+                                            });
+                                            var line_id = prRecord.getSublistValue({
+                                                sublistId: "recmachcustrecord_iss_pr_parent",
+                                                fieldId: "id",
+                                                line: i
+                                            });
+                                            var currntQtyPO = prRecord.getSublistValue({
+                                                sublistId: "recmachcustrecord_iss_pr_parent",
+                                                fieldId: "custrecord_prsum_qtypo",
+                                                line: i
+                                            }) || 0;
+        
+                                            if (itemId == itemIdData && lineIdPr == line_id) {
+                                                var qtyPo = Number(currntQtyPO) + Number(quantity);
+                                                prRecord.setSublistValue({
+                                                    sublistId: "recmachcustrecord_iss_pr_parent",
+                                                    fieldId: "custrecord_prsum_qtypo",
+                                                    line: i,
+                                                    value: qtyPo
+                                                });
+                                            }
+                                        }
+                                    }
                                 }
-                            }
-                        });
-
+                                
+                            });
+    
+                        }
+                       
                         Object.keys(prCache).forEach(function (prId) {
                             var savePr = prCache[prId].save({
                                 enableSourcing: true,

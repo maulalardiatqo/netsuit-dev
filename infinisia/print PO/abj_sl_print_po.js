@@ -819,17 +819,23 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     if (item.description.includes('\\')) {
                         item.description = item.description.replace(/\\/g, '<br/>');
                     }
-        
-                    var rateFormatted = format.format({
-                        value: item.rate, 
-                        type: format.Type.CURRENCY
-                    });
+                    var rateFormatted = ''
+                    if(item.rate){
+                        var rateFormatted = format.format({
+                            value: item.rate, 
+                            type: format.Type.CURRENCY
+                        });
+                    }
+                    
                     ssubTotal += Number(item.amount)
                     var amountFormatted = item.amount;
-                    amountFormatted = format.format({
-                        value: amountFormatted,
-                        type: format.Type.CURRENCY
-                    });
+                    if(amountFormatted){
+                        amountFormatted = format.format({
+                            value: amountFormatted,
+                            type: format.Type.CURRENCY
+                        });
+                    }
+                    
         
                     body += "<tr>";
                     body += "<td class='tg-b_body'>" + item.description + "</td>";

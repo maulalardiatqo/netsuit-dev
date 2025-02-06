@@ -433,7 +433,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                body += "<td style='align:left; width:50%;'></td>"
+                body += "<td style='align:left; width:30%;'></td>"
+                body += "<td style='align:left; width:20%;'></td>"
                 body += "<td style='align:left; width:8%;'></td>"
                 body += "<td style='align:left; width:12%;'></td>"
                 body += "<td style='align:left; width:30%;'></td>"
@@ -441,18 +442,20 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var nameUpper = legalName.toUpperCase();
                 log.debug('nameUpper', nameUpper)
                 body+= "<tr>"
-                body+= "<td style='font-size:25px; font-weight: bold;' colspan='3'>"+nameUpper+ " " +template+"</td>"
+                body+= "<td style='font-size:20px; font-weight: bold;' colspan='4'>"+nameUpper+ " " +template+"</td>"
                 body+= "<td style='font-size:20px; align:right; color:#BA0A0AFF; font-weight: bold; font-family: serif;'>INVOICE</td>"
                 body+= "</tr>";
 
                 body+= "<tr>"
-                body+= "<td style='' rowspan='3'>"+addresSubsidiaries+"</td>"
+                body+= "<td style='font-size:10px' rowspan='4'>"+addresSubsidiaries+"</td>"
+                body+= "<td></td>"
                 body+= "<td></td>"
                 body+= "<td>Date</td>"
                 body+= "<td style='align:right;'>"+InvDate+"</td>"
                 body+= "</tr>";
 
                 body+= "<tr>"
+                body+= "<td></td>"
                 body+= "<td></td>"
                 body+= "<td>Invoice #</td>"
                 body+= "<td style='align:right;'>"+tandId+"</td>"
@@ -463,6 +466,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     fromSo = fromSo.replace(/^Quotation #/, '');
                 }
                 body+= "<tr>"
+                body+= "<td></td>"
                 body+= "<td></td>"
                 body+= "<td>Quotation #</td>"
                 body+= "<td style='align:right;'>"+fromSo+"</td>"
