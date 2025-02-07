@@ -604,26 +604,25 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
               };
               mergedPendingBillArray.push(mergedItem);
             });
-          } else {
-            let mergedItem = {
-              ...pendingBillItem,
-              poNo: "",
-              vendorName: "",
-              amountPo: "",
-              total: "",
-              remarks: "",
-              paymentStatus: "",
-            };
-            mergedPendingBillArray.push(mergedItem);
           }
+          // } else {
+          //   let mergedItem = {
+          //     ...pendingBillItem,
+          //     poNo: "",
+          //     vendorName: "",
+          //     amountPo: "",
+          //     total: "",
+          //     remarks: "",
+          //     paymentStatus: "",
+          //   };
+          //   mergedPendingBillArray.push(mergedItem);
+          // }
         });
         // log.debug('mergedPendingBillArray', mergedPendingBillArray)
         let mergedJobDoneArray = [];
         groupedJobDoneArray.forEach((jobDoneItem) => {
           let matchingPOs = poDataArr.filter((poItem) => {
             var cekJobDOne = jobDoneItem.quoteNumberVal
-            
-            
             return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
           });
           if (matchingPOs.length > 0) {
@@ -639,18 +638,19 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
               };
               mergedJobDoneArray.push(mergedItem);
             });
-          } else {
-            let mergedItem = {
-              ...jobDoneItem,
-              poNo: "",
-              vendorName: "",
-              amountPo: "",
-              total: "",
-              remarks: "",
-              paymentStatus: "",
-            };
-            mergedJobDoneArray.push(mergedItem);
           }
+          // } else {
+          //   let mergedItem = {
+          //     ...jobDoneItem,
+          //     poNo: "",
+          //     vendorName: "",
+          //     amountPo: "",
+          //     total: "",
+          //     remarks: "",
+          //     paymentStatus: "",
+          //   };
+          //   mergedJobDoneArray.push(mergedItem);
+          // }
         });
         log.debug('mergedJobDoneArray', mergedJobDoneArray)
         var totalWIPBilling = 0,
@@ -670,132 +670,154 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         var totalBawah = 0;
         if(isProcessed == true){
           const updatedArrayMergedPendingBill = [];
-        let previousQuoteNumberVal = null;
-        let quoteNumberValTotals = {};
+          let previousQuoteNumberVal = null;
+          let quoteNumberValTotals = {};
 
-        mergedPendingBillArray.forEach((row) => {
-          if (!quoteNumberValTotals[row.quoteNumberVal]) {
-            quoteNumberValTotals[row.quoteNumberVal] = 0;
-          }
-          quoteNumberValTotals[row.quoteNumberVal] += Number(row.total || 0);
-        });
+          mergedPendingBillArray.forEach((row) => {
+            if (!quoteNumberValTotals[row.quoteNumberVal]) {
+              quoteNumberValTotals[row.quoteNumberVal] = 0;
+            }
+            quoteNumberValTotals[row.quoteNumberVal] += Number(row.total || 0);
+          });
 
-        mergedPendingBillArray.forEach((row) => {
-          if (row.quoteNumberVal !== previousQuoteNumberVal) {
-            const totalRev = Number(row.billingBeforeVat) - quoteNumberValTotals[row.quoteNumberVal];
-            row.totalRev = totalRev;
-            previousQuoteNumberVal = row.quoteNumberVal;
-          } else {
-            row.totalRev = "";
-          }
+          mergedPendingBillArray.forEach((row) => {
+            if (row.quoteNumberVal !== previousQuoteNumberVal) {
+              const totalRev = Number(row.billingBeforeVat) - quoteNumberValTotals[row.quoteNumberVal];
+              row.totalRev = totalRev;
+              previousQuoteNumberVal = row.quoteNumberVal;
+            } else {
+              row.totalRev = "";
+            }
 
-          updatedArrayMergedPendingBill.push(row);
-        });
+            updatedArrayMergedPendingBill.push(row);
+          });
 
-        updatedArrayMergedPendingBill.forEach((row, index) => {
-          var totalRev = Number(row.totalRev);
-          if (index !== 0 && row.quoteNumberVal === updatedArrayMergedPendingBill[index - 1].quoteNumberVal) {
-            totalRev = "";
-            row.quoteNumber = "";
-            row.jobNumber = "";
-            row.project = "";
-            row.status = "";
-            row.pic = "";
-            row.deliverables = "";
-            row.qty = "";
-            row.invoiceNumber = "";
-            //added by kurnia
-            row.amntServF = "";
+          updatedArrayMergedPendingBill.forEach((row, index) => {
+            var totalRev = Number(row.totalRev);
+            if (index !== 0 && row.quoteNumberVal === updatedArrayMergedPendingBill[index - 1].quoteNumberVal) {
+              totalRev = "";
+              row.quoteNumber = "";
+              row.jobNumber = "";
+              row.project = "";
+              row.status = "";
+              row.pic = "";
+              row.deliverables = "";
+              row.qty = "";
+              row.invoiceNumber = "";
+              //added by kurnia
+              row.amntServF = "";
+              //
+              row.amntRetainer = "";
+              row.amntCF = "";  
+              row.amntSF = "";
+              row.amntMF = "";
+              row.amntIncentive = "";
+              row.amntAdditionalCF = "";
+              row.amntOthers = "";
+              row.billingBeforeVat = "";
+            }
+            qContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
+            qContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/salesord.nl?id=' + row.quoteNumberVal + '&whence=" target="_blank" >' + row.quoteNumber || "" + "</a></td>";
+            qContent += '            <td class="uir-list-row-cell">' + row.jobNumber || "" + "</td>";
+            // qContent += '            <td class="uir-list-row-cell">' + row.project || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell">' + row.status || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell">' + row.pic || "" + "</td>";
+            // qContent += '            <td class="uir-list-row-cell">' + row.deliverables || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell">' + row.qty || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/custinvc.nl?id=' + row.invoiceNumberVal + '&whence=" target="_blank">' + row.invoiceNumber || "" + "</a></td>";
+            qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (row.billingBeforeVat ? numberWithCommas(row.billingBeforeVat) : "") + "</td>";
+            qContent += '            <td class="uir-list-row-cell" style="text-align: right; background: #f4b083 !important;">' + numberWithCommas(totalRev) || "" + "</td>";
+            // add by kurnia
+            qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntServF) || "" + "</td>";
             //
-            row.amntRetainer = "";
-            row.amntCF = "";  
-            row.amntSF = "";
-            row.amntMF = "";
-            row.amntIncentive = "";
-            row.amntAdditionalCF = "";
-            row.amntOthers = "";
-            row.billingBeforeVat = "";
-          }
-          qContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
-          qContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/salesord.nl?id=' + row.quoteNumberVal + '&whence=" target="_blank" >' + row.quoteNumber || "" + "</a></td>";
-          qContent += '            <td class="uir-list-row-cell">' + row.jobNumber || "" + "</td>";
-          // qContent += '            <td class="uir-list-row-cell">' + row.project || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell">' + row.status || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell">' + row.pic || "" + "</td>";
-          // qContent += '            <td class="uir-list-row-cell">' + row.deliverables || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell">' + row.qty || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/custinvc.nl?id=' + row.invoiceNumberVal + '&whence=" target="_blank">' + row.invoiceNumber || "" + "</a></td>";
-          qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (row.billingBeforeVat ? numberWithCommas(row.billingBeforeVat) : "") + "</td>";
-          qContent += '            <td class="uir-list-row-cell" style="text-align: right; background: #f4b083 !important;">' + numberWithCommas(totalRev) || "" + "</td>";
-          // add by kurnia
-          qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntServF) || "" + "</td>";
-          //
-          qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntRetainer) || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntCF) || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntSF) || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntMF) || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntIncentive) || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntAdditionalCF) || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntOthers) || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell">' + row.paymentStatus || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell">' + row.poNo || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell">' + row.vendorName || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amountPo) || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.total) || "" + "</td>";
-          qContent += '            <td class="uir-list-row-cell">' + row.remarks || "" + "</td>";
-          qContent += "        </tr>";
-          totalWIPBilling += row.quoteNumberVal !== mergedPendingBillArray[index - 1]?.quoteNumberVal ? Number(row.billingBeforeVat || 0) : 0;
-          totalWIPTotal += totalRev || 0;
-          //added by kurnia
-          totalWIPServF += Number(row.amntServF || 0);
-          //
-          totalWIIPRetainer += Number(row.amntRetainer || 0);
-          totalWIPCF += Number(row.amntCF || 0);
-          totalWIPSf += Number(row.amntSF || 0);
-          totalWIPMf += Number(row.amntMF || 0);
-          totalWIPIf += Number(row.amntIncentive || 0);
-          totalWIPadditionalCF += Number(row.amntAdditionalCF || 0);
-          totalWIPOthers += Number(row.amntOthers || 0);
-        });
-        mergedJobDoneArray.forEach((row, index) => {
-          var totalRev = Number(row.billingBeforeVat || 0) - Number(row.total || 0);
-          if (index !== 0 && row.quoteNumberVal === mergedJobDoneArray[index - 1].quoteNumberVal) {
-            row.billingBeforeVat = "";
-            totalRev = Number(previousTotalRev) - Number(row.total || 0);
-          }
-          totalBawah += Number(totalRev)
-          jContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
-          jContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/salesord.nl?id=' + row.quoteNumberVal + '&whence=" target="_blank" >' + row.quoteNumber || "" + "</a></td>";
-          jContent += '            <td class="uir-list-row-cell">' + row.jobNumber || "" + "</td>";
-          // jContent += '            <td class="uir-list-row-cell">' + row.project || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell">' + row.status || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell">' + row.pic || "" + "</td>";
-          // jContent += '            <td class="uir-list-row-cell">' + row.deliverables || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell">' + row.qty || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/custinvc.nl?id=' + row.invoiceNumberVal + '&whence=" target="_blank">' + row.invoiceNumber || "" + "</a></td>";
-          jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (row.billingBeforeVat ? numberWithCommas(row.billingBeforeVat) : "") + "</td>";
-          jContent += '            <td class="uir-list-row-cell" style="text-align: right; background: #f4b083 !important;">' + numberWithCommas(totalRev) || "" + "</td>";
-          //added by kurnia
-          jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntServF) || "" + "</td>";
-          //
-          jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntRetainer) || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntCF) || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntSF) || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntMF) || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntIncentive) || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntAdditionalCF) || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntOthers) || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell">' + row.paymentStatus || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell">' + row.poNo || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell">' + row.vendorName || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amountPo) || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.total) || "" + "</td>";
-          jContent += '            <td class="uir-list-row-cell">' + row.remarks || "" + "</td>";
-          jContent += "        </tr>";
-          previousTotalRevJD = totalRev;
-        });
+            qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntRetainer) || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntCF) || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntSF) || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntMF) || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntIncentive) || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntAdditionalCF) || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntOthers) || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell">' + row.paymentStatus || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell">' + row.poNo || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell">' + row.vendorName || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amountPo) || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.total) || "" + "</td>";
+            qContent += '            <td class="uir-list-row-cell">' + row.remarks || "" + "</td>";
+            qContent += "        </tr>";
+            totalWIPBilling += row.quoteNumberVal !== mergedPendingBillArray[index - 1]?.quoteNumberVal ? Number(row.billingBeforeVat || 0) : 0;
+            totalWIPTotal += totalRev || 0;
+            //added by kurnia
+            totalWIPServF += Number(row.amntServF || 0);
+            //
+            totalWIIPRetainer += Number(row.amntRetainer || 0);
+            totalWIPCF += Number(row.amntCF || 0);
+            totalWIPSf += Number(row.amntSF || 0);
+            totalWIPMf += Number(row.amntMF || 0);
+            totalWIPIf += Number(row.amntIncentive || 0);
+            totalWIPadditionalCF += Number(row.amntAdditionalCF || 0);
+            totalWIPOthers += Number(row.amntOthers || 0);
+          });
+          mergedJobDoneArray.forEach((row, index) => {
+            var totalRev = Number(row.billingBeforeVat || 0) - Number(row.total || 0);
+            // if (index !== 0 && row.quoteNumberVal === mergedJobDoneArray[index - 1].quoteNumberVal) {
+            //   row.billingBeforeVat = "";
+            //   totalRev = Number(previousTotalRev) - Number(row.total || 0);
+            // }
+            if (index !== 0 && row.quoteNumberVal === mergedJobDoneArray[index - 1].quoteNumberVal) {
+              totalRev = "";
+              row.quoteNumber = "";
+              row.jobNumber = "";
+              row.project = "";
+              row.status = "";
+              row.pic = "";
+              row.deliverables = "";
+              row.qty = "";
+              row.invoiceNumber = "";
+              //added by kurnia
+              row.amntServF = "";
+              //
+              row.amntRetainer = "";
+              row.amntCF = "";  
+              row.amntSF = "";
+              row.amntMF = "";
+              row.amntIncentive = "";
+              row.amntAdditionalCF = "";
+              row.amntOthers = "";
+              row.billingBeforeVat = "";
+            }
+            totalBawah += Number(totalRev)
+            jContent += '        <tr class="uir-list-row-cell uir-list-row-even">';
+            jContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/salesord.nl?id=' + row.quoteNumberVal + '&whence=" target="_blank" >' + row.quoteNumber || "" + "</a></td>";
+            jContent += '            <td class="uir-list-row-cell">' + row.jobNumber || "" + "</td>";
+            // jContent += '            <td class="uir-list-row-cell">' + row.project || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell">' + row.status || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell">' + row.pic || "" + "</td>";
+            // jContent += '            <td class="uir-list-row-cell">' + row.deliverables || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell">' + row.qty || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell"><a href="https://8591721.app.netsuite.com/app/accounting/transactions/custinvc.nl?id=' + row.invoiceNumberVal + '&whence=" target="_blank">' + row.invoiceNumber || "" + "</a></td>";
+            jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + (row.billingBeforeVat ? numberWithCommas(row.billingBeforeVat) : "") + "</td>";
+            jContent += '            <td class="uir-list-row-cell" style="text-align: right; background: #f4b083 !important;">' + numberWithCommas(totalRev) || "" + "</td>";
+            //added by kurnia
+            jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntServF) || "" + "</td>";
+            //
+            jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntRetainer) || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntCF) || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntSF) || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntMF) || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntIncentive) || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntAdditionalCF) || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amntOthers) || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell">' + row.paymentStatus || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell">' + row.poNo || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell">' + row.vendorName || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.amountPo) || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell" style="text-align: right;">' + numberWithCommas(row.total) || "" + "</td>";
+            jContent += '            <td class="uir-list-row-cell">' + row.remarks || "" + "</td>";
+            jContent += "        </tr>";
+            previousTotalRevJD = totalRev;
+          });
         }
-        
+        // sampai sini
         var newSummaryData = search.load({
           id: "customsearch807",
         });
