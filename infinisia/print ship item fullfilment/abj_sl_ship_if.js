@@ -6,6 +6,12 @@
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
     function(render, search, record, log, file, http, config, format, email, runtime) {
         try{
+            function escapeXmlSymbols(input) {
+                if (!input || typeof input !== "string") {
+                    return input;
+                }
+                return input.replace(/&/g, "&amp;");
+            }
             function removeDecimalFormat(number) {
                 return number.toString().substring(0, number.toString().length - 3);
             }
@@ -58,7 +64,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var docnumber = ifRec.getValue({name:'tranid'});
                 log.debug('dikirim', dikirim)
                 var ekspedisi = ifRec.getText({name:'shipmethod'});
-                var shipTo = ifRec.getValue({name:'shipaddress'});
+                var shipTo = ifRec.getValue({ 
+                    name: "address",
+                    join: "customer",
+                });
                 var nopolMobil = ifRec.getValue({name:'custbody_abj_nopol_mobil'})
                 var driverName = ifRec.getValue({name:'custbody_abj_driver_name'}) //added by kurnia
                 if(ekspedisi.includes('&')){
@@ -66,7 +75,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 var noResi = ifRec.getValue({name:'custbodyiss_no_resi'});
                 var alamatEks = ifRec.getValue({name:'custbody_abj_alamat_ekspedisi'})
-                
+                var custName = ifRec.getValue({
+                        name: "altname",
+                        join: "customer",
+                })
+                log.debug('custName', custName)
                 //added by kurnia
                 var busDevRep = ifRec.getText({name:'custbody_abj_sales_rep_fulfillment'})
                 var nameArr = busDevRep.split(' ')
@@ -240,11 +253,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "</table>";
                 
                 // Konten untuk halaman pertama
-                body1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
+                body1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
                 body1 += "<tbody>";
                 body1 += "<tr>";
-                body1 += "<td style='width:15%'></td>";
-                body1 += "<td style='width:33%'></td>";
+                body1 += "<td style='width:11%'></td>";
+                body1 += "<td style='width:37%'></td>";
                 body1 += "<td style='width:4%'></td>";
                 body1 += "<td style='width:18%'></td>";
                 body1 += "<td style='width:30%'></td>";
@@ -259,13 +272,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body1 += "<tr>";
                 body1 += "<td style='font-weight:bold'>DO#</td>";
-                body1 += "<td>: " + docnumber + "</td>";
+                body1 += "<td>: " + escapeXmlSymbols(docnumber) + "</td>";
                 body1 += "<td></td>";
                 body1 += "<td style='font-weight:bold'>Dikirim Dengan</td>";
                 if(ekspedisi == ''){
-                    body1 += "<td>: " + dikirim + "</td>";//kurnia
+                    body1 += "<td>: " + escapeXmlSymbols(dikirim) + "</td>";//kurnia
                 } else {
-                    body1 += "<td>: " + ekspedisi + "</td>";//kurnia
+                    body1 += "<td>: " + escapeXmlSymbols(ekspedisi) + "</td>";//kurnia
                 }
                 body1 += "</tr>";
 
@@ -275,36 +288,54 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if(ekspedisi == ''){ //kurnia
                     body1 += "<td></td>"
                     body1 += "<td style='font-weight:bold'>Nama Driver</td>"
-                    body1 += "<td>: " + driverName + "</td>"
+                    body1 += "<td>: " + escapeXmlSymbols(driverName) + "</td>"
                 } else {
                     body1 += "<td></td>"
-                    body1 += "<td style='font-weight:bold'>No. Resi</td>"
-                    body1 += "<td>: " + noResi + "</td>"
+                    body1 += "<td style='font-weight:bold'></td>"
+                    body1 += "<td></td>"
                 }
                 body1 += "</tr>";
 
                 body1 += "<tr>";
                 body1 += "<td style='font-weight:bold'>SO#</td>";
-                body1 += "<td>: " + trandId + "</td>";
+                body1 += "<td>: " + escapeXmlSymbols(trandId) + "</td>";
                 if(ekspedisi == ''){ //kurnia
                     body1 += "<td></td>"
                     body1 += "<td style='font-weight:bold'>No. Pol Mobil</td>"
-                    body1 += "<td rowspan='3'>: " + nopolMobil + "</td>"
+                    body1 += "<td rowspan='3'>: " + escapeXmlSymbols(nopolMobil) + "</td>"
                 } else {
                     body1 += "<td></td>"
-                    body1 += "<td style='font-weight:bold'>Alamat Ekspedisi</td>"
-                    body1 += "<td rowspan='3'>: " + alamatEks + "</td>"
+                    body1 += "<td style='font-weight:bold'></td>"
+                    body1 += "<td rowspan='3'></td>"
                 }
                 body1 += "</tr>";
 
                 body1 += "<tr>";
                 body1 += "<td style='font-weight:bold'>Cust. PO</td>";
-                body1 += "<td>: " + poCust + "</td>";
+                body1 += "<td>: " + escapeXmlSymbols(poCust) + "</td>";
+                body1 += "</tr>";
+                log.debug('custName', custName);
+                log.debug('shipto', shipTo)
+                if (shipTo.includes("\n")) {
+                    shipTo = shipTo.replace(/\r?\n/g, '<br/>');
+                } else {
+                    log.debug("shipTo tidak mengandung ENTER", false);
+                }
+                body1 += "<tr>";
+                body1 += "<td style='font-weight:bold; vertical-align:top; width:100px;'>Customer</td>";
+                body1 += "<td colspan='3' style='vertical-align:top; word-wrap:break-word; word-break:break-word; white-space:normal; max-width:400px;'>"
+                    + ": " + escapeXmlSymbols(custName).trim()
+                    + "</td>";
                 body1 += "</tr>";
                 body1 += "<tr>";
-                body1 += "<td style='font-weight:bold'>Kirim Ke</td>";
-                body1 += "<td rowspa='2'>: " + shipTo + "</td>";
+                body1 += "<td style='font-weight:bold; vertical-align:top; width:100px;'>Kirim Ke</td>";
+                body1 += "<td colspan='3' style='vertical-align:top; word-wrap:break-word; word-break:break-word; white-space:normal; max-width:400px;'>"
+                    + ": " + escapeXmlSymbols(shipTo).trim()
+                    + "</td>";
                 body1 += "</tr>";
+
+
+
                 body1 += "<tr>";
                 body1 += "<td style='height:30px'></td>";
                 body1 += "</tr>";
@@ -366,11 +397,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body1 += "</table>";
                 
                 // Konten untuk halaman kedua
-                body2 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
+                body2 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
                 body2 += "<tbody>";
                 body2 += "<tr>";
-                body2 += "<td style='width:15%'></td>";
-                body2 += "<td style='width:33%'></td>";
+                body2 += "<td style='width:11%'></td>";
+                body2 += "<td style='width:37%'></td>";
                 body2 += "<td style='width:4%'></td>";
                 body2 += "<td style='width:18%'></td>";
                 body2 += "<td style='width:30%'></td>";
@@ -384,23 +415,23 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body2 += "</tr>";
                 body2 += "<tr>";
                 body2 += "<td style='font-weight:bold'>DO#</td>";
-                body2 += "<td>: " + docnumber + "</td>";
+                body2 += "<td>: " + escapeXmlSymbols(docnumber) + "</td>";
                 body2 += "</tr>";
                 body2 += "<tr>";
                 body2 += "<td style='font-weight:bold'>Tanggal</td>";
-                body2 += "<td>: " + shippingDate + "</td>";
+                body2 += "<td>: " + escapeXmlSymbols(shippingDate) + "</td>";
                 body2 += "</tr>";
                 body2 += "<tr>";
                 body2 += "<td style='font-weight:bold'>SO#</td>";
-                body2 += "<td>: " + trandId + "</td>";
+                body2 += "<td>: " + escapeXmlSymbols(trandId) + "</td>";
                 body2 += "</tr>";
                 body2 += "<tr>";
                 body2 += "<td style='font-weight:bold'>Cust. PO</td>";
-                body2 += "<td>: " + poCust + "</td>";
+                body2 += "<td>: " + escapeXmlSymbols(poCust) + "</td>";
                 body2 += "</tr>";
                 body2 += "<tr>";
                 body2 += "<td style='font-weight:bold'>Kirim Ke</td>";
-                body2 += "<td rowspa='2'>: " + shipTo + "</td>";
+                body2 += "<td rowspan='2' colspan='3'>: " + escapeXmlSymbols(shipTo) + "</td>";
                 body2 += "</tr>";
                 body2 += "<tr>";
                 body2 += "<td style='height:30px'></td>";
@@ -471,9 +502,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer1 += "<td style='width:25%'></td>";
                 footer1 += "</tr>";
                 footer1 += "<tr>";
-                footer1 += "<td style='align:center'>" + docnumber + "</td>";
-                footer1 += "<td style='align:center'>" + location + "</td>";
-                footer1 += "<td style='align:center'>"+ busDevRepName +"</td>";//kurnia
+                footer1 += "<td style='align:center'>" + escapeXmlSymbols(docnumber) + "</td>";
+                footer1 += "<td style='align:center'>" + escapeXmlSymbols(location) + "</td>";
+                footer1 += "<td style='align:center'>"+ escapeXmlSymbols(busDevRepName) +"</td>";//kurnia
                 footer1 += "<td style='align:center'>Page 1 of 1</td>";
                 footer1 += "</tr>";
                 footer1 += "</tbody>";
@@ -488,9 +519,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer2 += "<td style='width:22%'></td>";
                 footer2 += "</tr>";
                 footer2 += "<tr>";
-                footer2 += "<td style='align:center'>"+ busDevRepName +"</td>";//kurnia
+                footer2 += "<td style='align:center'>"+ escapeXmlSymbols(busDevRepName) +"</td>";//kurnia
                 footer2 += "<td style='align:center; font-size:10px;'>Surat Daftar Kemasan/Packing List</td>";
-                footer2 += "<td style='align:center'>" + docnumber + "</td>";
+                footer2 += "<td style='align:center'>" + escapeXmlSymbols(docnumber) + "</td>";
                 footer2 += "<td style='align:center'>Page 1 of 1</td>";
                 footer2 += "</tr>";
                 footer2 += "</tbody>";
@@ -534,7 +565,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         log.debug('allDataItem line', allDataItem)
                         var dataItem = allDataItem[index];
                         log.debug('dataItem', dataItem)
-                        var item = dataItem.item
+                        var item = dataItem.item.split(" ")[0];
+                        var itemDesc = dataItem.item.split(' ').slice(1).join(' ');
                         var description = dataItem.description
                         var qty = dataItem.qty
                         var units = dataItem.units
@@ -548,8 +580,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         nomor++;
                         body += "<tr>";
                         body += "<td style=''>" + nomor + "</td>";
-                        body += "<td style=''>" + item + "</td>";
-                        body += "<td style='' colspan='2'>" + (description || item) + "</td>"; 
+                        body += "<td style='white-space: nowrap; text-align: center;'>" + escapeXmlSymbols(item) + "</td>";
+                        body += "<td style='' colspan='2'>" + (escapeXmlSymbols(description) || escapeXmlSymbols(itemDesc)) + "</td>"; 
                         body += "<td style=''>" + units + "</td>";
                         body += "<td style=''>" + qty + "</td>";
                         body += "<td style=''>" + totalOrder + "</td>";
@@ -566,7 +598,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var body = "";
                     for(var index = 0; index < allDataItem.length; index++){
                         var dataItem = allDataItem[index];
-                        var item = dataItem.item
+                        var item = dataItem.item.split(" ")[0];
                         var itemId = dataItem.itemId
                         var idInvDetail = dataItem.idInvDetail
                         var description = dataItem.description
@@ -658,9 +690,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         nomor++;
                         body += "<tr>";
                         body += "<td style=''>"+nomor+"</td>";
-                        body += "<td style=''>"+item+"</td>";
+                        body += "<td style='white-space: nowrap; text-align: center;'>"+escapeXmlSymbols(item)+"</td>";
                         // body += "<td style='' colspan='2'>"+locationLine+"</td>";
-                        body += "<td style=''>"+locationLine+"</td>";//kurnia
+                        body += "<td style=''>"+escapeXmlSymbols(locationLine)+"</td>";//kurnia
                         body += "<td style=''>"+convLot+"</td>";
                         body += "<td style=''>"+units+"</td>";
                         body += "<td style=''>"+qty+"</td>";

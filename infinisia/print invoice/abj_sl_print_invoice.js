@@ -64,6 +64,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var idIf = invRec.getValue({
                     name: "custbody3"
                 });
+                var isDPP = invRec.getValue({
+                    name: "custbody_abj_nilai_dpp"
+                });
                 var doNo = ''
                 if(idIf){
                     var recIf = record.load({
@@ -119,7 +122,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         shipTo = shipTo.replace('\n', '<br/>');
                     }
                 }
-                log.debug('shipTo', shipTo)
                 var accName = invRec.getValue('custbody_iss_inv_account_name');
                 var bankNumber = invRec.getValue('custbody_iss_inv_bank_number');
                 var bankName = invRec.getValue('custbody_iss_inv_branch_name');
@@ -184,7 +186,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // log.debug('statusSo', statusSo);
                 var taxPros = [];
                 var uniqueTaxRates = {};
-
+                var taxRateDPP
                 var itemSearch = search.load({
                     id: "customsearch_invoice_line_printout",
                 });
@@ -200,6 +202,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var taxRate = invRec.getValue({
                             name: "rate",
                             join: "taxItem",
+                        })
+                        if(taxRate){
+                            taxRateDPP = taxRate;
+                        }
+                        var itemName = invRec.getValue({
+                            name: "itemid",
+                            join: "item",
                         })
                         if (!uniqueTaxRates.hasOwnProperty(taxRate)) {
                             uniqueTaxRates[taxRate] = true;
@@ -227,7 +236,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             namaBarang : namaBarang,
                             rate : rate,
                             unit : unit,
-                            amount : amount
+                            amount : amount,
+                            itemName : itemName
                         })
                     }
                 }
@@ -250,7 +260,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if(duedate){
                     duedate = convertDateFormat(duedate)
                 }
+                var subtotalToCount = 0;
                 if(subTotal){
+                    subtotalToCount = subTotal
                     subTotal = pembulatan(subTotal)
                     log.debug('subTotal', subTotal);
                     subTotal = format.format({
@@ -442,7 +454,27 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='width:10%'></td>"
                 body += "<td style='width:30%'></td>"
                 body += "</tr>"
-
+                log.debug('isDPP', isDPP)
+                log.debug('taxRateDPP', taxRateDPP)
+                var nilaiDPP = 0
+                if(isDPP){
+                    var numericTaxRate = parseFloat(taxRate);
+                    log.debug('numericTaxRate', numericTaxRate)
+                    if(subtotalToCount){
+                        nilaiDPP = Number(subtotalToCount) * numericTaxRate / Number(isDPP)
+                    }
+                }else{
+                    log.debug('tidak ada DPP')
+                }
+                
+                if(taxPros){
+                    
+                    taxPros = taxPros.map(function(tax) {
+                        return tax.includes('%') ? tax : tax + '%';
+                    });
+                }
+                
+                
                 body+= "<tr>"
                 body+= "<td></td>"
                 body+= "<td>Subtotal</td>"
@@ -467,17 +499,28 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body+= "<td style='align:right'>0.00</td>"
                     body += "</tr>"
                 }
-               
-                log.debug('taxPros', taxPros)
-                if(taxPros){
-                    taxPros = taxPros.map(function(tax) {
-                        return tax.includes('%') ? tax : tax + '%';
+                
+                if(nilaiDPP && nilaiDPP > 0){
+                    nilaiDPP = pembulatan(nilaiDPP)
+                    log.debug('nilaiDPP', nilaiDPP);
+                    nilaiDPP = format.format({
+                        value: nilaiDPP,
+                        type: format.Type.CURRENCY
                     });
+                    body+= "<tr>"
+                    body+= "<td></td>"
+                    body+= "<td colspan='2'>DPP Nilai Lain</td>"
+                    body+= "<td>IDR</td>"
+                    body+= "<td style='align:right'>"+removeDecimalFormat(nilaiDPP) +"</td>"
+                    body += "</tr>"
                 }
+                
+                log.debug('taxPros', taxPros)
+                
                 body+= "<tr>"
                 body+= "<td></td>"
                 body+= "<td style='border-bottom : 1px solid black'>PPN</td>"
-                body+= "<td style='border-bottom : 1px solid black'>"+escapeXmlSymbols(taxPros)+"</td>"
+                body+= "<td style='border-bottom : 1px solid black'></td>"
                 body+= "<td style='border-bottom : 1px solid black'>IDR</td>"
                 body+= "<td style='align:right; border-bottom : 1px solid black'>"+removeDecimalFormat(taxTotal)+"</td>"
                 body += "</tr>"
@@ -596,6 +639,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var No = 1;
                     for(var i = 0; i < allDataItem.length; i++){
                         var item = allDataItem[i];
+                        var itemName = item.itemName
                         var qty = item.qty
                         var namaBarang = item.namaBarang
                         var rate = item.rate
@@ -621,7 +665,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         }
                         body += "<tr>";
                         body += "<td class='tg-b_body' style='align:center;'>"+No+"</td>";
-                        body += "<td class='tg-b_body' style='align:left;'>"+escapeXmlSymbols(namaBarang)+"</td>";
+                        body += "<td class='tg-b_body' style='align:left;'>"+(escapeXmlSymbols(namaBarang) || escapeXmlSymbols(itemName))+"</td>";
                         body += "<td class='tg-b_body' style='align:center;'>"+qty+"</td>";
                         body += "<td class='tg-b_body' style='align:center;'>"+escapeXmlSymbols(unit)+"</td>";
                         body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(rate)+"</td>";

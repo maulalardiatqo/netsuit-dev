@@ -299,10 +299,12 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         );
         // end search data PO
         var myResults = getAllResults(pendingBillData);
+       
         var pendingBillDataArr = [];
         myResults.forEach(function (result) {
           let item = result.getValue('item');
           let quoteNumber = result.getValue("tranid");
+          
           let jobNumber = result.getValue("custbody_abj_custom_jobnumber");
           let project = result.getText("class");
           let status = result.getText("statusref");
@@ -513,9 +515,13 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         });
 
         var myResultsPO = getAllResults(poData);
+        log.debug('myResultsPO.length', myResultsPO.length)
         var poDataArr = [];
         myResultsPO.forEach(function (result) {
           let poNo = result.getValue("tranid");
+          if(poNo == "FLOCK PO2501003"){
+            log.debug('ketemu')
+          }
           let vendorName = result.getValue({
             name: "altname",
             join: "vendor",
@@ -587,7 +593,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         let mergedPendingBillArray = [];
         groupedPendingBillArray.forEach((pendingBillItem) => {
           let matchingPOs = poDataArr.filter((poItem) => {
-            var nomorPO = poItem.poNo
+           
             
             return poItem.quoteNumberVal === pendingBillItem.quoteNumberVal && poItem.projectVal === pendingBillItem.projectVal && poItem.deliverablesVal === pendingBillItem.deliverablesVal;
           });
@@ -604,55 +610,98 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
               };
               mergedPendingBillArray.push(mergedItem);
             });
-          }
-          // } else {
-          //   let mergedItem = {
-          //     ...pendingBillItem,
-          //     poNo: "",
-          //     vendorName: "",
-          //     amountPo: "",
-          //     total: "",
-          //     remarks: "",
-          //     paymentStatus: "",
-          //   };
-          //   mergedPendingBillArray.push(mergedItem);
           // }
+          } else {
+            let mergedItem = {
+              ...pendingBillItem,
+              poNo: "",
+              vendorName: "",
+              amountPo: "",
+              total: "",
+              remarks: "",
+              paymentStatus: "",
+            };
+            mergedPendingBillArray.push(mergedItem);
+          }
         });
         // log.debug('mergedPendingBillArray', mergedPendingBillArray)
+        // let mergedJobDoneArray = [];
+        // groupedJobDoneArray.forEach((jobDoneItem) => {
+        //   let matchingPOs = poDataArr.filter((poItem) => {
+        //     var cekJobDOne = jobDoneItem.quoteNumberVal
+        //     return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
+        //   });
+        //   if (matchingPOs.length > 0) {
+        //     matchingPOs.forEach((matchingPO) => {
+        //       let mergedItem = {
+        //         ...jobDoneItem,
+        //         poNo: matchingPO.poNo || "",
+        //         vendorName: matchingPO.vendorName || "",
+        //         amountPo: matchingPO.amountPo || "",
+        //         total: matchingPO.total || "",
+        //         remarks: matchingPO.remarks || "",
+        //         paymentStatus: matchingPO.paymentStatus || "",
+        //       };
+        //       mergedJobDoneArray.push(mergedItem);
+        //     });
+        //   // }
+        //   } else {
+        //     let mergedItem = {
+        //       ...jobDoneItem,
+        //       poNo: "",
+        //       vendorName: "",
+        //       amountPo: "",
+        //       total: "",
+        //       remarks: "",
+        //       paymentStatus: "",
+        //     };
+        //     mergedJobDoneArray.push(mergedItem);
+        //   }
+        // });
         let mergedJobDoneArray = [];
         groupedJobDoneArray.forEach((jobDoneItem) => {
-          let matchingPOs = poDataArr.filter((poItem) => {
-            var cekJobDOne = jobDoneItem.quoteNumberVal
-            return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
-          });
-          if (matchingPOs.length > 0) {
-            matchingPOs.forEach((matchingPO) => {
-              let mergedItem = {
-                ...jobDoneItem,
-                poNo: matchingPO.poNo || "",
-                vendorName: matchingPO.vendorName || "",
-                amountPo: matchingPO.amountPo || "",
-                total: matchingPO.total || "",
-                remarks: matchingPO.remarks || "",
-                paymentStatus: matchingPO.paymentStatus || "",
-              };
-              mergedJobDoneArray.push(mergedItem);
+            let matchingPOs = poDataArr.filter((poItem) => {
+              var nomorPO = poItem.poNo
+              var poQuot = poItem.quoteNumberVal
+              var poProject = poItem.projectVal
+              if(nomorPO == 'FLOCK PO2501003'){
+                log.debug('data', {poQuot : poQuot, poProject : poProject})
+              }
+                return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal &&
+                      poItem.projectVal === jobDoneItem.projectVal &&
+                      poItem.deliverablesVal === jobDoneItem.deliverablesVal;
             });
-          }
-          // } else {
-          //   let mergedItem = {
-          //     ...jobDoneItem,
-          //     poNo: "",
-          //     vendorName: "",
-          //     amountPo: "",
-          //     total: "",
-          //     remarks: "",
-          //     paymentStatus: "",
-          //   };
-          //   mergedJobDoneArray.push(mergedItem);
-          // }
+
+            let totalAmountPO = matchingPOs.reduce((sum, po) => sum + parseFloat(po.amountPo || 0), 0);
+
+            if (matchingPOs.length > 0) {
+                matchingPOs.forEach((matchingPO) => {
+                    let mergedItem = {
+                        ...jobDoneItem,
+                        poNo: matchingPO.poNo || "",
+                        vendorName: matchingPO.vendorName || "",
+                        amountPo: matchingPO.amountPo || "",
+                        total: matchingPO.total || "",
+                        remarks: matchingPO.remarks || "",
+                        paymentStatus: matchingPO.paymentStatus || "",
+                        totalAmountPO: totalAmountPO || ""                    };
+                    mergedJobDoneArray.push(mergedItem);
+                });
+            } else {
+                let mergedItem = {
+                    ...jobDoneItem,
+                    poNo: "",
+                    vendorName: "",
+                    amountPo: "",
+                    total: "",
+                    remarks: "",
+                    paymentStatus: "",
+                    totalAmountPO: "" 
+                };
+                mergedJobDoneArray.push(mergedItem);
+            }
         });
-        log.debug('mergedJobDoneArray', mergedJobDoneArray)
+
         var totalWIPBilling = 0,
           totalWIPTotal = 0,
           //added by kurnia
@@ -757,8 +806,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             totalWIPadditionalCF += Number(row.amntAdditionalCF || 0);
             totalWIPOthers += Number(row.amntOthers || 0);
           });
+          log.debug('mergedJobDoneArray', mergedJobDoneArray)
           mergedJobDoneArray.forEach((row, index) => {
-            var totalRev = Number(row.billingBeforeVat || 0) - Number(row.total || 0);
+            var totalRev = Number(row.billingBeforeVat || 0) - Number(row.totalAmountPO || 0);
             // if (index !== 0 && row.quoteNumberVal === mergedJobDoneArray[index - 1].quoteNumberVal) {
             //   row.billingBeforeVat = "";
             //   totalRev = Number(previousTotalRev) - Number(row.total || 0);
@@ -1202,8 +1252,12 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             return false;
         });
         // budget
+        // var sales = search.load({
+        //   id: "customsearch808",
+        // });
+        // billing
         var sales = search.load({
-          id: "customsearch808",
+          id: "customsearch1215",
         });
         if(subsidiarySelected){
             sales.filters.push(
@@ -1227,14 +1281,18 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         var salesData = 0;
         resultSales.forEach(function (result) {
             let amount = result.getValue({
-              name: "amount",
-              summary: "SUM"
+              name: "amount"
             });
+            log.debug('amount sales', amount)
             salesData = amount || 0;
         });
 
+        // var costOfSales = search.load({
+        //   id: "customsearch809",
+        // });
+        // cost of billing
         var costOfSales = search.load({
-          id: "customsearch809",
+          id: "customsearch1225",
         });
         if(subsidiarySelected){
           costOfSales.filters.push(
@@ -1258,9 +1316,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
         var costOfSalesData = 0;
         resultcostOfSales.forEach(function (result) {
             let amount = result.getValue({
-              name: "amount",
-              summary: "SUM"
+              name: "amount"
             });
+            log.debug('amount cost ofbill', amount)
             costOfSalesData = amount || 0;
         });
         var budgetYear = Number(salesData) - Number(costOfSalesData);
@@ -1419,7 +1477,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
       sContent += '            <th class="uir-list-header-td" style="text-align: right;font-weight: bold; background: #d5a6bd !important;">' + convertCurr(totalOthers) + "</th>";
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
-      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">BUDGET</th>';
+      sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">TARGET</th>';
       sContent += '            <th class="uir-list-header-td" style="text-align: center;font-weight: bold; background: #fcd964 !important;">'+ convertCurr(budgetYear)+'</th>';
       sContent += "        </tr>";
       sContent += '        <tr class="uir-list-headerrow">';
