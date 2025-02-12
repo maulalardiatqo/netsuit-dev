@@ -26,102 +26,63 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             function onRequest(context) {
                 var recid = context.request.parameters.id;
                 // id saved search
-                customsearch_print_journal
-                // load SO
-                var invoiceRecord = record.load({
-                    type: "vendorpayment",
-                    id: recid,
-                    isDynamic: false,
-                });
-                var vendName = ''
-                var entityId = invoiceRecord.getValue('entity')
-                if(entityId){
-                    var recEntity = record.load({
-                        type : "vendor",
-                        id: entityId,
-                        isDynamic : false
-                    });
-                    var entityName = recEntity.getValue("companyname");
-                    if(entityName){
-                        vendName = entityName
-                    }
-                }
-                var refNumber =  invoiceRecord.getValue("custbody_abj_custom_jobnumber");
-                var acc = invoiceRecord.getValue("account");
-                // load subsidiarie
                 
-                // PO data
-                var tandId = invoiceRecord.getValue('tranid');
-                var InvDate = invoiceRecord.getValue('trandate');
-                if(InvDate){
-                    InvDate = format.format({
-                        value: InvDate,
-                        type: format.Type.DATE
-                    });
-                }
-                var idEmp1 = 94
-                var idEmp1Rec = record.load({
-                    type: "employee",
-                    id: idEmp1,
-                    isDynamic: false,
+                // load SO
+                var searchData = search.load({
+                    id : "customsearch_print_journal"
                 })
-                var emptitle1 = idEmp1Rec.getValue("title");
-                var idEmp2 = 92
-                var idEmp2Rec = record.load({
-                    type: "employee",
-                    id: idEmp2,
-                    isDynamic: false,
-                });
-                var emptitle2 = idEmp2Rec.getValue("title");
-
-                var idEmp3 = 11
-                var idEmp3Rec = record.load({
-                    type: "employee",
-                    id: idEmp3,
-                    isDynamic: false,
-                });
-                var emptitle3 = idEmp3Rec.getValue("title");
-                var idEmp = ''
-                var vendorpaymentSearchObj = search.create({
-                    type: "vendorpayment",
-                    filters:
-                    [
-                        ["type","anyof","VendPymt"], 
-                        "AND", 
-                        ["internalid","anyof",recid]
-                    ],
-                    columns:
-                    [
-                        search.createColumn({name: "createdby", label: "Created By"})
-                    ]
-                });
-                var searchResultCount = vendorpaymentSearchObj.runPaged().count;
-                log.debug("vendorpaymentSearchObj result count",searchResultCount);
-                vendorpaymentSearchObj.run().each(function(result){
-                    var cr = result.getValue({
-                        name : "createdby"
-                    })
-                    idEmp = cr
-                    return true;
-                });
-                var empName = ''
-                var titleEmp = ''
-                if (idEmp){
-                    var empRec = record.load({
-                        type: "employee",
-                        id: idEmp,
-                        isDynamic: false,
-                    })
-                    nama = empRec.getValue('altname');
-                    if(nama){
-                        empName = nama
-                    }
-                    var empTitle = empRec.getValue("title");
-                    if(empTitle){
-                        titleEmp = empTitle
-                    }
-                   
+                if(recid){
+                    searchData.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
                 }
+                var dataHeadSet = searchData.run();
+                var resultHead = dataHeadSet.getRange(0, 1);
+                var headRec = resultHead[0];
+
+                var trandId = headRec.getValue({
+                    name : "tranid"
+                });
+                var jenisTransaksi = headRec.getText({
+                    name : "custbody_custom_jenis_transaksi"
+                });
+                var trandate = headRec.getValue({
+                    name : "trandate"
+                });
+
+                var dataLineSet = searchData.run();
+                var resultLine = dataLineSet.getRange(0, 100);
+                var dataLine = [];
+                if(resultLine.length > 0){
+                    resultLine.forEach(function (lines) {
+                        var numberCode = lines.getValue({
+                            name: "number",
+                            join: "account",
+                        });
+                        var accName = lines.getValue({
+                            name: "name",
+                            join: "account",
+                        });
+                        var memo = lines.getValue({
+                            name : "memo"
+                        });
+                        var amountDebit = lines.getValue({
+                            name : "debitamount"
+                        }) || 0;
+                        var amountCredit = lines.getValue({
+                            name : "creditamount"
+                        }) || 0;
+                        dataLine.push({
+                            numberCode : numberCode,
+                            accName : accName,
+                            memo : memo,
+                            amountDebit : amountDebit,
+                            amountCredit : amountCredit
+                        })
+                    })
+                }
+
+                log.debug('dataLine', dataLine)
+
+
                 var response = context.response;
                 var xml = "";
                 var header = "";
@@ -155,8 +116,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<table class='tg second-table' width=\"100%\" style=\"table-layout:fixed;font-size:8px\">";
                 body += "<tbody>";
                 body += "<tr>"
-                body += "<td style='font-weight:bold; font-size:14; width:50%;'>BANK KELUAR</td>"
-                body += "<td style='font-weight:bold; font-size:14; width:50%; align:right;'>"+tandId+"</td>"
+                body += "<td style='font-weight:bold; font-size:14; width:50%;'>"+jenisTransaksi+"</td>"
+                body += "<td style='font-weight:bold; font-size:14; width:50%; align:right;'></td>"
                 body += "</tr>"
                 body += "</tbody>";
                 body += "</table>";
@@ -173,19 +134,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tbody>";
                 body += "<tr>"
                 body += "<td style='width:2%;font-weight:bold;'></td>"
-                body += "<td style='width:15%;font-weight:bold;'>Payment To</td>"
+                body += "<td style='width:15%;font-weight:bold;'>Paid To</td>"
                 body += "<td style='width:1%; font-weight:bold;'>:</td>"
-                body += "<td style='width:34%; font-weight:bold;'>"+vendName+"</td>"
+                body += "<td style='width:34%; font-weight:bold;'></td>"
                 body += "<td style='width:10%; font-weight:bold;'></td>"
                 body += "<td style='width:5%; font-weight:bold;'>Date</td>"
                 body += "<td style='width:1%; font-weight:bold;'>:</td>"
-                body += "<td style='width:32%; font-weight:bold;'>"+InvDate+"</td>"
+                body += "<td style='width:32%; font-weight:bold;'>"+trandate+"</td>"
                 body += "</tr>"
                 body += "<tr>"
                 body += "<td style='font-weight:bold;'></td>"
-                body += "<td style='font-weight:bold;'>Voucher No</td>"
+                body += "<td style='font-weight:bold;'>IDGL/Reff #</td>"
                 body += "<td style='font-weight:bold;'>:</td>"
-                body += "<td style='font-weight:bold;'>"+refNumber+"</td>"
+                body += "<td style='font-weight:bold;'>"+trandId+"</td>"
                 body += "<td style='font-weight:bold;' colspan='4'></td>"
                 //body += "<td style='font-weight:bold;' colspan='4'>"+refNumber+"</td>"
                 body += "</tr>"
@@ -212,30 +173,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='align:left; border-top: 1px solid black; border-bottom: 1px solid black; font-weight:bold;'>Credit</td>"
                 body += "</tr>"
 
-                body += getGL(recid, acc, invoiceRecord)
+                body += getGL(dataLine)
                 body += "<tr style='height:40px'>"
-                body += "</tr>"
-                body += "</tbody>";
-                body += "</table>";
-
-                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:12px;\">";
-                body += "<tbody>";
-                body += "<tr>"
-                body += "<td style='width:25%'></td>"
-                body += "<td style='width:25%'></td>"
-                body += "<td style='width:25%'></td>"
-                body += "<td style='width:25%'></td>"
-                body += "</tr>"
-
-                body += "<tr>"
-                body += "<td style='border-top:1px solid black; border-bottom:1px solid black'>Ref. No</td>"
-                body += "<td style='border-top:1px solid black; border-bottom:1px solid black; align:right'>Orig. Amount</td>"
-                body += "<td style='border-top:1px solid black; border-bottom:1px solid black; align:right'>Amount Due</td>"
-                body += "<td style='border-top:1px solid black; border-bottom:1px solid black; align:right'>Payment</td>"
-                body += "</tr>"
-                body += getPymnt(invoiceRecord)
-                body += "<tr>"
-                body += "<td style='border-top:1px solid black;' colspan='4'></td>"
                 body += "</tr>"
                 body += "</tbody>";
                 body += "</table>";
@@ -291,7 +230,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style='align:center; border-bottom:1px solid black'>Mediana Hadiwidjaya</td>"
                 footer += "<td></td>"
                 footer += "</tr>"
-                var emptitleParsing = emptitle1.replace("&", "&amp;")
                 footer += "<tr>"
                 footer += "<td></td>"
                 footer += "<td style='align:center;'>Finance</td>"
@@ -303,7 +241,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style='align:center;'>FA Manager</td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
-                footer += "<td style='align:center;'>"+emptitle2+"</td>"
+                footer += "<td style='align:center;'></td>"
                 footer += "<td></td>"
                 footer += "</tr>"
                 footer += "</tbody>";
@@ -331,215 +269,61 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     xmlString: xml
                 });
             }
-            function getPymnt(invoiceRecord){
-                var countApply = invoiceRecord.getLineCount({
-                    sublistId: 'apply'
-                });
-                log.debug('countApply', countApply);
-                var allInv = [];
-                if(countApply > 0){
-                    var body = "";
-                    for (var i = 0; i < countApply; i++) {
-                        var isApply = invoiceRecord.getSublistValue({
-                            sublistId: 'apply',
-                            fieldId: 'apply',
-                            line: i
-                        });
-                        log.debug('isApply', isApply);
-                        if(isApply == true || isApply == "T"){
-                            var docNum = invoiceRecord.getSublistValue({
-                                sublistId: 'apply',
-                                fieldId: 'refnum',
-                                line: i
-                            });
-                            var amount = invoiceRecord.getSublistValue({
-                                sublistId: 'apply',
-                                fieldId: 'amount',
-                                line: i
-                            });
-                            var total = invoiceRecord.getSublistValue({
-                                sublistId: 'apply',
-                                fieldId: 'total',
-                                line: i
-                            });
-                            var due = invoiceRecord.getSublistValue({
-                                sublistId: 'apply',
-                                fieldId: 'due',
-                                line: i
-                            });
-                            amount = format.format({
-                                value: amount,
-                                type: format.Type.CURRENCY
-                            });
-                            due = format.format({
-                                value: due,
-                                type: format.Type.CURRENCY
-                            });
-                            total = format.format({
-                                value: total,
-                                type: format.Type.CURRENCY
-                            });
-                            body += "<tr>";
-                            body += "<td >"+docNum+"</td>";
-                            body += "<td style='align:right'>"+removeDecimalFormat(total)+"</td>";
-                            body += "<td style='align:right'>"+removeDecimalFormat(due)+"</td>";
-                            body += "<td style='align:right'>"+removeDecimalFormat(amount)+"</td>";
-                            body += "</tr>";
-                        }
-                    }
-                    return body;
-                }
-            }
             
-            function getGL(recId, acc, invoiceRecord){
-                var acc = acc
-                var recId = recId
-                var allData = []
-                var countApply = invoiceRecord.getLineCount({
-                    sublistId: 'apply'
-                });
-                log.debug('countApply', countApply);
-                var allInv = [];
-                if(countApply > 0){
-                   
-                    for (var i = 0; i < countApply; i++) {
-                        var isApply = invoiceRecord.getSublistValue({
-                            sublistId: 'apply',
-                            fieldId: 'apply',
-                            line: i
-                        });
-                        log.debug('isApply', isApply);
-                        if(isApply == true || isApply == "T"){
-                            var docNum = invoiceRecord.getSublistValue({
-                                sublistId: 'apply',
-                                fieldId: 'refnum',
-                                line: i
-                            });
-                            log.debug('docNum', docNum);
-                            if(docNum){
-                                allInv.push(docNum)
-                            }
-                        }
-                    }
-                }
-                var formattedInv = allInv.join('<br />');
-                var invoiceSearchObj = search.create({
-                    type: "vendorpayment",
-                    filters:
-                    [
-                        ["type","anyof","VendPymt"], 
-                        "AND", 
-                        ["internalid","anyof",recId]
-                    ],
-                    columns:
-                    [
-                        search.createColumn({name: "creditamount", label: "Amount (Credit)"}),
-                        search.createColumn({name: "debitamount", label: "Amount (Debit)"}),
-                        search.createColumn({name: "account", label: "Account"}),
-                        search.createColumn({name: "memo", label: "Memo"})
-                    ]
-                });
-                var searchResultCount = invoiceSearchObj.runPaged().count;
-                log.debug("invoiceSearchObj result count",searchResultCount);
-                invoiceSearchObj.run().each(function(result){
-                    var account = result.getValue({
-                        name : "account"
-                    });
-                    var numberAccount
-                    var accountName
-                    if(account){
-                        var accountSearchObj = search.create({
-                            type: "account",
-                            filters:
-                            [
-                                ["internalid","anyof",account]
-                            ],
-                            columns:
-                            [
-                                search.createColumn({
-                                    name: "name",
-                                    sort: search.Sort.ASC,
-                                    label: "Name"
-                                }),
-                                search.createColumn({name: "displayname", label: "Display Name"}),
-                                search.createColumn({name: "number", label: "Number"})
-                            ]
-                        });
-                        var searchResultCount = accountSearchObj.runPaged().count;
-                        log.debug("accountSearchObj result count",searchResultCount);
-                        accountSearchObj.run().each(function(result){
-                            var accNumb = result.getValue({
-                                name : "number"
-                            });
-                            var accName = result.getValue({
-                                name : "name"
-                            })
-                            if(accNumb){
-                                numberAccount = accNumb
-                            }
-                            if(accName){
-                                accountName = accName
-                            }
-                            return true;
-                        });
-                    }
-                    var memo = result.getValue({
-                        name : "memo"
-                    });
-                    var creditamount = result.getValue({
-                        name : "creditamount"
-                    });
-                    var debitAmount = result.getValue({
-                        name : "debitamount"
-                    });
-                    allData.push({
-                        account : account,
-                        numberAccount : numberAccount,
-                        accountName : accountName,
-                        memo : memo,
-                        creditamount : creditamount,
-                        debitAmount : debitAmount
-                    })
-                    return true;
-                });
+            function getGL(dataLine){
+                
+                log.debug('dataLine', dataLine);
                 var body = "";
                 var totalDebit = 0
                 var totalCredit = 0
-                allData.forEach((data)=>{
-                    var account = data.account
-                    var numberAccount = data.numberAccount;
-                    var accountName = data.accountName;
-                    var memo = data.memo;
-                    var creditamount = data.creditamount;
-                    var debitAmount = data.debitAmount;
-                    if (creditamount || debitAmount) {
-                        if(creditamount){
-                            totalCredit += parseFloat(creditamount);
-                            creditamount = pembulatan(creditamount)
-                            creditamount = format.format({
-                                value: creditamount,
-                                type: format.Type.CURRENCY
-                            });
+                if(dataLine.length > 0){
+                   
+                    dataLine.forEach((data)=>{
+                        var numberAccount = data.numberCode;
+                        var accountName = data.accName;
+                        var memo = data.memo;
+                        var creditamount = data.amountCredit;
+                        var debitAmount = data.amountDebit;
+                        if (creditamount || debitAmount) {
+                            if(creditamount){
+                                totalCredit += parseFloat(creditamount);
+                                creditamount = pembulatan(creditamount)
+                                creditamount = format.format({
+                                    value: creditamount,
+                                    type: format.Type.CURRENCY
+                                });
+                            }
+                            if(debitAmount){
+                                totalDebit +=  parseFloat(debitAmount);
+                                debitAmount = pembulatan(debitAmount)
+                                debitAmount = format.format({
+                                    value: debitAmount,
+                                    type: format.Type.CURRENCY
+                                });
+                            }
+                                body += "<tr>";
+                                body += "<td>"+numberAccount+"</td>";
+                                body += "<td>"+accountName+"</td>";
+                                body += "<td></td>";
+                                body += "<td>"+memo+"</td>";
+                                log.debug('debitAmount', debitAmount)
+                                if (debitAmount != 0) {
+                                    log.debug('masuk lebih besar dari 0')
+                                    body += "<td style='align:right;'>" + removeDecimalFormat(debitAmount) + "</td>";
+                                } else {
+                                    body += "<td style='align:right;'>" + debitAmount + "</td>";
+                                }
+                                if (creditamount != 0) {
+                                    body += "<td style='align:right;'>"+removeDecimalFormat(creditamount)+"</td>";
+                                } else {
+                                    body += "<td style='align:right;'>" + creditamount + "</td>";
+                                }
+                               
+                                body += "</tr>";
                         }
-                        if(debitAmount){
-                            totalDebit +=  parseFloat(debitAmount);
-                            debitAmount = pembulatan(debitAmount)
-                            debitAmount = format.format({
-                                value: debitAmount,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                            body += "<tr>";
-                            body += "<td>"+numberAccount+"</td>";
-                            body += "<td>"+accountName+"</td>";
-                            body += "<td></td>";
-                            body += "<td>"+memo+"</td>";
-                            body += "<td>"+removeDecimalFormat(debitAmount)+"</td>";
-                            body += "<td>"+removeDecimalFormat(creditamount)+"</td>";
-                            body += "</tr>";
-                    }
+                    })
                     
-                })
+                }
                 if(totalCredit){
                     totalCredit = pembulatan(totalCredit)
                     totalCredit = format.format({
@@ -559,10 +343,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='border-top: 1px solid black; border-bottom: 1px solid black;'></td>";
                 body += "<td style='border-top: 1px solid black; border-bottom: 1px solid black;'></td>";
                 body += "<td style='border-top: 1px solid black; border-bottom: 1px solid black;'></td>";
-                body += "<td style='font-size: 12px; font-weight:bold; border-top: 1px solid black; border-bottom: 1px solid black;'>"+removeDecimalFormat(totalDebit)+"</td>";
-                body += "<td style='font-size: 12px; font-weight:bold; border-top: 1px solid black; border-bottom: 1px solid black;'>"+removeDecimalFormat(totalCredit)+"</td>";
+                body += "<td style='font-size: 12px; font-weight:bold; border-top: 1px solid black; border-bottom: 1px solid black; align:right'>"+removeDecimalFormat(totalDebit)+"</td>";
+                body += "<td style='font-size: 12px; font-weight:bold; border-top: 1px solid black; border-bottom: 1px solid black;align:right;'>"+removeDecimalFormat(totalCredit)+"</td>";
                 body += "</tr>";
                 return body;
+               
             }
             
         }catch(e){
