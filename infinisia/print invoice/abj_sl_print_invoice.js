@@ -69,13 +69,27 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
                 var doNo = ''
                 if(idIf){
-                    var recIf = record.load({
+                    var itemfulfillmentSearchObj = search.create({
                         type: "itemfulfillment",
-                        id: idIf,
-                        isDynamic: false,
+                        filters:
+                        [
+                            ["type","anyof","ItemShip"], 
+                            "AND", 
+                            ["internalid","anyof",idIf], 
+                            "AND", 
+                            ["mainline","is","T"]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({name: "tranid", label: "Document Number"})
+                        ]
                     });
-                    var tranidIf = recIf.getValue('tranid')
-                    doNo = tranidIf
+                    var ifSet = itemfulfillmentSearchObj.run();
+                    var resultIF = ifSet.getRange(0, 1);
+                    var ifRecc = resultIF[0];
+                    var doNo = ifRecc.getValue({
+                        name : "tranid"
+                    })
                 }
                 var duedate = invRec.getValue({
                     name: "duedate"

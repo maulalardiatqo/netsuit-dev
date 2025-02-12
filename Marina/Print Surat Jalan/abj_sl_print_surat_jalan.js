@@ -115,11 +115,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             xml += '<pdf>';
             xml += '<head>';
             xml += '<style type="text/css">';
-            xml += 'body {font-family: "Calibri Light", sans-serif; width: 210mm; height: 140mm; padding-top: 20; margin: 0; padding-bottom: 0;}';
+            xml += 'body {font-family: "Calibri Light", sans-serif; width: 225mm; height: 140mm; padding-top: 20; margin: 0; padding-bottom: 0;}'
+            // xml += 'body { width: 210mm; height: 140mm; padding-top: 20; margin: 0; padding-bottom: 0;}';
             xml += 'table {border-collapse: collapse;}'; 
             xml += 'td {padding: 0; margin: 0; vertical-align: middle; font-size: 8;}'; 
             xml += '</style>';
             xml += '</head>';
+        
             xml += '<body size="custom" width="210mm" height="140mm">';
 
             xml += '<table cellpadding="0" cellspacing="0" width="100%">';
@@ -311,13 +313,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 xml += "<tr>";
                 xml += "<td style='align:center; border:1px solid black; border-right:none; border-bottom:none; border-top:none;'>"+nomor+"</td>";
-                xml += "<td style='align:center; border:1px solid black; border-right:none; border-bottom:none; border-top:none;'>"+itemCode+"</td>";
-                xml += "<td style='border:1px solid black; border-right:none; border-bottom:none; border-top:none; padding:1mm'>"+itemName+"</td>";
-                xml += "<td  style='align:right; border:1px solid black; border-right:none; border-bottom:none; border-top:none; padding:1mm'>"+removeDecimalFormat(rate)+"</td>";
-                xml += "<td style='align:center; border:1px solid black; border-right:none; border-bottom:none; border-top:none;'>"+qty+"</td>";
+                xml += `<td style='font-family: "Times New Roman", serif; font-size: 14px; align:center; border:1px solid black; border-right:none; border-bottom:none; border-top:none;'>`+itemCode+`</td>`;
+                xml += `<td style=' border:1px solid black; border-right:none; border-bottom:none; border-top:none; padding:1mm'>`+itemName+`</td>`;
+                xml += `<td style='font-family: "Times New Roman", serif; font-size: 14px; align:right; border:1px solid black; border-right:none; border-bottom:none; border-top:none; padding:1mm'>`+removeDecimalFormat(rate)+`</td>`;
+                xml += `<td style='font-family: "Times New Roman", serif; font-size: 14px; align:center; border:1px solid black; border-right:none; border-bottom:none; border-top:none;'>`+qty+`</td>`;
                 xml += "<td style='align:center; border:1px solid black; border-right:none; border-bottom:none; border-top:none;'>"+unit+"</td>";
                 xml += "<td style='align:center; border:1px solid black; border-right:none; border-bottom:none; border-top:none;' ></td>";
-                xml += "<td  style='align:right; border:1px solid black; border-bottom:none; border-top:none; padding:1mm'>"+removeDecimalFormat(jumlah)+"</td>";
+                xml += `<td style='font-family: "Times New Roman", serif; font-size: 14px; align:right; border:1px solid black; border-bottom:none; border-top:none; padding:1mm'>`+removeDecimalFormat(jumlah)+`</td>`;
                 xml += "</tr>";
 
                 nomor ++;
@@ -374,7 +376,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "<td style='align:center; '>Mengetahui,</td>"
                 xml += "<td style=''></td>"
                 xml += "<td style='align:right; padding:1mm; border-top:1px solid black; border-left:1px solid black;'>Subtotal</td>"
-                xml += "<td style='align:right; padding:1mm; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black;'>"+removeDecimalFormat(subtotal)+"</td>"
+                xml += `<td style='font-family: "Times New Roman", Times, serif; font-size: 14px; align:right; padding:1mm; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black;'>`+removeDecimalFormat(subtotal)+`</td>`
                 xml += "</tr>"
 
                 xml += "<tr>"
@@ -410,7 +412,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "<td style='align:center; border-bottom:1px solid black;'></td>"
                 xml += "<td></td>"
                 xml += "<td style='font-size:12; align:right; padding:1mm; border-left:1px solid black; border-bottom:1px solid black;'>Total</td>"
-                xml += "<td style='font-size:12; align:right; padding:1mm;  border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black; '>"+removeDecimalFormat(subtotal)+"</td>"
+                xml += `<td style='font-family: "Times New Roman", serif; font-size: 18px; align:right; padding:1mm;  border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black; '>`+removeDecimalFormat(subtotal)+"</td>"
                 xml += "</tr>"
 
                 xml += '<tr style="height:5px">';

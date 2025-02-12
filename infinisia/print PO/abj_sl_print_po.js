@@ -44,6 +44,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     'exchangerate',
                     'custbody_abj_custom_jobnumber',
                     'custcol_4601_witaxrate',
+                    'custbody_custom_insurance',
+                    'custbody_custom_country_of_origin',
+                    'custbody_custom_destination',
+                    'custbody_custom_remaks_consignee_to',
+                    'custbody_custom_remaks_required_of',
+                    'custbody_custom_term_of_shipment',
+                    'custbody_custom_term_of_payment',
+                    'terms',
                     'custcol_4601_witaxamount',
                     'custcol_4601_witaxcode',
                     'custcol_4601_witaxrate_exp',
@@ -163,6 +171,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var memo = result.getValue('memo')
                 var taxamount = result.getValue('taxamount')
                 var rate = result.getValue('custcol_abj_purchase_price_per_kg');
+                // additional
+                var insurance = result.getValue('custbody_custom_insurance');
+                var countriOfOrigin = result.getValue('custbody_custom_country_of_origin');
+                var destination = result.getValue('custbody_custom_destination');
+                var remrksCt = result.getValue('custbody_custom_remaks_consignee_to');
+                var remarksRO = result.getValue('custbody_custom_remaks_required_of');
+                var termsOrigin = result.getValue('terms');
+                var termsShip = result.getValue('custbody_custom_term_of_shipment');
+                var termOfPayment = result.getValue('custbody_custom_term_of_payment');
+                log.debug('insurance', insurance)
                 log.debug('rate', rate)
                 sTotal += Number(amount)
                 resultArray.push({
@@ -197,7 +215,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     rate : rate,
                     totQTY : totQTY,
                     taxTotal : taxTotal,
-                    totalVal : totalVal
+                    totalVal : totalVal,
+                    insurance : insurance,
+                    countriOfOrigin : countriOfOrigin,
+                    destination : destination,
+                    remrksCt :remrksCt,
+                    remarksRO : remarksRO,
+                    termsOrigin : termsOrigin,
+                    termsShip : termsShip,
+                    termOfPayment : termOfPayment
                 })
                 return true
             })
@@ -323,6 +349,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var POdate = poRecord[0].trandate
             var terms = poRecord[0].terms
             var poTotal = poRecord[0].total
+
+            var insurance = poRecord[0].insurance
+            var countriOfOrigin = poRecord[0].countriOfOrigin
+            var destination = poRecord[0].destination
+            var remrksCt = poRecord[0].remrksCt
+            var remarksRO = poRecord[0].remarksRO
+            var termsOrigin = poRecord[0].termsOrigin
+            var termsShip = poRecord[0].termsShip
+            var termOfPayment = poRecord[0].termOfPayment
 
             var total = 0;
             var duedate = poRecord[0].duedate
@@ -638,7 +673,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-f_body'>VAT " + taxtRate + " %</td>"
+                body += "<td class='tg-f_body'>VAT</td>"
                 body += "<td class='tg-f_body'>" + format.format({
                     value: Math.abs(taxTotal),
                     type: format.Type.CURRENCY
@@ -694,6 +729,60 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>" + jobNumber + "</td>"
             body += "</tr>"
             body += "</tbody>";
+            body += "</table>";
+
+            body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
+            body += "<tr>"
+            body += "<td style='width:30%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:69%'></td>"
+            body += "</tr>"
+            body += "<tr>"
+            body += "<td style='font-weight:bold;'>TERMS</td>"
+            body += "<td style=''>:</td>"
+            body += "<td style=''>"+terms+"</td>"
+            body += "</tr>"
+            body += "<tr>"
+            body += "<td style='font-weight:bold;'>TERM OF PAYMENT</td>"
+            body += "<td style=''>:</td>"
+            body += "<td style=''>"+termOfPayment+"</td>"
+            body += "</tr>"
+            body += "<tr>"
+            body += "<td style='font-weight:bold;'>TERM OF SHIPMENT</td>"
+            body += "<td style=''>:</td>"
+            body += "<td style=''>"+termsShip+"</td>"
+            body += "</tr>"
+            body += "<tr>"
+            body += "<td style='font-weight:bold;'>INSURANCE</td>"
+            body += "<td style=''>:</td>"
+            body += "<td style=''>"+insurance+"</td>"
+            body += "</tr>"
+            body += "<tr>"
+            body += "<td style='font-weight:bold;'>COUNTRY OF ORIGIN</td>"
+            body += "<td style=''>:</td>"
+            body += "<td style=''>"+countriOfOrigin+"</td>"
+            body += "</tr>"
+            body += "<tr>"
+            body += "<td style='font-weight:bold;'>DESTINATION</td>"
+            body += "<td style=''>:</td>"
+            body += "<td style=''>"+destination+"</td>"
+            body += "</tr>"
+            if(remrksCt.includes('\n')){
+                remrksCt = remrksCt.replace('\n', '<br/>');
+            }
+            body += "<tr>"
+            body += "<td style='font-weight:bold;'>REMARKS</td>"
+            body += "<td style=''>:</td>"
+            body += "<td style=''>"+remrksCt+"</td>"
+            body += "</tr>"
+            body += "<tr>"
+            body += "<td style='font-weight:bold;'>REMARKS</td>"
+            body += "<td style=''>:</td>"
+            body += "<td style=''>"+remarksRO+"</td>"
+            body += "</tr>"
+
+            body += "<tr style='height:15px'>"
+            body += "</tr>"
             body += "</table>";
 
             body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";

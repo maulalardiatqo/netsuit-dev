@@ -798,6 +798,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             //added by kurnia
             totalWIPServF += Number(row.amntServF || 0);
             //
+            
             totalWIIPRetainer += Number(row.amntRetainer || 0);
             totalWIPCF += Number(row.amntCF || 0);
             totalWIPSf += Number(row.amntSF || 0);
@@ -1017,7 +1018,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             });
         });
         const groupedSummary = rawData.reduce((acc, curr) => {
-          const index = acc.findIndex((item) => item.quoteNumberVal === curr.quoteNumberVal);
+          const index = acc.findIndex((item) => item.quoteNumberVal === curr.quoteNumberVal && item.projectVal === curr.projectVal && item.deliverablesVal === curr.deliverablesVal);
           if (index !== -1) {
             const accQty = parseInt(acc[index].qty) || 0;
             const currQty = parseInt(curr.qty) || 0;
@@ -1026,6 +1027,7 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             acc[index].amntServF = ((parseFloat(acc[index].amntServF) || 0) + (parseFloat(curr.amntServF) || 0)).toFixed(2);
             //
             acc[index].amntRetainer = ((parseFloat(acc[index].amntRetainer) || 0) + (parseFloat(curr.amntRetainer) || 0)).toFixed(2);
+            log.debug('inde amtretainer', acc[index].amntRetainer )
             acc[index].amntCF = ((parseFloat(acc[index].amntCF) || 0) + (parseFloat(curr.amntCF) || 0)).toFixed(2);
             acc[index].amntSF = ((parseFloat(acc[index].amntSF) || 0) + (parseFloat(curr.amntSF) || 0)).toFixed(2);
             acc[index].amntMF = ((parseFloat(acc[index].amntMF) || 0) + (parseFloat(curr.amntMF) || 0)).toFixed(2);
@@ -1043,20 +1045,25 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
             let matchingPOs = poDataArr.filter((poItem) => {
                 return poItem.quoteNumberVal === jobDoneItem.quoteNumberVal && poItem.projectVal === jobDoneItem.projectVal && poItem.deliverablesVal === jobDoneItem.deliverablesVal;
             });
+
             if (matchingPOs.length > 0) {
-                matchingPOs.forEach((matchingPO) => {
-                    let mergedItem = {
-                        ...jobDoneItem,
-                        poNo: matchingPO.poNo || "",
-                        vendorName: matchingPO.vendorName || "",
-                        amountPo: matchingPO.amountPo || "",
-                        total: matchingPO.total || "",
-                        remarks: matchingPO.remarks || "",
-                        paymentStatus: matchingPO.paymentStatus || "",
-                        totalRev: (jobDoneItem.billingBeforeVat - (matchingPO.amountPo ? parseFloat(matchingPO.amountPo) : 0)).toFixed(2)
-                    };
-                    mergedSummaryData.push(mergedItem);
-                });
+                let combinedPOs = matchingPOs.map(po => po.poNo).join(", ");
+                let combinedVendors = matchingPOs.map(po => po.vendorName).join(", ");
+                let totalAmountPo = matchingPOs.reduce((sum, po) => sum + (parseFloat(po.amountPo) || 0), 0);
+                let combinedRemarks = matchingPOs.map(po => po.remarks).join(" | ");
+                let combinedPaymentStatus = [...new Set(matchingPOs.map(po => po.paymentStatus))].join(", "); // Hindari duplikasi status
+
+                let mergedItem = {
+                    ...jobDoneItem,
+                    poNo: combinedPOs || "",
+                    vendorName: combinedVendors || "",
+                    amountPo: totalAmountPo.toFixed(2),
+                    total: totalAmountPo.toFixed(2),
+                    remarks: combinedRemarks || "",
+                    paymentStatus: combinedPaymentStatus || "",
+                    totalRev: (jobDoneItem.billingBeforeVat - totalAmountPo).toFixed(2)
+                };
+                mergedSummaryData.push(mergedItem);
             } else {
                 let mergedItem = {
                     ...jobDoneItem,
@@ -1071,7 +1078,9 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
                 mergedSummaryData.push(mergedItem);
             }
         });
-  
+
+        log.debug('mergedSummaryData', mergedSummaryData);
+
         var groupedData = {};
         mergedSummaryData.forEach(function (data) {
             let key = data.year + '-' + data.month;

@@ -27,9 +27,25 @@ define([
     
     function onRequest(context) {
         try{
+            function getAllResults(s) {
+                var results = s.run();
+                var searchResults = [];
+                var searchid = 0;
+                do {
+                    var resultslice = results.getRange({
+                        start: searchid,
+                        end: searchid + 1000,
+                    });
+                    resultslice.forEach(function (slice) {
+                        searchResults.push(slice);
+                        searchid++;
+                    });
+                } while (resultslice.length >= 1000);
+                return searchResults;
+            }
             var contextRequest = context.request;
             var form = serverWidget.createForm({
-                title: "Cash Flow Projection",
+                title: "Cash Flow Operation Projection",
             });
             var filterOption = form.addFieldGroup({
                 id: "filteroption",
@@ -73,6 +89,9 @@ define([
                 var periodTo = context.request.parameters.custpage_period_to_option;
                 var subsId = context.request.parameters.custpage_subs_option;
 
+                periodFromFilter.defaultValue = periodFrom;
+                periodToFilter.defaultValue = periodTo;
+                subsFilter.defaultValue = subsId;
                 var currentDate = new Date();
 
                 var lastDateThisYear = new Date(currentDate.getFullYear(), 11, 31);
@@ -88,19 +107,17 @@ define([
                 }
                 function groupByPeriod(allLoan) {
                     const groupedLoans = {};
-                  
                     allLoan.forEach(loanList => {
-                      loanList.forEach(loan => {
-                        const period = loan.periodToset;
-                        if (!groupedLoans[period]) {
-                          groupedLoans[period] = [];
-                        }
-                        groupedLoans[period].push(loan);
-                      });
+                        loanList.forEach(loan => {
+                            const period = loan.periodToset;
+                            if (!groupedLoans[period]) {
+                                groupedLoans[period] = [];
+                            }
+                            groupedLoans[period].push(loan);
+                        });
                     });
-                  
                     return groupedLoans;
-                  }
+                }
                 function getMonthsCountAndNames(startDate, endDate) {
                     var startMonth = startDate.getMonth();
                     var endMonth = endDate.getMonth();
@@ -129,6 +146,12 @@ define([
                     return monthNames[monthIndex];
                 }
 
+                function getMonthIndex(monthname) {
+                    var monthnames = ["jan", "feb", "mar", "apr", "may", "jun",
+                                        "jul", "aug", "sep", "oct", "nov", "dec"];
+                    return monthnames.indexOf(monthname);
+                }
+
                 var accountingperiodFromSearchObj = search.create({
                     type: "accountingperiod",
                     filters: [
@@ -142,7 +165,7 @@ define([
                 accountingperiodFromSearchObj.run().each(function(result) {
                     periodFromName = result.getValue({ name: 'periodname' });
 
-                    return true;
+                    return false;
                 });
 
                 var accountingperiodToSearchObj = search.create({
@@ -158,7 +181,7 @@ define([
                 accountingperiodToSearchObj.run().each(function(result) {
                     periodToName = result.getValue({ name: 'periodname' });
 
-                    return true;
+                    return false;
                 });
                 
                 var startPeriod = new Date(periodFromName);
@@ -173,12 +196,15 @@ define([
                 var allBeginningBalance = []
                 var allOutstanding = []
                 var alloutstandingPayable = []
+                var allWIP = []
+                var allCOB = []
                 var alloprasionalExp = []
                 var allIdPeriod = []
                 var allEndingBalance = []
-
-                var prevEndingBalance = 0
+                var isCount = false
+                var prevEndingBalance = 0;
                 allPeriod.forEach(function(periodName, index) {
+                    
                     function getPreviousMonth(month) {
                         const months = [
                             'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -189,6 +215,18 @@ define([
                             return 'Dec';
                         } else {
                             return months[index - 1];
+                        }
+                    }
+                    function getNextMonth(month) {
+                        const months = [
+                            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                        ];
+                        const index = months.indexOf(month);
+                        if (index === 0) {
+                            return 'Dec';
+                        } else {
+                            return months[index + 1];
                         }
                     }
                     
@@ -206,49 +244,57 @@ define([
                     
                         return `${month} ${year}`;
                     }
+                    function getPeriodAfterName(periodName) {
+                        const parts = periodName.split(' ');
+                        let month = parts[0];
+                        let year = parseInt(parts[1]);
+                    
+                        if (month === 'Dec') {
+                            month = 'Jan';
+                            year++;
+                        } else {
+                            month = getNextMonth(month);
+                        }
+                    
+                        return `${month} ${year}`;
+                    }
 
                     const periodBeforeName = getPeriodBeforeName(periodName);
+                    const periodAfterName = getPeriodAfterName(periodName);
 
-                    var postingPeriodData = search.create({
-                        type: "accountingperiod",
-                        filters: [
-                            ["periodname", "is", periodName]
-                        ],
-                        columns: ["internalid"]
-                    });
-                    var idPeriod;
-                    postingPeriodData.run().each(function(result) {
-                        idPeriod = result.getValue({ name: 'internalid' });
-                        return true;
-                    });
-
-                    var postingPeriodBefSearch = search.create({
-                        type: "accountingperiod",
-                        filters: [
-                            ["periodname", "is", periodBeforeName]
-                        ],
-                        columns: ["internalid"]
-                    });
-                    var idPeriodBef;
-                    postingPeriodBefSearch.run().each(function(result) {
-                        idPeriodBef = result.getValue({ name: 'internalid' });
-                        return true;
-                    });
+                    function getPeriodIdByName(periodName) {
+                        var periodSearch = search.create({
+                            type: "accountingperiod",
+                            filters: [
+                                ["periodname", "is", periodName]
+                            ],
+                            columns: ["internalid"]
+                        });
+                    
+                        var periodId;
+                        periodSearch.run().each(function(result) {
+                            periodId = result.getValue({ name: 'internalid' });
+                            return false;
+                        });
+                        return periodId;
+                    }
+                    
+                    var idPeriod = getPeriodIdByName(periodName);
+                    var idPeriodBef = getPeriodIdByName(periodBeforeName);
+                    var idPeriodPrev = getPeriodIdByName(periodAfterName)
                     
                     var beginningBalance;
-                    
-                    var beginningBalanceSearch = search.load({id: "customsearch775"});
-                    if (idPeriodBef) beginningBalanceSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriodBef }));
+                    var beginningBalanceSearch = search.load({ id: "customsearch821" });
+                    if (idPeriod) beginningBalanceSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
                     if (subsId) beginningBalanceSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) beginningBalanceSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) beginningBalanceSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
+                    
                 
                     var beginningBalanceSearchReturn = beginningBalanceSearch.run().getRange({ start: 0, end: 1 });
                     beginningBalance = beginningBalanceSearchReturn[0].getValue({
                         name: "amount",
                         summary: "SUM",
                     }) || 0;
-                   
+
                     var beginningBalancetoCOunt = beginningBalance;
                     if (beginningBalance) {
                         beginningBalance = convertCurr(beginningBalance);
@@ -257,49 +303,110 @@ define([
                     allIdPeriod.push({ idPeriod: idPeriod, periodToset: periodToset });
                     dataToSet.push(periodToset);
                     allBeginningBalance.push({ beginningBalance: beginningBalance, periodToset: periodToset });
+
+                   
+                    var endingBalanceSearch = search.load({ id: "customsearch821" });
+                    if (idPeriodPrev) endingBalanceSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriodPrev }));
+                    if (subsId) endingBalanceSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
+                    
                 
-                    var outstandingSearch = search.create({
-                        type: "transaction",
-                        settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
-                        filters:
-                        [
-                            ["posting","is","T"], 
-                            "AND", 
-                            ["account","anyof","318","319","320","1889","322","323","324","325","326","327","328","330","329","2302","2092","2091","2090","1504","1503","1502","1501","1500","1484","1481","1483","1482","1480","1479","1717","940","939","938","937","331"], 
-                            "AND", 
-                            ["subsidiary","anyof",subsId], 
-                            "AND", 
-                            ["postingperiod","abs",idPeriod], 
-                            "AND", 
-                            ["trandate","after",lastYear], 
-                            "AND", 
-                            ["trandate","before",currentYear]
-                        ],
-                        columns:
-                        [
-                            search.createColumn({
-                                name: "amount",
-                                summary: "SUM",
-                                label: "Amount"
+                    var endingBalanceSearchReturn = endingBalanceSearch.run().getRange({ start: 0, end: 1 });
+                    var endingBalance = endingBalanceSearchReturn[0].getValue({
+                        name: "amount",
+                        summary: "SUM",
+                    }) || 0;
+                    if(endingBalance){
+                        endingBalance = convertCurr(endingBalance)
+                    }
+                    allEndingBalance.push({endingBalance : endingBalance, periodToset : periodToset})
+
+                    var outstandingSearch = search.load({
+                        id : "customsearch795"
+                    })
+                    if(subsId){
+                        outstandingSearch.filters.push(
+                            search.createFilter({
+                                name: "subsidiary",
+                                operator: search.Operator.IS,
+                                values: subsId,
                             })
-                        ]
-                     });
+                        );
+                    }
+                    if(idPeriod){
+                        outstandingSearch.filters.push(
+                            search.createFilter({
+                                name: "postingperiod",
+                                operator: search.Operator.IS,
+                                values: idPeriod,
+                            })
+                        );
+                    }
                     var outstandingSearchReturn = outstandingSearch.run().getRange({ start: 0, end: 1 });
                     var outstanding = outstandingSearchReturn[0].getValue({
                         name: "amount",
                         summary: "SUM",
                     }) || 0;
+
                     var outstandingToCount = outstanding;
                     if (outstanding) {
                         outstanding = convertCurr(outstanding);
                     }
                     allOutstanding.push({ outstanding: outstanding, periodToset: periodToset });
-                
-                    var outstandingPayableSearch = search.load({ id: "customsearch_monthly_review_2_2_2_2_2" });
-                    if (idPeriod) outstandingPayableSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
-                    if (subsId) outstandingPayableSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) outstandingPayableSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) outstandingPayableSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
+                    var wipSearch = search.load({
+                        id : "customsearch793"
+                    })
+                    if(subsId){
+                        wipSearch.filters.push(
+                            search.createFilter({
+                                name: "subsidiary",
+                                operator: search.Operator.IS,
+                                values: subsId,
+                            })
+                        );
+                    }
+                    if(idPeriod){
+                        wipSearch.filters.push(
+                            search.createFilter({
+                                name: "postingperiod",
+                                operator: search.Operator.IS,
+                                values: idPeriod,
+                            })
+                        );
+                    }
+                    var wipSearchReturn = wipSearch.run().getRange({ start: 0, end: 1 });
+                    var wip = wipSearchReturn[0].getValue({
+                        name: "formulacurrency",
+                        summary: "SUM",
+                        formula: "{totalamount}-{taxtotal}",
+                    }) || 0;
+                    
+                    var wipToCount = wip
+                    if (wip) {
+                        wip = convertCurr(wip);
+                    }
+                    allWIP.push({wip : wip, periodToset: periodToset})
+                    var outstandingPayableSearch = search.load({
+                        id : "customsearch816"
+                    })
+                    if(subsId){
+                        outstandingPayableSearch.filters.push(
+                            search.createFilter({
+                                name: "subsidiary",
+                                operator: search.Operator.IS,
+                                values: subsId,
+                            })
+                        );
+                    }
+
+                    if(idPeriod){
+                        outstandingPayableSearch.filters.push(
+                            search.createFilter({
+                                name: "postingperiod",
+                                operator: search.Operator.IS,
+                                values: idPeriod,
+                            })
+                        );
+                    }
                     var outstandingPayableSearchReturn = outstandingPayableSearch.run().getRange({ start: 0, end: 1 });
                     var outstandingPayable = outstandingPayableSearchReturn[0].getValue({
                         name: "amount",
@@ -310,44 +417,110 @@ define([
                         outstandingPayable = convertCurr(outstandingPayable);
                     }
                     alloutstandingPayable.push({ outstandingPayable: outstandingPayable, periodToset: periodToset });
-                
-                    var oprasionalExpense = search.load({ id: "customsearch_monthly_review_2_2_3" });
-                    if (idPeriod) oprasionalExpense.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
-                    if (subsId) oprasionalExpense.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) oprasionalExpense.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) oprasionalExpense.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
-                    var oprasionalExpenseReturn = oprasionalExpense.run().getRange({ start: 0, end: 1 });
-                    var oprasionalExp = oprasionalExpenseReturn[0].getValue({
+                    var cobSearch = search.load({
+                        id : "customsearch794"
+                    });
+                    if(subsId){
+                        cobSearch.filters.push(
+                            search.createFilter({
+                                name: "subsidiary",
+                                operator: search.Operator.IS,
+                                values: subsId,
+                            })
+                        );
+                    }
+
+                    if(idPeriod){
+                        cobSearch.filters.push(
+                            search.createFilter({
+                                name: "postingperiod",
+                                operator: search.Operator.IS,
+                                values: idPeriod,
+                            })
+                        );
+                    }
+                    var cobSearchReturn = cobSearch.run().getRange({ start: 0, end: 1 });
+                    var cob = cobSearchReturn[0].getValue({
+                        name: "formulacurrency",
+                        summary: "SUM",
+                        formula: "{totalamount}-{taxtotal}",
+                    }) || 0;
+                    var cobToCount = cob
+                    if (cob) {
+                        cob = convertCurr(cob);
+                    }
+                    allCOB.push({cob : cob, periodToset: periodToset})
+
+                    var opsFirstSearch = search.load({
+                        id : "customsearch822"
+                    });
+                    if(subsId){
+                        opsFirstSearch.filters.push(
+                            search.createFilter({
+                                name: "subsidiary",
+                                operator: search.Operator.IS,
+                                values: subsId,
+                            })
+                        );
+                    }
+                    if(idPeriodBef){
+                        opsFirstSearch.filters.push(
+                            search.createFilter({
+                                name: "postingperiod",
+                                operator: search.Operator.IS,
+                                values: idPeriodBef,
+                            })
+                        );
+                    }
+                    var opsFirstSearchReturn = opsFirstSearch.run().getRange({ start: 0, end: 1 });
+                    var opsFirst = opsFirstSearchReturn[0].getValue({
                         name: "amount",
                         summary: "SUM",
                     }) || 0;
+
+                    var opsSecondSearch = search.load({
+                        id : "customsearch823"
+                    })
+                    if(subsId){
+                        opsSecondSearch.filters.push(
+                            search.createFilter({
+                                name: "subsidiary",
+                                operator: search.Operator.IS,
+                                values: subsId,
+                            })
+                        );
+                    }
+                    if(idPeriodBef){
+                        opsSecondSearch.filters.push(
+                            search.createFilter({
+                                name: "postingperiod",
+                                operator: search.Operator.IS,
+                                values: idPeriodBef,
+                            })
+                        );
+                    }
+                    var opsSecondSearchReturn = opsSecondSearch.run().getRange({ start: 0, end: 1 });
+                    var opsSecond = opsSecondSearchReturn[0].getValue({
+                        name: "amount",
+                        summary: "SUM",
+                    }) || 0;
+                    log.debug('opsFirst', opsFirst)
+                    log.debug('opsSecond', opsSecond)
+                    var oprasionalExp = Number(opsFirst) + Number(opsSecond)
                     var oprasionalExpToCount = oprasionalExp;
                     if (oprasionalExp) {
                         oprasionalExp = convertCurr(oprasionalExp);
                     }
                     alloprasionalExp.push({ oprasionalExp: oprasionalExp, periodToset: periodToset });
                 
-                    var endingBalanceSearch = search.load({ id: "customsearch775" });
-                    if (idPeriod) endingBalanceSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
-                    if (subsId) endingBalanceSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
-                    if (lastYear) endingBalanceSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORAFTER, values: lastYear }));
-                    if (currentYear) endingBalanceSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: currentYear }));
-                    var endingBalanceSearchReturn = endingBalanceSearch.run().getRange({ start: 0, end: 1 });
-                    var endingBalance = endingBalanceSearchReturn[0].getValue({
-                        name: "amount",
-                        summary: "SUM",
-                    }) || 0;
-
-                    if (endingBalance) {
-                        endingBalance = convertCurr(endingBalance);
-                    }
-                    allEndingBalance.push({endingBalance : endingBalance, periodToset : periodToset})
-
-
-                    // var endingBalance = Number(beginningBalancetoCOunt) + Number(outstandingToCount) + Number(outstandingPayableToCount) + Number(oprasionalExpToCount)
-                    // allEndingBalance.push({endingBalance : endingBalance, periodToset : periodToset})
-                    // prevEndingBalance = endingBalance
+                   
                 });
+
+                var bulan = [
+                    'jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                    'jul', 'aug', 'sep', 'oct', 'nov', 'dec'
+                ];
+
                 var setList = createList("custpage_sublist_item", form, dataToSet)
                 // set beginning
                 setList.setSublistValue({
@@ -378,11 +551,45 @@ define([
                 allOutstanding.forEach(function(data) {
                     var outstanding = data.outstanding;
                     var periodToset = data.periodToset;
+
+                    var periodSplit = periodToset.split('_')
+                    var outReceiveMonth = getMonthIndex(periodSplit[0])
+                    var outReceiveYear = periodSplit[1]
+                    var lastDate = new Date(outReceiveMonth, outReceiveMonth+1, 0);
+                    var lastDateinMonth = lastDate.getDate()
+
+                    outReceiveMonth = parseInt(outReceiveMonth) + 1
+                    if(outReceiveMonth.toString().length==1){
+                        outReceiveMonth = '0' + outReceiveMonth.toString()
+                    }
+
+                    var linkOutReceive = 'https://8591721.app.netsuite.com/app/common/search/searchresults.nl?searchtype=Transaction&Transaction_SUBSIDIARY='+subsId+'&Transaction_STATUS=CustInvc%3AA%05CustInvc%3AD&Transaction_TRANDATErange=CUSTOM&Transaction_TRANDATEfrom=01%2F'+outReceiveMonth+'%2F'+outReceiveYear+'&Transaction_TRANDATEfromrel_formattedValue=&Transaction_TRANDATEfromrel=&Transaction_TRANDATEfromreltype=DAGO&Transaction_TRANDATEto='+lastDateinMonth+'%2F'+outReceiveMonth+'%2F'+outReceiveYear+'&Transaction_TRANDATEtorel_formattedValue=&Transaction_TRANDATEtorel=&Transaction_TRANDATEtoreltype=DAGO&style=NORMAL&Transaction_TRANDATEmodi=WITHIN&Transaction_TRANDATE=CUSTOM&report=&grid=&searchid=825&dle=&sortcol=Transction_ORDTYPE9_raw&sortdir=ASC&csv=HTML&OfficeXML=F&pdf=&size=50&_csrf=1g4UP7UD3W-8tuwn6DEHwkQzoSqbrMVAztUCZwCCChXqncEy-ov2j500C_KiMYUND6FmkRufz7aycRUXs4vMB1xldx0GXsCYqwKRC50j1J85sLpAli5BnIqCMcN1cPPXy0S1Ou-XlP6fPZJbZOvg0u0-_dG5GU6SJGOODlN3Lks%3D&twbx=F'
+
                     setList.setSublistValue({
                         sublistId: "custpage_sublist_item",
                         id: "custpage_sublist_"+periodToset,
-                        value: outstanding,
+                        // value: outstanding,
+                        value: '<a href="' + linkOutReceive + '" target="_blank">' + outstanding + '</a>',
+                        
                         line: 1
+                    });
+                
+                });
+
+                setList.setSublistValue({
+                    sublistId: "custpage_sublist_item",
+                    id: "custpage_sublist_sum",
+                    value: 'Total WIP',
+                    line: 2
+                });
+                allWIP.forEach(function(data) {
+                    var wip = data.wip;
+                    var periodToset = data.periodToset;
+                    setList.setSublistValue({
+                        sublistId: "custpage_sublist_item",
+                        id: "custpage_sublist_"+periodToset,
+                        value: wip,
+                        line: 2
                     });
                 
                 });
@@ -391,16 +598,49 @@ define([
                     sublistId: "custpage_sublist_item",
                     id: "custpage_sublist_sum",
                     value: 'Total outstanding Account Payable',
-                    line: 2
+                    line: 3
                 });
                 alloutstandingPayable.forEach(function(data) {
                     var outstandingPayable = data.outstandingPayable;
                     var periodToset = data.periodToset;
+
+                    var periodSplit = periodToset.split('_')
+                    var outPayMonth = getMonthIndex(periodSplit[0])
+                    var outPayYear = periodSplit[1]
+                    var lastDate = new Date(outPayMonth, outPayMonth+1, 0);
+                    var lastDateinMonth = lastDate.getDate()
+
+                    outPayMonth = parseInt(outPayMonth) + 1
+                    if(outPayMonth.toString().length==1){
+                        outPayMonth = '0' + outPayMonth.toString()
+                    }
+
+                    var linkOutstandingPay = 'https://8591721.app.netsuite.com/app/common/search/searchresults.nl?searchtype=Transaction&Transaction_SUBSIDIARY='+subsId+'&Transaction_STATUS=VendBill%3AA%05VendBill%3AD&Transaction_TRANDATErange=CUSTOM&Transaction_TRANDATEfrom=01%2F'+outPayMonth+'%2F'+outPayYear+'&Transaction_TRANDATEfromrel_formattedValue=&Transaction_TRANDATEfromrel=&Transaction_TRANDATEfromreltype=DAGO&Transaction_TRANDATEto='+lastDateinMonth+'%2F'+outPayMonth+'%2F'+outPayYear+'&Transaction_TRANDATEtorel_formattedValue=&Transaction_TRANDATEtorel=&Transaction_TRANDATEtoreltype=DAGO&style=NORMAL&Transaction_TRANDATEmodi=WITHIN&Transaction_TRANDATE=CUSTOM&report=&grid=&searchid=826&dle=&sortcol=Transction_ORDTYPE9_raw&sortdir=ASC&csv=HTML&OfficeXML=F&pdf=&size=50&_csrf=1g4UP7UD3W-8tuwn6DEHwkQzoSqbrMVAztUCZwCCChXqncEy-ov2j500C_KiMYUND6FmkRufz7aycRUXs4vMB1xldx0GXsCYqwKRC50j1J85sLpAli5BnIqCMcN1cPPXy0S1Ou-XlP6fPZJbZOvg0u0-_dG5GU6SJGOODlN3Lks%3D&twbx=F'
+
                     setList.setSublistValue({
                         sublistId: "custpage_sublist_item",
                         id: "custpage_sublist_"+periodToset,
-                        value: outstandingPayable,
-                        line: 2
+                        // value: outstandingPayable,
+                        value: '<a href="' + linkOutstandingPay + '" target="_blank">' + outstandingPayable + '</a>',
+                        line: 3
+                    });
+                
+                });
+
+                setList.setSublistValue({
+                    sublistId: "custpage_sublist_item",
+                    id: "custpage_sublist_sum",
+                    value: 'Cost Of Billing',
+                    line: 4
+                });
+                allCOB.forEach(function(data) {
+                    var cob = data.cob;
+                    var periodToset = data.periodToset;
+                    setList.setSublistValue({
+                        sublistId: "custpage_sublist_item",
+                        id: "custpage_sublist_"+periodToset,
+                        value: cob,
+                        line: 4
                     });
                 
                 });
@@ -410,26 +650,38 @@ define([
                     sublistId: "custpage_sublist_item",
                     id: "custpage_sublist_sum",
                     value: 'Total operational expenses per month',
-                    line: 3
+                    line: 5
                 });
                 alloprasionalExp.forEach(function(data) {
                     var oprasionalExp = data.oprasionalExp;
                     var periodToset = data.periodToset;
+
+                    var periodSplit = periodToset.split('_')
+                    var oprExpMonth = getMonthIndex(periodSplit[0])
+                    var oprExpYear = periodSplit[1]
+                    var lastDate = new Date(oprExpYear, oprExpMonth+1, 0);
+                    var lastDateinMonth = lastDate.getDate()
+
+                    oprExpMonth = parseInt(oprExpMonth) + 1
+                    if(oprExpMonth.toString().length==1){
+                        oprExpMonth = '0' + oprExpMonth.toString()
+                    }
+                    
+                    var linkOperationalExp = 'https://8591721.app.netsuite.com/app/common/search/searchresults.nl?searchtype=Transaction&Transaction_SUBSIDIARY='+subsId+'&Transaction_STATUS=%40ALL%40&Transaction_TRANDATErange=CUSTOM&Transaction_TRANDATEfrom=01%2F'+oprExpMonth+'%2F'+oprExpYear+'&Transaction_TRANDATEfromrel_formattedValue=&Transaction_TRANDATEfromrel=&Transaction_TRANDATEfromreltype=DAGO&Transaction_TRANDATEto='+lastDateinMonth+'%2F'+oprExpMonth+'%2F'+oprExpYear+'&Transaction_TRANDATEtorel_formattedValue=&Transaction_TRANDATEtorel=&Transaction_TRANDATEtoreltype=DAGO&style=NORMAL&Transaction_TRANDATEmodi=WITHIN&Transaction_TRANDATE=CUSTOM&report=&grid=&searchid=827&dle=&sortcol=Transction_ORDTYPE9_raw&sortdir=ASC&csv=HTML&OfficeXML=F&pdf=&size=50&_csrf=1g4UP7UD3W-8tuwn6DEHwkQzoSqbrMVAztUCZwCCChXqncEy-ov2j500C_KiMYUND6FmkRufz7aycRUXs4vMB1xldx0GXsCYqwKRC50j1J85sLpAli5BnIqCMcN1cPPXy0S1Ou-XlP6fPZJbZOvg0u0-_dG5GU6SJGOODlN3Lks%3D&twbx=F' //kurnia
                     setList.setSublistValue({
                         sublistId: "custpage_sublist_item",
                         id: "custpage_sublist_"+periodToset,
-                        value: oprasionalExp,
-                        line: 3
+                        // value: oprasionalExp,
+                        value: '<a href="' + linkOperationalExp + '" target="_blank">' + oprasionalExp + '</a>',
+                        line: 5
                     });
                 
                 });
-                var lineIndex = 4
+                var lineIndex = 6
                 var allLoan = [];
                 var maxLoanCount = 0;
                 allIdPeriod.forEach(function (data) {
                     var idPeriod = data.idPeriod;
-                    log.debug('idPeriod', idPeriod)
-                    log.debug('subsId', subsId)
                     var customrecord641SearchObj = search.create({
                         type: "customrecord641",
                         filters: [["custrecord_mitcf_period", "anyof", idPeriod],"AND", 
@@ -440,12 +692,10 @@ define([
                     });
 
                     var searchResultCount = customrecord641SearchObj.runPaged().count;
-                    log.debug('searchResultCount', searchResultCount)
                     if (searchResultCount > maxLoanCount) {
                         maxLoanCount = searchResultCount;
                     }
                 });
-                log.debug('maxLoanCount', maxLoanCount)
                 allIdPeriod.forEach(function (data) {
                     var idPeriod = data.idPeriod;
                     var periodToset = data.periodToset;
@@ -473,8 +723,6 @@ define([
                     allLoan.push(dataLoan);
                 });
                 var groupedData = [];
-                log.debug('allLoan', allLoan)
-                log.debug('allLoan[0].length;', allLoan[0].length)
                 for (var i = 0; i < allLoan[0].length; i++) {
                     var group = [];
                     
@@ -482,10 +730,8 @@ define([
                         var data = loan[i] || 0;
                         group.push(data);
                     });
-                    log.debug('group', group)
                     groupedData.push(group);
                 }
-                log.debug('groupedData', groupedData)
                 groupedData.forEach(function(group) {
                     setList.setSublistValue({
                         sublistId: "custpage_sublist_item",
@@ -572,7 +818,7 @@ define([
         var sublist_item = form.addSublist({
             id: sublistname,
             type: serverWidget.SublistType.LIST,
-            label: "Cash Flow Projection",
+            label: "Cash Flow Operation Projection",
         });
         sublist_item.addField({
             id: "custpage_sublist_sum",
@@ -583,7 +829,7 @@ define([
             sublist_item.addField({
                 id: "custpage_sublist_"+dataItem,
                 label: dataItem,
-                type: serverWidget.FieldType.TEXT,
+                type: serverWidget.FieldType.TEXTAREA, //untuk menampung banyak karakter string, gunakan textarea/longtext
             });
         });
         
