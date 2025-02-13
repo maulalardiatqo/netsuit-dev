@@ -119,36 +119,59 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                                 var berapaLooping = 0
                                 
                                 nlapiLogExecution('DEBUG', 'pembobotanPerItem', pembobotanPerItem);
-                                if(pembobotanPerItem.length > 0){
-                                    nlapiLogExecution('DEBUG', 'pembobotanPerItem length', pembobotanPerItem.length);
+                                if (pembobotanPerItem.length > 0) {
                                     for (var i = 0; i < pembobotanPerItem.length; i++) {
                                         var pembobotanItem = pembobotanPerItem[i];
-                                        var itemSoId = pembobotanItem.itemSo
-                                        if(itemId == itemSoId){
-                                            berapaLooping ++
+                                        var itemSoId = pembobotanItem.itemSo;
+                                
+                                        if (itemId == itemSoId) {
+                                            berapaLooping++;
                                             var department = pembobotanItem.departmentSo;
-                                            var pembobotan = parseFloat(pembobotanItem.pembobotan);
+                                            var memoText = pembobotanItem.memoText;
+                                
+                                            nlapiLogExecution('DEBUG', 'pembobotanItem.pembobotan', pembobotanItem.pembobotan);
+                                
+                                            // Pastikan nilai pembobotan valid sebelum di-convert
+                                            var pembobotan = isNaN(parseFloat(pembobotanItem.pembobotan)) ? 0 : parseFloat(pembobotanItem.pembobotan);
                                             var persentasePembobotan = pembobotan * itemAmount / 100;
-                                            var memoText = pembobotanItem.memoText
-                                            
-        
-                                            var newLineDebit = customLines.addNewLine();
-                                            newLineDebit.setAccountId(318);
-                                            newLineDebit.setDebitAmount(persentasePembobotan);
-                                            newLineDebit.setDepartmentId(parseInt(department));
-                                            // newLineDebit.setEntityId(parseInt(entity_id));
-                                            newLineDebit.setMemo(memoText);
-        
-                                            var newLineCredit = customLines.addNewLine();
-                                            newLineCredit.setAccountId(parseInt(accIdInv));
-                                            newLineCredit.setDepartmentId(parseInt(department));
-                                            newLineCredit.setCreditAmount(persentasePembobotan);
-                                            // newLineCredit.setEntityId(parseInt(entity_id));
-                                            newLineCredit.setMemo(memoText);
-        
+                                
+                                            // Pastikan nilai department valid sebelum di-convert
+                                            var departmentId = (department && !isNaN(parseInt(department))) ? parseInt(department) : 0;
+                                
+                                            // Pastikan nilai accountId valid sebelum di-convert
+                                            var accId = (accIdInv && !isNaN(parseInt(accIdInv))) ? parseInt(accIdInv) : 0;
+                                
+                                            // Logging tambahan untuk debugging
+                                            nlapiLogExecution('DEBUG', 'Department Value', departmentId);
+                                            nlapiLogExecution('DEBUG', 'Account ID Value', accId);
+                                            nlapiLogExecution('DEBUG', 'Persentase Pembobotan', persentasePembobotan);
+                                
+                                            // Pastikan nilai persentasePembobotan valid sebelum digunakan
+                                            if (!isNaN(persentasePembobotan) && persentasePembobotan !== 0) {
+                                                var newLineDebit = customLines.addNewLine();
+                                                newLineDebit.setAccountId(318);
+                                                newLineDebit.setDebitAmount(persentasePembobotan);
+                                                if(departmentId){
+                                                    
+                                                    newLineDebit.setDepartmentId(departmentId);
+                                                }
+                                                newLineDebit.setMemo(memoText);
+                                
+                                                var newLineCredit = customLines.addNewLine();
+                                                newLineCredit.setAccountId(accId);
+                                                if(departmentId){
+                                                    newLineCredit.setDepartmentId(departmentId);
+                                                }
+                                                
+                                                newLineCredit.setCreditAmount(persentasePembobotan);
+                                                newLineCredit.setMemo(memoText);
+                                            } else {
+                                                nlapiLogExecution('ERROR', 'Invalid Calculation', 'persentasePembobotan is NaN or zero');
+                                            }
                                         }
                                     }
                                 }
+                                
                                 
                             });
                         }

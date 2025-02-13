@@ -626,7 +626,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "NPWP : " + Npwp + "</p>";
             body += "</td>";
             body += "</tr>";
-            body += "<tr style='height:30px;'>";
+            body += "<tr style='height:10px;'>";
             body += "</tr>";
             body += "<tr>";
             body += "<td>";
@@ -636,7 +636,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td>"
             body += "<p class='tg-headerrow_legalName'> Purchase Order # : " + tandId + "<br/>"
             body += "" + POdate + "</p>"
-            body += "<p class='tg-headerrow' style='font-size:11px'> Terms : " + terms + "<br/></p>"
             body += "</td>"
             body += "</tr>"
             body += "<tr style='height:30px;'>";
