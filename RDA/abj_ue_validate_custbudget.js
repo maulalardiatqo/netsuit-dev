@@ -12,28 +12,21 @@ define(["N/record", "N/search", "N/config", "N/runtime", "N/error"], function(
     error
 ) {
     function beforeSubmit(context) {
-        if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.EDIT) {
-            var user = runtime.getCurrentUser();
-            var subsidiaryUser = user.subsidiary;
-            log.debug('subsidiaryUser', subsidiaryUser);
+        try {
+            if (context.type === context.UserEventType.CREATE) {
+                var user = runtime.getCurrentUser();
+                var subsidiaryUser = user.subsidiary;
+                var recNew = context.newRecord;
+                var currentSubs = recNew.getValue('subsidiary');
+                log.debug('currentSubs', currentSubs);
+                log.debug('subsidiaryUser', subsidiaryUser)
 
-            var recNew = context.newRecord;
-            var currentSubs = recNew.getValue('subsidiary');
-            log.debug('currentSubs', currentSubs);
-
-            // Validasi jika subsidiaryUser dan currentSubs tidak sama
-            if(subsidiaryUser != 1 && subsidiaryUser != 3){
-                log.debug('masuk if pertama')
-                if (subsidiaryUser != currentSubs) {
-                    log.debug('masuk if kedua')
-                    throw error.create({
-                        name: 'SUBSIDIARY_MISMATCH',
-                        message: 'Subsidiary user dan subsidiary pada record tidak sama. Harap sesuaikan sebelum menyimpan.',
-                        notifyOff: false
-                    });
+                if (subsidiaryUser != 1 && subsidiaryUser != 3 && subsidiaryUser != currentSubs) {
+                    throw error.create({ name: 'SUBSIDIARY_MISMATCH', message: 'Subsidiary user dan subsidiary pada record tidak sama. Harap sesuaikan sebelum menyimpan.' });
                 }
             }
-            
+        } catch (e) {
+            throw new Error(e.message);
         }
     }
 
