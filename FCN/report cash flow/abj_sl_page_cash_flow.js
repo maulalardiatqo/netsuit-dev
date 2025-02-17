@@ -263,27 +263,33 @@ define([
 
                     const periodBeforeName = getPeriodBeforeName(periodName);
                     const periodAfterName = getPeriodAfterName(periodName);
-
                     function getPeriodIdByName(periodName) {
                         var periodSearch = search.create({
                             type: "accountingperiod",
                             filters: [
                                 ["periodname", "is", periodName]
                             ],
-                            columns: ["internalid"]
+                            columns: ["internalid", "enddate"]
                         });
                     
-                        var periodId;
+                        var periodDetails = {};
                         periodSearch.run().each(function(result) {
-                            periodId = result.getValue({ name: 'internalid' });
-                            return false;
+                            periodDetails.id = result.getValue({ name: "internalid" });
+                            periodDetails.endDate = result.getValue({ name: "enddate" });
+                            return false; // Hentikan loop setelah menemukan satu hasil
                         });
-                        return periodId;
+                    
+                        return periodDetails;
                     }
                     
-                    var idPeriod = getPeriodIdByName(periodName);
+                    var periodDetails = getPeriodIdByName(periodName);
+                    var idPeriod = periodDetails.id;
+                    var endDate = periodDetails.endDate;
+                    var periodDetailsPrev = getPeriodIdByName(periodAfterName)
+                    var periodDetailsBef = getPeriodIdByName(periodBeforeName)
+                    var endDateBef = periodDetailsBef.endDate
                     var idPeriodBef = getPeriodIdByName(periodBeforeName);
-                    var idPeriodPrev = getPeriodIdByName(periodAfterName)
+                    var idPeriodPrev = periodDetailsPrev.id
                     
                     var beginningBalance;
                     log.debug('periodFrom', periodFrom)
@@ -294,8 +300,8 @@ define([
                         if (idPeriod) beginningBalanceSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: "31/12/2023" }));
                         if (subsId) beginningBalanceSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
                     }else{
-                        beginningBalanceSearch = search.load({ id: "customsearch821" });
-                        if (idPeriod) beginningBalanceSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriod }));
+                        beginningBalanceSearch = search.load({ id: "customsearch1244" });
+                        if (endDateBef) beginningBalanceSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: endDateBef }));
                         if (subsId) beginningBalanceSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
                     }
                     var beginningBalanceSearchReturn = beginningBalanceSearch.run().getRange({ start: 0, end: 1 });
@@ -312,9 +318,9 @@ define([
                     allIdPeriod.push({ idPeriod: idPeriod, periodToset: periodToset });
                     dataToSet.push(periodToset);
                     allBeginningBalance.push({ beginningBalance: beginningBalance, periodToset: periodToset });
-                   
-                    var endingBalanceSearch = search.load({ id: "customsearch821" });
-                    if (idPeriodPrev) endingBalanceSearch.filters.push(search.createFilter({ name: "postingperiod", operator: search.Operator.ANYOF, values: idPeriodPrev }));
+                    
+                    var endingBalanceSearch = search.load({ id: "customsearch1244" });
+                    if (endDate) endingBalanceSearch.filters.push(search.createFilter({ name: "trandate", operator: search.Operator.ONORBEFORE, values: endDate }));
                     if (subsId) endingBalanceSearch.filters.push(search.createFilter({ name: "subsidiary", operator: search.Operator.IS, values: subsId }));
                     
                 
@@ -329,7 +335,7 @@ define([
                     allEndingBalance.push({endingBalance : endingBalance, periodToset : periodToset})
 
                     var outstandingSearch = search.load({
-                        id : "customsearch795"
+                        id : "customsearch1243"
                     })
                     if(subsId){
                         outstandingSearch.filters.push(
@@ -774,12 +780,15 @@ define([
                 dataAll.push({
                     allBeginningBalance : allBeginningBalance,
                     allOutstanding : allOutstanding,
+                    allWIP : allWIP,
                     alloutstandingPayable : alloutstandingPayable,
+                    allCOB : allCOB,
                     alloprasionalExp : alloprasionalExp,
                     allLoan : groupedData,
                     allEndingBalance : allEndingBalance
                 })
                 var idSub = subsId
+                log.debug('dataAll', dataAll)
                 form.addButton({
                     id: 'custpage_button_po',
                     label: "Download",

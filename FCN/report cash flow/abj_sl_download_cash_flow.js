@@ -214,9 +214,24 @@ define(["N/ui/serverWidget","N/search","N/record","N/ui/message","N/url","N/redi
                         xmlStr += "</Row>";
 
                         xmlStr += "<Row>";
+                        xmlStr += '<Cell ss:StyleID="NB"><Data ss:Type="String">Total WIP</Data></Cell>';
+                        data.allWIP.forEach(function(wip) {
+                            xmlStr += '<Cell><Data ss:Type="String">' + wip.wip + '</Data></Cell>';
+                        });
+                        xmlStr += "</Row>";
+                        
+
+                        xmlStr += "<Row>";
                         xmlStr += '<Cell ss:StyleID="NB"><Data ss:Type="String">Total outstanding Account Payable</Data></Cell>';
                         data.alloutstandingPayable.forEach(function(outstandingPayable) {
                             xmlStr += '<Cell><Data ss:Type="String">' + outstandingPayable.outstandingPayable + '</Data></Cell>';
+                        });
+                        xmlStr += "</Row>";
+
+                        xmlStr += "<Row>";
+                        xmlStr += '<Cell ss:StyleID="NB"><Data ss:Type="String">Cost Of Billing</Data></Cell>';
+                        data.allCOB.forEach(function(cob) {
+                            xmlStr += '<Cell><Data ss:Type="String">' + cob.cob + '</Data></Cell>';
                         });
                         xmlStr += "</Row>";
 
