@@ -380,21 +380,7 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                                 var statusInterco = recSo.getFieldValue('intercostatus')
                                 nlapiLogExecution('DEBUG', 'statusInterco', statusInterco);
                                 if(!statusInterco){
-                                    var newLine = customLines.addNewLine();
-                                    newLine.setAccountId(parseInt(accountHeader));
-                                    newLine.setCreditAmount(sumTotalCredit);
-                                    newLine.setMemo('Journal Balik');
-            
-                                    allDataGl.forEach(function(data){
-                                        var idAcc = data.idAcc
-                                        var debitAmt = data.debitAmt
-                                        var creditAmt = data.creditAmt
-                                        
-                                        var newLine = customLines.addNewLine();
-                                        newLine.setAccountId(parseInt(idAcc));
-                                        newLine.setDebitAmount(creditAmt);
-                                        newLine.setMemo('Journal Balik');
-                                    })
+                                 
                                     var soLine = recSo.getLineItemCount('recmachcustrecord_ajb_pembobotan_so_id');
                                     nlapiLogExecution('DEBUG', 'soLine', soLine);
                                     if(soLine > 0){
@@ -426,33 +412,51 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                                             var idItem = line.idItem;
                                             var amountItem = line.amountItem;
                                             nlapiLogExecution('DEBUG', 'allItemPembobotan', allItemPembobotan);
-                                            for(var j = 0; j < allItemPembobotan.length; j++){
-                                                var temPembobotan = allItemPembobotan[j];
-                                                var soItem = temPembobotan.soItem
-                                                var soDepartment = temPembobotan.soDepartment
-                                                var soPembobotan = temPembobotan.soPembobotan
-                                                var SomemoText = temPembobotan.SomemoText
-                                                if(idItem == soItem){
-                                                    var sumPembobotan = soPembobotan * amountItem / 100;
-                                                    nlapiLogExecution('DEBUG', 'SomemoText', SomemoText);
-                                                    nlapiLogExecution('DEBUG', 'sumPembobotan', sumPembobotan);
-    
-                                                    var newLineDebit = customLines.addNewLine();
-                                                    newLineDebit.setAccountId(parseInt(accountHeader));
-                                                    newLineDebit.setDebitAmount(sumPembobotan);
-                                                    newLineDebit.setDepartmentId(parseInt(soDepartment));
-                                                    // newLineDebit.setEntityId(parseInt(entity_id));
-                                                    newLineDebit.setMemo(SomemoText);
-    
-    
-                                                    var newLineCredit = customLines.addNewLine();
-                                                    newLineCredit.setAccountId(parseInt(accountSo));
-                                                    newLineCredit.setDepartmentId(parseInt(soDepartment));
-                                                    newLineCredit.setCreditAmount(sumPembobotan);
-                                                    // newLineCredit.setEntityId(parseInt(entity_id));
-                                                    newLineCredit.setMemo(SomemoText);
+                                            if(allItemPembobotan){
+                                                var newLine = customLines.addNewLine();
+                                                newLine.setAccountId(parseInt(accountHeader));
+                                                newLine.setCreditAmount(sumTotalCredit);
+                                                newLine.setMemo('Journal Balik');
+                        
+                                                allDataGl.forEach(function(data){
+                                                    var idAcc = data.idAcc
+                                                    var debitAmt = data.debitAmt
+                                                    var creditAmt = data.creditAmt
+                                                    
+                                                    var newLine = customLines.addNewLine();
+                                                    newLine.setAccountId(parseInt(idAcc));
+                                                    newLine.setDebitAmount(creditAmt);
+                                                    newLine.setMemo('Journal Balik');
+                                                })
+                                                for(var j = 0; j < allItemPembobotan.length; j++){
+                                                    var temPembobotan = allItemPembobotan[j];
+                                                    var soItem = temPembobotan.soItem
+                                                    var soDepartment = temPembobotan.soDepartment
+                                                    var soPembobotan = temPembobotan.soPembobotan
+                                                    var SomemoText = temPembobotan.SomemoText
+                                                    if(idItem == soItem){
+                                                        var sumPembobotan = soPembobotan * amountItem / 100;
+                                                        nlapiLogExecution('DEBUG', 'SomemoText', SomemoText);
+                                                        nlapiLogExecution('DEBUG', 'sumPembobotan', sumPembobotan);
+        
+                                                        var newLineDebit = customLines.addNewLine();
+                                                        newLineDebit.setAccountId(parseInt(accountHeader));
+                                                        newLineDebit.setDebitAmount(sumPembobotan);
+                                                        newLineDebit.setDepartmentId(parseInt(soDepartment));
+                                                        // newLineDebit.setEntityId(parseInt(entity_id));
+                                                        newLineDebit.setMemo(SomemoText);
+        
+        
+                                                        var newLineCredit = customLines.addNewLine();
+                                                        newLineCredit.setAccountId(parseInt(accountSo));
+                                                        newLineCredit.setDepartmentId(parseInt(soDepartment));
+                                                        newLineCredit.setCreditAmount(sumPembobotan);
+                                                        // newLineCredit.setEntityId(parseInt(entity_id));
+                                                        newLineCredit.setMemo(SomemoText);
+                                                    }
                                                 }
                                             }
+                                            
                                         })
                                     }
                                 }else{
