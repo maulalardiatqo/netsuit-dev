@@ -4,11 +4,11 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog) {
+define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog", "N/https"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog, https) {
     var records = currentRecord.get();
     
     function pageInit(context) {
-        console.log('init masuk');
+        log.debug('init masuk');
     }
     function createRec(context) {
         var processMsg = message.create({
@@ -38,7 +38,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             scriptId: 'customscript_abj_sl_call_mr_so', 
             deploymentId: 'customdeploy_abj_sl_call_mr_so' 
         });
-    
+        console.log('soId', soId)
         https.post.promise({
             url: suiteletUrl,
             body: JSON.stringify({ soId: soId }),
@@ -47,7 +47,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
         }).then(function (response) {
             processMsg.hide();
-            console.log('Response from Suitelet:', response.body);
+            log.debug('Response from Suitelet:', response.body);
             var result = JSON.parse(response.body);
             if (result.success) {
                 dialog.alert({

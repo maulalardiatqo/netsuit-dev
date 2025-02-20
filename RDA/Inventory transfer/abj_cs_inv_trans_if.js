@@ -35,8 +35,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var rec = records;
         var soId = rec.id;
         var suiteletUrl = url.resolveScript({
-            scriptId: 'customscript_abj_sl_call_mr_so', 
-            deploymentId: 'customdeploy_abj_sl_call_mr_so' 
+            scriptId: 'customscript_abj_sl_call_mr_if', 
+            deploymentId: 'customdeploy_abj_sl_call_mr_if' 
         });
     
         https.post.promise({

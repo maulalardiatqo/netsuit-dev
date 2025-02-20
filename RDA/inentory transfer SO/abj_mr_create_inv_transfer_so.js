@@ -6,7 +6,7 @@ define(['N/record', 'N/search', 'N/log', 'N/runtime', 'N/task'], function(record
 
     function getInputData(context) {
         var currentScript = runtime.getCurrentScript();
-        var dataToProcess = currentScript.getParameter({ name: 'ustscript_id_so' });
+        var dataToProcess = currentScript.getParameter({ name: 'custscript_id_so' });
         log.debug('dataToProcess', dataToProcess)
         return [
             {
