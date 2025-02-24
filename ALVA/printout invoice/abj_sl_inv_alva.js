@@ -33,13 +33,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     isDynamic: false,
                 });
                 var currenc = invoiceRecord.getValue('currency');
+                var tlcCurr = ''
                 if(currenc){
                     var recCurrenc = record.load({
                         type : 'currency',
                         id : currenc,
                         isDynamic : false
                     });
-                    var tlcCurr = recCurrenc.getValue('symbol');
+                    tlcCurr = recCurrenc.getValue('symbol');
                     
                 }
                 var crFrom = invoiceRecord.getValue('createdfrom');
@@ -74,6 +75,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var swiftCode = subsidiariRec.getValue('custrecord_fcn_sub_swift_code');
                     var bankBranch = subsidiariRec.getValue('custrecord_fcn_sub_bank_branch');
                     var accountNo = subsidiariRec.getValue('custrecord_fcn_sub_account_number');
+                    var accountName = "Adhikari Laju Vida PT";
                     var paymentReferences = subsidiariRec.getValue('custrecord_fcn_sub_payment_reference');
                     var logo = subsidiariRec.getValue('logo');
                     var filelogo;
@@ -181,6 +183,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     nameSignatured = nameEmp
                 }
                 var template = invoiceRecord.getText('custbody10');
+                var poNum = invoiceRecord.getValue('otherrefnum');
                 var totalTax = invoiceRecord.getValue('taxtotal')
                 var terms = invoiceRecord.getText('terms');
                 var fakturPajak = invoiceRecord.getValue('custbody_fcn_faktur_pajak');
@@ -400,7 +403,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     jobNumber = jobNumber.replace(/&/g, '&amp;');
                 }
                 style += "<style type='text/css'>";
-                style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%; font-family: Arial, Helvetica, sans-serif;}";
+                style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
                 if(subsidiari == 1){
                     style += ".tg .tg-img-logo{width:150px; height:111px; object-vit:cover;}";
@@ -432,14 +435,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='align:left; width:20%;'></td>"
                 body+= "</tr>";
                 body+= "<tr>"
-                body+= "<td style='font-size:25px; font-weight: bold; '>"+legalName+ " " + template + "</td>"
+                body+= "<td style='font-size:25px; font-weight: bold; '>"+legalName.toUpperCase()+ " " + template.toUpperCase() + "</td>"
                 body+= "<td></td>"
                 body+= "<td></td>"
                 body+= "<td style='font-size:20px; align:right; color:#0813AF; font-weight: bold;'>INVOICE</td>"
                 body+= "</tr>";
 
                 body+= "<tr>"
-                body+= "<td style='' rowspan='3'>"+addresSubsidiaries+"</td>"
+                body+= "<td style='' rowspan='3'>"
+                body+= "<p style='width:60%;height:100%;'>"+addresSubsidiaries+"</p>"
+                body+= "</td>"
                 body+= "<td></td>"
                 body+= "<td>Date</td>"
                 body+= "<td style='align:right;'>"+InvDate+"</td>"
@@ -454,7 +459,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tr>"
                 body+= "<td></td>"
                 body+= "<td>Quotation #</td>"
-                body+= "<td style='align:right;'>"+fromSo+"</td>"
+                body+= "<td style='align:right;white-space:nowrap;'>"+fromSo.replace('Quotation', '')+"</td>"
+                body+= "</tr>";
+
+                body+= "<tr>"
+                body+= "<td></td>"
+                body+= "<td></td>"
+                body+= "<td>PO#</td>"
+                body+= "<td style='align:right;white-space:nowrap;'>"+poNum+"</td>"
                 body+= "</tr>";
 
                 body+= "</tbody>";
@@ -522,7 +534,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td colspan='3'>"+otherComment+"</td>"
                 body += "<td colspan='2'></td>"
                 body+= "</tr>";
-                body += getPOItem(context, invoiceRecord);
+                body += getPOItem(context, invoiceRecord, tlcCurr);
                 body+= "</tbody>";
                 body+= "</table>";
     
@@ -548,7 +560,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style=''></td>"
                 footer += "<td style=''>Sub Total</td>"
                 footer += "<td style=''>:</td>"
-                footer += "<td style=''>IDR</td>"
+                footer += "<td style=''>"+tlcCurr+"</td>"
                 footer += "<td style='align:right'>"+subTotal+"</td>"
                 footer += "</tr>";
 
@@ -557,7 +569,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style=''></td>"
                 footer += "<td style=''>VAT"+taxRegNo+"</td>"
                 footer += "<td style=''>:</td>"
-                footer += "<td style=''>IDR</td>"
+                footer += "<td style=''>"+tlcCurr+"</td>"
                 footer += "<td style='align:right'>"+totalTax+"</td>"
                 footer += "</tr>";
 
@@ -566,7 +578,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style=''></td>"
                 footer += "<td style='font-weight:bold'>Total Invoice</td>"
                 footer += "<td style=''>:</td>"
-                footer += "<td style=''>IDR</td>"
+                footer += "<td style=''>"+tlcCurr+"</td>"
                 footer += "<td style='align:right'>"+total+"</td>"
                 footer += "</tr>";
 
@@ -588,32 +600,39 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<tr>";
                 footer += "<td style=''></td>"
                 footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>"+bankBranch+"</td>"
+                footer += "<td style='align:center' colspan='4'>"
+                footer += "<p style='align:center'>"+bankName +" - "+bankBranch+"<br/>"
+                footer += "Account Name : "+accountName+"<br/>"
+                footer += "Account Number : "+accountNo+"<br/>"
+                footer += "NPWP : "+Npwp+"<br/>"
+                footer += "Swift Code : "+swiftCode+"<br/>"
+                footer += "</p>"
+                footer += "</td>"
                 footer += "</tr>";
 
-                footer += "<tr>";
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>Account Name : "+bankName+"</td>"
-                footer += "</tr>";
+                // footer += "<tr>";
+                // footer += "<td style=''></td>"
+                // footer += "<td style=''></td>"
+                // footer += "<td style='align:center' colspan='4'>Account Name : "+bankName+"</td>"
+                // footer += "</tr>";
 
-                footer += "<tr>";
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>Account Number : "+accountNo+"</td>"
-                footer += "</tr>";
+                // footer += "<tr>";
+                // footer += "<td style=''></td>"
+                // footer += "<td style=''></td>"
+                // footer += "<td style='align:center' colspan='4'>Account Number : "+accountNo+"</td>"
+                // footer += "</tr>";
 
-                footer += "<tr>";
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>NPWP : "+Npwp+"</td>"
-                footer += "</tr>";
+                // footer += "<tr>";
+                // footer += "<td style=''></td>"
+                // footer += "<td style=''></td>"
+                // footer += "<td style='align:center' colspan='4'>NPWP : "+Npwp+"</td>"
+                // footer += "</tr>";
 
-                footer += "<tr>";
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "<td style='align:center' colspan='4'>Swift Code : "+swiftCode+"</td>"
-                footer += "</tr>";
+                // footer += "<tr>";
+                // footer += "<td style=''></td>"
+                // footer += "<td style=''></td>"
+                // footer += "<td style='align:center' colspan='4'>Swift Code : "+swiftCode+"</td>"
+                // footer += "</tr>";
 
                 footer += "<tr>";
                 footer += "<td style=''>( "+nameSignatured+" )</td>"
@@ -643,7 +662,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "</macro>";
                 xml += "</macrolist>";
                 xml += "</head>"
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='25%'>";
+                xml += "<body font-size='10' style=\"font-family: 'Times New Roman', Times, serif;height: 29.7cm; width: 21cm;\" header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='25%'>";
                 xml += body;
                 xml += "\n</body>\n</pdf>";
     
@@ -653,7 +672,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
             }
     
-            function getPOItem(context, invoiceRecord){
+            function getPOItem(context, invoiceRecord, tlcCurr){
                 var itemCount = invoiceRecord.getLineCount({
                     sublistId: 'item'
                 });
@@ -695,6 +714,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId: 'item',
                             line: index
                         });
+                        var desc = invoiceRecord.getSublistText({
+                            sublistId: 'item',
+                            fieldId: 'description',
+                            line: index
+                        });
                         if(ammount){
                             ammount = pembulatan(ammount);
                             ammount = format.format({
@@ -706,9 +730,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         
 
                         body += "<tr>";
-                        body += "<td colspan='3'>"+no+" . "+itemText+ "</td>";
-                        body += "<td  style='align:right'>IDR</td>";
-                        body += "<td  style='align:right;'>"+ammount+"</td>";
+                        body += "<td colspan='3'>"+no+" . "+desc+ "</td>";
+                        body += "<td  style='align:right'></td>";
+                        body += "<td  style='align:right;'>"+tlcCurr+" "+ammount+"</td>";
                         body += "</tr>";
                         no++
                     }

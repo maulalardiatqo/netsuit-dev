@@ -36,15 +36,28 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var invSearchSet = invSearch.run();
                 var result = invSearchSet.getRange(0, 1);
                 var invoiceRecord = result[0];
-
+                var bankInfo = invoiceRecord.getValue('custbody13');
+                var bankNameRec = ''
+                var bankAccNo = ''
+                var bankAccName = ''
+                if(bankInfo){
+                    var recBank = record.load({
+                        type : "customrecord_fcn_bank_inforatikon",
+                        id : bankInfo
+                    });
+                    bankNameRec = recBank.getValue('custrecord_fcn_bi_bank_name');
+                    bankAccName = recBank.getValue('custrecord3');
+                    bankAccNo = recBank.getValue('custrecordbank_number')
+                }
                 var currenc = invoiceRecord.getValue({ name : 'currency'});
+                var tlcCurr = ''
                 if (currenc) {
                     var recCurrenc = record.load({
                         type: 'currency',
                         id: currenc,
                         isDynamic: false
                     });
-                    var tlcCurr = recCurrenc.getValue('symbol');
+                    tlcCurr = recCurrenc.getValue('symbol');
 
                 }
                 var crFrom = invoiceRecord.getValue({ name : 'createdfrom'});
@@ -468,8 +481,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style='' rowspan='3'>" + custAddres + "</td>"
                 body += "<td></td>"
-                body += "<td></td>"
-                body += "<td style='align:right;'>" + fromSo + "</td>"
+                body += "<td style='align:right;' colspan='2'>" + fromSo + "</td>"
                 body += "</tr>";
                 log.debug('otehrRefNum', otehrRefNum)
                 body += "<tr>"
@@ -513,8 +525,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body += "<tr>";
                 // body += "<td style='align:center; font-size:15px; font-weight:bold; background-color:#F8F3A8'>Description</td>"
-                body += "<td style='align:center; font-size:11px;  height:25px; vertical-align:middle;' colspan='2'>Description</td>"
-                body += "<td style='align:center; font-size:11px; height:25px; vertical-align:middle;' colspan='3'>Amount</td>"
+                body += "<td style='align:center; font-size:11px;  height:25px; vertical-align:middle; background-color:#F8F3A8' colspan='2'>Description</td>"
+                body += "<td style='align:center; font-size:11px; height:25px; vertical-align:middle; background-color:#F8F3A8' colspan='3'>Amount</td>"
                 body += "</tr>";
 
                 // body += "<tr>";
@@ -546,16 +558,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style=''></td>"
                 footer += "<td style='align:right'>Sub Total</td>"
                 footer += "<td style=''>:</td>"
-                footer += "<td style=''>IDR</td>"
+                footer += "<td style=''>"+tlcCurr+"</td>"
                 footer += "<td style='align:right'>" + subTotal + "</td>"
                 footer += "</tr>";
 
                 footer += "<tr style=''>";
                 footer += "<td style=''></td>"
                 footer += "<td style=''></td>"
-                footer += "<td style='align:right'>VAT" + taxRegNo + "</td>"
+                footer += "<td style='align:right'>VAT</td>"
                 footer += "<td style=''>:</td>"
-                footer += "<td style=''>IDR</td>"
+                footer += "<td style=''>"+tlcCurr+"</td>"
                 footer += "<td style='align:right'>" + totalTax + "</td>"
                 footer += "</tr>";
 
@@ -564,7 +576,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style=''></td>"
                 footer += "<td style='font-weight:bold; align:right'>Total Invoice</td>"
                 footer += "<td style=''>:</td>"
-                footer += "<td style='font-weight:bold'>IDR</td>"
+                footer += "<td style='font-weight:bold'>"+tlcCurr+"</td>"
                 footer += "<td style='align:right; font-weight:bold;'>" + poTotal + "</td>"
                 footer += "</tr>";
 
@@ -589,23 +601,45 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td></td>"
                 footer += "</tr>";
 
-                footer += "<tr>";
-                footer += "<td style='align:left' colspan='4'>" + bankName + " " + bankBranch + "</td>"
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "</tr>";
+                if(bankInfo){
+                    footer += "<tr>";
+                    footer += "<td style='align:left' colspan='4'>" + bankNameRec + "</td>"
+                    footer += "<td style=''></td>"
+                    footer += "<td style=''></td>"
+                    footer += "</tr>";
+    
+                    footer += "<tr>";
+                    footer += "<td style='align:left' colspan='4'>" + bankAccName + "</td>"
+                    footer += "<td style=''></td>"
+                    footer += "<td style=''></td>"
+                    footer += "</tr>";
+    
+                    footer += "<tr>";
+                    footer += "<td style='align:left' colspan='4'>" + bankAccNo + "</td>"
+                    footer += "<td style=''></td>"
+                    footer += "<td style=''></td>"
+                    footer += "</tr>";
+                }else{
+                    footer += "<tr>";
+                    footer += "<td style='align:left' colspan='4'>" + bankName + " " + bankBranch + "</td>"
+                    footer += "<td style=''></td>"
+                    footer += "<td style=''></td>"
+                    footer += "</tr>";
 
-                footer += "<tr>";
-                footer += "<td style='align:left' colspan='4'>" + legalName + "</td>"
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "</tr>";
+                    footer += "<tr>";
+                    footer += "<td style='align:left' colspan='4'>" + legalName + "</td>"
+                    footer += "<td style=''></td>"
+                    footer += "<td style=''></td>"
+                    footer += "</tr>";
 
-                footer += "<tr>";
-                footer += "<td style='align:left' colspan='4'>" + accountNo + "</td>"
-                footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
-                footer += "</tr>";
+                    footer += "<tr>";
+                    footer += "<td style='align:left' colspan='4'>" + accountNo + "</td>"
+                    footer += "<td style=''></td>"
+                    footer += "<td style=''></td>"
+                    footer += "</tr>";
+                }
+
+                
 
                 // footer += "<tr>";
                 // footer += "<td style='align:left' colspan='4'>" + Npwp + "</td>"
