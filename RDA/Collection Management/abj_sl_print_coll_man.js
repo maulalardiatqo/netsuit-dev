@@ -76,7 +76,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
 
                 var recid = context.request.parameters.id;
-                log.debug('recid', recid)
                 var searchCreate = search.load({
                     id: "customsearch875",
                 });
@@ -86,13 +85,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var searchCreateSet = searchCreate.run();
                 var result = searchCreateSet.getRange(0, 1);
                 var collRecord = result[0];
-                log.debug('collRecord', collRecord)
 
                 var docNo = collRecord.getValue({name :'tranid'})
                 var areaToPrint = ''
                 var allData = []
                 var allIdInv = collRecord.getValue({ name :'custbody_rda_invoice_number'});
-                log.debug('allIdInv', allIdInv)
                 var allIdInvArray = allIdInv.split(',').map(function(id) {
                     return id.trim(); // Menghapus spasi jika ada
                 });
@@ -152,7 +149,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var amtRemaining = result.getValue({
                         name: "amountremaining"
                     })
-                    log.debug('amount remaining', amtRemaining)
                     var amtTotal = result.getValue({
                         name: "total"
                     })
@@ -168,10 +164,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var dueDate = result.getValue({
                         name: "duedate"
                     })
-                    // var salesRep = result.getText({
-                    //     name: "salesrep"
-                    // })
-                
+                    var salesRep = result.getText({
+                        name: "salesrep"
+                    })
+                    log.debug('salesRep', salesRep)
                     var firstName = result.getValue({
                         name: "firstname",
                         join : "salesrep"
@@ -181,6 +177,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         join : "salesrep"
                     })
                     var salesRep = firstName + " "+ lastName;
+                    log.debug('salesRep', salesRep)
                     var area = result.getText({
                         name: "custbody_rda_area"
                     })
@@ -350,8 +347,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 })
                 
                 var finalData = Object.values(groupedData);
-                log.debug('allDataApply', allDataApply)
-                log.debug('finalData', finalData)
                 allDataApply.forEach(function(applyData) {
                     finalData.forEach(function(finalDataItem) {
                         if (finalDataItem.invId === applyData.idInv) {
@@ -362,8 +357,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         }
                     });
                 });
-                
-                log.debug('Updated finalData', finalData);
 
                 var allClassString = allClass.join(', ');
                 var subsId = collRecord.getValue({name : 'subsidiary'});
@@ -388,7 +381,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         id: kolektorId,
                         columns: ['firstname','lastname', 'entityid','custrecord_rda_mapsales_employee_id.name']
                     });
-                    log.debug('Sales Rep Details', salesRepDetails);
                     // customerSalesman = `${salesRepDetails.firstname} ${salesRepDetails.lastname} - ${salesRepDetails.custrecord_rda_mapsales_employee_id.name}`
                     kolektor = `${salesRepDetails.firstname} ${salesRepDetails.lastname}`
                 }
@@ -529,7 +521,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         });
                     }
                     var tranDate = item.dueDate
-                    log.debug('trandate', tranDate);
                     body += "<tr>"
                     body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:10px;text-align:center; vertical-align:middle; '><b>"+escapeXmlSymbols(item.cussId)+"</b><br/># "+escapeXmlSymbols(item.entityId)+"</td>"
                     body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:10px;'>"+escapeXmlSymbols(item.docNumber)+" ("+item.sjpCount+")<br/>-</td>";
@@ -545,9 +536,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td style='border: solid black 1px;border-bottom:0; '></td>"
                     body += "</tr>"
                     if(applyingAmount != 0){
-                        log.debug('dateApply', dateApply)
                         var overdateApply = calculateDateDifference(dateApply, dateRec);
-                        log.debug('overdateApply', overdateApply)
                         body += "<tr>"
                         body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:11px; '></td>"
                         body += "<td style='border: solid black 1px; border-right:none; border-bottom:0; font-weight:bold; font-size:10px; text-align:center; vertical-align:middle; padding:5px;'>"

@@ -512,7 +512,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                     type: "accountingperiod",
                                     filters:
                                     [
-                                        ["periodname","is","28 Feb 2025"]
+                                        ["periodname","is", periodNamedate]
                                     ],
                                     columns:
                                     [
