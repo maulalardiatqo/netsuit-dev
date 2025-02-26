@@ -210,6 +210,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     nameSignatured = nameEmp
                 }
                 var template = invoiceRecord.getText('custbody10');
+                var memo = invoiceRecord.getText('memo') || "";
                 var totalTax = invoiceRecord.getValue({ name : 'taxtotal'})
                 var terms = invoiceRecord.getText('terms');
                 var fakturPajak = invoiceRecord.getValue('custbody_fcn_faktur_pajak');
@@ -533,7 +534,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // body += "<td>" + otherComment + "test</td>"
                 // body += "<td colspan='3'></td>"
                 // body += "</tr>";
-                body += getPOItem(context, invoiceRecord, allDataLine);
+                body += getPOItem(context, invoiceRecord, allDataLine, memo);
                 body += "</tbody>";
                 body += "</table>";
 
@@ -704,7 +705,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
             }
 
-            function getPOItem(context, invoiceRecord, allDataLine) {
+            function getPOItem(context, invoiceRecord, allDataLine, memo) {
                 var cekDataLine = allDataLine.length
                 if(cekDataLine > 0){
                     var body = "";
@@ -738,11 +739,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             ammount = removeDecimalFormat(ammount)
                         }
 
-                        var projects = data.project
-
                         if (no == 1) {
                             body += "<tr>";
-                            body += "<td colspan='2'>" + projects + "</td>"
+                            body += "<td colspan='2'>" + memo + "</td>"
                             body += "<td colspan='3'></td>"
                             body += "</tr>";
                         }

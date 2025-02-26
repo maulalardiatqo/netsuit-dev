@@ -209,6 +209,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var whtaxammountItem = 0;
                 var whTaxCodetoPrint = ''
                 var otherComment = ""
+                var memo = invoiceRecord.getValue('memo');
+                if(memo){
+                    otherComment = memo
+                }
                 var countItem = invoiceRecord.getLineCount({
                     sublistId: 'item'
                 });
@@ -241,9 +245,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             line : i
                         });
                         log.debug('project', project)
-                        if(project){
-                            otherComment = project
-                        }
+                        // if(project){
+                        //     otherComment = project
+                        // }
                         var whTaxCodeI = invoiceRecord.getSublistValue({
                             sublistId : 'item',
                             fieldId : 'custcol_4601_witaxcode',

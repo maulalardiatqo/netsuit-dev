@@ -4,13 +4,13 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog) {
+define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog", "N/https"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog, https) {
     var records = currentRecord.get();
     
     function pageInit(context) {
         log.debug('init masuk');
     }
-    function createRec(context) {
+    function createInv(context) {
         var processMsg = message.create({
             title: "Processing",
             message: "On Process. Please wait...",
@@ -33,7 +33,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     }
     function processTransaction(processMsg){
         var rec = records;
-        var soId = rec.id;
+        var ifId = rec.id;
+        console.log('ifId', ifId)
         var suiteletUrl = url.resolveScript({
             scriptId: 'customscript_abj_sl_call_mr_if', 
             deploymentId: 'customdeploy_abj_sl_call_mr_if' 
@@ -41,7 +42,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     
         https.post.promise({
             url: suiteletUrl,
-            body: JSON.stringify({ soId: soId }),
+            body: JSON.stringify({ ifId: ifId }),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -76,6 +77,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     
     return {
         pageInit: pageInit,
-        createRec: createRec
+        createInv: createInv
     };
 });

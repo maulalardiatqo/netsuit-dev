@@ -65,10 +65,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         id : crFrom,
                         isDynamic : true
                     });
+                    var cekInterCo = recSo.getValue('intercostatus')
                     var SoFrom = recSo.getText('createdfrom');
-                    if(SoFrom){
-                        fromSo = SoFrom
+                    if(cekInterCo == 2){
+                        fromSo = recSo.getValue('custbody_abj_quotation_from_sales') || ''
+                    }else{
+                        if(SoFrom){
+                            fromSo = SoFrom
+                        }
                     }
+                    
                 }
                 var subsidiari = invoiceRecord.getValue('subsidiary');
                 // load subsidiarie
@@ -224,6 +230,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var whtaxammountItem = 0;
                 var whTaxCodetoPrint = ''
                 var otherComment = ""
+                var memo = invoiceRecord.getValue('memo');
+                if(memo){
+                    otherComment = memo
+                }
                 var countItem = invoiceRecord.getLineCount({
                     sublistId: 'item'
                 });
@@ -255,9 +265,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId : 'class',
                             line : i
                         });
-                        if(project){
-                            otherComment = project
-                        }
+                        // if(project){
+                        //     otherComment = project
+                        // }
                         var whTaxCodeI = invoiceRecord.getSublistValue({
                             sublistId : 'item',
                             fieldId : 'custcol_4601_witaxcode',
@@ -587,7 +597,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<tr style=''>";
                 footer += "<td class='tg-garis' style='align:left'>"+otherComment+"</td>"
                 footer += "<td style=''></td>"
-                footer += "<td style='align:right;'>VAT"+taxRegNo+"</td>"
+                footer += "<td style='align:right;'>VAT</td>"
                 footer += "<td style=''>:</td>"
                 footer += "<td style=''>"+tlcCurr+"</td>"
                 footer += "<td style='align:right'>"+taxtotal+"</td>"
