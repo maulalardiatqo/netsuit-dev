@@ -117,6 +117,11 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                                 fieldId: 'quantity',
                                 line: i
                             });
+                            var qtyCommited = newRec.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'quantitycommitted',
+                                line: i
+                            });
                             
                             var isFulfill = newRec.getSublistValue({
                                 sublistId: 'item',
@@ -129,7 +134,9 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                                     qty : qty,
                                     quantityOnHand : quantityOnHand
                                 });
-                                if(qty > quantityOnHand){
+                                var dataBanding = Number(quantityOnHand) - Number(qtyCommited);
+                                log.debug('dataBanding', dataBanding)
+                                if(qty > dataBanding){
                                     validateOnhand = false
                                     newRec.setSublistValue({
                                         sublistId: 'item',

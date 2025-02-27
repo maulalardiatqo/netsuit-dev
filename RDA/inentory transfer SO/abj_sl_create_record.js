@@ -95,15 +95,20 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                             fieldId: 'quantity',
                             line: i
                         });
+                        var qtyCommited = newRec.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'quantitycommitted',
+                            line: i
+                        });
                         
                         var isFulfill = newRec.getSublistValue({
                             sublistId: 'item',
                             fieldId: 'fulfillable',
                             line: i
                         });
-            
+                        var dataBanding = Number(quantityOnHand) - Number(qtyCommited)
                         if (isFulfill == true) {
-                            if(qty > quantityOnHand){
+                            if(qty > dataBanding){
                                 log.debug('quantity lebih besar', {qty : qty, quantityOnHand : quantityOnHand});
                                 log.debug('cekLine ke', i)
                                 validateOnhand = false;
