@@ -2,8 +2,8 @@
  *@NApiVersion 2.1
  *@NScriptType ClientScript
  */
- define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", "N/search", "N/runtime"],
-    function(error,dialog,url,record,currentRecord,log, search, runtime) {
+ define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", "N/search", "N/runtime", "N/ui/message"],
+    function(error,dialog,url,record,currentRecord,log, search, runtime, message) {
         var allIdIr = []
         var records = currentRecord.get();
         function convertDate(dateStr) {
@@ -196,7 +196,30 @@
 
             }
         }
+
         function searchFilter(context){
+            var processMsg = message.create({
+                title: "Processing",
+                message: "On Process. Please wait...",
+                type: message.Type.INFORMATION
+            });
+            processMsg.show();
+    
+            setTimeout(function () {
+                try {
+                    executeSearch(processMsg);
+                } catch (e) {
+                    processMsg.hide(); 
+                    log.error("Error", e);
+                    dialog.alert({
+                        title: "Error",
+                        message: "An unexpected error occurred: " + e.message
+                    });
+                }
+            }, 500); 
+           
+        }
+        function executeSearch(processMsg){
             var cekLine = records.getLineCount({sublistId : "custpage_sublist"});
             console.log('cekLine', cekLine)
             if(cekLine > 0){
@@ -261,7 +284,7 @@
                         );
                     }
                     var dateSearchSet = dataSearch.run();
-                    var dataSearch = dateSearchSet.getRange(0, 1000);
+                    var dataSearch = dateSearchSet.getRange(0, 150);
     
                     if (dataSearch.length > 0) {
                         var allData = []
@@ -383,7 +406,6 @@
                                 fieldId: 'custpage_sublist_type',
                                 value: 'Invoice'
                             });
-                            console.log('customerText', customerText)
                             records.setCurrentSublistValue({
                                 sublistId: 'custpage_sublist', 
                                 fieldId: 'custpage_sublist_vendor',
@@ -481,18 +503,19 @@
                             }
                             records.commitLine({ sublistId: 'custpage_sublist' });
     
-                            
+                            processMsg.hide();
                         });
                     }else{
                         alert("No Data Found!")
+                        processMsg.hide();
                         
                     }   
                 
                
             }else{
                 alert("Please fill in Subsidiary fields");
+                processMsg.hide();
             }
-           
         }
         function markAll() {
             var rec = currentRecord.get();
