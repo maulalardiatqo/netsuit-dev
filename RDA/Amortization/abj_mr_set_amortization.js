@@ -77,9 +77,10 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
                 name: "internalid",
                 join: "amortizationSchedule",
             })
-            if(amortId){
-                amortizationId = amortId
-            }
+            // if(amortId){
+            //     log.debug('amortId', amortId)
+            //     amortizationId = amortId
+            // }
             return false;
         });
 
@@ -123,7 +124,7 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
         log.debug('formattedDates', formattedDates)
 
         try {
-            log.debug('amortizationId', )
+            log.debug('amortizationId', amortizationId)
             var amortizationScheduleRec = record.load({
                 type: 'revRecSchedule',
                 id: amortizationId,

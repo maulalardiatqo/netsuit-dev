@@ -9,6 +9,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         if(context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT){
             var isCreate = context.type == context.UserEventType.CREATE
             var dataRec = context.newRecord;
+            var sjpNumber = dataRec.getValue('id');
+            var dateSjp = dataRec.getValue('trandate');
+            log.debug('dataSJP', {sjpNumber : sjpNumber, dateSjp : dateSjp})
             var lineCount = dataRec.getLineCount({
                 sublistId : 'recmachcustrecord_transaction'
             });
@@ -57,6 +60,17 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                         value: action || '',
                         ignoreFieldChange: true
                     });
+                    recInv.setValue({
+                        fieldId: "custbody_rda_sjp_number",
+                        value: sjpNumber || '',
+                        ignoreFieldChange: true
+                    });
+                    recInv.setValue({
+                        fieldId: "custbody_rda_sjp_date",
+                        value: dateSjp || '',
+                        ignoreFieldChange: true
+                    });
+                    
                     var saveRec = recInv.save();
                     log.debug('saveRec', saveRec)
                 }

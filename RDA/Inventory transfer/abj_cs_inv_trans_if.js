@@ -48,19 +48,20 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
         }).then(function (response) {
             processMsg.hide();
-            log.debug('Response from Suitelet:', response.body);
+            console.log('Response from Suitelet:', response.body);
             var result = JSON.parse(response.body);
+            console.log('result', result)
             if (result.success) {
                 dialog.alert({
-                    title: "Success",
-                    message: "Creating Inventory Transfer, Please Wait for a Moment, Then Refresh the Page to See the Result."
+                    title: result.success ? "Success" : "Failed",
+                    message: result.message
                 }).then(function () {
                     window.location.reload();
                 });
             } else {
                 dialog.alert({
-                    title: "Error",
-                    message: "Error"
+                    title: result.success ? "Success" : "Failed",
+                    message: result.message
                 }).then(function () {
                     window.location.reload(); 
                 });

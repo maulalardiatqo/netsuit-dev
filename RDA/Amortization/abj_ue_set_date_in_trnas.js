@@ -75,15 +75,19 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                         name: "amortemplate",
                         join: "amortizationSchedule",
                     });
+                    log.debug('tempAmort', tempAmort)
                     if(tempAmort){
                         idAmortTemp = tempAmort
                     }
+                    log.debug('idAmortTemp', idAmortTemp)
                     var schedAmort = result.getValue({
                         name: "internalid",
                         join: "amortizationSchedule",
                     });
+                    log.debug('schedAmort', schedAmort)
                     if(schedAmort){
                         if(context.type === context.UserEventType.CREATE){
+                            log.debug('masuk create')
                             idAmortSched = Number(schedAmort) + Number(1)
                         }else{
                             idAmortSched = schedAmort
@@ -172,7 +176,12 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             fieldId : 'amount',
                             line : i
                         });
-
+                        var cekIdAmortCek = recordLoad.getSublistValue({
+                            sublistId : 'expense',
+                            fieldId : 'amount',
+                            line : i
+                        });
+                        log.debug('cekIdAmortCek', cekIdAmortCek)
                         if(idAmortTemp){
                             var recTempAmor = record.load({
                                 type: 'amortizationtemplate',
@@ -216,6 +225,7 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             if(startOffset > 0){
                                 amortPeriod = Number(amortPeriod) - Number(startOffset)
                             }
+                            log.debug('amortPeriod', amortPeriod)
                             var amounttoSet = (Number(amount) / Number(amortPeriod)).toFixed(2);
                             log.debug('amounttoSet', amounttoSet)
                             recordLoad.selectLine({
@@ -249,8 +259,17 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             });
                             var searchResultCount = amortizationscheduleSearchObj.runPaged().count;
                             if(searchResultCount < 0 || searchResultCount == null || searchResultCount == ''){
-                                idAmortSched = Number(idAmortSched) + 1
+                                idAmortSched = Number(idAmortSched)
                             }
+                            log.debug('params', {
+                                idAmortSched : idAmortSched,
+                                amounttoSet : amounttoSet,
+                                startDate : startDate,
+                                endDate : endDate,
+                                account : account,
+                                recId : recId,
+                                amount : amount
+                            })
                             var mapReduceTask = task.create({
                                 taskType: task.TaskType.MAP_REDUCE,
                                 scriptId: 'customscript_abj_mr_set_amortization', 
@@ -364,7 +383,7 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             });
                             var searchResultCount = amortizationscheduleSearchObj.runPaged().count;
                             if(searchResultCount < 0 || searchResultCount == null || searchResultCount == ''){
-                                idAmortSched = Number(idAmortSched) + 1
+                                idAmortSched = Number(idAmortSched)
                             }
                             log.debug('params', {
                                 idAmortSched : idAmortSched,
@@ -372,7 +391,8 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                                 startDate : startDate,
                                 endDate : endDate,
                                 account : account,
-                                recId : recId
+                                recId : recId,
+                                amount : amount
                             })
                             var mapReduceTask = task.create({
                                 taskType: task.TaskType.MAP_REDUCE,
@@ -406,7 +426,7 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
         
     }
     return {
-        afterSubmit: afterSubmit,
+        afterSubmit: afterSubmit
       };
     });
     

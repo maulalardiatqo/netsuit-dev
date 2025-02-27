@@ -11,18 +11,24 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
             var rec = context.newRecord;
             var cekError = rec.getValue('custbody_rda_error_message_ivnt_trf');
             var cekInvTrans = rec.getValue('custbody_rda_inventory_trf_number');
+            var status = rec.getValue('status');
             log.debug('cekInvTrans', cekInvTrans.length)
             log.debug('cekError', cekError)
-            if(cekError){ 
-                if(cekInvTrans.length < 1){
-                    form.addButton({
-                        id: 'custpage_button_recreate',
-                        label: "Recreate Inv Transfer",
-                        functionName: "createRec()"
-                    });
+            log.debug('status', status);
+            if(status != 'Closed'){
+                log.debug('status tidak sama dengan closed')
+                if(cekError){ 
+                    if(cekInvTrans.length < 1){
+                        form.addButton({
+                            id: 'custpage_button_recreate',
+                            label: "Recreate Inv Transfer",
+                            functionName: "createRec()"
+                        });
+                    }
+                    
                 }
-                
             }
+            
             context.form.clientScriptModulePath = "SuiteScripts/abj_cs_create_inv_transfer.js"
         }
     }

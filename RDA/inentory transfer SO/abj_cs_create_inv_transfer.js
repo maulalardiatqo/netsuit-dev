@@ -58,8 +58,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 });
             } else {
                 dialog.alert({
-                    title: "Error",
-                    message: "Error"
+                    title: result.success ? "Success" : "Error",
+                    message: message
                 }).then(function () {
                     window.location.reload(); 
                 });

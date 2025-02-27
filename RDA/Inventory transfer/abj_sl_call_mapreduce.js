@@ -26,11 +26,11 @@ define(['N/log', 'N/task'], function (log, task) {
                 });
     
                 var taskId = mrTask.submit();
-                log.audit('Map/Reduce Task Submitted', { taskId: taskId });
+                log.debug('Map/Reduce Task Submitted', { taskId: taskId });
     
                 context.response.write(JSON.stringify({ success: true, taskId: taskId }));
             } catch (e) {
-                log.error('Error in Suitelet', e.message);
+                log.debug('Error in Suitelet', e.message);
                 context.response.write(JSON.stringify({ success: false, message: e.message }));
             }
         } else {
