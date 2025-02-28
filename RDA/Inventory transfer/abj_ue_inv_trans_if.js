@@ -12,16 +12,22 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
             var status = rec.getValue('status');
             var isCancelled = rec.getValue('custbody_rda_do_cancelled');
             var cekNo = rec.getValue('custbody_rda_do_trf_to_gs');
+            var cekFalg = rec.getValue('custbody_rda_done__it')
             log.debug('cekNo', cekNo)
             log.debug('status', status);
             log.debug('isCancelled', isCancelled);
-            if(status == 'Picked' && isCancelled == true && cekNo == ''){
-                form.addButton({
-                    id: 'custpage_button_recreate',
-                    label: "Create Inventory Transfer",
-                    functionName: "createInv()"
-                });
+            log.debug('cekFalg', cekFalg)
+            if(cekFalg == false){
+                log.debug('masuk els flag')
+                if(status == 'Picked' && isCancelled == true && cekNo == ''){
+                    form.addButton({
+                        id: 'custpage_button_recreate',
+                        label: "Create Inventory Transfer",
+                        functionName: "createInv()"
+                    });
+                }
             }
+            
             context.form.clientScriptModulePath = "SuiteScripts/abj_cs_inv_trans_if.js"
         }
     }

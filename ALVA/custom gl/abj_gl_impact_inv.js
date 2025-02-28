@@ -90,7 +90,7 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                                 
     
                             }
-                            nlapiLogExecution('DEBUG', 'ada line SO');
+                            nlapiLogExecution('DEBUG', 'ada line SO', lineSo);
                             var pembobotanPerItem = []
                             for(var i = 1;i <= lineSo;i++){
                                 var itemSo = sorecord.getLineItemValue('recmachcustrecord_ajb_pembobotan_so_id','custrecord_abj_pembobotan_item', i);
@@ -98,9 +98,10 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                                 var pembobotan = sorecord.getLineItemValue('recmachcustrecord_ajb_pembobotan_so_id','custrecord_abj_pembobotan_persen', i);
                                 var departmentText = sorecord.getLineItemText('recmachcustrecord_ajb_pembobotan_so_id','custrecord_abj_pembobotan_department', i);
                                 var pembobotanText = sorecord.getLineItemValue('recmachcustrecord_ajb_pembobotan_so_id','custrecord_abj_pembobotan_persen', i);
-                                nlapiLogExecution('DEBUG', 'departmentText', departmentText);
-                                    nlapiLogExecution('DEBUG', 'pembobotanText', pembobotanText);
+                                nlapiLogExecution('DEBUG', 'itemSo', itemSo);
+                                nlapiLogExecution('DEBUG', 'pembobotan', pembobotan);
                                 var memoText = "Pembobotan " + pembobotanText + " Untuk Departement  "+ departmentText ;
+                                nlapiLogExecution('DEBUG', 'memoText', memoText);
                                 if(pembobotan){
                                     pembobotan = pembobotan.replace(/%/g, '');
                                     pembobotan = Number(pembobotan)
@@ -112,6 +113,7 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                                     memoText : memoText
                                 })
                             }
+                            nlapiLogExecution('DEBUG', 'pembobotanPerItem', pembobotanPerItem);
                             allItemInv.forEach(function(itemInvInfo) {
                                 var itemId = itemInvInfo.itemInv;
                                 
@@ -380,7 +382,6 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                                 var statusInterco = recSo.getFieldValue('intercostatus')
                                 nlapiLogExecution('DEBUG', 'statusInterco', statusInterco);
                                 if(!statusInterco){
-                                 
                                     var soLine = recSo.getLineItemCount('recmachcustrecord_ajb_pembobotan_so_id');
                                     nlapiLogExecution('DEBUG', 'soLine', soLine);
                                     if(soLine > 0){

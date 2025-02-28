@@ -24,6 +24,16 @@
             //                 .replace(/"/g, "&quot;")
             //                 .replace(/'/g, "&apos;");
             // }
+            function escapeXmlSymbols(input) {
+                if (!input || typeof input !== "string") {
+                    return input;
+                }
+                return input.replace(/&/g, "&amp;")
+                            .replace(/</g, "&lt;")
+                            .replace(/>/g, "&gt;")
+                            .replace(/"/g, "&quot;")
+                            .replace(/'/g, "&apos;");
+            }
 
             function getHeader(data,type){
                 let header = `<table width="100%"  style="table-layout:fixed;">
@@ -415,7 +425,10 @@
 
                 // // Loop through each line item in the purchase order
                 log.debug('itemCount', itemCount)
+                let remainderLines = 0
+                var lineWithoutRemind = 0
                 var cekLine = 0
+                var cekLineBarang = 0
                 var page = 1;
                 for (let i = 0; i < itemCount; i++) {
                     let noInvoice = itemFulfillTrx[i].getValue({name : 'tranid'})
@@ -462,17 +475,32 @@
 
                     let checkIfExist = tranIdPrinted.find(tran => tran == noInvoice);
                     if(!checkIfExist){
-                        cekLine = cekLine + 1;
-                        if (cekLine % 11 === 0) { 
-                            itemRows += `<tr style='height:30%'><td colspan="8"></td></tr>`;
-                        }
-                        if (cekLine > 11) { 
-                            let excessLines = cekLine - 11;
-                            autoHeightNota = Number(autoHeightNota) - (4 * Math.ceil(excessLines / 11));
-                            log.debug('excessLines', excessLines)
-                            
-                        }
                         
+                        remainderLines = remainderLines +1
+                        if(cekLine > 0){
+                        
+                            if (cekLine % 10 === 0) { 
+                                itemRows += `<tr style='height:30%'><td colspan="8"></td></tr>`;
+                            }
+                        }
+                        cekLine = cekLine + 1;
+                        
+                        // if (cekLine > 10) { 
+                        //     let excessLines = cekLine - 10;
+                        //     autoHeightNota = Number(autoHeightNota) - (4 * Math.ceil(excessLines / 10));
+                        //     log.debug('autoHeightNota', autoHeightNota)
+                            
+                        // }else{
+                            
+                        // }
+                       
+                         if (cekLine > 10) { 
+                            remainderLines = cekLine % 11;
+                            
+                        }else{
+                            lineWithoutRemind = lineWithoutRemind + 1
+                        }
+                        // autoHeightNota = Number(autoHeightNota) - 4;
                         if (autoHeightNota <= 0) {
                             autoHeightNota = 100;
                         }
@@ -493,20 +521,20 @@
                         
                         itemRows += `
                             <tr height="4%">
-                                <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;white-space:nowrap;font-stretch: condensed;">${noInvoice}</td>
+                                <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;white-space:nowrap;font-stretch: condensed;">${escapeXmlSymbols(noInvoice)}</td>
                                 <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:left;white-space:break-spaces;">
-                                        <p>
-                                            <span style="white-space:nowrap;font-stretch: condensed;">${cust}</span>
-                                            <br/>
-                                            <span  style="white-space:nowrap;font-stretch: condensed;">${customerSalesman}</span>
-                                        </p>
+                                    <p>
+                                        <span style="white-space:nowrap;font-stretch: condensed;">${escapeXmlSymbols(cust)}</span>
+                                        <br/>
+                                        <span style="white-space:nowrap;font-stretch: condensed;">${escapeXmlSymbols(customerSalesman)}</span>
+                                    </p>
                                 </td>
                                 <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:center;"><p>${kartonQty}</p></td>
                                 <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:right;">${format.format({ value : nilai, type : format.Type.CURRENCY})}</td>
                                 <td style="border: 1px solid black;border-top:0;border-right:0;align:right;">${potongReturn}</td>
                                 <td style="border: 1px solid black;border-top:0;border-right:0;align:right;">${bayarTunai}</td>
                                 <td style="border: 1px solid black;border-top:0;border-right:0;align:right;">${bayarGiro}</td>
-                                <td style="border: 1px solid black;border-top:0;border-right:0;align:right;border-right:0;">${noGiroOrBank}</td>
+                                <td style="border: 1px solid black;border-top:0;border-right:0;align:right;border-right:0;">${escapeXmlSymbols(noGiroOrBank)}</td>
                             </tr>
                         `;
                         tranIdPrinted.push(noInvoice)
@@ -533,7 +561,19 @@
                     let findItem = uniqueItems.find(ui => ui.kodeBarang == kodeBarang && !ui.printed);
                     if(line && findItem){
                         let jumlahBarangConcat = `${findItem.kartonUtuh}.${findItem.rentenOrLusin}.${findItem.eceran}`;
-                        autoHeight = Number(autoHeight) - 3;
+                        if(cekLineBarang > 0){
+                            if (cekLineBarang % 6 === 0) { 
+                                itemRowsBarang += `<tr style='height:32%'><td colspan="11"></td></tr>`;
+                            }
+                        }
+                        cekLineBarang = cekLineBarang + 1;
+                        if (cekLineBarang > 6) { 
+                            let excessLinesBarang = cekLineBarang - 6;
+                            autoHeight = Number(autoHeight) - (5 * Math.ceil(excessLinesBarang / 6));
+                            
+                            
+                        }
+                        autoHeight = Number(autoHeight) - 5;
                         if(autoHeight <= 0){
                             autoHeight=72;
                         }
@@ -544,27 +584,37 @@
                         totalEceran = Number(totalEceran) + Number(findItem.eceran)
                         noBin ++;
                         itemRowsBarang += `
-                            <tr style="height:3%;">
-                                <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:center;">${noBin}</td>
-                                <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:left;">${kodeBarang}</td>
-                                <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:left;">${namaBarang}</td>
-                                <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:center;">${batchExpired}</td>
-                                <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:right;">${jumlahBarangConcat}</td>
-                                <td style="border: 1px solid black;border-top:0;border-right:0;align:right;">${findItem.kartonUtuh}</td>
-                                <td style="border: 1px solid black;border-top:0;border-right:0;align:right;">${findItem.rentenOrLusin}</td>
+                            <tr style="height:5%;">
+                                <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:center;">${escapeXmlSymbols(noBin)}</td>
+                                <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:left;">${escapeXmlSymbols(kodeBarang)}</td>
+                                <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:left;">${escapeXmlSymbols(namaBarang)}</td>
+                                <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:center;">${escapeXmlSymbols(batchExpired)}</td>
+                                <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:right;">${escapeXmlSymbols(jumlahBarangConcat)}</td>
+                                <td style="border: 1px solid black;border-top:0;border-right:0;align:right;">${escapeXmlSymbols(findItem.kartonUtuh)}</td>
+                                <td style="border: 1px solid black;border-top:0;border-right:0;align:right;">${escapeXmlSymbols(findItem.rentenOrLusin)}</td>
                                 <td style="border: 1px solid black;border-top:0;border-right:0;align:right;">${findItem.eceran}</td>
-                                <td style="border: 1px solid black;border-top:0;border-right:0;align:center;">${check1}</td>
-                                <td style="border: 1px solid black;border-top:0;border-right:0;align:center;">${check2}</td>
-                                <td style="border: 1px solid black;border-top:0;border-right:0;align:center;">${barangKembali}</td>
+                                <td style="border: 1px solid black;border-top:0;border-right:0;align:center;">${escapeXmlSymbols(check1)}</td>
+                                <td style="border: 1px solid black;border-top:0;border-right:0;align:center;">${escapeXmlSymbols(check2)}</td>
+                                <td style="border: 1px solid black;border-top:0;border-right:0;align:center;">${escapeXmlSymbols(barangKembali)}</td>
                             </tr>
                         `;
                         findItem.printed = true;
                     }
                 }
+                log.debug('remainderLines', remainderLines)
+                if(remainderLines > 0){
+                    autoHeightNota = Number(autoHeightNota) - (4 * remainderLines)
+                }else{
+                    log.debug('lineWothoutRemain', lineWithoutRemind);
+                    autoHeightNota = Number(autoHeightNota) - (4 * lineWithoutRemind);
+                }
+                
                 log.debug('cekLine', cekLine)
                 headerNota = getHeader(dataHeader,'nota')
 
                 log.debug('HEIGHT NOTA',autoHeightNota)
+                var countAutoHeighrNota = autoHeightNota - 62
+                log.debug('countAutoHeighrNota', countAutoHeighrNota)
                 // autoHeightNota = 0;
                 
                 bodyNota = `  <table width="100%" style="border-collapse: collapse;table-layout:auto;">
@@ -582,7 +632,7 @@
                     </thead>
                     <tbody>
                         ${itemRows}
-                        <tr style="" height="${autoHeightNota - 62 <=0 ? 30 : (autoHeightNota - 62) }%">
+                        <tr style="" height="${autoHeightNota - 62 <=0 ? 26 : (autoHeightNota -62) }%">
                             <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:center;"></td>
                             <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:center;"></td>
                             <td style="border: 1px solid black;border-top:0;border-left:0;border-right:0;align:center;"></td>
@@ -702,7 +752,7 @@
                             <td style="border: 1px solid black;border-top:0;border-right:0;align:right;border-right:0;"></td>
                         </tr>
                         <tr height="2%">
-                            <td style="border:0;font-size:10px;align:right;" colspan="8">${resultDate} - ${userName}</td>
+                            <td style="border:0;font-size:10px;align:right;" colspan="8">${resultDate} - ${escapeXmlSymbols(userName)}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -876,7 +926,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="border:0;font-size:10px;align:right;" colspan="2">${resultDate} - ${userName}</td>
+                                    <td style="border:0;font-size:10px;align:right;" colspan="2">${resultDate} - ${escapeXmlSymbols(userName)}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -884,6 +934,8 @@
                 </div>
                 `;
                 log.debug('HEIGHT BARANG', autoHeight);
+                var cekHeight = autoHeight - 30
+                log.debug('cekHeight', cekHeight)
                 // log.debug('HEIGHT BARANG', `${Number(autoHeight) - Number(55) > 0 ? Number(autoHeight) - Number(55) : 40}%`);
                 let bodyBarang2 = `
                     <table width="100%" style="border-collapse: collapse;table-layout:auto;min-height:18cm;" height="18cm">
@@ -903,7 +955,7 @@
                             </thead>
                             <tbody>
                                 ${itemRowsBarang}
-                                <tr style="height:${autoHeight - 26 <= 30 ? 40 : autoHeight - 26 }%;">
+                                <tr style="height:${autoHeight - 30 <= 0 ? 20 : autoHeight - 30 }%;">
                                     <td style="border:0;align:center;"></td>
                                     <td style="border:0;align:center;"></td>
                                     <td style="border:0;align:left;" valign="top">
