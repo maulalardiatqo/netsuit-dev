@@ -390,7 +390,8 @@
                     let autoHeightNota=100;
 
                     // // Loop through each line item in the purchase order
-                    var dataFaktur = []
+                    log.debug('itemCount', itemCount)
+                    var availableProsBarang = 58
                     let remainderLines = 0
                     var lineWithoutRemind = 0
                     let barangRemainderLines = 0
@@ -398,17 +399,6 @@
                     var cekLine = 0
                     var cekLineBarang = 0
                     var page = 1;
-                    for (let k = 0; k < itemCount; k++) {
-                        let noInvoiceFaktur = itemFulfillTrx[k].getValue({name : 'tranid'})
-                        let checkIfExist = tranIdPrinted.find(tran => tran == noInvoiceFaktur);
-                        if(!checkIfExist){
-                            dataFaktur.push(noInvoiceFaktur)
-                        }
-                    }
-                    let totalData = dataFaktur.length;
-                    log.debug('totalData', totalData)
-                    let totalRows = Math.ceil(totalData % 12);
-                    log.debug('totalRows', totalRows)
                     for (let i = 0; i < itemCount; i++) {
                         let noInvoice = itemFulfillTrx[i].getValue({name : 'tranid'})
                         let convertionLargestNumber = itemFulfillTrx[i].getValue({name : 'custcol_rda_conversion_number_largest'}) || 1;
@@ -419,11 +409,14 @@
                         let customerSalesman = itemFulfillTrx[i].getText({join:'createdfrom' ,name : 'salesrep'});
                         const salesRepId = itemFulfillTrx[i].getValue({ name: 'salesrep', join: 'createdfrom' });
                         if (salesRepId) {
+                            // Use search.lookupFields to get Sales Rep details
                             const salesRepDetails = search.lookupFields({
                                 type: search.Type.EMPLOYEE,
                                 id: salesRepId,
                                 columns: ['firstname','lastname', 'entityid','custrecord_rda_mapsales_employee_id.name']
                             });
+                            // log.debug('Sales Rep Details', salesRepDetails);
+                            // customerSalesman = `${salesRepDetails.firstname} ${salesRepDetails.lastname} - ${salesRepDetails.custrecord_rda_mapsales_employee_id.name}`
                             customerSalesman = `${salesRepDetails.firstname} ${salesRepDetails.lastname}`
                         }
 
@@ -487,6 +480,8 @@
                                     id: salesRepId,
                                     columns: ['firstname','lastname', 'entityid','custrecord_rda_mapsales_employee_id.name']
                                 });
+                                // log.debug('Sales Rep Details', salesRepDetails);
+                                // customerSalesman = `${salesRepDetails.firstname} ${salesRepDetails.lastname} - ${salesRepDetails.custrecord_rda_mapsales_employee_id.name}`
                                 customerSalesman = `${salesRepDetails.firstname} ${salesRepDetails.lastname} - ${salesRepDetails["custrecord_rda_mapsales_employee_id.name"]}`
                             }
                             dataHeader.faktur.push(noInvoice)
@@ -535,13 +530,19 @@
                         let findItem = uniqueItems.find(ui => ui.kodeBarang == kodeBarang && !ui.printed);
                         if(line && findItem){
                             let jumlahBarangConcat = `${findItem.kartonUtuh}.${findItem.rentenOrLusin}.${findItem.eceran}`;
-                           
-                            
+                            // if(cekLineBarang > 0){
+                            //     if (cekLineBarang % 6 === 0) { 
+                            //         itemRowsBarang += `<tr style='height:32%'><td colspan="11"></td></tr>`;
+                            //     }
+                            // }
+                            cekLineBarang = cekLineBarang + 1;
                             // if(cekLineBarang > 6){
                             //     barangRemainderLines = cekLineBarang % 6;
                             // }else{
                             //     barangLineWithoutRemind = barangLineWithoutRemind + 1
                             // }
+                        
+
                             totalJumlahBarang = Number(totalJumlahBarang) + Number(jumlahBarang)
                             totalKartonUtuh = Number(totalKartonUtuh) + Number(findItem.kartonUtuh)
                             totalrenteng = Number(totalrenteng) + Number(findItem.rentenOrLusin)
@@ -563,27 +564,23 @@
                                 </tr>
                             `;
                             findItem.printed = true;
-                            
-                            cekLineBarang = cekLineBarang + 1;
-                            if(cekLineBarang > 0){
-                                if ((cekLineBarang + totalRows) % 6 === 0 && i < itemCount -1) { 
-                                    itemRowsBarang += `<tr style='height:35%'><td colspan="11"></td></tr>`;
-                                    cekLineBarang = 0
-                                }
-                            }
                         }
                     }
+                    log.debug('remainderLines', remainderLines)
                     if(remainderLines > 0){
                         autoHeightNota = Number(autoHeightNota) - (4 * remainderLines)
                     }else{
+                        log.debug('lineWothoutRemain', lineWithoutRemind);
                         autoHeightNota = Number(autoHeightNota) - (4 * lineWithoutRemind);
                     }
 
                     
+                    log.debug('cekLine', cekLine)
                     headerNota = getHeader(dataHeader,'nota')
 
                     log.debug('HEIGHT NOTA',autoHeightNota)
                     var countAutoHeighrNota = autoHeightNota - 62
+                    log.debug('countAutoHeighrNota', countAutoHeighrNota)
                     // autoHeightNota = 0;
                     
                     bodyNota = `  <table width="100%" style="border-collapse: collapse;table-layout:auto;">
@@ -733,7 +730,12 @@
                     log.debug('HEIGHT BARANG', autoHeight);
                     var cekHeight = autoHeight - 30
                     log.debug('cekHeight', cekHeight)
-                    
+                    log.debug('{dataHeader.faktur', dataHeader.faktur);
+                    let totalData = dataHeader.faktur.length;
+                    log.debug('totalData', totalData)
+                    let totalRows = Math.ceil(totalData / 4);
+                    log.debug('totalRows', totalRows)
+                    log.debug('cekLineBarang', cekLineBarang)
                     // log.debug('HEIGHT BARANG', `${Number(autoHeight) - Number(55) > 0 ? Number(autoHeight) - Number(55) : 40}%`);
                     let bodyBarang2 = `
                         <table width="100%" style="border-collapse: collapse;table-layout:auto;">
