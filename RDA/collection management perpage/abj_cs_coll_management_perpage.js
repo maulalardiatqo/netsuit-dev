@@ -46,18 +46,24 @@
         
             return result;
         }
-        var currentPage = 0;
-        var pageSize = 100;
-        function nextPage(){
-            currentPage++;
-            console.log('trigger next', currentPage)
-        }
-        function prevPage(){
-            if(currentPage > 0){
-                currentPage--;
-                console.log('trigger prev', currentPage)
+      
+        function removeSublist(context){
+            var countLineInCustom = records.getLineCount({
+                sublistId: "custpage_sublist"
+            });
+            console.log('countLineInCustom', countLineInCustom)
+            if (countLineInCustom > 0) {
+                var lineCount = records.getLineCount({ sublistId: 'custpage_sublist' });
+                for (var i = lineCount - 1; i >= 0; i--) {
+                    records.selectLine({ sublistId: 'custpage_sublist', line: i });
+                    var cekFIll = records.getCurrentSublistValue({ sublistId: 'custpage_sublist', fieldId: 'custpage_sublist_item_select'})
+                    console.log('cekFIll', cekFIll)
+                    if(cekFIll == false){
+                        records.removeLine({ sublistId: 'custpage_sublist', line: i, ignoreRecalc: true });
+                    }
+                    
+                }
             }
-            
         }
         function pageInit(context) {
             var vrecord = context.currentRecord;
@@ -151,6 +157,36 @@
             }
             console.log("masuk client");
         }
+        var currentPage = 0;
+        var pageSize = 100;
+        function nextPage(context){
+            var countLineInCustom = records.getLineCount({
+                sublistId: "custpage_sublist"
+            });
+            console.log('countLineInCustom', countLineInCustom)
+            if (countLineInCustom > 0) {
+                removeSublist(context)
+                currentPage++;
+                searchFilter(context);
+                console.log('trigger next', currentPage)
+            }else{
+                dialog.alert({
+                    title: "Warning",
+                    message: "Please Click Search"
+                });
+            }
+         
+        }
+        function prevPage(context){
+            if(currentPage > 0){
+                removeSublist(context)
+                currentPage--;
+                searchFilter(context);
+                console.log('trigger prev', currentPage)
+            }
+            
+        }
+        
         window.onCustomButtonClick = function(context) {
             searchFilter(context)
         }
@@ -250,6 +286,7 @@
                 }
             }
             var subsidiary = records.getValue('custpage_subsidiary');
+            var customer = records.getValue('custpage_customer');
           
             var dateTo = records.getValue('custpage_date_to');
             var sales = records.getValue('custpage_sales');
@@ -287,6 +324,15 @@
                             })
                         );
                     }
+                    if(customer){
+                        dataSearch.filters.push(
+                            search.createFilter({
+                            name: "entity",
+                            operator: search.Operator.ANYOF,
+                            values: customer,
+                            })
+                        );
+                    }
                     if(sales){
                         dataSearch.filters.push(
                             search.createFilter({
@@ -297,8 +343,11 @@
                         );
                     }
                     var dateSearchSet = dataSearch.run();
-                    var dataSearch = dateSearchSet.getRange(0, 150);
-    
+                    var startIndex = currentPage * pageSize;
+                    var endIndex = startIndex + pageSize;
+                    console.log('dataStartEnd', {startIndex : startIndex, endIndex : endIndex})
+                    var dataSearch = dateSearchSet.getRange(startIndex, endIndex);
+                    console.log('dataSearch', dataSearch.length)
                     if (dataSearch.length > 0) {
                         var allData = []
                         for (var i = 0; i < dataSearch.length; i++) {

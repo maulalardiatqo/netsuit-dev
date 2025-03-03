@@ -522,18 +522,18 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     var tranDate = item.dueDate
                     body += "<tr>"
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:10px;text-align:center; vertical-align:middle; '><b>"+escapeXmlSymbols(item.cussId)+"</b><br/># "+escapeXmlSymbols(item.entityId)+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:10px;'>"+escapeXmlSymbols(item.docNumber)+" ("+item.sjpCount+")<br/>-</td>";
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;font-weight:bold;font-size:11px;'>"+item.tranDate+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'>"+item.dueDate+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'>"+escapeXmlSymbols(item.salesRep)+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;'>"+amtTotal+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;font-weight:bold;font-size:11px;'>"+amtRemaining+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'>"+item.daysOverDue+"</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0; align:right;'></td>"
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'></td>"
-                    body += "<td style='border: solid black 1px; border-right:none;border-bottom:0;'></td>"
-                    body += "<td style='border: solid black 1px;border-bottom:0; '></td>"
+                    body += "<td style='border: solid black 1px; border-right:none;font-weight:bold;font-size:10px;text-align:center; vertical-align:middle; '><b>"+escapeXmlSymbols(item.cussId)+"</b><br/># "+escapeXmlSymbols(item.entityId)+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;font-weight:bold;font-size:10px;'>"+escapeXmlSymbols(item.docNumber)+" ("+item.sjpCount+")<br/>-</td>";
+                    body += "<td style='border: solid black 1px; border-right:none;font-weight:bold;font-size:11px;'>"+item.tranDate+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;'>"+item.dueDate+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;'>"+escapeXmlSymbols(item.salesRep)+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none; align:right;'>"+amtTotal+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none; align:right;font-weight:bold;font-size:11px;'>"+amtRemaining+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none;'>"+item.daysOverDue+"</td>"
+                    body += "<td style='border: solid black 1px; border-right:none; align:right;'></td>"
+                    body += "<td style='border: solid black 1px; border-right:none;'></td>"
+                    body += "<td style='border: solid black 1px; border-right:none;'></td>"
+                    body += "<td style='border: solid black 1px; '></td>"
                     body += "</tr>"
                     if(applyingAmount != 0){
                         var overdateApply = calculateDateDifference(dateApply, dateRec);

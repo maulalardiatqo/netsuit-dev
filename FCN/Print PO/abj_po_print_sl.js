@@ -347,6 +347,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId: 'taxrate1',
                             line: i
                         });
+                        log.debug('taxtRate', taxtRate)
                         if (taxtRate != 0 && taxRateList.indexOf(taxtRate) === -1) {
                             taxRateList.push(taxtRate);
                         }
@@ -382,7 +383,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type: format.Type.CURRENCY
                     });
                 }
-                var taxtotal = taxtRate / 100 * Number(subTotal);
+                log.debug('taxRate Cek', taxtRate);
+                var taxtotal = poRecord.getValue('taxtotal');
     
                 total = Number(subTotal) + Number(taxtotal);
                 var totalToCount = total
@@ -467,7 +469,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var footer = "";
                 var pdfFile = null;
     
-                log.debug('in print')
+                log.debug('isTampil', isTampil)
                 style += "<style type='text/css'>";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
@@ -623,13 +625,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td class='tg-f_body' colspan='2'>SUBTOTAL</td>"
                 body += "<td class='tg-f_body'>" + (alva ? subTotal : removeDecimalFormat(subTotal)) + "</td>"
                 body += "</tr>"
-    
+                log.debug('taxRateList', taxRateList)
                 if (taxRateList != '') {
+                    log.debug('taxtotal', taxtotal)
                     body += "<tr>"
                     body += "<td class='tg-headerrow_left'></td>"
                     body += "<td class='tg-headerrow_left'></td>"
                     body += "<td class='tg-f_body'></td>"
-                    body += "<td class='tg-f_body'>VAT " + taxtRate + " %</td>"
+                    body += "<td class='tg-f_body'>VAT </td>"
                     body += "<td class='tg-f_body'>" + (alva ? taxtotal : removeDecimalFormat(taxtotal)) + "</td>"
                     body += "</tr>"
                 }
