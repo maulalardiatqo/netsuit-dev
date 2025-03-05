@@ -212,7 +212,8 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             var reasonOption = sublist.addField({
                 id: 'custpage_sublist_reason',
                 label: 'Reason (Kenapa Belum Tertagih)',
-                type: serverWidget.FieldType.TEXT,
+                type: serverWidget.FieldType.SELECT,
+                source : 'customlist_rda_reason_sjp'
             })
             sublist.addField({
                 id: 'custpage_sublist_action',

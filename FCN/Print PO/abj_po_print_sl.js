@@ -520,7 +520,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td class='tg-headerlogo' style='vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px; '><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
                 }
                 body += "<td>";
-    
+                log.debug('legalName', legalName)
                 if (isTampil == true) {
                     body += "<p class='tg-headerrow_legalName' style='margin-top: 10px; margin-bottom: 10px;'>" + escapeXmlSymbols(legalName) + "</p>";
                     body += "<p class='tg-headerrow' style='margin-top: 1px; margin-bottom: 1px;'>" + escapeXmlSymbols(addresSubsidiaries) + "<br/>";

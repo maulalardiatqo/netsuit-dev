@@ -629,39 +629,36 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                  if(bankInfo){
                     footer += "<tr>";
-                    footer += "<td style='align:left' colspan='4'>" + bankNameRec + "</td>"
                     footer += "<td style=''></td>"
-                    footer += "<td style=''></td>"
+                    footer += "<td style='align:center' colspan='5'>" + bankNameRec + "</td>"
                     footer += "</tr>";
     
                     footer += "<tr>";
-                    footer += "<td style='align:left' colspan='4'>" + bankAccName + "</td>"
                     footer += "<td style=''></td>"
-                    footer += "<td style=''></td>"
+                    footer += "<td style='align:center' colspan='5'>" + bankAccName + "</td>"
                     footer += "</tr>";
     
                     footer += "<tr>";
-                    footer += "<td style='align:left' colspan='4'>" + bankAccNo + "</td>"
                     footer += "<td style=''></td>"
-                    footer += "<td style=''></td>"
+                    footer += "<td style='align:center' colspan='5'>" + bankAccNo + "</td>"
                     footer += "</tr>";
                 }else{
                     footer += "<tr>";
-                    footer += "<td style='align:left' colspan='4'>" + bankName + " " + bankBranch + "</td>"
+                    
                     footer += "<td style=''></td>"
-                    footer += "<td style=''></td>"
+                    footer += "<td style='align:center' colspan='5'>" + bankName + " " + bankBranch + "</td>"
                     footer += "</tr>";
 
                     footer += "<tr>";
-                    footer += "<td style='align:left' colspan='4'>" + legalName + "</td>"
+                    
                     footer += "<td style=''></td>"
-                    footer += "<td style=''></td>"
+                    footer += "<td style='align:center' colspan='5'>" + legalName + "</td>"
                     footer += "</tr>";
 
                     footer += "<tr>";
-                    footer += "<td style='align:left' colspan='4'>" + accountNo + "</td>"
+                    
                     footer += "<td style=''></td>"
-                    footer += "<td style=''></td>"
+                    footer += "<td style='align:center' colspan='5'>" + accountNo + "</td>"
                     footer += "</tr>";
                 }
                 footer += "<tr>";

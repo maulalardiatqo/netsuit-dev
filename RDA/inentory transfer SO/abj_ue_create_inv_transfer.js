@@ -43,11 +43,16 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                     id : soId,
                     isDynamic : false
                 })
-
+                var cekITnumb = newRec.getValue('custbody_rda_inventory_trf_number');
+                log.debug('cekITnumb', cekITnumb)
                 var cekStatus = newRec.getValue('custbody_rda_so_approved');
                 log.debug('cekStatus', cekStatus);
-
-                if (cekStatus == true) {
+                if(cekITnumb.length == 0){
+                    log.debug('perlu create')
+                }else{
+                    log.debug('tidak perlu create')
+                }
+                if (cekStatus == true && cekITnumb.length == 0) {
                     var subsId = newRec.getValue('subsidiary');
                     var goodStock;
                     var Outbound;

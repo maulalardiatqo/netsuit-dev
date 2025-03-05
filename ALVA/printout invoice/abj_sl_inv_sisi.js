@@ -6,6 +6,16 @@
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
     function (render, search, record, log, file, http, config, format, email, runtime) {
         try {
+            function escapeXmlSymbols(input) {
+                if (!input || typeof input !== "string") {
+                    return input;
+                }
+                return input.replace(/&/g, "&amp;")
+                            .replace(/</g, "&lt;")
+                            .replace(/>/g, "&gt;")
+                            .replace(/"/g, "&quot;")
+                            .replace(/'/g, "&apos;");
+            }
             function removeDecimalFormat(value) {
                 return value.split('.')[0];
             }
@@ -36,6 +46,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var invSearchSet = invSearch.run();
                 var result = invSearchSet.getRange(0, 1);
                 var invoiceRecord = result[0];
+                var memoHead = invoiceRecord.getValue({name : "memo"});
                 var bankInfo = invoiceRecord.getValue('custbody13');
                 var bankNameRec = ''
                 var bankAccNo = ''
@@ -534,7 +545,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // body += "<td>" + otherComment + "test</td>"
                 // body += "<td colspan='3'></td>"
                 // body += "</tr>";
-                body += getPOItem(context, invoiceRecord, allDataLine, memo);
+                body += getPOItem(context, invoiceRecord, allDataLine, memoHead);
                 body += "</tbody>";
                 body += "</table>";
 
@@ -555,7 +566,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 footer += "<tr style=''>";
                 // footer += "<td style='align:left; font-weight:bold;'>Terms Conditions:</td>"
-                footer += "<td style=''></td>"
+                footer += "<td style='' rowspan='3'>"+escapeXmlSymbols(memoHead)+"</td>"
                 footer += "<td style=''></td>"
                 footer += "<td style='align:right'>Sub Total</td>"
                 footer += "<td style=''>:</td>"
@@ -565,7 +576,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 footer += "<tr style=''>";
                 footer += "<td style=''></td>"
-                footer += "<td style=''></td>"
                 footer += "<td style='align:right'>VAT</td>"
                 footer += "<td style=''>:</td>"
                 footer += "<td style=''>"+tlcCurr+"</td>"
@@ -573,7 +583,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "</tr>";
 
                 footer += "<tr style=''>";
-                footer += "<td style=''></td>"
                 footer += "<td style=''></td>"
                 footer += "<td style='font-weight:bold; align:right'>Total Invoice</td>"
                 footer += "<td style=''>:</td>"
@@ -705,7 +714,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
             }
 
-            function getPOItem(context, invoiceRecord, allDataLine, memo) {
+            function getPOItem(context, invoiceRecord, allDataLine, memoHead) {
                 var cekDataLine = allDataLine.length
                 if(cekDataLine > 0){
                     var body = "";
@@ -741,7 +750,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                         if (no == 1) {
                             body += "<tr>";
-                            body += "<td colspan='2'>" + memo + "</td>"
+                            body += "<td colspan='2'>" + escapeXmlSymbols(memoHead) + "</td>"
                             body += "<td colspan='3'></td>"
                             body += "</tr>";
                         }

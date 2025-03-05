@@ -662,7 +662,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "</macro>";
                 xml += "</macrolist>";
                 xml += "</head>"
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 21cm; width: 29.7cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='20%'>";
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 21cm; width: 26.9cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='20%'>";
                 xml += body;
                 xml += "\n</body>\n</pdf>";
 

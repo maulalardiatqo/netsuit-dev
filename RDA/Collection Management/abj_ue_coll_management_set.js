@@ -34,37 +34,45 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                         line : i
                     });
                     log.debug('data', {invId : invId, reason : reason, action : action})
-                    const valuesToUpdate = {};
-
-                    if (isCreate) {
-                        const cekNumber = search.lookupFields({
-                            type: "invoice",
-                            id: invId,
-                            columns: ["custbody_rda_sjp_count"]
-                        }).custbody_rda_sjp_count;
-
-                        valuesToUpdate["custbody_rda_sjp_count"] = cekNumber ? Number(cekNumber) + 1 : 1;
-                    }
-
-                    if (reason) {
-                        valuesToUpdate["custbody_rda_reason"] = reason;
-                    }
-
-                    valuesToUpdate["custbody_rda_action_plan"] = action || '';
-                    valuesToUpdate["custbody_rda_sjp_number"] = sjpNumber || '';
-                    valuesToUpdate["custbody_rda_sjp_date"] = dateSjp || '';
-
-                    const saveRec = record.submitFields({
-                        type: "invoice",
-                        id: invId,
-                        values: valuesToUpdate,
-                        options: {
-                            ignoreMandatoryFields: true
-                        }
+                    const recInv = record.load({
+                        type: "invoice", 
+                        id : invId, 
+                        isDynamic: true 
                     });
-
-                    log.debug('saveRec', saveRec);
-
+                    if(isCreate){
+                        const cekNumber = recInv.getValue("custbody_rda_sjp_count");
+                        recInv.setValue({
+                            fieldId: "custbody_rda_sjp_count",
+                            value: cekNumber ? Number(cekNumber) + 1 : 1,
+                            ignoreFieldChange: true
+                        });
+                    }
+                    
+                    if(reason){
+                        recInv.setValue({
+                            fieldId: "custbody_rda_reason",
+                            value: reason,
+                            ignoreFieldChange: true
+                        });
+                    }
+                    recInv.setValue({
+                        fieldId: "custbody_rda_action_plan",
+                        value: action || '',
+                        ignoreFieldChange: true
+                    });
+                    recInv.setValue({
+                        fieldId: "custbody_rda_sjp_number",
+                        value: sjpNumber || '',
+                        ignoreFieldChange: true
+                    });
+                    recInv.setValue({
+                        fieldId: "custbody_rda_sjp_date",
+                        value: dateSjp || '',
+                        ignoreFieldChange: true
+                    });
+                    
+                    var saveRec = recInv.save();
+                    log.debug('saveRec', saveRec)
                 }
             }
         }
