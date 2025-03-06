@@ -13,20 +13,14 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             log.debug('allIdFul', allIdFul)
             allIdFul.forEach(function(id) {
                 if(id){
-                    var recIf = record.load({
+                    record.submitFields({
                         type: "itemfulfillment",
-                        id : id,
-                        isDynamic: true
+                        id: id,
+                        values: {
+                            custbody_rda_flag_centangpackinglist: false,
+                            custbody_rda_nopol: ''
+                        }
                     });
-                    recIf.setValue({
-                        fieldId : "custbody_rda_flag_centangpackinglist",
-                        value : false,
-                    });
-                    recIf.setValue({
-                        fieldId : "custbody_rda_nopol",
-                        value : '',
-                    });
-                    recIf.save();
 
                 }
             })
@@ -41,22 +35,14 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             allIdFul.forEach(function(id) {
                 log.debug('id', id)
                 if(id){
-                    var recIf = record.load({
+                    record.submitFields({
                         type: "itemfulfillment",
-                        id : id,
-                        isDynamic: true
+                        id: id,
+                        values: {
+                            custbody_rda_flag_centangpackinglist: true,
+                            custbody_rda_nopol: nopol
+                        }
                     });
-                    recIf.setValue({
-                        fieldId : "custbody_rda_flag_centangpackinglist",
-                        value : true,
-                    });
-                    log.debug('nopol to set', nopol)
-                    recIf.setValue({
-                        fieldId : "custbody_rda_nopol",
-                        value : nopol || '',
-                        ignoreFieldChange: true,
-                    });
-                    recIf.save();
                 }
             });
         }

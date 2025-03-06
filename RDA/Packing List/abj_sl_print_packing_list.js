@@ -549,7 +549,7 @@
                             cekLineBarang = cekLineBarang + 1;
                             if(cekLineBarang > 0){;
                                 if ((cekLineBarang + totalRows) % 9 === 0) { 
-                                    itemRowsBarang += `<tr style='height:30%'><td colspan="11"></td></tr>`;
+                                    itemRowsBarang += `<tr style='height:27%'><td colspan="11"></td></tr>`;
                                     cekLineBarang = 0
                                 }
                                 if(i < itemCount -1){

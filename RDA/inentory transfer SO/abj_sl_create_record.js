@@ -36,15 +36,10 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                     goodStock = recSubs.getValue('custrecordcustrecord_rda_location_gs');
                     Outbound = recSubs.getValue('custrecord_rda_location_intransit_out');
                 }
-                log.debug('goodStock', goodStock);
-                log.debug('outbound',Outbound);
                 var department = newRec.getValue('department');
-                log.debug('department', department);
                 var classId = newRec.getValue('class');
-                log.debug('classId', classId);
                 var soDate = newRec.getValue('trandate');
                 var location = newRec.getValue('location');
-                log.debug('soDate', soDate);
             
                 var validateOnhand = true;
                 var allItem = [];
@@ -82,7 +77,6 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                         
                         if (searchResults.length > 0) {
                             var quantityOnHand = searchResults[0].getValue({ name: "locationquantityonhand" }) * Number(unitRate);
-                            log.debug("Quantity On Hand", quantityOnHand);
                         } 
                         
                         var units = newRec.getSublistValue({
@@ -106,10 +100,13 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                             fieldId: 'fulfillable',
                             line: i
                         });
-                        var dataBanding = Number(quantityOnHand) - Number(qtyCommited)
+                        log.debug('quantityOnHand', quantityOnHand);
+                        log.debug('qtyCommited', qtyCommited)
+                        var dataBanding = Number(quantityOnHand) - Number(qtyCommited) + Number(qtyCommited)
+                        log.debug('dataBanding', dataBanding)
                         if (isFulfill == true) {
                             if(qty > dataBanding){
-                                log.debug('quantity lebih besar', {qty : qty, quantityOnHand : quantityOnHand});
+                                log.debug('quantity lebih besar', {qty : qty, quantityOnHand : quantityOnHand, dataBanding : dataBanding, qtyCommited : qtyCommited});
                                 log.debug('cekLine ke', i)
                                 validateOnhand = false;
                                 newRec.setSublistValue({
