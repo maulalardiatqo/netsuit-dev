@@ -14,7 +14,7 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                 log.debug('soId', soId)
     
                 if (!soId) {
-                    throw new Error('Parameter "ifId" is required.');
+                    throw new Error('Parameter "SoId" is required.');
                 }
     
                 var newRec = record.load({

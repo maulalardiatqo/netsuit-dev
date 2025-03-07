@@ -269,7 +269,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 label: "Clear",
             });
             
-            form.clientScriptModulePath = "SuiteScripts/abj_cs_coll_management_perpage.js ";
+            form.clientScriptModulePath = "SuiteScripts/abj_cs_coll_management.js";
             context.response.writePage(form);
         } else {
             try {
