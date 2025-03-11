@@ -232,7 +232,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             name: "quantity"
                         });
                         var namaBarang = invRec.getValue({
-                            name: "memo",
+                            name: "custbody9",
                         })
                         log.debug('qty cek', qty)
                         var rate = invRec.getValue({

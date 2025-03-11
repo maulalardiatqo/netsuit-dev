@@ -612,7 +612,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         nomor++;
                         body += "<tr>";
                         body += "<td style=''>" + nomor + "</td>";
-                        body += "<td style='white-space: nowrap; text-align: center;'>" + escapeXmlSymbols(item) + "</td>";
+                        body += "<td style='white-space: nowrap; text-align: center;'>" +escapeXmlSymbols(item)+ "</td>";
                         body += "<td style='' colspan='2'>" + (escapeXmlSymbols(description) || escapeXmlSymbols(itemDesc)) + "</td>";
                         body += "<td style=''>" + units + "</td>";
                         body += "<td style=''>" + qty + "</td>";
@@ -635,6 +635,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var itemDesc = dataItem.item.split(' ').slice(1).join(' ');
 
                         var idInvDetail = dataItem.idInvDetail
+                        var description = dataItem.description
                         var qty = dataItem.qty
                         var units = dataItem.units
                         var satuan = units.split(" ")
@@ -726,7 +727,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<td style=''>" + nomor + "</td>";
                         body += "<td style='white-space: nowrap; text-align: center;'>" + escapeXmlSymbols(item) + "</td>";
                         // body += "<td style='' colspan='2'>"+locationLine+"</td>";
-                        body += "<td style=''>" + escapeXmlSymbols(itemDesc) + "<br/>" + escapeXmlSymbols(locationLine) + "</td>";//kurnia
+                        body += "<td style=''>" + (escapeXmlSymbols(description) || escapeXmlSymbols(itemDesc)) + "<br/>" + escapeXmlSymbols(locationLine) + "</td>";//kurnia
                         body += "<td style=''>" + convLot + "</td>";
                         body += "<td style=''>" + units + "</td>";
                         body += "<td style=''>" + qty + "</td>";
