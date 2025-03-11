@@ -102,7 +102,7 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                         });
                         log.debug('quantityOnHand', quantityOnHand);
                         log.debug('qtyCommited', qtyCommited)
-                        var dataBanding = Number(quantityOnHand) - Number(qtyCommited) + Number(qtyCommited)
+                        var dataBanding = Number(quantityOnHand)
                         log.debug('dataBanding', dataBanding)
                         if (isFulfill == true) {
                             if(qty > dataBanding){

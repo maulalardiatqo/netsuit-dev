@@ -115,8 +115,9 @@
                 var subsidiary = currentRecordObj.getValue({
                     fieldId :'subsidiary'
                 });
+                var listOfSubs = ['46', '69', '47', '48', '68', '67', '66', '49']
                 console.log('subsidiary', subsidiary);
-                if(typeTrans == 'estimate' &&  customForm == '150' && subsidiary == '46'){
+                if(typeTrans == 'estimate' &&  customForm == '150' && listOfSubs.includes(subsidiary)){
                     console.log('masuk kondisi');
                     var countLine = currentRecordObj.getLineCount({ sublistId: 'recmachcustrecord_ajb_pembobotan_so_id' });
                     console.log('countLine', countLine);

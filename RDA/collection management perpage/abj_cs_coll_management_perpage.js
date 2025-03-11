@@ -318,18 +318,19 @@
                     if(subsidiary){
                         dataSearch.filters.push(
                             search.createFilter({
-                            name: "subsidiary",
-                            operator: search.Operator.ANYOF,
-                            values: subsidiary,
+                                name: "subsidiary",
+                                operator: search.Operator.ANYOF,
+                                values: subsidiary,
                             })
                         );
                     }
                     if(customer){
                         dataSearch.filters.push(
                             search.createFilter({
-                            name: "entity",
-                            operator: search.Operator.ANYOF,
-                            values: customer,
+                                name: "internalid",
+                                join: "customer",
+                                operator: search.Operator.ANYOF,
+                                values: customer,
                             })
                         );
                     }

@@ -234,7 +234,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var namaBarang = invRec.getValue({
                             name: "memo",
                         })
-                        log.debug('namaBarang', namaBarang)
+                        log.debug('qty cek', qty)
                         var rate = invRec.getValue({
                             name: "rate"
                         });
@@ -245,13 +245,42 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var amount = invRec.getValue({
                             name: "amount"
                         });
+                        var totalOrder = invRec.getValue({
+                            name: "custcol_pr_total_order"
+                        });
+                        var convRate = 0
+                        if(unit){
+                            var unitstypeSearchObj = search.create({
+                                type: "unitstype",
+                                filters: [
+                                    ["unitname","is",unit]
+                                ],
+                                columns: [
+                                    search.createColumn({ name: "conversionrate", label: "Rate" })
+                                ]
+                            });
+                            
+                            var searchResults = unitstypeSearchObj.run().getRange({ start: 0, end: 1 });
+                            
+                            if (searchResults.length > 0) {
+                                convRate = searchResults[0].getValue("conversionrate");
+                                log.debug("Conversion Rate", convRate);
+                            }
+                        }
+                        var countTotalPacking = 0
+                        if(convRate > 0){
+                            countTotalPacking = Number(totalOrder) / Number(convRate)
+                        }
+                        log.debug('countTotalPacking', countTotalPacking)
                         allDataItem.push({
                             qty : qty,
                             namaBarang : namaBarang,
                             rate : rate,
                             unit : unit,
                             amount : amount,
-                            itemName : itemName
+                            itemName : itemName,
+                            totalOrder : totalOrder,
+                            countTotalPacking : countTotalPacking
                         })
                     }
                 }
@@ -365,7 +394,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body+= "<tr>"
                 body+= "<td style='font-size:18px; align:center; font-weight:bold;'>Invoice</td>"
-                body+= "<td style='border-bottom:1px solid black; border-top:1px solid black' colspan='2'>http://crm.infinisia.co.id/check</td>"
+                body+= "<td style='' colspan='2'></td>"
                 body+= "</tr>"
 
                 body += "</tbody>";
@@ -447,11 +476,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body += "<tr>"
                 body += "<td class='tg-head_body' style='width:5%; align:center;'> No. </td>"
-                body += "<td class='tg-head_body' style='width:27%; align:left;'>Nama Barang / Goods Description</td>"
-                body += "<td class='tg-head_body' style='width:10%; align:center;'>QTY</td>"
-                body += "<td class='tg-head_body' style='width:10%; align:center;'>Unit</td>"
-                body += "<td class='tg-head_body' style='width:23%; align:right;'>Harga Satuan / Price</td>"
-                body += "<td class='tg-head_body' style='width:25%; align:right;'>Total</td>"
+                body += "<td class='tg-head_body' style='width:25%; align:left;'>Nama Barang / Goods Description</td>"
+                body += "<td class='tg-head_body' style='width:10%; align:center;'>Pack Size</td>"
+                body += "<td class='tg-head_body' style='width:14%; align:center;'>Jumlah Packing</td>"
+                body += "<td class='tg-head_body' style='width:8%; align:center;'>Total Qty</td>"
+                body += "<td class='tg-head_body' style='width:15%; align:right;'>Harga Satuan / Price</td>"
+                body += "<td class='tg-head_body' style='width:13%; align:right;'>Total</td>"
                 body += "</tr>"
 
                 body += getPOItem(context, allDataItem)
@@ -550,7 +580,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tbody>";
                 body += "</table>";
 
-                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:8px\">";
+                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:10px\">";
                 body += "<tbody>";
 
                 body += "<tr>"
@@ -568,7 +598,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tbody>";
                 body += "</table>";
 
-                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:8px\">";
+                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:10px\">";
                 body += "<tbody>";
 
                 body += "<tr>"
@@ -598,18 +628,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tbody>";
                 body += "</table>";
 
-                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:8px\">";
-                body += "<tbody>";
-                body += "<tr>"
-                body += "<td>4. Harap kirim bukti pembayaran via web ke: http://crm.infinisia.co.id/check // Please upload your payment via web http://crm.infinisia.co.id/check</td>"
-                body += "</tr>"
-                body += "</tbody>";
-                body += "</table>";
 
-                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:8px\">";
+                body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:10px\">";
                 body += "<tbody>";
                 body += "<tr>"
-                body += "<td>5.Mohon pembayaran dapat disesuaikan dengan jumlah nominal pada invoice, perbedaan nominal akan ditagihkan pada tagihan berikutnya.</td>"
+                body += "<td>4.Mohon pembayaran dapat disesuaikan dengan jumlah nominal pada invoice, perbedaan nominal akan ditagihkan pada tagihan berikutnya.</td>"
                 body += "</tr>"
                 body += "</tbody>";
                 body += "</table>";
@@ -658,8 +681,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var namaBarang = item.namaBarang
                         var rate = item.rate
                         var unit = item.unit
+                        var totalOrder = item.totalOrder
                         log.debug('unit', unit)
-                        
+                        var countTotalPacking = item.countTotalPacking
                         var amount = item.amount
 
                         if(rate){
@@ -680,8 +704,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<tr>";
                         body += "<td class='tg-b_body' style='align:center;'>"+No+"</td>";
                         body += "<td class='tg-b_body' style='align:left;'>"+(escapeXmlSymbols(namaBarang) || escapeXmlSymbols(itemName))+"</td>";
-                        body += "<td class='tg-b_body' style='align:center;'>"+qty+"</td>";
-                        body += "<td class='tg-b_body' style='align:center;'>"+escapeXmlSymbols(unit)+"</td>";
+                        body += "<td class='tg-b_body' style='align:center;'>"+unit+"</td>";
+                        body += "<td class='tg-b_body' style='align:center;'>"+escapeXmlSymbols(countTotalPacking)+"</td>";
+                        body += "<td class='tg-b_body' style='align:center;'>"+escapeXmlSymbols(totalOrder)+"</td>";
                         body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(rate)+"</td>";
                         body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(amount)+"</td>";
                         body += "</tr>";

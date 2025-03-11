@@ -47,6 +47,8 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                 log.debug('cekITnumb', cekITnumb)
                 var cekStatus = newRec.getValue('custbody_rda_so_approved');
                 log.debug('cekStatus', cekStatus);
+                var cekApprovReq = newRec.getValue('custbody_rda_approval_on_inv_required');
+                log.debug('cekApprovReq', cekApprovReq)
                 if(cekITnumb.length == 0){
                     log.debug('perlu create')
                 }else{
@@ -139,7 +141,13 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                                     qty : qty,
                                     quantityOnHand : quantityOnHand
                                 });
-                                var dataBanding = Number(quantityOnHand) - Number(qtyCommited);
+                                var dataBanding
+                                if(cekApprovReq){
+                                    log.debug('masuk kondisi cekApprov')
+                                    dataBanding = Number(quantityOnHand)
+                                }else{
+                                    dataBanding = Number(quantityOnHand)
+                                }
                                 log.debug('dataBanding', dataBanding)
                                 if(qty > dataBanding){
                                     validateOnhand = false
