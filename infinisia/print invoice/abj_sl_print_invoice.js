@@ -44,7 +44,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             }
             function onRequest(context) {
                 var recid = context.request.parameters.id;
-                log.debug('recid', recid);
                 var poSavedLoad = search.load({
                     id: "customsearch_invoice_body_printout",
                 });
@@ -123,7 +122,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
                 if(billTo){
                     if(billTo.includes('\n')){
-                        log.debug('masuk enter')
                         billTo = billTo.replace('\n', '<br/>');
                     }
                 }
@@ -132,7 +130,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
                 if(shipTo){
                     if(shipTo.includes('\n')){
-                        log.debug('masuk enter')
                         shipTo = shipTo.replace('\n', '<br/>');
                     }
                 }
@@ -177,15 +174,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var prosentaseDiscount = Math.abs(Number(discount) / Number(subTotal) * 100);
                     discProsent = prosentaseDiscount;
                 }
-                
-                log.debug('discount', discount);
-                log.debug('prosentaseDiscount', prosentaseDiscount);
                 var companyInfo = config.load({
                     type: config.Type.COMPANY_INFORMATION
                 });
                 var legalName = companyInfo.getValue("legalname");
     
-                log.debug('legalName', legalName);
                 var logo = companyInfo.getValue('formlogo');
                         var filelogo;
                         var urlLogo = '';
@@ -232,9 +225,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             name: "quantity"
                         });
                         var namaBarang = invRec.getValue({
-                            name: "custbody9",
-                        })
-                        log.debug('qty cek', qty)
+                            name: "custcol16",
+                        });
+                        log.debug('namaBarang', namaBarang)
                         var rate = invRec.getValue({
                             name: "rate"
                         });
@@ -264,14 +257,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             
                             if (searchResults.length > 0) {
                                 convRate = searchResults[0].getValue("conversionrate");
-                                log.debug("Conversion Rate", convRate);
                             }
                         }
                         var countTotalPacking = 0
                         if(convRate > 0){
                             countTotalPacking = Number(totalOrder) / Number(convRate)
                         }
-                        log.debug('countTotalPacking', countTotalPacking)
                         allDataItem.push({
                             qty : qty,
                             namaBarang : namaBarang,
@@ -284,22 +275,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         })
                     }
                 }
-                // if(trandate){
-                //     trandate = format.format({
-                //         value: trandate,
-                //         type: format.Type.DATE
-                //     });
-                // }
-                log.debug('trandate', trandate)
                 if(trandate){
                     trandate = convertDateFormat(trandate)
                 }
-                // if(duedate){
-                //     duedate = format.format({
-                //         value: duedate,
-                //         type: format.Type.DATE
-                //     });
-                // }
                 if(duedate){
                     duedate = convertDateFormat(duedate)
                 }
@@ -307,7 +285,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if(subTotal){
                     subtotalToCount = subTotal
                     subTotal = pembulatan(subTotal)
-                    log.debug('subTotal', subTotal);
                     subTotal = format.format({
                         value: subTotal,
                         type: format.Type.CURRENCY
@@ -315,7 +292,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 if(discount){
                     discount = pembulatan(discount)
-                    log.debug('discount', discount);
                     discount = format.format({
                         value: discount,
                         type: format.Type.CURRENCY
@@ -323,7 +299,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 if(total){
                     total = pembulatan(total)
-                    log.debug('total', total);
                     total = format.format({
                         value: total,
                         type: format.Type.CURRENCY
@@ -331,7 +306,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 if(taxTotal){
                     taxTotal = pembulatan(taxTotal)
-                    log.debug('taxTotal', taxTotal);
                     taxTotal = format.format({
                         value: taxTotal,
                         type: format.Type.CURRENCY
@@ -498,12 +472,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='width:10%'></td>"
                 body += "<td style='width:30%'></td>"
                 body += "</tr>"
-                log.debug('isDPP', isDPP)
-                log.debug('taxRateDPP', taxRateDPP)
                 var nilaiDPP = 0
                 if(isDPP){
                     var numericTaxRate = parseFloat(taxRate);
-                    log.debug('numericTaxRate', numericTaxRate)
                     if(subtotalToCount){
                         nilaiDPP = Number(subtotalToCount) * numericTaxRate / Number(isDPP)
                     }
@@ -546,7 +517,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 
                 if(nilaiDPP && nilaiDPP > 0){
                     nilaiDPP = pembulatan(nilaiDPP)
-                    log.debug('nilaiDPP', nilaiDPP);
                     nilaiDPP = format.format({
                         value: nilaiDPP,
                         type: format.Type.CURRENCY
@@ -559,7 +529,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "</tr>"
                 }
                 
-                log.debug('taxPros', taxPros)
                 
                 body+= "<tr>"
                 body+= "<td></td>"
@@ -682,7 +651,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var rate = item.rate
                         var unit = item.unit
                         var totalOrder = item.totalOrder
-                        log.debug('unit', unit)
+                        log.debug('namaBarang', namaBarang)
                         var countTotalPacking = item.countTotalPacking
                         var amount = item.amount
 
@@ -695,7 +664,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         }
                         if(amount){
                             amount = pembulatan(amount)
-                            log.debug('amount', amount);
                             amount = format.format({
                                 value: amount,
                                 type: format.Type.CURRENCY

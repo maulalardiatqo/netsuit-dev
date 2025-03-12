@@ -6,6 +6,15 @@
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
     function(render, search, record, log, file, http, config, format, email, runtime) {
         try{
+            function formatDate(inputDate) {
+                let [day, month, year] = inputDate.split("/");
+                
+                // Pastikan dua digit untuk hari dan bulan
+                day = day.padStart(2, "0");
+                month = month.padStart(2, "0");
+                
+                return `${day}-${month}-${year}`;
+            }
             function removeDecimalFormat(value) {
                 return value.split('.')[0];
             }
@@ -58,6 +67,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type: format.Type.DATE
                     });
                 }
+                InvDate = formatDate(InvDate)
                 var idEmp1 = 94
                 var idEmp1Rec = record.load({
                     type: "employee",
@@ -287,7 +297,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style='align:center; border-bottom:1px solid black'></td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
-                footer += "<td style='align:center; border-bottom:1px solid black'>Mediana Hadiwidjaya</td>"
+                footer += "<td style='align:center; border-bottom:1px solid black'>Mediana Hadiwidjaja</td>"
                 footer += "<td></td>"
                 footer += "</tr>"
                 var emptitleParsing = emptitle1.replace("&", "&amp;")

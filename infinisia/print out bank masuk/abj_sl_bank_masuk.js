@@ -6,6 +6,16 @@
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
     function(render, search, record, log, file, http, config, format, email, runtime) {
         try{
+            function formatDate(inputDate) {
+                let [day, month, year] = inputDate.split("/");
+                
+                // Pastikan dua digit untuk hari dan bulan
+                day = day.padStart(2, "0");
+                month = month.padStart(2, "0");
+                
+                return `${day}-${month}-${year}`;
+            }
+            
             function removeDecimalFormat(value) {
                 return value.split('.')[0];
             }
@@ -38,6 +48,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // PO data
                 var tandId = invoiceRecord.getValue('tranid');
                 var InvDate = invoiceRecord.getValue('trandate');
+                
                 var voucherNo = invoiceRecord.getValue('custbody_abj_voucherno');
                 var arAcc = invoiceRecord.getValue('aracct');
                 log.debug('arAcc head', arAcc)
@@ -47,6 +58,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type: format.Type.DATE
                     });
                 }
+                
+                InvDate = formatDate(InvDate)
+                log.debug('invDate', InvDate);
                 var emp = invoiceRecord.getValue('custbody_fcn_sales_employee');
                 var empName = ''
                 var titleEmp = ''
@@ -155,10 +169,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tr>"
                 body += "<tr>"
                 body += "<td style='font-weight:bold;'></td>"
-                body += "<td style='font-weight:bold;'>IDGL/Reff #</td>"
+                body += "<td style='font-weight:bold;'>Voucher No.</td>"
                 body += "<td style='font-weight:bold;'>:</td>"
-                body += "<td style='font-weight:bold;'>"+tandId+"</td>"
-                body += "<td style='font-weight:bold;' colspan='4'>"+voucherNo+"</td>"
+                body += "<td style='font-weight:bold;'>"+voucherNo+"</td>"
+                body += "<td style='font-weight:bold;' colspan='4'></td>"
                 body += "</tr>"
                 body += "</tbody>";
                 body += "</table>";
@@ -215,21 +229,49 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<table class='tg' style='table-layout: fixed;'>";
                 footer += "<tbody>";
 
+                // footer += "<tr>";
+                // footer += "<td style='width:1%;'></td>";
+                // footer += "<td style='width:30%;'></td>";
+                // footer += "<td style='width:2%;'></td>";
+                // footer += "<td style='width:2%;'></td>";
+                // footer += "<td style='width:30%;'></td>";
+                // footer += "<td style='width:2%;'></td>";
+                // footer += "<td style='width:2%;'></td>";
+                // footer += "<td style='width:30%;'></td>";
+                // footer += "<td style='width:1%;'></td>"
+                // footer += "</tr>";
                 footer += "<tr>";
-                footer += "<td style='width:1%;'></td>";
-                footer += "<td style='width:30%;'></td>";
+                footer += "<td style='width:2%;'></td>";
+                footer += "<td style='width:21%;'></td>";
                 footer += "<td style='width:2%;'></td>";
                 footer += "<td style='width:2%;'></td>";
-                footer += "<td style='width:30%;'></td>";
+                footer += "<td style='width:21%;'></td>";
                 footer += "<td style='width:2%;'></td>";
                 footer += "<td style='width:2%;'></td>";
-                footer += "<td style='width:30%;'></td>";
-                footer += "<td style='width:1%;'></td>"
+                footer += "<td style='width:21%;'></td>";
+                footer += "<td style='width:2%;'></td>";
+                footer += "<td style='width:2%;'></td>";
+                footer += "<td style='width:21%;'></td>";
+                footer += "<td style='width:2%;'></td>";
                 footer += "</tr>";
 
+                // footer += "<tr>"
+                // footer += "<td></td>"
+                // footer += "<td style='align:center'>Posted By:</td>"
+                // footer += "<td></td>"
+                // footer += "<td></td>"
+                // footer += "<td style='align:center'>Approved By:</td>"
+                // footer += "<td></td>"
+                // footer += "<td></td>"
+                // footer += "<td style='align:center'>Acknowledged By:</td>"
+                // footer += "<td></td>"
+                // footer += "</tr>"
                 footer += "<tr>"
                 footer += "<td></td>"
                 footer += "<td style='align:center'>Posted By:</td>"
+                footer += "<td></td>"
+                footer += "<td></td>"
+                footer += "<td style='align:center'>Checked By:</td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
                 footer += "<td style='align:center'>Approved By:</td>"
@@ -243,21 +285,49 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style='height:80px' colspan='12'></td>"
                 footer += "</tr>"
 
+                // footer += "<tr>"
+                // footer += "<td></td>"
+                // footer += "<td style='align:center; border-bottom:1px solid black'>"+empName+"</td>"
+                // footer += "<td></td>"
+                // footer += "<td></td>"
+                // footer += "<td style='align:center; border-bottom:1px solid black'>Debby Natalia</td>"
+                // footer += "<td></td>"
+                // footer += "<td></td>"
+                // footer += "<td style='align:center; border-bottom:1px solid black'>Mediana Hadiwidjaya</td>"
+                // footer += "<td></td>"
+                // footer += "</tr>"
                 footer += "<tr>"
                 footer += "<td></td>"
-                footer += "<td style='align:center; border-bottom:1px solid black'>"+empName+"</td>"
+                footer += "<td style='align:center; border-bottom:1px solid black'></td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
-                footer += "<td style='align:center; border-bottom:1px solid black'>Debby Natalia</td>"
+                footer += "<td style='align:center; border-bottom:1px solid black'></td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
-                footer += "<td style='align:center; border-bottom:1px solid black'>Mediana Hadiwidjaya</td>"
+                footer += "<td style='align:center; border-bottom:1px solid black'></td>"
+                footer += "<td></td>"
+                footer += "<td></td>"
+                footer += "<td style='align:center; border-bottom:1px solid black'>Mediana Hadiwidjaja</td>"
                 footer += "<td></td>"
                 footer += "</tr>"
                 var emptitleParsing = emptitle1.replace("&", "&amp;")
+                // footer += "<tr>"
+                // footer += "<td></td>"
+                // footer += "<td style='align:center'>"+titleEmp+"</td>"
+                // footer += "<td></td>"
+                // footer += "<td></td>"
+                // footer += "<td style='align:center;'>FA Manager</td>"
+                // footer += "<td></td>"
+                // footer += "<td></td>"
+                // footer += "<td style='align:center;'>"+emptitle2+"</td>"
+                // footer += "<td></td>"
+                // footer += "</tr>"
                 footer += "<tr>"
                 footer += "<td></td>"
-                footer += "<td style='align:center'>"+titleEmp+"</td>"
+                footer += "<td style='align:center;'>Finance</td>"
+                footer += "<td></td>"
+                footer += "<td></td>"
+                footer += "<td style='align:center;'>Accounting</td>"
                 footer += "<td></td>"
                 footer += "<td></td>"
                 footer += "<td style='align:center;'>FA Manager</td>"

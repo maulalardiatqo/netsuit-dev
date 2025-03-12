@@ -4,6 +4,24 @@
  */
 
 define(["N/record", "N/search", "N/config", ], function (record, search, config) {
+    function beforeSubmit(context) {
+        if (context.type == context.UserEventType.DELETE) {
+            try{
+                var dataRec = context.oldRecord;
+                var cekLinkJournal = dataRec.getValue("custbody_rda_journal_free_goods");
+                log.debug('cekLinkJournal', cekLinkJournal);
+                if(cekLinkJournal && cekLinkJournal != ''){
+                    record.delete({
+                        type: record.Type.JOURNAL_ENTRY,
+                        id: cekLinkJournal
+                    });
+                    log.debug('Success', 'Journal Entry dengan ID ' + cekLinkJournal + ' berhasil dihapus.');
+                }
+            }catch(e){
+                log.debug('error', e)
+            }
+        }
+    }
     function afterSubmit(context){
         log.debug('triggerred')
         log.debug('context.type', context.type)
@@ -56,7 +74,8 @@ define(["N/record", "N/search", "N/config", ], function (record, search, config)
                                 name: "expenseaccount",
                                 join: "item",
                                 label: "Expense/COGS Account"
-                            })
+                            }),
+                            search.createColumn({name: "line.cseg_rda_sales_type", label: "RDA - Sales Type"})
                         ]
                     });
                     var searchResultCount = itemfulfillmentSearchObj.runPaged().count;
@@ -71,9 +90,10 @@ define(["N/record", "N/search", "N/config", ], function (record, search, config)
                         var department = result.getValue({name: "department"});
                         var location = result.getValue({name : "location"});
                         var classId = result.getValue({name: "class",})
+                        var salesType = result.getValue('line.cseg_rda_sales_type');
                         var accountItem = result.getValue({
                             name: "expenseaccount",
-                            join: "item",
+                            join: "item",   
                         })
                         allDataExecute.push({
                             item: item,
@@ -82,7 +102,8 @@ define(["N/record", "N/search", "N/config", ], function (record, search, config)
                             department : department,
                             location : location,
                             classId : classId,
-                            accountItem : accountItem
+                            accountItem : accountItem,
+                            salesType : salesType
                         })
                         return true;
                     });
@@ -103,6 +124,10 @@ define(["N/record", "N/search", "N/config", ], function (record, search, config)
                             value: 'Journal pembalik COGS'
                         });
                         createJE.setValue({
+                            fieldId: 'approvalstatus',
+                            value: '2'
+                        });
+                        createJE.setValue({
                             fieldId: 'trandate',
                             value: tranDate
                         });
@@ -119,6 +144,7 @@ define(["N/record", "N/search", "N/config", ], function (record, search, config)
                             var classId = data.classId
                             var location = data.location
                             var accountItem = data.accountItem
+                            var salesType = data.salesType
 
                             createJE.selectNewLine({ sublistId: 'line' });
                             createJE.setCurrentSublistValue({
@@ -150,6 +176,11 @@ define(["N/record", "N/search", "N/config", ], function (record, search, config)
                                 sublistId: 'line',
                                 fieldId: 'location',
                                 value: location
+                            });
+                            createJE.setCurrentSublistValue({
+                                sublistId: 'line',
+                                fieldId: 'cseg_rda_sales_type',
+                                value: salesType
                             });
                             createJE.commitLine({ sublistId: 'line' });
 
@@ -183,6 +214,11 @@ define(["N/record", "N/search", "N/config", ], function (record, search, config)
                                 fieldId: 'location',
                                 value: location
                             });
+                            createJE.setCurrentSublistValue({
+                                sublistId: 'line',
+                                fieldId: 'cseg_rda_sales_type',
+                                value: salesType
+                            });
                             createJE.commitLine({ sublistId: 'line' });
                         })
                         var jeId = createJE.save();
@@ -206,8 +242,31 @@ define(["N/record", "N/search", "N/config", ], function (record, search, config)
             }
             
         }
+        if(context.type === context.UserEventType.EDIT){
+            log.debug('on edit')
+            var dataRec = context.newRecord;
+            var cekStatus = dataRec.getValue("status");
+            var cekLinkJournal = dataRec.getValue("custbody_rda_journal_free_goods");
+            log.debug('cekStatus', cekStatus);
+            log.debug('cekLinkJournal', cekLinkJournal);
+            if(cekStatus == 'Delivered' || cekStatus == 'Shipped'){
+                if(cekLinkJournal && cekLinkJournal != null && cekLinkJournal != '' && cekLinkJournal != undefined){
+                    log.debug('masuk kondisi untuk delete')
+                    try {
+                        record.delete({
+                            type: record.Type.JOURNAL_ENTRY,
+                            id: cekLinkJournal
+                        });
+                        log.debug('Success', 'Journal Entry dengan ID ' + cekLinkJournal + ' berhasil dihapus.');
+                    } catch (e) {
+                        log.error('Error saat menghapus Journal Entry', e);
+                    }
+                }
+            }
+        }
     }
     return {
-        afterSubmit : afterSubmit
+        afterSubmit : afterSubmit,
+        beforeSubmit : beforeSubmit
     };
 });

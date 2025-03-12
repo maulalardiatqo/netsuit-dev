@@ -130,7 +130,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             name: 'item'
                         });
                         var description = ifItemRec.getValue({
-                            name: 'memo'
+                            name: 'custcol_custom_memo_barang'
                         });
                         var qty = ifItemRec.getValue({
                             name: 'quantityuom'
