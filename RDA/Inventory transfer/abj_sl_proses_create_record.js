@@ -8,6 +8,17 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
     function onRequest(context) {
         if (context.request.method === 'POST') {
             try {
+                function sysDate() {
+                    var date = new Date();
+                    var tdate = date.getUTCDate();
+                    var month = date.getUTCMonth();
+                    var year = date.getUTCFullYear();
+                
+                    return new Date(year, month, tdate);
+                }
+                
+                var currentDate = sysDate();
+                log.debug('currentDate', currentDate);
                 var successExceute = false
                 var messge = ''
                 var requestBody = JSON.parse(context.request.body);
@@ -44,6 +55,7 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                     var department = ''
                     var classId = ''
                     var soDate = newRec.getValue('trandate');
+                    log.debug('soDate', soDate)
                     var location = ''
                     var itemfulfillmentSearchObj = search.create({
                         type: "itemfulfillment",
@@ -173,11 +185,10 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                                 type: 'inventorytransfer',
                                 isDynamic: true
                             });
-                
                             createRecord.setValue({ fieldId: 'subsidiary', value: subsId });
                             createRecord.setValue({ fieldId: 'department', value: department });
                             createRecord.setValue({ fieldId: 'class', value: classId });
-                            createRecord.setValue({ fieldId: 'trandate', value: soDate });
+                            createRecord.setValue({ fieldId: 'trandate', value: currentDate });
                             createRecord.setValue({ fieldId: 'custbody_rda_if_number_inv_tran', value: ifId });
                             createRecord.setValue({ fieldId: 'custbody_rda_inventory_transfer_type', value: '2' });
                             createRecord.setValue({ fieldId: 'location', value: Outbound });

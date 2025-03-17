@@ -4,7 +4,11 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/record", "N/search", "N/log"], function (record, search, log) {
+define(["N/record", "N/search", "N/log", "N/format"], function (record, search, log,format) {
+    function beforeSubmit(context) {
+        log.debug('context.type', context.type)
+       
+    }
     function beforeLoad(context){
         if (context.type === context.UserEventType.VIEW) {
             var form = context.form;
@@ -31,9 +35,39 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
             
             context.form.clientScriptModulePath = "SuiteScripts/abj_cs_create_inv_transfer.js"
         }
+        if (context.type === context.UserEventType.COPY) {
+            var rec = context.newRecord;
+            var cekInvNumb = rec.getValue('custbody_rda_inventory_trf_number');
+            log.debug('cekInvNumb', cekInvNumb)
+            if(cekInvNumb){
+                log.debug('masuk kondisi copy')
+                rec.setValue({
+                    fieldId : "custbody_rda_so_copy_trans",
+                    value : true
+                })
+           
+            }
+        }
+       
     }
     function afterSubmit(context) {
         try {
+           
+            if (context.type === context.UserEventType.CREATE) {
+                var rec = context.newRecord;
+                var soId = rec.id;
+                log.debug('soId', soId);
+                var cekFlag = rec.getValue('custbody_rda_so_copy_trans');
+                log.debug('cekFlag', cekFlag);
+                if(cekFlag == true){
+                    record.submitFields({
+                        type: 'salesorder',
+                        id: soId,
+                        values: { custbody_rda_inventory_trf_number: null },
+                        options: { enableSourcing: false, ignoreMandatoryFields: true }
+                    });
+                }
+            }
             if (context.type === context.UserEventType.EDIT) {
                 var rec = context.newRecord;
                 var soId = rec.id;
@@ -43,18 +77,29 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                     id : soId,
                     isDynamic : false
                 })
+                
+                function sysDate() {
+                    var date = new Date();
+                    var tdate = date.getUTCDate();
+                    var month = date.getUTCMonth() + 1;
+                    var year = date.getUTCFullYear();
+                
+                    return tdate + '/' + month + '/' + year;
+                }
+
+                var currentDate = sysDate()
+                log.debug('currentDate', currentDate)
+
                 var cekITnumb = newRec.getValue('custbody_rda_inventory_trf_number');
-                log.debug('cekITnumb', cekITnumb)
                 var cekStatus = newRec.getValue('custbody_rda_so_approved');
-                log.debug('cekStatus', cekStatus);
                 var cekApprovReq = newRec.getValue('custbody_rda_approval_on_inv_required');
-                log.debug('cekApprovReq', cekApprovReq)
                 if(cekITnumb.length == 0){
                     log.debug('perlu create')
                 }else{
                     log.debug('tidak perlu create')
                 }
                 if (cekStatus == true && cekITnumb.length == 0) {
+                    if (cekITnumb.length == 0) {
                     var subsId = newRec.getValue('subsidiary');
                     var goodStock;
                     var Outbound;
@@ -176,11 +221,15 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                                     type: 'inventorytransfer',
                                     isDynamic: true
                                 });
-    
+                                if(currentDate){
+                                    currentDate = format.parse({ value: currentDate, type: format.Type.DATE });
+                                }
+                                log.debug('cekCurrnetDate', currentDate)
+                                
                                 createRecord.setValue({ fieldId: 'subsidiary', value: subsId });
                                 createRecord.setValue({ fieldId: 'department', value: department });
                                 createRecord.setValue({ fieldId: 'class', value: classId });
-                                createRecord.setValue({ fieldId: 'trandate', value: soDate });
+                                createRecord.setValue({ fieldId: 'trandate', value: currentDate });
                                 createRecord.setValue({ fieldId: 'custbody_rda_so_number', value: soId });
                                 createRecord.setValue({ fieldId: 'custbody_rda_inventory_transfer_type', value: '2' });
                                 createRecord.setValue({ fieldId: 'location', value: goodStock });
@@ -227,6 +276,7 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
                     }
                     
                 }
+                }
             }
         } catch (e) {
             log.error('Error in afterSubmit', e);
@@ -234,6 +284,7 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
     }
     return {
         afterSubmit: afterSubmit,
-        beforeLoad: beforeLoad
+        beforeLoad: beforeLoad,
+        beforeSubmit : beforeSubmit
     };
 });

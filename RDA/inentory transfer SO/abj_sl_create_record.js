@@ -8,6 +8,17 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
     function onRequest(context) {
         if (context.request.method === 'POST') {
             try {
+                function sysDate() {
+                    var date = new Date();
+                    var tdate = date.getUTCDate();
+                    var month = date.getUTCMonth();
+                    var year = date.getUTCFullYear();
+                
+                    return new Date(year, month, tdate);
+                }
+                
+                var currentDate = sysDate();
+                log.debug('currentDate', currentDate);
                 var requestBody = JSON.parse(context.request.body);
                 var successExecute = false
                 var soId = requestBody.soId;
@@ -149,7 +160,7 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                         createRecord.setValue({ fieldId: 'subsidiary', value: subsId });
                         createRecord.setValue({ fieldId: 'department', value: department });
                         createRecord.setValue({ fieldId: 'class', value: classId });
-                        createRecord.setValue({ fieldId: 'trandate', value: soDate });
+                        createRecord.setValue({ fieldId: 'trandate', value: currentDate });
                         createRecord.setValue({ fieldId: 'custbody_rda_so_number', value: soId });
                         createRecord.setValue({ fieldId: 'custbody_rda_inventory_transfer_type', value: '2' });
                         createRecord.setValue({ fieldId: 'location', value: goodStock });
