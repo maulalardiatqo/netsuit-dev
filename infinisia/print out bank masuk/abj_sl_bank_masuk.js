@@ -103,11 +103,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         id: customerId,
                         isDynamic : false
                     });
-                    var namaCust = custRec.getValue("companyname");
-                    if(namaCust){
-                        custName = namaCust
+                    var cekPerson = custRec.getValue('isperson');
+                    log.debug('cekPerson', cekPerson)
+                    if(cekPerson == "T"){
+                        var fName = custRec.getValue('firstname');
+                        var lName = custRec.getValue('lastname')
+                        custName = fName + ' ' + lName
+                        
+                    }else{
+                        custName = custRec.getValue("companyname");
                     }
+                   
                 }
+                log.debug('custName', custName)
                 var response = context.response;
                 var xml = "";
                 var header = "";
@@ -376,7 +384,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId: 'apply',
                             line: i
                         });
-                        log.debug('isApply', isApply);
+                        // log.debug('isApply', isApply);
                         if(isApply == true || isApply == "T"){
                             var docNum = invoiceRecord.getSublistValue({
                                 sublistId: 'apply',
@@ -423,12 +431,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             }
             function getGL(recId, arAcc, invoiceRecord){
                 var arAcc = arAcc
-                log.debug('arAcc', arAcc)
+                // log.debug('arAcc', arAcc)
                 var recId = recId
                 var countApply = invoiceRecord.getLineCount({
                     sublistId: 'apply'
                 });
-                log.debug('countApply', countApply);
+                // log.debug('countApply', countApply);
                 var allInv = [];
                 if(countApply > 0){
                    
@@ -438,14 +446,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId: 'apply',
                             line: i
                         });
-                        log.debug('isApply', isApply);
+                        // log.debug('isApply', isApply);
                         if(isApply == true || isApply == "T"){
                             var docNum = invoiceRecord.getSublistValue({
                                 sublistId: 'apply',
                                 fieldId: 'refnum',
                                 line: i
                             });
-                            log.debug('docNum', docNum);
+                            // log.debug('docNum', docNum);
                             if(docNum){
                                 allInv.push(docNum)
                             }

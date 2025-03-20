@@ -202,9 +202,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var tandId = invoiceRecord.getValue({ name : "tranid"});
                 var InvDate = invoiceRecord.getValue({ name : "trandate"});
                 
-                if(InvDate){
-                    InvDate = formatIndonesianDate(InvDate)
-                }
                 log.debug('InvDate', InvDate)
                 var signaturedBy = invoiceRecord.getValue({ name :'custbody11'});
                 var nameSignatured = ''
@@ -222,7 +219,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 log.debug('nameSignatured', nameSignatured)
                 var template = invoiceRecord.getText({ name :'custbody10'});
-                var terms = invoiceRecord.getText({ name :"terms"});
+                var terms = invoiceRecord.getValue({ name :"terms"}) || '';
                 var fakturPajak = invoiceRecord.getValue({ name :"custbody_fcn_faktur_pajak"});
                 var subTotal = invoiceRecord.getValue({name: "formulacurrency",
                     formula: "{totalamount}+{taxtotal}",}) || 0;
@@ -265,6 +262,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var allDataLine = []
                 var projectName = ""
                 var taxpphList = [];
+                var totalQty = 0
                 if (countItem.length > 0) {
                     for (var i = 0; i < countItem.length; i++) {
                         var lineRec = countItem[i];
@@ -272,12 +270,21 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var description = lineRec.getText({
                             name: "item",
                         });
+                        var rate = lineRec.getValue({
+                            name: "rate",
+                        });
                         var ammount = lineRec.getValue({
                             name: "amount",
                         });
+                        var quantity = lineRec.getValue({
+                            name: "quantity",
+                        });
+                        totalQty = Number(totalQty) + Number(quantity)
                         allDataLine.push({
                             description: description,
                             ammount: ammount,
+                            rate : rate,
+                            quantity : quantity
                         })
           
                         var taxpph = lineRec.getValue({
@@ -380,7 +387,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                     taxtotal = removeDecimalFormat(taxtotal);
                 }
-          
+                var totalBeforeFormat = total
                 if (total) {
                     total = pembulatan(total);
                     total = format.format({
@@ -420,7 +427,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%; font-family: sans-serif}";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
            
-                style += ".tg .tg-img-logo{width:300px; height:40px; object-vit:cover;}";
+                style += ".tg .tg-img-logo{width:150px; height:150px; object-vit:cover;}";
                 style += ".tg .tg-headerrow{align: right;font-size:12px;}";
                 style += ".tg .tg-garis{align: right;font-size:12px; border :1px solid black; }";
                 style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
@@ -438,67 +445,117 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "</tbody>";
                 header += "</table>";
     
-                body+= "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
-                body+= "<tbody>";
-                body+= "<tr>";
-                body += "<td style='width:50%;'></td>";
-                body += "<td style='width:10%;'></td>";
-                body += "<td style='width:40%;'></td>";
-                body+= "</tr>";
+                body += "<table class='tg' width='100%' style='table-layout:fixed;'>";
+                body += "<tbody>";
                 
-                body+= "<tr>";
+                body += "<tr>";
+                body += "<td style='width:25%;'></td>";
+                body += "<td style='width:40%;'></td>";
+                body += "<td style='width:35%;'></td>";
+                body += "</tr>";
+                
+                body += "<tr>";
                 if (urlLogo) {
-                    body += "<td class='tg-headerlogo' style='vertical-align:center; align:left; margin-left:0;' ><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+                    body += "<td class='tg-headerlogo' style='vertical-align:center; align:left; margin-left:0;' rowspan='4' ><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
                 }
-                body+="<td style='align:left;'></td>"; 
-                body+="<td style='color:#8c05ad; font-size:60px; align:right; font-weight:bold'>Invoice</td>"; 
-                body+= "</tr>";
+                body += "<td style='text-align:left;'>" + legalName + "</td>";
+                body += "<td style=' font-size:60px; text-align:right; font-weight:bold;'></td>";
+                body += "</tr>";
+                
+                body += "<tr>";
+                body += "<td style='text-align:left;'>" + addresSubsidiaries + "</td>";
+                body += "<td style=' font-size:60px; text-align:right; font-weight:bold;'></td>";
+                body += "</tr>";
+                
+              
+                
+                body += "</tbody>";
+                body += "</table>";
 
-                body+= "<tr>";
-                body += "<td style='vertical-align:bottom;'>Invoice To :</td>";
-                body += "<td></td>";
-                body += "<td style=''></td>";
-                body+= "</tr>";
+                body += "<table class='tg' width='100%' style='table-layout:fixed;'>";
+                body += "<tbody>";
+                
+                body += "<tr>";
+                body += "<td style='width:40%;'></td>";
+                body += "<td style='width:20%;'></td>";
+                body += "<td style='width:40%;'></td>";
+                body += "</tr>";
 
-                body+= "<tr>";
-                body += "<td>"+escapeXmlSymbols(custName)+"</td>";
-                body += "<td></td>";
-                body += "<td style='align:right'>"+InvDate+"</td>";
-                body+= "</tr>";
+                body += "<tr>";
+                body += "<td style='text-align:left; font-weight:bold;'>BILL TO</td>";
+                body += "<td style='text-align:left; font-weight:bold;'></td>";
+                body += "<td style='background-color:#212841FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:40px; margin-bottom:10px;' rowspan='2'>INVOICE " + tandId + "</td>";
+                body += "</tr>";
 
-                body+= "<tr>";
-                body += "<td rowspan='4'>"+escapeXmlSymbols(custAddres)+"</td>";
-                body += "<td></td>";
-                body += "<td style='align:right'>"+tandId+"</td>";
-                body+= "</tr>";
+                body += "<tr>";
+                body += "<td style='text-align:left;'>"+custName+"</td>";
+                body += "<td style='text-align:left; font-weight:bold;'></td>";
+                body += "</tr>";
 
-                body+= "<tr>";
-                body += "<td></td>";
-                body += "<td style='align:right'>"+escapeXmlSymbols(projectName)+"</td>";
-                body+= "</tr>";
+                body += "<tr>";
+                body += "<td style='text-align:left;' rowspan='2'>"+custAddres+"</td>";
+                body += "<td style='text-align:left; font-weight:bold;'></td>";
+                body += "<td style='background-color:#212841FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:40px; margin-bottom:10px;'>DATE <span style='font-size:10px; font-weight:none;vertical-align:center;' >" + InvDate + "</span><span style='font-size:16px; font-weight:bold; padding-left:5px;'>TERMS <p style='font-weight:none;font-size:10px;'>"+terms+"</p></span></td>";
+                body += "</tr>";
 
+                body += "<tr>";
+                body += "<td style='text-align:left; font-weight:bold;'></td>";
+                body += "<td style='background-color:#212841FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:40px;'>DUE DATE <span style='font-size:10px; font-weight:none;vertical-align:center;' >" + duedate + "</span></td>";
+                body += "</tr>";
 
-                body+= "</tbody>";
-                body+= "</table>";
+                body += "<tr>";
+                body += "<td style='height:5px; background-color:#212841FF;' colspan='3'></td>";
+                body += "</tr>";
+
+                body += "</tbody>";
+                body += "</table>";
+                
 
     
                 body+= "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
-                body+= "<tr>";
-                body += "<td style='width:50%;'></td>";
-                body += "<td style='width:50%;'></td>";
-                body+= "</tr>";
-
-                body+= "<tr>";
-                body += "<td style='height:30px; background-color:#8c05ad;align:center; vertical-align:center;font-size:16px;'>Description</td>";
-                body += "<td style='height:30px; background-color:#8c05ad;align:right; vertical-align:center;font-size:16px;padding-right:60px'>Amount</td>";
-                body+= "</tr>";
-
+             
                 body += "<tr>";
-                body += "<td  style='' colspan='2'>"+escapeXmlSymbols(projectName)+"</td>";
+                body += "<td style='width:40%;'></td>";
+                body += "<td style='width:10%;'></td>";
+                body += "<td style='width:20%;'></td>";
+                body += "<td style='width:30%;'></td>";
+                body += "</tr>";
+
+                body += "<tr style='height:30px;'>";
+                body += "<td style='padding-left:10px; background-color:#212841FF; color:#FAFBFD; vertical-align: middle;'>ACTIVITY</td>";
+                body += "<td style='background-color:#212841FF; color:#FAFBFD; vertical-align: middle;'>QTY</td>";
+                body += "<td style='background-color:#212841FF; color:#FAFBFD; align: right; vertical-align: middle;'>RATE</td>";
+                body += "<td style='padding-right:10px; background-color:#212841FF; color:#FAFBFD; align: right; vertical-align: middle;'>AMOUNT</td>";
                 body += "</tr>";
 
                 body+= getPOItem(context, allDataLine)
+                var qtyVat = (11/12) * totalQty;
+                log.debug('qtyVat', qtyVat)
+                log.debug('total', total)
+                var amountVat = (11/12) * Number(totalBeforeFormat);
+                log.debug('amountVat', amountVat)
+                var totalVat = Number(amountVat) * Number(qtyVat)
+                if (amountVat) {
+                    amountVat = format.format({
+                        value: amountVat,
+                        type: format.Type.CURRENCY,
+                    });
+                    amountVat = removeDecimalFormat(amountVat);
+                }
+                if (totalVat) {
+                    totalVat = format.format({
+                        value: totalVat,
+                        type: format.Type.CURRENCY,
+                    });
+                    totalVat = removeDecimalFormat(totalVat);
+                }
+                body += "<tr>";
+                body += "<td style='font-weight:bold;'>VAT 12%</td>";
+                body += "<td style=''>"+qtyVat.toFixed(2)+"</td>";
+                body += "<td style='align:right;'>"+amountVat+"</td>";
+                body += "<td style='align:right;'>"+totalVat+"</td>";
+                body += "</tr>";
 
                 body+= "</tbody>";
                 body+= "</table>";
@@ -507,61 +564,48 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<table class='tg' style='table-layout: fixed;'>";
                 footer += "<tbody>";
                 footer += "<tr>";
-                footer += "<td style='width:50%;'></td>"
-                footer += "<td style='width:25%;'></td>"
-                footer += "<td style='width:5%;'></td>"
-                footer += "<td style='width:20%;'></td>"
-                footer += "</tr>";
-
-                footer += "<tr>";
-                footer += "<td style='background-color:#8c05ad; height:5px;' colspan='4'></td>"
+                footer += "<td style='width:40%;'></td>"
+                footer += "<td style='width:30%;'></td>"
+                footer += "<td style='width:30%;'></td>"
                 footer += "</tr>";
 
                 footer += "<tr style='padding-top:10px'>";
-                footer += "<td style=''>Terms  Conditions :</td>"
-                footer += "<td style='align:right'>Subtotal :</td>"
-                footer += "<td style='align:right'>"+tlcCurr+"</td>"
-                footer += "<td style='align:right'>"+subTotal+"</td>"
-                footer += "</tr>";
-
-                footer += "<tr>";
-                footer += "<td style=''>"+projectName+"</td>"
-                footer += "<td style='align:right'>VAT :</td>"
-                footer += "<td style='align:right'>"+tlcCurr+"</td>"
-                footer += "<td style='align:right'>"+taxtotal+"</td>"
-                footer += "</tr>";
-
-                footer += "<tr>";
-                footer += "<td style=''></td>"
-                footer += "<td style='align:right; font-weight:bold;'>Total Invoice</td>"
-                footer += "<td style='align:right; font-weight:bold;'>"+tlcCurr+"</td>"
-                footer += "<td style='align:right; font-weight:bold;'>"+poTotal+"</td>"
-                footer += "</tr>";
-
-                footer += "<tr style='padding-top:20px'>";
-                footer += "<td style='font-weight:bold;font-size:14px;'>Payment Information :</td>"
-                footer += "<td style='align:center;' colspan='3'>Submitted By</td>"
+                footer += "<td style=''>Payment to :</td>"
+                footer += "<td style='align:right'></td>"
+                footer += "<td style='align:right'></td>"
                 footer += "</tr>";
 
                 footer += "<tr style='padding-top:20px'>";
                 footer += "<td style='font-weight:bold;font-size:14px;'>"+bankNameRec+"</td>"
-                footer += "<td style='align:center;' colspan='3'></td>"
+                footer += "<td style='align:center;' colspan='2'></td>"
                 footer += "</tr>";
 
                 footer += "<tr style=''>";
                 footer += "<td style='font-weight:bold;font-size:14px;'>"+bankAccName +"</td>"
-                footer += "<td style='align:center;' colspan='3'></td>"
+                footer += "<td style='align:center;' colspan='2'></td>"
                 footer += "</tr>";
 
                 footer += "<tr style=''>";
                 footer += "<td style='font-weight:bold;font-size:14px;'>"+bankAccNo +"</td>"
-                footer += "<td style='align:center;' colspan='3'></td>"
+                footer += "<td style='align:center;' colspan='2'></td>"
                 footer += "</tr>";
 
                 footer += "<tr style=''>";
-                footer += "<td style='font-weight:bold;font-size:20px;'>Thank You!</td>"
-                footer += "<td style='align:center;' colspan='3'>"+nameSignatured+"</td>"
+                footer += "<td></td>"
+                footer += "<td style='align:right; vertical-align:middle;background-color:#212841FF;color:#FAFBFD;padding-right:40px;' rowspan='2'>TOTAL DUE</td>"
+                footer += "<td style='font-weight:bold;font-size:20px;background-color:#212841FF;color:#FAFBFD;padding-left:20px;'>"+total+"</td>"
                 footer += "</tr>";
+
+                footer += "<tr style=''>";
+                footer += "<td></td>"
+                footer += "<td style='font-weight:bold;font-size:20px;background-color:#212841FF;color:#FAFBFD;padding-left:20px;'>"+tlcCurr+"</td>"
+                footer += "</tr>";
+
+                footer += "<tr style=''>";
+                footer += "<td style='font-weight:bold;font-size:20px;'></td>"
+                footer += "<td style='align:center;' colspan='2'>"+nameSignatured+"</td>"
+                footer += "</tr>";
+
 
                 footer += "</tbody>";
                 footer += "</table>";
@@ -600,6 +644,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             allDataLine.forEach(data => {
                 var description = data.description;
                 var amount = data.ammount;
+                var quantity = data.quantity
+                var rate = data.rate
                 if (amount) {
                     amount = format.format({
                         value: amount,
@@ -607,8 +653,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                     amount = removeDecimalFormat(amount);
                 }
+                if (rate) {
+                    rate = format.format({
+                        value: rate,
+                        type: format.Type.CURRENCY,
+                    });
+                    rate = removeDecimalFormat(rate);
+                }
                 body += "<tr>";
                 body += "<td  style=''>"+escapeXmlSymbols(description)+"</td>";
+                body += "<td  style=''>"+quantity+"</td>";
+                body += "<td  style='align:right;'>"+rate+"</td>";
                 body += "<td  style='align:right;'>"+amount+"</td>";
                 body += "</tr>";
             });
