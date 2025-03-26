@@ -91,7 +91,7 @@
                     var xml = "";
                     var header = "";
                     var body = "";
-                    var headerHeight = '0%';
+                    var headerHeight = '15%';
                     var style = "";
                     var footer = "";
                     var pdfFile = null;
@@ -111,51 +111,46 @@
                     style += ".second-table { page-break-before: always; }";
                     style += "</style>";
                     
-        
-                    header += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
+                    
+                    header += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:8px;padding-top:0;margin-top:0;\">";
                     header += "<tbody>";
+                    header += "<tr style='padding-top:0;margin-top:0;'>"
+                    header += "<td style='font-weight:bold; font-size:16; width:50%;'>"+jenisTransaksi+"</td>"
+                    header += "<td style='font-weight:bold; font-size:14; width:50%; align:right;'></td>"
+                    header += "</tr>"
                     header += "</tbody>";
                     header += "</table>";
-                    
-                    body += "<table class='tg second-table' width=\"100%\" style=\"table-layout:fixed;font-size:8px\">";
-                    body += "<tbody>";
-                    body += "<tr>"
-                    body += "<td style='font-weight:bold; font-size:16; width:50%;'>"+jenisTransaksi+"</td>"
-                    body += "<td style='font-weight:bold; font-size:14; width:50%; align:right;'></td>"
-                    body += "</tr>"
-                    body += "</tbody>";
-                    body += "</table>";
 
-                    body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:8px\">";
-                    body += "<tbody>";
-                    body += "<tr>"
-                    body += "<td style='height:20px'></td>"
-                    body += "</tr>"
-                    body += "</tbody>";
-                    body += "</table>";
+                    header += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:8px\">";
+                    header += "<tbody>";
+                    header += "<tr>"
+                    header += "<td style='height:10px'></td>"
+                    header += "</tr>"
+                    header += "</tbody>";
+                    header += "</table>";
 
-                    body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:12px;\">";
-                    body += "<tbody>";
-                    body += "<tr>"
-                    body += "<td style='width:2%;font-weight:bold;'></td>"
-                    body += "<td style='width:15%;font-weight:bold;'>Paid To</td>"
-                    body += "<td style='width:1%; font-weight:bold;'>:</td>"
-                    body += "<td style='width:34%; font-weight:bold;'></td>"
-                    body += "<td style='width:10%; font-weight:bold;'></td>"
-                    body += "<td style='width:5%; font-weight:bold;'>Date</td>"
-                    body += "<td style='width:1%; font-weight:bold;'>:</td>"
-                    body += "<td style='width:32%; font-weight:bold;'>"+trandate+"</td>"
-                    body += "</tr>"
-                    body += "<tr>"
-                    body += "<td style='font-weight:bold;'></td>"
-                    body += "<td style='font-weight:bold;'>IDGL/Reff #</td>"
-                    body += "<td style='font-weight:bold;'>:</td>"
-                    body += "<td style='font-weight:bold;'>"+trandId+"</td>"
-                    body += "<td style='font-weight:bold;' colspan='4'></td>"
-                    //body += "<td style='font-weight:bold;' colspan='4'>"+refNumber+"</td>"
-                    body += "</tr>"
-                    body += "</tbody>";
-                    body += "</table>";
+                    header += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:12px;\">";
+                    header += "<tbody>";
+                    header += "<tr>"
+                    header += "<td style='width:2%;font-weight:bold;'></td>"
+                    header += "<td style='width:15%;font-weight:bold;'>Paid To</td>"
+                    header += "<td style='width:1%; font-weight:bold;'>:</td>"
+                    header += "<td style='width:34%; font-weight:bold;'></td>"
+                    header += "<td style='width:10%; font-weight:bold;'></td>"
+                    header += "<td style='width:5%; font-weight:bold;'>Date</td>"
+                    header += "<td style='width:1%; font-weight:bold;'>:</td>"
+                    header += "<td style='width:32%; font-weight:bold;'>"+trandate+"</td>"
+                    header += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='font-weight:bold;'></td>"
+                    header += "<td style='font-weight:bold;'>IDGL/Reff #</td>"
+                    header += "<td style='font-weight:bold;'>:</td>"
+                    header += "<td style='font-weight:bold;'>"+trandId+"</td>"
+                    header += "<td style='font-weight:bold;' colspan='4'></td>"
+                    //header += "<td style='font-weight:bold;' colspan='4'>"+refNumber+"</td>"
+                    header += "</tr>"
+                    header += "</tbody>";
+                    header += "</table>";
 
                     body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:10px\">";
                     body += "<tbody>";
@@ -314,7 +309,7 @@
                     xml += "</macro>";
                     xml += "</macrolist>";
                     xml += "</head>"
-                    xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 14.8cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='20%'>";
+                    xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 14.8cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='15%'>";
                     xml += body;
                     xml += "\n</body>\n</pdf>";
         

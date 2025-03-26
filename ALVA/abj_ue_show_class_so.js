@@ -21,7 +21,7 @@ define(['N/record'], (record) => {
                 const field = form.getField({ id: fieldId });
                 log.debug('field', field);
                 if (field) {
-                    field.updateDisplayType({ displayType: 'normal' }); // Mengubah field menjadi enabled
+                    field.updateDisplayType({ displayType: 'normal' }); 
                 } else {
                     log.warning(`Field ${fieldId} tidak ditemukan`, 'Pastikan field tersedia pada form ini.');
                 }

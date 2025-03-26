@@ -455,9 +455,14 @@ define(["N/search", "N/record", "N/file", "N/https", "N/runtime", "N/format"], /
          }
          dataRec.setCurrentSublistValue({
            sublistId: "item",
-           fieldId: "rate",
-           value: rate,
+           fieldId: "price",
+           value: "-1",
          });
+         dataRec.setCurrentSublistValue({
+          sublistId: "item",
+          fieldId: "rate",
+          value: rate,
+        });
          dataRec.setCurrentSublistValue({
            sublistId: "item",
            fieldId: "amount",
