@@ -313,7 +313,7 @@
                 let internalID = data.internalid;
                 let customerID = data.customerid;
                 let memo = data.memo;
-                let locationID = data.locationid;
+                let locationID = data.location.internalId;
                 let discountitemID = data.discountitemid;
                 let accountID = data.accountid;
                 let items = data.items;
@@ -334,19 +334,19 @@
                 action = "created";
                 }
                 dataRec.setValue({
-                fieldId: "entity",
-                value: customerID,
-                ignoreFieldChange: false,
+                    fieldId: "entity",
+                    value: customerID,
+                    ignoreFieldChange: false,
                 });
                 dataRec.setValue({
-                fieldId: "memo",
-                value: memo,
-                ignoreFieldChange: false,
+                    fieldId: "memo",
+                    value: memo,
+                    ignoreFieldChange: false,
                 });
                 dataRec.setValue({
-                fieldId: "location",
-                value: locationID,
-                ignoreFieldChange: false,
+                    fieldId: "location",
+                    value: locationID,
+                    ignoreFieldChange: false,
                 });
                 if (accountID) {
                 dataRec.setValue({
@@ -365,6 +365,7 @@
                 for (var i = 0; i < items.length; i++) {
                 let itemID = data.items[i].itemid;
                 log.debug('itemID', itemID)
+                var isUseBin = false
                 if(itemID){
                     var itemSearchObj = search.create({
                         type: "item",
@@ -374,10 +375,10 @@
                         columns: [
                             search.createColumn({ name: "itemid", label: "Name" }),
                             search.createColumn({ name: "displayname", label: "Display Name" }),
-                            search.createColumn({ name: "isinactive", label: "Inactive" })
+                            search.createColumn({ name: "isinactive", label: "Inactive" }),
+                            search.createColumn({name: "usebins", label: "Use Bins"})
                         ]
                     });
-                    
                     var searchResultCount = itemSearchObj.runPaged().count;
                     log.debug("itemSearchObj result count", searchResultCount);
                     if(searchResultCount < 1){
@@ -388,6 +389,7 @@
                         results.forEach(function (result) {
                             log.debug("Item", result.getValue({ name: "itemid" }) + " - " + result.getValue({ name: "displayname" }));
                             var isInactive = result.getValue({ name: "isinactive" });
+                            isUseBin = result.getValue({ name: "usebins" });
                             if(isInactive == true){
                                 itemID = 45029
                             }
@@ -398,19 +400,57 @@
                     
                     
                 }
+                
                 let quantity = data.items[i].quantity;
+                let allocatedBins = [];
+                log.debug('filter', {
+                    itemID : itemID, locationID : locationID
+                })
+                if (isUseBin) {
+                    var itemSearchObj = search.create({
+                        type: "item",
+                        filters: [
+                            ["internalid", "anyof", itemID], 
+                            "AND",
+                            ["binonhand.location", "anyof", locationID]
+                        ],
+                        columns: [
+                            search.createColumn({ name: "binnumber", join: "binOnHand", label: "Bin Number" }),
+                            search.createColumn({ name: "quantityavailable", join: "binOnHand", label: "Available" })
+                        ]
+                    });
+                
+                    let searchResult = itemSearchObj.run();
+                    let remainingQty = quantity;
+                
+                    searchResult.each(function (result) {
+                        if (remainingQty <= 0) return false; 
+                
+                        let idBin = result.getValue({ name: "binnumber", join: "binOnHand" });
+                        let qtyAvailable = parseInt(result.getValue({ name: "quantityavailable", join: "binOnHand" }), 10);
+                
+                        if (qtyAvailable > 0) {
+                            let qtyToAllocate = Math.min(remainingQty, qtyAvailable);
+                            allocatedBins.push({ idBin, quantity: qtyToAllocate });
+                            remainingQty -= qtyToAllocate;
+                        }
+                
+                        return true;
+                    });
+                }
+                
                 let rate = data.items[i].rate;
                 let amount = data.items[i].amount;
                 let taxCode = data.items[i].taxcode;
                 if (internalID) {
                     dataRec.selectLine({
-                    sublistId: "item",
-                    line: i,
+                        sublistId: "item",
+                        line: i,
                     });
                 } else {
                     dataRec.insertLine({
-                    sublistId: "item",
-                    line: i,
+                        sublistId: "item",
+                        line: i,
                     });
                 }
                 dataRec.setCurrentSublistValue({
@@ -423,6 +463,20 @@
                     fieldId: "quantity",
                     value: quantity,
                 });
+
+                let inventoryDetailSubrecord = dataRec.getCurrentSublistSubrecord({
+                    sublistId: 'item',
+                    fieldId: 'inventorydetail'
+                });
+                log.debug("Allocated Bins", JSON.stringify(allocatedBins));
+                
+                allocatedBins.forEach(bin => {
+                    inventoryDetailSubrecord.selectNewLine({ sublistId: 'inventoryassignment' });
+                    inventoryDetailSubrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'binnumber', value: bin.idBin });
+                    inventoryDetailSubrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'quantity', value: bin.quantity });
+                    inventoryDetailSubrecord.commitLine({ sublistId: 'inventoryassignment' });
+                });
+
                 log.debug('itemID update', itemID)
                 var searchItemLot
                 try{
