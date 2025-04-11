@@ -64,6 +64,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     'taxamount',
                     'custcol_pr_total_order',
                     'custcol_abj_purchase_price_per_kg',
+                    'custcol_abj_pack_size_order',
                     search.createColumn({name: "rate", label: "Item Rate"}),
                     search.createColumn({
                         name: 'formulatext1',
@@ -129,7 +130,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var amountBef = result.getValue('amount')
                 var amount = Number(amountBef) / Number(exchangerate)
                 var quantity = result.getValue('quantityuom')
-                var unit = result.getValue('unit');
+                var unit = result.getText('custcol_abj_pack_size_order');
                 var totQTY = result.getValue('custcol_pr_total_order');
                 log.debug('totQTY', totQTY)
                 var taxTotal = result.getValue({
