@@ -293,11 +293,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             var pdfFile = null;
             // var totalPages = 1;
             // log.debug("TOTAL PAGE", totalPages)
-            var isA4 = context.request.parameters.isa4;
-            var fontSize = 10
-            if(isA4){
-                fontSize = 12
-            }
+
             var logoUrl = '';
             var fileLogo = file.load({
                 id: 298
@@ -324,7 +320,11 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             // log.debug('IS CANVAS TRX', isCanvasTrx);
             let custName = data[0].getValue({name : "altname", join: 'customer'});
             let custCode = data[0].getValue({name : "entityid", join: 'customer'});
-            let custAdress = data[0].getValue({join:'customer',name :"addresslabel"});
+            // let custAdress = data[0].getValue({join:'customer',name :"addresslabel"}); // 14 - 4 - 2025
+            let custAdress = data[0].getValue({join:'customer',name :"address"}); // 14 - 4 - 2025
+            if(custAdress){
+                custAdress = custAdress.replace(custName, "");
+            }
             let listFaktur = {
                 "Credit": "KREDIT",
                 "Cash": "TUNAI"
@@ -401,10 +401,10 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
 
             
 
-            header = `<table width="100%"  style="table-layout:auto;">
+            header = `<table width="100%"  style="table-layout:fixed;">
                 <tbody>
                     <tr>
-                        <td style="width:45%;table-layout:fixed;">
+                        <td style="width:46%;" width='46%'>
                             <table width="100%">
                                 <tbody>
                                     <tr>
@@ -416,14 +416,14 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
                                     </tr>
                                     <tr>
                                         <td style="white-space:nowrap;width:10%;">Kepada yth : </td>
-                                        <td style="font-weight:bold;align:left;width:90%;"><p style="text-align:left;">${escapeXmlSymbols(custName)} (${escapeXmlSymbols(custCode)}) <br/> ${escapeXmlSymbols(custAdress)}</p></td>
+                                        <td style="font-weight:bold;align:left;width:90%;padding-left:8px;"><p style="text-align:left;">${escapeXmlSymbols(custName)} <span style='white-space:nowrap;'>(${escapeXmlSymbols(custCode)})</span> <br/> ${escapeXmlSymbols(custAdress)}</p></td>
                                     </tr>
                                 </tbody>
                             </table>
                         </td>
-                        <td style="text-align:center;align:center;width:10%;">
+                        <td style="text-align:center;align:center;width:10%;" width='8%'>
                         </td>
-                        <td style="width:45%;">
+                        <td style="width:46%;" width='46%'>
                             <table width="100%">
                                 <tbody>
                                     <tr>
@@ -568,7 +568,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
                     },0);
                     let jumlahRP = dataItems[i].getValue({ name: "custcol_rda_total_afterdisc" });
                     // round up
-                    jumlahRP = Number(jumlahRP)
+                    jumlahRP = Math.ceil(Number(jumlahRP))
                     log.debug('data',`${line} | ${kode} | ${namaProduk} | ${detailQtyConcat} | ${jumlahBarang} | ${hargaJual} | ${rebateOrPotongan} | ${jumlahRP}`)
                         // subTotal = Number(subTotal) + Number(totalAmount);
                     if(itemType !== "Discount" && itemType !== 'TaxItem' && Number(jumlahRP) > 0){
@@ -595,13 +595,13 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
                         subTotal = Number(subTotal) + Number(jumlahRP)
                         itemRows += `
                             <tr style="height:35px;">     
-                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-left: 1px solid black;align:left;font-size:${fontSize}"><p>${escapeXmlSymbols(kode)}</p></td>
-                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;align:left;font-size:${fontSize}"><p>${escapeXmlSymbols(namaProduk)}</p></td>
-                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;align:right;font-size:${fontSize}"><p>${escapeXmlSymbols(detailQtyConcat)}</p></td>
-                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;align:right;font-size:${fontSize}">${jumlahBarang}</td>
-                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;align:right;font-size:${fontSize}">${format.format({value: hargaJual, type : format.Type.CURRENCY})}</td>
-                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;align:right;font-size:${fontSize}">${escapeXmlSymbols(rebateOrPotongan)}</td>
-                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;align:right;font-size:${fontSize}">${jumlahRP && format.format({value: jumlahRP, type : format.Type.CURRENCY})}</td>
+                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-left: 1px solid black;align:left;"><p>${escapeXmlSymbols(kode)}</p></td>
+                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;align:left;"><p>${escapeXmlSymbols(namaProduk)}</p></td>
+                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;align:right;"><p>${escapeXmlSymbols(detailQtyConcat)}</p></td>
+                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;align:right;">${jumlahBarang}</td>
+                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;align:right;">${format.format({value: hargaJual, type : format.Type.CURRENCY})}</td>
+                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;align:right;">${escapeXmlSymbols(rebateOrPotongan)}</td>
+                                <td style="border-bottom: 1px solid black;border-right: 1px solid black;align:right;">${jumlahRP && format.format({value: jumlahRP, type : format.Type.CURRENCY})}</td>
                             </tr>
                         `;
                         if(items%perPage == 0){
@@ -627,15 +627,15 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             <table width="100%" style="border-collapse: collapse;">
                 <thead>
                     <tr>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;border-left: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}">Kode</td>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}">Nama Produk</td>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}"><p style='text-align:left;'>Detail Qty</p></td>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}">Jumlah Brg in Pcs</td>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}">Hrg Jual</td>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}">Rabat/Potongan</td>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}">Jumlah RP</td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;border-left: 1px solid black;align:center;font-weight:bold;">Kode</td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;">Nama Produk</td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;"><p style='text-align:left;'>Detail Qty</p></td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;">Jumlah Brg in Pcs</td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;">Hrg Jual</td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;">Rabat/Potongan</td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;">Jumlah RP</td>
                     </tr>
-                </thead>a
+                </thead>
                 <tbody>
                     ${itemRows}
                 </tbody>
@@ -694,9 +694,17 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
                                 <span style="font-size:10px;">
                                 Barang telah diterima dengan baik dan cukup
                                 <br/>
-                                    <span style="white-space:nowrap;">Pembayaran cek-giro dianggap lunas setelah cair dan Faktur adalah bukti sah penagihan.</span>
+                                   <span style="white-space:nowrap;">
+                                    Pembayaran cek-giro dianggap lunas setelah cair dan Faktur adalah bukti sah penagihan.
+                                    </span>
                                     <br/>
-                                    <span style="white-space:nowrap;">Pembayaran transfer hanya melalui ${escapeXmlSymbols(bankName1)}: ${escapeXmlSymbols(bankNumber1)} / ${escapeXmlSymbols(bankName2)}: ${escapeXmlSymbols(bankNumber2)} </span> 
+                                    <span style="white-space:nowrap;">
+                                    Pembayaran transfer hanya melalui 
+                                    <span style="font-size:14px;"> 
+                                        ${escapeXmlSymbols(bankName1)}: ${escapeXmlSymbols(bankNumber1)} / ${escapeXmlSymbols(bankName2)}: ${escapeXmlSymbols(bankNumber2)} 
+                                    </span>
+                                    </span>
+
                                 </span>
                             </p>
                             <p>Cap dan Tanda-Tangan</p>
@@ -734,11 +742,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
                                         <td style="align:right">${discountHeader ? format.format({value: discountHeader, type : format.Type.CURRENCY}) : ''}</td>
                                     </tr>
                                     <tr>
-                                        <td>DPP Nilai Lain</td>
-                                        <td style="align:right">${format.format({value: subTotal * 11/12, type : format.Type.CURRENCY})}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>PPN 12%</td>
+                                        <td>PPN</td>
                                         <td style="align:right">${format.format({value: totalPPN, type : format.Type.CURRENCY})}</td>
                                     </tr>
                                     <tr>
@@ -781,7 +785,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             var pageWidth = 21;
             var pageHeight = 14.8;
             var paddingBottom = '0';
-            
+            var isA4 = context.request.parameters.isa4;
             var paddingTop = 10
             var paddingRight = 5
             var paddingLeft = 5

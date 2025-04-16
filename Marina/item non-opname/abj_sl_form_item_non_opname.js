@@ -70,27 +70,28 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 var formattedDateFrom = formatDate(dateFrom);
                 var formattedDateTo = formatDate(dateTo);
 
-                const suiteql = `
-                SELECT i.id AS itemid, ib.quantityonhand, i.usebins
-                FROM item i
-                JOIN inventorybalance ib ON ib.item = i.id
-                WHERE i.itemtype IN ('InvtPart', 'Assembly')
-                AND i.isinactive = 'F'
-                AND ib.location = ${locationId}
-                AND ib.quantityonhand > 0
-                AND i.id NOT IN (
-                    SELECT DISTINCT t.item
-                    FROM transactionline t
-                    JOIN transaction tr ON t.transaction = tr.id
-                    WHERE tr.type = 'InvAdjst'
-                    AND t.location = ${locationId}
-                    AND tr.trandate BETWEEN TO_DATE('${formattedDateFrom}', 'YYYY-MM-DD') AND TO_DATE('${formattedDateTo}', 'YYYY-MM-DD')
-                    AND t.item IS NOT NULL
-                )
-            `;
+            //     const suiteql = `
+            //     SELECT i.id AS itemid, ib.quantityonhand, i.usebins
+            //     FROM item i
+            //     JOIN inventorybalance ib ON ib.item = i.id
+            //     WHERE i.itemtype IN ('InvtPart', 'Assembly')
+            //     AND i.isinactive = 'F'
+            //     AND ib.location = ${locationId}
+            //     AND ib.quantityonhand > 0
+            //     AND i.id NOT IN (
+            //         SELECT DISTINCT t.item
+            //         FROM transactionline t
+            //         JOIN transaction tr ON t.transaction = tr.id
+            //         WHERE tr.type = 'InvAdjst'
+            //         AND t.location = ${locationId}
+            //         AND tr.trandate BETWEEN TO_DATE('${formattedDateFrom}', 'YYYY-MM-DD') AND TO_DATE('${formattedDateTo}', 'YYYY-MM-DD')
+            //         AND t.item IS NOT NULL
+            //     )
+            // `;
             
-            const resultSet = query.runSuiteQL({ query: suiteql });
-            const results = resultSet.asMappedResults();
+            // const resultSet = query.runSuiteQL({ query: suiteql });
+            // const results = resultSet.asMappedResults();
+            
             
             log.debug('items with qty', results.map(r => `Item ID: ${r.itemid}, Qty: ${r.quantityonhand}`));
             log.debug('result length', results.length);

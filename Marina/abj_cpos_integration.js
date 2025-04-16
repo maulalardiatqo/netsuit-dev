@@ -370,11 +370,11 @@
                     });
                     }
                     if (discountitemID) {
-                    dataRec.setValue({
-                        fieldId: "discountitem",
-                        value: discountitemID,
-                        ignoreFieldChange: false,
-                    });
+                        dataRec.setValue({
+                            fieldId: "discountitem",
+                            value: discountitemID,
+                            ignoreFieldChange: false,
+                        });
                     }
                     for (var i = 0; i < items.length; i++) {
                         let itemID = data.items[i].itemid;
@@ -391,7 +391,8 @@
                                     search.createColumn({ name: "itemid", label: "Name" }),
                                     search.createColumn({ name: "displayname", label: "Display Name" }),
                                     search.createColumn({ name: "isinactive", label: "Inactive" }),
-                                    search.createColumn({name: "usebins", label: "Use Bins"})
+                                    search.createColumn({name: "usebins", label: "Use Bins"}),
+                                    search.createColumn({name: "type", label: "Type"}),
                                 ]
                             });
                             var searchResultCount = itemSearchObj.runPaged().count;
@@ -407,10 +408,34 @@
                                     isUseBin = result.getValue({ name: "usebins" });
                                     log.debug('cek is usebins', isUseBin)
                                     itemName = result.getValue({ name: "itemid" }) + " - " + result.getValue({ name: "displayname" });
-                                    if(isInactive == true){
-                                        itemID = 45029
+                                    var displayNameItem = result.getValue({ name: "displayname" });
+                                    if(displayNameItem == ''){
+                                        log.debug('displayNem item kosong')
+                                        displayNameItem = result.getValue({name : 'itemid'})
                                     }
-                                    log.debug('isInactive', isInactive)
+                                    var baserecordtype = result.getValue({name : 'type'})
+                                    var typeRecord = ''
+                                    if(baserecordtype == 'InvtPart'){
+                                        typeRecord = 'inventoryitem'
+                                    }else if(baserecordtype == 'NonInvtPart'){
+                                        typeRecord = 'noninventoryitem'
+                                    }else if(baserecordtype == 'Discount'){
+                                        typeRecord = 'discountitem'
+                                    }
+                                    log.debug('baserecordtype', baserecordtype)
+                                    if (isInactive === true || isInactive === 'T') {
+                                        var savedId = record.submitFields({
+                                            type: typeRecord,
+                                            id: itemID,
+                                            values: {
+                                                'isinactive': false,
+                                                'custitem_msa_locpos' : locationID,
+                                                'displayname' : displayNameItem,
+                                            }
+                                        });
+                                    
+                                        log.debug('Item re-activated using submitFields, ID:', savedId);
+                                    }
                                 });
                             }
                             
@@ -536,17 +561,25 @@
                         });
                         log.debug('after commit')
                     }
+                    dataRec.setValue({
+                        fieldId : 'custbody_msa_response_body',
+                        value : data
+                    })
                     // var cashSaleID = 0
                      var cashSaleID = dataRec.save({
-                       enableSourcing: true,
-                       ignoreMandatoryFields: true,
+                        enableSourcing: true,
+                        ignoreMandatoryFields: true,
                      });
+                     if(cashSaleID){
+
+                     }
+                     log.debug('cashSaleID', cashSaleID)
                     var response = {
                         status: "success",
                         message: "data successfully " + action + " ",
                         internalid: cashSaleID,
                     };
-                    callCustRec(response, data, cashSaleID);
+                    // callCustRec(response, data, cashSaleID);
                     return JSON.stringify(response);
                     
                 } catch (error) {
