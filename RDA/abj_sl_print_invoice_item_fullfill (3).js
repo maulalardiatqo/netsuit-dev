@@ -653,11 +653,11 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             if(totalPage > 1){
                 for (let page = 1; page < totalPage; page++) {
                     
-                    style += "#page"+page+" {footer:nlfooter;footer-height:35%;}";
+                    style += "#page"+page+" {footer:nlfooter;footer-height:45%;}";
                     
                 }
             }
-            style += "#page"+totalPage+" {footer:nlfooterlastpage;footer-height:35%;}";
+            style += "#page"+totalPage+" {footer:nlfooterlastpage;footer-height:45%;}";
 
             style += "</style>";
 
@@ -691,12 +691,20 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
                     <tr>
                         <td style="width:60%;border-bottom: 1px solid black;border-top: 1px solid black;border-right:1px solid black;">
                             <p>
-                                <span style="font-size:10px;">
+                                 <span style="font-size:10px;">
                                 Barang telah diterima dengan baik dan cukup
                                 <br/>
-                                    <span style="white-space:nowrap;">Pembayaran cek-giro dianggap lunas setelah cair dan Faktur adalah bukti sah penagihan.</span>
+                                   <span style="white-space:nowrap;">
+                                    Pembayaran cek-giro dianggap lunas setelah cair dan Faktur adalah bukti sah penagihan.
+                                    </span>
                                     <br/>
-                                    <span style="white-space:nowrap;">Pembayaran transfer hanya melalui ${escapeXmlSymbols(bankName1)}: ${escapeXmlSymbols(bankNumber1)} / ${escapeXmlSymbols(bankName2)}: ${escapeXmlSymbols(bankNumber2)} </span> 
+                                    <span style="white-space:nowrap;">
+                                    Pembayaran transfer hanya melalui 
+                                    <span style="font-size:14px;"> 
+                                        ${escapeXmlSymbols(bankName1)}: ${escapeXmlSymbols(bankNumber1)} / ${escapeXmlSymbols(bankName2)}: ${escapeXmlSymbols(bankNumber2)} 
+                                    </span>
+                                    </span>
+
                                 </span>
                             </p>
                             <p>Cap dan Tanda-Tangan</p>
@@ -778,7 +786,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
                 <p style="align:right;font-size:10px;text-align:right;margin-top:1px;">${resultDate}</p>
                 `
 
-            var pageWidth = 21;
+            var pageWidth = 22;
             var pageHeight = 14.8;
             var paddingBottom = '0';
             
