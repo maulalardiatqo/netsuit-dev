@@ -790,7 +790,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             var pageHeight = 14.8;
             var paddingBottom = '0';
             
-            var paddingTop = 10
+            var paddingTop = 20
             var paddingRight = 5
             var paddingLeft = 5
             var minTopFooter = 10

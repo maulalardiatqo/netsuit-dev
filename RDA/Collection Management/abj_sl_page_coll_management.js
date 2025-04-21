@@ -39,7 +39,13 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 value: '', 
                 text: '-Select-'
             });
-
+            var customer = form.addField({
+                id: 'custpage_customer', 
+                type: serverWidget.FieldType.SELECT,
+                container: "filteroption",
+                label: 'Customer',
+                source: 'customer'
+            });
             // search sales rep
             var employeeSearchObj = search.create({
                 type: "employee",
@@ -244,7 +250,8 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 label: "Unmark All",
                 functionName: "unmarkAll",
             });
-            
+            form.addButton({ id: 'custpage_prev', label: 'Prev', functionName: 'prevPage' });
+            form.addButton({ id: 'custpage_next', label: 'Next', functionName: 'nextPage' });
             var inlineHtml = form.addField({
                 id: 'custpage_buttonhtml',
                 type: serverWidget.FieldType.INLINEHTML,
@@ -261,6 +268,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             form.addResetButton({
                 label: "Clear",
             });
+            
             form.clientScriptModulePath = "SuiteScripts/abj_cs_coll_management.js";
             context.response.writePage(form);
         } else {
@@ -411,6 +419,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         }
                     
                         const saveCreate = createRec.save();
+                        log.debug('saveCreate', saveCreate)
                         if (saveCreate) {
                             context.response.writePage(createSuccessPage(saveCreate));
                         }
