@@ -4,9 +4,10 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/record", "N/search"], function(
+define(["N/record", "N/search", "N/format"], function(
     record,
     search,
+    format
     ) {
     function afterSubmit(context) {
         try {
@@ -28,43 +29,66 @@ define(["N/record", "N/search"], function(
                 var statusRef = result.getValue("statusRef");
                 var trandate = result.getValue('trandate');
                 log.debug('status', status)
-                if(status == 'Shipped'){
+                if (status == 'Shipped') {
                     log.debug('masuk status');
                     trandate = new Date(convertToYYYYMMDD(trandate));
                     trandate = new Date(trandate.getTime() + offset);
-                    log.debug('TRANSAKSI','INTERNAL ID :'+internalId+ ' || TRANDATE :'+trandate);
+                    log.debug('TRANSAKSI','INTERNAL ID :' + internalId + ' || TRANDATE :' + trandate);
                 
-                    // Cek apakah trandate adalah hari Sabtu
-                    var tempDate;
+                    let tempDate;
+                
+                    // ========== CEK APAKAH TRANSDATE ADALAH LIBUR ==========
+                    let holidayToday = isHoliday(trandate);
+                    if (holidayToday) {
+                        log.debug('Trandate adalah hari libur:', holidayToday);
+                        tempDate = new Date(holidayToday.endDate);
+                        tempDate.setDate(tempDate.getDate() + 1); // Tambah 1 hari dari akhir hari libur
+                    } else {
+                        tempDate = new Date(trandate);
+                    }
+                
+                    // ========== CEK APAKAH BESOK DARI TRANSDATE ADALAH LIBUR ==========
+                    let besokDate = new Date(trandate);
+                    besokDate.setDate(besokDate.getDate() + 1);
+                    let holidayBesok = isHoliday(besokDate);
+                    if (holidayBesok) {
+                        log.debug('Besok adalah hari libur:', holidayBesok);
+                        tempDate = new Date(holidayBesok.endDate);
+                        tempDate.setDate(tempDate.getDate() + 1);
+                    }
+                
+                    // ========== JIKA HARI SABTU ==========
                     if (trandate.getDay() === 6) { 
                         log.debug('TRANDATE jatuh pada hari Sabtu, menambahkan 2 hari');
                         tempDate = new Date(trandate);
-                        tempDate.setDate(tempDate.getDate() + 2); // Jadi Senin
-                    } else {
-                        var isAHoliday = isHoliday(trandate);
+                        tempDate.setDate(tempDate.getDate() + 2);
+                    }
                 
-                        if(!isAHoliday){
-                            log.debug(' IS NOT A HOLIDAY', isAHoliday);
-                            return true;
-                        }
-                        log.debug('Holiday found 1 :', isAHoliday);
-                        
-                        tempDate = new Date(isAHoliday.endDate);
-                        tempDate = new Date(tempDate.setDate(tempDate.getDate() + 1));  // Move to the next day
-                        
-                        // Continue the loop until no more holidays are found
-                        while (isAHoliday) {
-                            isAHoliday = isHoliday(new Date(tempDate));  // Check again
-                            if (isAHoliday) {
-                                log.debug('Holiday found:', isAHoliday);
-                                tempDate = new Date(isAHoliday.endDate);
-                                tempDate = new Date(tempDate.setDate(tempDate.getDate() + 1));
-                            }
+                    // ========== CEK JIKA HARI SENIN ADALAH LIBUR ==========
+                    if (tempDate.getDay() === 1) {
+                        let isMondayHoliday = isHoliday(tempDate);
+                        while (isMondayHoliday) {
+                            log.debug('Senin adalah hari libur:', isMondayHoliday);
+                            tempDate = new Date(isMondayHoliday.endDate);
+                            tempDate.setDate(tempDate.getDate() + 1);
+                            isMondayHoliday = isHoliday(tempDate);
                         }
                     }
-                    log.debug('tempDate', tempDate)
+                
+                    // ========== CEK JIKA MASIH HARI LIBUR ==========
+                    let isAHoliday = isHoliday(tempDate);
+                    while (isAHoliday) {
+                        log.debug('Holiday found:', isAHoliday);
+                        tempDate = new Date(isAHoliday.endDate);
+                        tempDate.setDate(tempDate.getDate() + 1);
+                        isAHoliday = isHoliday(tempDate);
+                    }
+                
+                    log.debug('Final tempDate:', tempDate);
                     updateItemFulfill(internalId, tempDate);
                 }
+                
+                
             }
         }catch(e){
             log.debug('err', e)
@@ -119,12 +143,41 @@ define(["N/record", "N/search"], function(
 
         return false;
     }
+    function getUTCFromJakartaMidnight(dateStr) {
+         // var dateString = '21/04/2025'; // format dd/mm/yyyy
+
+        // Pisahkan jadi bagian2
+        const parts = dateStr.split('/'); // ['21', '04', '2025']
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1; // JS month 0-based
+        const year = parseInt(parts[2]);
+        
+        const dateObj = new Date(year, month, day);
+       
+        
+
+        return dateObj;
+    }
     function updateItemFulfill(internalId, newDateValue){
-        log.debug('newDateValue', newDateValue)
-        var formattedDate = formatDate(newDateValue);
-        var jakartaTime = convertToJakartaUTC(newDateValue);
-        log.debug('jakartaTime', jakartaTime)
-        log.debug('formattedDate', formattedDate)
+        // const jakartaMidnightDate = new Date(
+        //     newDateValue.getUTCFullYear(),
+        //     newDateValue.getUTCMonth(),
+        //     newDateValue.getUTCDate()
+        // );
+    
+        // // Format jadi DD/MM/YYYY
+        // const day = ('0' + jakartaMidnightDate.getDate()).slice(-2);
+        // const month = ('0' + (jakartaMidnightDate.getMonth() + 1)).slice(-2);
+        // const year = jakartaMidnightDate.getFullYear();
+        // const formattedDate = `${day}/${month}/${year}`;
+    
+        // const dateObj = format.parse({
+        //     value: formattedDate,
+        //     type: format.Type.DATE
+        // });
+        const dateObj = newDateValue
+        log.debug('dateObj', dateObj)
+        // log.debug('formattedDate', formattedDate)
         try {
             // log.debug('Updating Item Fulfillment', `ID: ${internalId}, New Date: ${newDateValue}`);
             
@@ -133,9 +186,9 @@ define(["N/record", "N/search"], function(
                 type: record.Type.ITEM_FULFILLMENT,
                 id: internalId,
                 values: {
-                    trandate: jakartaTime,
+                    trandate: dateObj,
                     // memo : 'Update tanggal transaksi dari schedule script',
-                    custbody_rda_do_exp_date : jakartaTime
+                    custbody_rda_do_exp_date : dateObj
                 }
             });
         } catch (error) {

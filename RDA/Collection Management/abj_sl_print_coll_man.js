@@ -168,7 +168,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var salesRep = result.getText({
                         name: "salesrep"
                     })
-                    log.debug('salesRep', salesRep)
+                    // log.debug('salesRep', salesRep)
                     var firstName = result.getValue({
                         name: "firstname",
                         join : "salesrep"
@@ -178,7 +178,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         join : "salesrep"
                     })
                     var salesRep = firstName + " "+ lastName;
-                    log.debug('salesRep', salesRep)
+                    // log.debug('salesRep', salesRep)
                     var area = result.getText({
                         name: "custbody_rda_area"
                     })
@@ -327,9 +327,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var cekAmount =  dataResult.getValue({
                         name: "applyinglinkamount",
                     })
-                    if(applyingTrans == 'creditmemo'){
-                        applyingAmt =cekAmount
-                    }
+                    // if(applyingTrans == 'creditmemo'){
+                    //     applyingAmt =cekAmount
+                    // }
                     var remainAmount = 0
                     var cekRmnAmt = dataResult.getValue({
                         name: "amountremaining",
