@@ -28,6 +28,8 @@ define(["N/record", "N/search", "N/format"], function(
                 var status = result.getValue("status");
                 var statusRef = result.getValue("statusRef");
                 var trandate = result.getValue('trandate');
+                var isLk = result.getValue('custbody_rda_expired');
+                log.debug('isLK', isLk)
                 log.debug('status', status)
                 if (status == 'Shipped') {
                     log.debug('masuk status');
@@ -35,9 +37,51 @@ define(["N/record", "N/search", "N/format"], function(
                     trandate = new Date(trandate.getTime() + offset);
                     log.debug('TRANSAKSI','INTERNAL ID :' + internalId + ' || TRANDATE :' + trandate);
                 
+                    // ===== TAMBAHAN KHUSUS isLk === '2' DAN HARI KHUSUS =====
+                    if (isLk === '2') {
+                        let isSpecialCase = false;
+                
+                        // Cek jika trandate adalah hari Sabtu
+                        if (trandate.getDay() === 6) {
+                            isSpecialCase = true;
+                        }
+                
+                        // Cek jika trandate adalah hari libur
+                        if (isHoliday(trandate)) {
+                            isSpecialCase = true;
+                        }
+                
+                        // Cek jika besoknya trandate adalah hari libur
+                        let besok = new Date(trandate);
+                        besok.setDate(besok.getDate() + 1);
+                        if (isHoliday(besok)) {
+                            isSpecialCase = true;
+                        }
+                
+                        // Jika salah satu kondisi terpenuhi, tambahkan 3 hari kerja
+                        if (isSpecialCase) {
+                            let workDays = 0;
+                            let newDate = new Date(trandate);
+                
+                            while (workDays < 3) {
+                                newDate.setDate(newDate.getDate() + 1);
+                                let isWeekend = (newDate.getDay() === 0 || newDate.getDay() === 6);
+                                let isLibur = isHoliday(newDate);
+                
+                                if (!isWeekend && !isLibur) {
+                                    workDays++;
+                                }
+                            }
+                
+                            log.debug('ISLK 2 -> tempDate (3 hari kerja):', newDate);
+                            updateItemFulfill(internalId, newDate);
+                            return; // Stop eksekusi lebih lanjut karena tempDate sudah di-set
+                        }
+                    }
+                
+                    // ===== LOGIC SEBELUMNYA (TIDAK DIUBAH) =====
                     let tempDate;
                 
-                    // ========== CEK APAKAH TRANSDATE ADALAH LIBUR ==========
                     let holidayToday = isHoliday(trandate);
                     if (holidayToday) {
                         log.debug('Trandate adalah hari libur:', holidayToday);
@@ -47,7 +91,6 @@ define(["N/record", "N/search", "N/format"], function(
                         tempDate = new Date(trandate);
                     }
                 
-                    // ========== CEK APAKAH BESOK DARI TRANSDATE ADALAH LIBUR ==========
                     let besokDate = new Date(trandate);
                     besokDate.setDate(besokDate.getDate() + 1);
                     let holidayBesok = isHoliday(besokDate);
@@ -57,14 +100,12 @@ define(["N/record", "N/search", "N/format"], function(
                         tempDate.setDate(tempDate.getDate() + 1);
                     }
                 
-                    // ========== JIKA HARI SABTU ==========
                     if (trandate.getDay() === 6) { 
                         log.debug('TRANDATE jatuh pada hari Sabtu, menambahkan 2 hari');
                         tempDate = new Date(trandate);
                         tempDate.setDate(tempDate.getDate() + 2);
                     }
                 
-                    // ========== CEK JIKA HARI SENIN ADALAH LIBUR ==========
                     if (tempDate.getDay() === 1) {
                         let isMondayHoliday = isHoliday(tempDate);
                         while (isMondayHoliday) {
@@ -75,7 +116,6 @@ define(["N/record", "N/search", "N/format"], function(
                         }
                     }
                 
-                    // ========== CEK JIKA MASIH HARI LIBUR ==========
                     let isAHoliday = isHoliday(tempDate);
                     while (isAHoliday) {
                         log.debug('Holiday found:', isAHoliday);
@@ -87,6 +127,7 @@ define(["N/record", "N/search", "N/format"], function(
                     log.debug('Final tempDate:', tempDate);
                     updateItemFulfill(internalId, tempDate);
                 }
+                
                 
                 
             }

@@ -249,7 +249,10 @@ define(["N/record", "N/search", "N/log", "N/format"], function (record, search, 
                                 record.submitFields({
                                     type: 'salesorder',
                                     id: soId,
-                                    values: { custbody_rda_inventory_trf_number: saveCreate },
+                                    values: { 
+                                        custbody_rda_inventory_trf_number: saveCreate,
+                                        custbody_rda_error_message_ivnt_trf: '' // set jadi string kosong
+                                    },
                                     options: { enableSourcing: false, ignoreMandatoryFields: true }
                                 });
                             } catch (e) {
