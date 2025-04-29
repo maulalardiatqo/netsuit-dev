@@ -127,9 +127,6 @@ define(["N/record", "N/search", "N/format"], function(
                     log.debug('Final tempDate:', tempDate);
                     updateItemFulfill(internalId, tempDate);
                 }
-                
-                
-                
             }
         }catch(e){
             log.debug('err', e)

@@ -560,6 +560,51 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "</tbody>";
                 body+= "</table>";
 
+                body += "<table class='tg' style='table-layout: fixed;'>";
+                body += "<tbody>";
+                body += "<tr>";
+                body += "<td style='width:40%;'></td>"
+                body += "<td style='width:30%;'></td>"
+                body += "<td style='width:30%;'></td>"
+                body += "</tr>";
+
+                body += "<tr style='padding-top:10px'>";
+                body += "<td style=''>Payment to :</td>"
+                body += "<td style='align:right'></td>"
+                body += "<td style='align:right'></td>"
+                body += "</tr>";
+
+                body += "<tr style='padding-top:20px'>";
+                body += "<td style='font-weight:bold;font-size:14px;'>"+bankNameRec+"</td>"
+                body += "<td style='align:center;' colspan='2'></td>"
+                body += "</tr>";
+
+                body += "<tr style=''>";
+                body += "<td style='font-weight:bold;font-size:14px;'>"+bankAccName +"</td>"
+                body += "<td style='align:center;' colspan='2'></td>"
+                body += "</tr>";
+
+                body += "<tr style=''>";
+                body += "<td style='font-weight:bold;font-size:14px;'>"+bankAccNo +"</td>"
+                body += "<td style='align:center;' colspan='2'></td>"
+                body += "</tr>";
+
+                body += "<tr style=''>";
+                body += "<td></td>"
+                body += "<td style='align:right; vertical-align:middle;background-color:#212841FF;color:#FAFBFD;padding-right:40px;' rowspan='2'>TOTAL DUE</td>"
+                body += "<td style='font-weight:bold;font-size:20px;background-color:#212841FF;color:#FAFBFD;padding-left:20px;'>"+total+"</td>"
+                body += "</tr>";
+
+                body += "<tr style=''>";
+                body += "<td></td>"
+                body += "<td style='font-weight:bold;font-size:20px;background-color:#212841FF;color:#FAFBFD;padding-left:20px;'>"+tlcCurr+"</td>"
+                body += "</tr>";
+
+                 body+= "</tbody>";
+                body+= "</table>";
+
+
+
 
                 footer += "<table class='tg' style='table-layout: fixed;'>";
                 footer += "<tbody>";
@@ -569,41 +614,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style='width:30%;'></td>"
                 footer += "</tr>";
 
-                footer += "<tr style='padding-top:10px'>";
-                footer += "<td style=''>Payment to :</td>"
-                footer += "<td style='align:right'></td>"
-                footer += "<td style='align:right'></td>"
-                footer += "</tr>";
-
-                footer += "<tr style='padding-top:20px'>";
-                footer += "<td style='font-weight:bold;font-size:14px;'>"+bankNameRec+"</td>"
-                footer += "<td style='align:center;' colspan='2'></td>"
-                footer += "</tr>";
-
-                footer += "<tr style=''>";
-                footer += "<td style='font-weight:bold;font-size:14px;'>"+bankAccName +"</td>"
-                footer += "<td style='align:center;' colspan='2'></td>"
-                footer += "</tr>";
-
-                footer += "<tr style=''>";
-                footer += "<td style='font-weight:bold;font-size:14px;'>"+bankAccNo +"</td>"
-                footer += "<td style='align:center;' colspan='2'></td>"
-                footer += "</tr>";
-
-                footer += "<tr style=''>";
-                footer += "<td></td>"
-                footer += "<td style='align:right; vertical-align:middle;background-color:#212841FF;color:#FAFBFD;padding-right:40px;' rowspan='2'>TOTAL DUE</td>"
-                footer += "<td style='font-weight:bold;font-size:20px;background-color:#212841FF;color:#FAFBFD;padding-left:20px;'>"+total+"</td>"
-                footer += "</tr>";
-
-                footer += "<tr style=''>";
-                footer += "<td></td>"
-                footer += "<td style='font-weight:bold;font-size:20px;background-color:#212841FF;color:#FAFBFD;padding-left:20px;'>"+tlcCurr+"</td>"
-                footer += "</tr>";
-
                 footer += "<tr style=''>";
                 footer += "<td style='font-weight:bold;font-size:20px;'></td>"
-                footer += "<td style='align:center;' colspan='2'>"+nameSignatured+"</td>"
+                footer += "<td style='align:right;' colspan='2'>"+nameSignatured+"</td>"
                 footer += "</tr>";
 
 

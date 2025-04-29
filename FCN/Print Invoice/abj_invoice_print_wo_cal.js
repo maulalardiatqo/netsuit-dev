@@ -6,6 +6,17 @@
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
     function (render, search, record, log, file, http, config, format, email, runtime) {
         try {
+            function escapeXmlSymbols(input) {
+                if (!input || typeof input !== "string") {
+                    return input;
+                }
+                return input.replace(/&/g, "&amp;")
+                            .replace(/</g, "&lt;")
+                            .replace(/>/g, "&gt;")
+                            .replace(/"/g, "&quot;")
+                            .replace(/'/g, "&apos;");
+            }
+    
             function decimalRemove(number) {
                 if (number != 0) {
                     return number.substring(0, number.length - 3);
@@ -469,37 +480,37 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td class='tg-headerlogo' style='width:50%;vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
                 }
                 body += "<td>";
-                body += "<p class='tg-headerrow_legalName' style='margin-top: 10px; margin-bottom: 10px;'>" + legalName + "</p>";
-                body += "<p class='tg-headerrow' style='margin-top: 1px; margin-bottom: 1px;'>" + addresSubsidiaries + "<br/>";
-                body += "" + retEmailAddres + "<br/>"
-                body += "NPWP : " + Npwp + "</p>";
+                body += "<p class='tg-headerrow_legalName' style='margin-top: 10px; margin-bottom: 10px;'>" + escapeXmlSymbols(legalName) + "</p>";
+                body += "<p class='tg-headerrow' style='margin-top: 1px; margin-bottom: 1px;'>" + escapeXmlSymbols(addresSubsidiaries) + "<br/>";
+                body += "" + escapeXmlSymbols(retEmailAddres) + "<br/>"
+                body += "NPWP : " + escapeXmlSymbols(Npwp) + "</p>";
                 body += "</td>";
                 body += "</tr>";
                 body += "<tr style='height:5px;'>";
                 body += "</tr>";
                 body += "<tr>";
                 body += "<td>";
-                body += "<p class='tg-headerrow_left'>" + custName + "<br/>"
-                body += "NPWP : " + taxRegNo + "</p>"
+                body += "<p class='tg-headerrow_left'>" + escapeXmlSymbols(custName) + "<br/>"
+                body += "NPWP : " + escapeXmlSymbols(taxRegNo) + "</p>"
                 body += "</td>"
                 body += "<td>"
-                body += "<p class='tg-headerrow_legalName'> Invoice # : " + tandId + "<br/>"
+                body += "<p class='tg-headerrow_legalName'> Invoice # : " + escapeXmlSymbols(tandId) + "<br/>"
                 body += "" + InvDate + "</p>"
-                body += "<p class='tg-headerrow' style='font-size:11px'> Terms : " + terms + "<br/>"
-                body += "Due Date :" + duedate + "</p>"
+                body += "<p class='tg-headerrow' style='font-size:11px'> Terms : " + escapeXmlSymbols(terms) + "<br/>"
+                body += "Due Date :" + escapeXmlSymbols(duedate) + "</p>"
                 // body+= "<p class='tg-headerrow_Total'> Rp."+ balance + "</p>"
                 body += "</td>"
                 body += "</tr>"
                 body += "<tr>";
-                body += "<td>CONTACT PERSON : " + contPerson + "</td>"
+                body += "<td>CONTACT PERSON : " + escapeXmlSymbols(contPerson) + "</td>"
                 body += "</tr>";
 
                 body += "<tr>";
-                body += "<td>EMAIL : " + cpEmail + "</td>"
+                body += "<td>EMAIL : " + escapeXmlSymbols(cpEmail) + "</td>"
                 body += "</tr>";
 
                 body += "<tr>";
-                body += "<td>PHONE : " + cpPhone + "</td>"
+                body += "<td>PHONE : " + escapeXmlSymbols(cpPhone) + "</td>"
                 body += "</tr>";
                 body += "<tr style='height:10px;'>";
                 body += "</tr>";
@@ -563,7 +574,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tr>";
                     body += "<td></td>"
                     body += "<td></td>"
-                    body += "<td style='align:right'>VAT "+taxTextConvert+"</td>"
+                    body += "<td style='align:right'>VAT"+escapeXmlSymbols(taxTextConvert)+"</td>"
                     body += "<td style='align:right'>Rp. " + numberWithCommas(taxtotal) + "</td>"
                     // body += "<td style='align:right'>Rp. "+numberWithCommas(taxTotalRate)+"</td>"
                     body += "</tr>";
@@ -640,7 +651,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tr>";
                     body += "<td></td>"
                     body += "<td></td>"
-                    body += "<td style='align:right'>VAT "+taxTextConvert+"</td>"
+                    body += "<td style='align:right'>VAT</td>"
                     body += "<td style='align:right'>" + currSymb + ". " + numberWithCommas(taxtotal) + "</td>"
                     // body += "<td style='align:right'>Rp. "+numberWithCommas(taxTotalRate)+"</td>"
                     body += "</tr>";
@@ -676,19 +687,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tr>";
                     body += "<td style='align:left;'>Quote </td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;' colspan='4'>" + quoteNumber + "</td>";
+                    body += "<td style='align:left;' colspan='4'>" + escapeXmlSymbols(quoteNumber) + "</td>";
                     body += "</tr>";
 
-                    body += "<tr>";
-                    body += "<td style='align:left;'>Created From</td>";
-                    body += "<td>:</td>";
-                    body += "<td style='align:left;' colspan='4'>" + createdFrom + "</td>";
-                    body += "</tr>";
+       //             body += "<tr>";
+       //             body += "<td style='align:left;'>Created From</td>";
+       //             body += "<td>:</td>";
+       //             body += "<td style='align:left;' colspan='4'>" + createdFrom + "</td>";
+       //             body += "</tr>";
 
                     body += "<tr>";
                     body += "<td style='align:left;'>PO# </td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;' colspan='4'>" + otehrRefNum + "</td>";
+                    body += "<td style='align:left;' colspan='4'>" + escapeXmlSymbols(otehrRefNum) + "</td>";
                     body += "</tr>";
 
 
@@ -699,13 +710,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tr>";
                     body += "<td style='align:left;'>Account Name</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;' colspan='4'>" + legalName + "</td>";
+                    body += "<td style='align:left;' colspan='4'>" + escapeXmlSymbols(legalName) + "</td>";
                     body += "</tr>";
 
                     body += "<tr>";
                     body += "<td style='align:left;'>Payment References</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;' colspan='4'>" + tandId + "</td>";
+                    body += "<td style='align:left;' colspan='4'>" + escapeXmlSymbols(tandId) + "</td>";
                     body += "</tr>";
 
                     body += "<tr style='height: 12px;'></tr>"
@@ -714,43 +725,43 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tr>";
                     body += "<td style='align:left;'>Bank Name</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + bankName + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(bankName) + "</td>";
                     body += "<td style='align:left;'>Bank Name</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + bankName2 + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(bankName2) + "</td>";
                     body += "</tr>";
                     
                     body += "<tr>";
                     body += "<td style='align:left;'>Bank/Swift Code</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + swiftCode + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(swiftCode) + "</td>";
                     body += "<td style='align:left;'>Bank/Swift Code</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + swiftCode2 + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(swiftCode2) + "</td>";
                     body += "</tr>";
                     
                     body += "<tr>";
                     body += "<td style='align:left;'>Bank Branch</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + bankBranch + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(bankBranch )+ "</td>";
                     body += "<td style='align:left;'>Bank Branch</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + bankBranch2 + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(bankBranch2) + "</td>";
                     body += "</tr>";
 
 
                     body += "<tr>";
                     body += "<td style='align:left;'>Account Number</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + accountNo + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(accountNo) + "</td>";
                     body += "<td style='align:left;'>Account Number</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + accountNo2 + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(accountNo2) + "</td>";
                     body += "</tr>";
 
                     body += "<tr style='height: 50px;'></tr>"
                     body += "<tr>";
-                    body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>" + jobNumber + "</td>";
+                    body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>" + escapeXmlSymbols(jobNumber) + "</td>";
                     body += "</tr>";
 
 
@@ -772,19 +783,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tr>";
                     body += "<td style='align:left;'>Quote </td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + quoteNumber + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(quoteNumber) + "</td>";
                     body += "</tr>";
     
-                    body += "<tr>";
-                    body += "<td style='align:left;'>Created From</td>";
-                    body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + createdFrom + "</td>";
-                    body += "</tr>";
+     //               body += "<tr>";
+     //               body += "<td style='align:left;'>Created From</td>";
+     //               body += "<td>:</td>";
+     //               body += "<td style='align:left;'>" + createdFrom + "</td>";
+     //               body += "</tr>";
     
                     body += "<tr>";
                     body += "<td style='align:left;'>PO# </td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + otehrRefNum + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(otehrRefNum) + "</td>";
                     body += "</tr>";
     
     
@@ -796,41 +807,41 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tr>";
                     body += "<td style='align:left;'>Bank Name</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + bankName + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(bankName) + "</td>";
                     body += "</tr>";
     
                     body += "<tr>";
                     body += "<td style='align:left;'>Bank Branch</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + bankBranch + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(bankBranch) + "</td>";
                     body += "</tr>";
     
                     body += "<tr>";
                     body += "<td style='align:left;'>Bank/Swift Code</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + swiftCode + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(swiftCode) + "</td>";
                     body += "</tr>";
     
                     body += "<tr>";
                     body += "<td style='align:left;'>Account Name</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + legalName + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(legalName) + "</td>";
                     body += "</tr>";
     
                     body += "<tr>";
                     body += "<td style='align:left;'>Account Number</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + accountNo + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(accountNo) + "</td>";
                     body += "</tr>";
     
                     body += "<tr>";
                     body += "<td style='align:left;'>Payment References</td>";
                     body += "<td>:</td>";
-                    body += "<td style='align:left;'>" + tandId + "</td>";
+                    body += "<td style='align:left;'>" + escapeXmlSymbols(tandId) + "</td>";
                     body += "</tr>";
     
                     body += "<tr>";
-                    body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>" + jobNumber + "</td>";
+                    body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>" + escapeXmlSymbols(jobNumber) + "</td>";
                     body += "</tr>";
     
     
@@ -848,7 +859,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<table class='tg' style='table-layout: fixed;'>";
                 footer += "<tbody>";
                 footer += "<tr class='tg-foot'>";
-                footer += "<td style='align:left'>Sales Invoice # " + tandId + "</td>"
+                footer += "<td style='align:left'>Sales Invoice # " + escapeXmlSymbols(tandId) + "</td>"
                 footer += "<td style='align:right'></td>"
                 footer += "</tr>";
                 footer += "</tbody>";
@@ -891,7 +902,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     //added by kurnia
                     html += `<tr>
                                 <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
-                                <td class='tg-b_body'>${item.description}</td>
+                                <td class='tg-b_body'>${escapeXmlSymbols(item.description)}</td>
                                 <td class='tg-b_body' align="right">${item.currSymb}. ${(numberWithCommas(item.itemPrice))}</td>
                                 <td class='tg-b_body' style='align:center'>${item.quantity}</td>
                                 <td class='tg-b_body' style="border-right: 1px solid black; align:right;">${item.currSymb}. ${numberWithCommas(item.totalCost)}</td>
@@ -1031,7 +1042,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 items.forEach((item, index) => {
                     html += `<tr>
                                 <td class='tg-b_body' style='border-left:1px solid black'>${no}</td>
-                                <td class='tg-b_body'>${item.description}</td>
+                                <td class='tg-b_body'>${escapeXmlSymbols(item.description)}</td>
                                 <td class='tg-b_body' style='align:center'>${item.complexityLevel}</td>
                                 <td class='tg-b_body' align="right">${item.currSymb}. ${numberWithCommas(item.itemPrice)}</td>
                                 <td class='tg-b_body' style='align:center'>${item.quantity}</td>
@@ -1040,7 +1051,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             </tr>
                             <tr>
                                 <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                                <td class='tg-b_body' style='font-weight:bold;'>${item.remarks}</td>
+                                <td class='tg-b_body' style='font-weight:bold;'>${escapeXmlSymbols(item.remarks)}</td>
                                 <td class='tg-b_body' style='border-right: 1px solid black' colspan="4"></td>
                             </tr>`;
 
