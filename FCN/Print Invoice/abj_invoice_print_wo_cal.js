@@ -1057,11 +1057,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     if (item.discLine && item.discLine != 0) {
                         html += `<tr>
-                                              <td class='tg-b_body' style='border-left: 1px solid black'></td>
-                                              <td class='tg-b_body' style=''>[Discount - ${item.prosDiscLine}%]</td>
-                                              <td class='tg-b_body' colspan="3"></td>
-                                              <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>${item.currSymb}. (${numberWithCommas(item.discLine)})</td>
-                                          </tr>`;
+                                    <td class='tg-b_body' style='border-left: 1px solid black'></td>
+                                    <td class='tg-b_body' style=''>[Discount - ${item.prosDiscLine}%]</td>
+                                    <td class='tg-b_body' colspan="3"></td>
+                                    <td class='tg-b_body' style='border-right: 1px solid black; align:right;'>${item.currSymb}. (${numberWithCommas(item.discLine)})</td>
+                                </tr>`;
                     }
 
                     no++;
