@@ -62,12 +62,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // var dikirim = ifRec.getValue('shipcarrier') || '';
 
                 var docnumber = ifRec.getValue({ name: 'tranid' });
-                log.debug('dikirim', dikirim)
+                // log.debug('dikirim', dikirim)
                 var ekspedisi = ifRec.getText({ name: 'shipmethod' });
-                var shipTo = ifRec.getValue({
-                    name: "address",
-                    join: "customer",
-                });
+                // var shipTo = ifRec.getValue({
+                //     name: "address",
+                //     join: "customer",
+                // });
+                var shipTo = ifRec.getValue({name : 'shipaddress'})
                 var nopolMobil = ifRec.getValue({ name: 'custbody_abj_nopol_mobil' })
                 var driverName = ifRec.getValue({ name: 'custbody_abj_driver_name' }) //added by kurnia
                 if (ekspedisi.includes('&')) {
@@ -256,7 +257,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // Konten untuk halaman pertama
                 // body1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
                 body1 += "<table class='tg' width=\"100%\" style=\"table-layout:fixed; font-size:10px;\">";
-                body1 += "<thead>";
+                body1 += "<tbody>";
                 body1 += "<tr style='height:20px;'>";
                 body1 += "<td style='' colspan='5'></td>";
                 body1 += "</tr>";
@@ -343,13 +344,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     + "</td>";
                 body1 += "</tr>";
 
+
+
                 body1 += "<tr>";
                 body1 += "<td style='height:10px'></td>";
                 body1 += "</tr>";
-                body1 += "</thead>";
+                body1 += "</tbody>";
                 body1 += "</table>";
-
-                
                 body1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
                 body1 += "<tbody>";
                 body1 += "<tr>";

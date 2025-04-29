@@ -8,8 +8,15 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     var records = currentRecord.get();
     console.log('tes')
     var relatedRecordsTab = document.getElementById("relrecordslnk");
-    relatedRecordsTab.style.display = "none";
-        console.log('relatedRecordsTab', relatedRecordsTab)
+    console.log('relatedRecordsTab', relatedRecordsTab)
+    if(relatedRecordsTab){
+        relatedRecordsTab.style.display = "none";
+    }
+    var relatedRecordsPan = document.getElementById("relrecords_pane");
+    console.log('relatedRecordsPan', relatedRecordsPan)
+    if(relatedRecordsPan){
+        relatedRecordsPan.style.display = "none";
+    }
     function pageInit(context) {
         console.log('pageInit')
         
