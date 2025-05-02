@@ -5,10 +5,9 @@
  */
 
 define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog", "N/https"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog, https) {
-    var records = currentRecord.get();
-    
     function pageInit(context) {
         log.debug('init masuk');
+        var records = currentRecord.get();
     }
     function createRec(context) {
         var processMsg = message.create({
@@ -26,12 +25,13 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 log.error("Error", e);
                 dialog.alert({
                     title: "Error",
-                    message: "An unexpected error occurred: " + e.message
+                    message: e.message
                 });
             }
         }, 500); 
     }
     function processTransaction(processMsg){
+        var records = currentRecord.get();
         var rec = records;
         var soId = rec.id;
         var suiteletUrl = url.resolveScript({

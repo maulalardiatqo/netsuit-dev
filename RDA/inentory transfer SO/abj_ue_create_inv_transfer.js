@@ -16,13 +16,13 @@ define(["N/record", "N/search", "N/log", "N/format"], function (record, search, 
             var cekError = rec.getValue('custbody_rda_error_message_ivnt_trf');
             var cekInvTrans = rec.getValue('custbody_rda_inventory_trf_number');
             var status = rec.getValue('status');
-            log.debug('cekInvTrans', cekInvTrans.length)
+            log.debug('cekInvTrans', cekInvTrans ? cekInvTrans.length : 0);
             log.debug('cekError', cekError)
             log.debug('status', status);
             if(status != 'Closed'){
                 log.debug('status tidak sama dengan closed')
                 if(cekError){ 
-                    if(cekInvTrans.length < 1){
+                    if((!cekInvTrans || cekInvTrans.length < 1)){
                         form.addButton({
                             id: 'custpage_button_recreate',
                             label: "Recreate Inv Transfer",
@@ -257,8 +257,9 @@ define(["N/record", "N/search", "N/log", "N/format"], function (record, search, 
                                 });
                             } catch (e) {
                                 log.error('Error creating Inventory Transfer', e);
-    
-                                // Set the error message on SO
+                                if(e.message == 'An unexpected SuiteScript error has occurred'){
+                                    e.message = 'Another process with the same item is being processed, please press the recreate inventory transfer button'
+                                }
                                 record.submitFields({
                                     type: 'salesorder',
                                     id: soId,
