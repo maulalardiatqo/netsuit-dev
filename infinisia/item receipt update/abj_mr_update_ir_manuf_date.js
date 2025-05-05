@@ -5,12 +5,16 @@
 
 define(['N/search', 'N/record', 'N/log'], function (search, record, log) {
     function getInputData() {
-        return search.load({ id: 'customsearch_id_ir_update_manufacture' });
+        return search.load({ id: 'customsearch1203' });
     }
 
     function map(context) {
         let result = JSON.parse(context.value);
-        let irId = result.id;
+    
+        let irId = result.values["internalid.transaction"].value;
+    
+        log.debug('irId', irId);
+    
         context.write({ key: irId, value: irId });
     }
 
@@ -86,19 +90,19 @@ define(['N/search', 'N/record', 'N/log'], function (search, record, log) {
         });
     }
 
-    function summarize(summary) {
-        log.audit('Process Summary', `Total Processed: ${summary.inputSummary.recordCount}`);
+    // function summarize(summary) {
+    //     log.audit('Process Summary', `Total Processed: ${summary.inputSummary.recordCount}`);
         
-        summary.reduceSummary.errors.iterator().each(function (key, error) {
-            log.error(`Error Deleting Record ID ${key}`, error);
-            return true;
-        });
-    }
+    //     summary.reduceSummary.errors.iterator().each(function (key, error) {
+    //         log.error(`Error processing Record ID ${key}`, error);
+    //         return true;
+    //     });
+    // }
 
     return {
         getInputData: getInputData,
         map: map,
         reduce: reduce,
-        summarize: summarize
+        // summarize: summarize
     };
 });
