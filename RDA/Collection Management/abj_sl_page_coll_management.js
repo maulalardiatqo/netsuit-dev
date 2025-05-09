@@ -55,7 +55,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 ],
                 columns:
                 [
-                    search.createColumn({name: "entityid", label: "Name"}),
+                    search.createColumn({name: "altname", label: "Name"}),
                     search.createColumn({name: "internalid", label: "Internal ID"})
                 ]
             });
@@ -63,7 +63,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             log.debug("employeeSearchObj result count",searchResultCount);
             employeeSearchObj.run().each(function(result){
                 var nameSales = result.getValue({
-                    name: "entityid"
+                    name: "altname"
                 });
                 var idEmp = result.getValue({
                     name: "internalid"
