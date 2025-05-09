@@ -4,90 +4,74 @@
  */
 
 define(['N/search', 'N/record', 'N/log'], function (search, record, log) {
+    function convertToDateObject(dateStr) {
+        // Misal dateStr = '31/8/2024'
+        let parts = dateStr.split('/');
+        if (parts.length !== 3) {
+            throw new Error('Invalid date format. Expected DD/MM/YYYY');
+        }
+    
+        let day = parseInt(parts[0], 10);
+        let month = parseInt(parts[1], 10) - 1;
+        let year = parseInt(parts[2], 10);
+    
+        return new Date(year, month, day);
+    }
     function getInputData() {
         return search.load({ id: 'customsearch1203' });
     }
 
     function map(context) {
         let result = JSON.parse(context.value);
+        log.debug('result', result);
     
-        let irId = result.values["internalid.transaction"].value;
+        let irId = result.values["internalid.inventoryNumber"].value;
+        let trandate = result.values["trandate.transaction"];
     
-        log.debug('irId', irId);
-    
-        context.write({ key: irId, value: irId });
-    }
-
-    function reduce(context) {
-        let irIds = context.values;
-        log.debug('irIds', irIds)
-        irIds.forEach(id => {
-            var newRecord = record.load({
-                type : "itemreceipt",
-                id : id,
-                isDynamic : false
-            });
-            const itemCount = newRecord.getLineCount({ sublistId: 'item' });
-                var trandate = newRecord.getValue('trandate');
-                log.debug('trandate', trandate)
-
-                for (let i = 0; i < itemCount; i++) {
-                    const itemId = newRecord.getSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'item',
-                        line: i
-                    });
-                    try {
-                        const inventoryDetail = newRecord.getSublistSubrecord({
-                            sublistId: 'item',
-                            fieldId: 'inventorydetail',
-                            line: i
-                        });
-                        log.debug('inventoryDetail', inventoryDetail)
-                        if (inventoryDetail) {
-                            const assignCount = inventoryDetail.getLineCount({
-                                sublistId: 'inventoryassignment'
-                            });
-
-                            for (let j = 0; j < assignCount; j++) {
-                                const numberedRecordId = inventoryDetail.getSublistValue({
-                                    sublistId: 'inventoryassignment',
-                                    fieldId: 'numberedrecordid',
-                                    line: j
-                                });
-                    
-                                if (numberedRecordId) {
-                                    log.debug('Dapat numberedrecordid', `Item Line: ${i}, Assignment Line: ${j}, numberedrecordid: ${numberedRecordId}`);
-                                    var recInvNumb = record.load({
-                                        type: "inventorynumber",
-                                        id: numberedRecordId,
-                                        isDynamic: true,
-                                    });
-                                    log.debug('recInvNumb', recInvNumb)
-                                    var cekInvNumb = recInvNumb.getValue('inventorynumber')
-                                    log.debug('cekInvNumb', cekInvNumb)
-                                    if(trandate){
-                                        recInvNumb.setValue({
-                                            fieldId: "custitemnumber_abj_manufacturing_date",
-                                            value: trandate,
-                                            ignoreFieldChange: true,
-                                        })
-                                        recInvNumb.save({
-                                            enableSourcing: false,
-                                            ignoreMandatoryFields: true,
-                                        });
-                                    }
-                                } else {
-                                    log.debug('numberedrecordid kosong', `Item Line: ${i}, Assignment Line: ${j}`);
-                                }
-                            }
-                        }
-                    } catch (e) {
-                        log.debug('Tidak ada Inventory Detail', `Item Line: ${i}, Item ID: ${itemId}, Error: ${e.message}`);
-                    }
-                }
-            
+        context.write({
+            key: irId,
+            value: trandate
         });
+    }
+    
+    /**
+     * REDUCE Function
+     */
+    function reduce(context) {
+        let irId = context.key;
+        let trandates = context.values;
+        log.debug('Processing irId', irId);
+
+        var trandate = trandates[0];
+        log.debug('trandate', trandate)
+        var dateConvert = convertToDateObject(trandate)
+        log.debug('dateConvert', dateConvert)
+        try{
+            var recInvNumb = record.load({
+                type: "inventorynumber",
+                id: irId,
+                isDynamic: true,
+            });
+            var cekInvNumb = recInvNumb.getValue('inventorynumber');
+            log.debug('cekInvNumb', cekInvNumb)
+            if (dateConvert) {
+                log.debug('masuk proses')
+                recInvNumb.setValue({
+                    fieldId: "custitemnumber_abj_manufacturing_date",
+                    value: dateConvert,
+                    ignoreFieldChange: true,
+                });
+                var saverec = recInvNumb.save({
+                    enableSourcing: false,
+                    ignoreMandatoryFields: true,
+                });
+        
+                log.debug('Inventory Number updated', saverec);
+            }
+        }catch(e){
+            log.debug('error', e)
+        }
+        
     }
 
     // function summarize(summary) {

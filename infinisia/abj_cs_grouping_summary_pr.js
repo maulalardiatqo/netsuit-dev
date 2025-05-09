@@ -11,14 +11,15 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         log.debug('init masuk');
     }
     function getNumberFromString(input) {
-        const match = input.match(/^\d+/);
-        return match ? parseInt(match[0]) : 1;
+        const match = input.match(/\d+(\.\d+)?/);
+        return match ? parseFloat(match[0]) : 1;
     }
     function calculate(context) {
         var currentRecordObj = records;
         var countLine = currentRecordObj.getLineCount({
             sublistId: 'item'
         });
+        console.log('calculateCall')
         if (countLine > 0) {
             var allData = [];
             for (var index = 0; index < countLine; index++) {
@@ -231,11 +232,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 return data;
             });
             result = result.flat(); 
-           log.debug('resultLength', result.length)
+           console.log('resultLength', result.length)
             if (result.length > 0) {
 
                 result.forEach(function(data) {
-                    log.debug('data', data)
+                    console.log('data', data)
                     var soNo = data.soNo
                     var packSizeOrder = data.packSizeOrder
                     var packSizeOrderText = data.packSizeOrderText
@@ -357,11 +358,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: 'custrecord_abj_pr_rate_units_decimal',
                         value: setRatePackSize
                     });
-                    log.debug('packSizeOrderText', packSizeOrderText)
-                    log.debug('totalOrder', totalOrder);
-                    log.debug('setRatePackSize', setRatePackSize)
+                    console.log('packSizeOrderText', packSizeOrderText)
+                    console.log('totalOrder', totalOrder);
+                    console.log('setRatePackSize', setRatePackSize)
                     var totalPackagingCount = Number(totalOrder) / Number(setRatePackSize);
-                    log.debug('totalPackagingCount', totalPackagingCount)
+                    console.log('totalPackagingCount', totalPackagingCount)
                     currentRecordObj.setCurrentSublistValue({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
                         fieldId: 'custrecord_iss_total_order_formula',
@@ -375,7 +376,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             
         }
         var scriptObj = runtime.getCurrentScript();
-        log.debug({
+        console.log({
             title: "Remaining usage units: ",
             details: scriptObj.getRemainingUsage(),
         });

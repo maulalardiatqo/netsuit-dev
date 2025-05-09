@@ -31,13 +31,19 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         sublistId: "recmachcustrecord_iss_pr_parent",
                         fieldId: "custrecord_iss_avg_busdev",
                     });
+                    console.log('avgBusdev', avgBusdev)
                     valueRumus = Number(leadTimeKirim) * Number(avgBusdev)
                     console.log('valueRumus', valueRumus);
-                    currentRecordObj.setCurrentSublistValue({
-                        sublistId: "recmachcustrecord_iss_pr_parent",
-                        fieldId: "custrecord_iss_rumus_perhitungan",
-                        value: valueRumus,
-                    });
+                    console.log('cekUpdate')
+                    if(valueRumus && valueRumus > 0){
+                        console.log('masuk kondisi')
+                        currentRecordObj.setCurrentSublistValue({
+                            sublistId: "recmachcustrecord_iss_pr_parent",
+                            fieldId: "custrecord_iss_rumus_perhitungan",
+                            value: valueRumus,
+                        });
+                    }
+                    
                 }
 
             } 
@@ -203,7 +209,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 if(cFrom == '104'){
                     var priceKg = record.getCurrentSublistValue({
                         sublistId: "item",
-                        fieldId : "custcol_pr_total_order"
+                        fieldId : "custcol_abj_purchase_price_per_kg"
                     });
                     var ratePack = 0
 
