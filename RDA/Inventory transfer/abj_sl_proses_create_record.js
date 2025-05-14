@@ -204,20 +204,22 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                 
                             var saveCreate = createRecord.save();
                             log.debug('saveCreate', saveCreate);
-                            if(saveCreate){
-                                successExceute = true
-                                messge = 'Success Create Inventory Transfer'
+                            if (saveCreate) {
+                                successExceute = true;
+                                messge = 'Success Create Inventory Transfer';
+
                                 record.submitFields({
                                     type: 'itemfulfillment',
                                     id: ifId,
-                                    values: { custbody_rda_do_trf_to_gs: saveCreate},
-                                    options: { enableSourcing: false, ignoreMandatoryFields: true }
-                                });
-                                record.submitFields({
-                                    type: 'itemfulfillment',
-                                    id: ifId,
-                                    values: { custbody_rda_it_error_for_do_header: '' },
-                                    options: { enableSourcing: false, ignoreMandatoryFields: true }
+                                    values: {
+                                        custbody_rda_do_trf_to_gs: saveCreate,
+                                        custbody_rda_it_error_for_do_header: '',
+                                        custbody_rda_done__it: true
+                                    },
+                                    options: {
+                                        enableSourcing: false,
+                                        ignoreMandatoryFields: true
+                                    }
                                 });
                             }
                 

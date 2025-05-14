@@ -15,7 +15,7 @@ define(["N/record", "N/search", "N/format"], function(
             log.debug('cekType', cekType)
             if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.PACK) {
                 var today = new Date();
-                const offset = 7 * 60 * 60 * 1000; // Jakarta is UTC+7
+                const offset = 7 * 60 * 60 * 1000; 
                 today = new Date(today.getTime() + offset);
                 var rec = context.newRecord;
     
@@ -28,101 +28,118 @@ define(["N/record", "N/search", "N/format"], function(
                 var status = result.getValue("status");
                 var trandate = result.getValue('trandate');
                 var isLk = result.getValue('custbody_rda_expired');
+                var cekDOCancelled = result.getValue('custbody_rda_do_cancelled');
+                var cekMemo = result.getValue('memo')
                 log.debug('isLK', isLk)
+                log.debug('cekDOCancelled', cekDOCancelled)
                 log.debug('status', status)
                 if (status == 'Shipped') {
                     log.debug('masuk status');
-                    trandate = new Date(convertToYYYYMMDD(trandate));
-                    trandate = new Date(trandate.getTime() + offset);
+                    if(cekDOCancelled == false){
+                        trandate = new Date(convertToYYYYMMDD(trandate));
+                        trandate = new Date(trandate.getTime() + offset);
 
-                    // ===== TAMBAHAN LOGIC BARU SESUAI REQUEST =====
-                    if (isLk === '2') {
-                        // Tambah 3 hari dari trandate
-                        let newDate = new Date(trandate);
-                        newDate.setDate(newDate.getDate() + 3);
-                        log.debug('ISLK 2 - +3 date:', newDate);
+                        // ===== TAMBAHAN LOGIC BARU SESUAI REQUEST =====
+                        if (isLk === '2') {
+                            // Tambah 3 hari dari trandate
+                            let newDate = new Date(trandate);
+                            newDate.setDate(newDate.getDate() + 3);
+                            log.debug('ISLK 2 - +3 date:', newDate);
 
-                        // Cek kalau hasilnya holiday, cari ke depan sampai bukan holiday
-                        let isLibur = isHoliday(newDate);
-                        while (isLibur) {
-                            log.debug('Tanggal hasil +3 libur:', isLibur);
-                            newDate = new Date(isLibur.endDate);
+                            // Cek kalau hasilnya holiday, cari ke depan sampai bukan holiday
+                            let isLibur = isHoliday(newDate);
+                            while (isLibur) {
+                                log.debug('Tanggal hasil +3 libur:', isLibur);
+                                newDate = new Date(isLibur.endDate);
+                                newDate.setDate(newDate.getDate() + 1);
+                                isLibur = isHoliday(newDate);
+                            }
+
+                            log.debug('Final date ISLK 2:', newDate);
+                            updateItemFulfill(internalId, newDate);
+                            return;
+                        } else {
+                            // Tambah 1 hari dari trandate
+                            let newDate = new Date(trandate);
                             newDate.setDate(newDate.getDate() + 1);
-                            isLibur = isHoliday(newDate);
+                            log.debug('ISLK bukan 2 - +1 date:', newDate);
+
+                            // Cek kalau hasilnya holiday, cari ke depan sampai bukan holiday
+                            let isLibur = isHoliday(newDate);
+                            while (isLibur) {
+                                log.debug('Tanggal hasil +1 libur:', isLibur);
+                                newDate = new Date(isLibur.endDate);
+                                newDate.setDate(newDate.getDate() + 1);
+                                isLibur = isHoliday(newDate);
+                            }
+
+                            log.debug('Final date ISLK bukan 2:', newDate);
+                            updateItemFulfill(internalId, newDate);
+                            return;
                         }
 
-                        log.debug('Final date ISLK 2:', newDate);
-                        updateItemFulfill(internalId, newDate);
-                        return;
-                    } else {
-                        // Tambah 1 hari dari trandate
-                        let newDate = new Date(trandate);
-                        newDate.setDate(newDate.getDate() + 1);
-                        log.debug('ISLK bukan 2 - +1 date:', newDate);
+                        // ===== AKHIR LOGIC BARU =====
 
-                        // Cek kalau hasilnya holiday, cari ke depan sampai bukan holiday
-                        let isLibur = isHoliday(newDate);
-                        while (isLibur) {
-                            log.debug('Tanggal hasil +1 libur:', isLibur);
-                            newDate = new Date(isLibur.endDate);
-                            newDate.setDate(newDate.getDate() + 1);
-                            isLibur = isHoliday(newDate);
-                        }
-
-                        log.debug('Final date ISLK bukan 2:', newDate);
-                        updateItemFulfill(internalId, newDate);
-                        return;
-                    }
-
-                    // ===== AKHIR LOGIC BARU =====
-
-                    // ===== LOGIC SEBELUMNYA (TETAP UTUH) =====
-                    let tempDate;
-                
-                    let holidayToday = isHoliday(trandate);
-                    if (holidayToday) {
-                        log.debug('Trandate adalah hari libur:', holidayToday);
-                        tempDate = new Date(holidayToday.endDate);
-                        tempDate.setDate(tempDate.getDate() + 1);
-                    } else {
-                        tempDate = new Date(trandate);
-                    }
-                
-                    let besokDate = new Date(trandate);
-                    besokDate.setDate(besokDate.getDate() + 1);
-                    let holidayBesok = isHoliday(besokDate);
-                    if (holidayBesok) {
-                        log.debug('Besok adalah hari libur:', holidayBesok);
-                        tempDate = new Date(holidayBesok.endDate);
-                        tempDate.setDate(tempDate.getDate() + 1);
-                    }
-                
-                    if (trandate.getDay() === 6) {
-                        log.debug('TRANDATE jatuh pada hari Sabtu, menambahkan 2 hari');
-                        tempDate = new Date(trandate);
-                        tempDate.setDate(tempDate.getDate() + 2);
-                    }
-                
-                    if (tempDate.getDay() === 1) {
-                        let isMondayHoliday = isHoliday(tempDate);
-                        while (isMondayHoliday) {
-                            log.debug('Senin adalah hari libur:', isMondayHoliday);
-                            tempDate = new Date(isMondayHoliday.endDate);
+                        // ===== LOGIC SEBELUMNYA (TETAP UTUH) =====
+                        let tempDate;
+                    
+                        let holidayToday = isHoliday(trandate);
+                        if (holidayToday) {
+                            log.debug('Trandate adalah hari libur:', holidayToday);
+                            tempDate = new Date(holidayToday.endDate);
                             tempDate.setDate(tempDate.getDate() + 1);
-                            isMondayHoliday = isHoliday(tempDate);
+                        } else {
+                            tempDate = new Date(trandate);
                         }
+                    
+                        let besokDate = new Date(trandate);
+                        besokDate.setDate(besokDate.getDate() + 1);
+                        let holidayBesok = isHoliday(besokDate);
+                        if (holidayBesok) {
+                            log.debug('Besok adalah hari libur:', holidayBesok);
+                            tempDate = new Date(holidayBesok.endDate);
+                            tempDate.setDate(tempDate.getDate() + 1);
+                        }
+                    
+                        if (trandate.getDay() === 6) {
+                            log.debug('TRANDATE jatuh pada hari Sabtu, menambahkan 2 hari');
+                            tempDate = new Date(trandate);
+                            tempDate.setDate(tempDate.getDate() + 2);
+                        }
+                    
+                        if (tempDate.getDay() === 1) {
+                            let isMondayHoliday = isHoliday(tempDate);
+                            while (isMondayHoliday) {
+                                log.debug('Senin adalah hari libur:', isMondayHoliday);
+                                tempDate = new Date(isMondayHoliday.endDate);
+                                tempDate.setDate(tempDate.getDate() + 1);
+                                isMondayHoliday = isHoliday(tempDate);
+                            }
+                        }
+                    
+                        let isAHoliday = isHoliday(tempDate);
+                        while (isAHoliday) {
+                            log.debug('Holiday found:', isAHoliday);
+                            tempDate = new Date(isAHoliday.endDate);
+                            tempDate.setDate(tempDate.getDate() + 1);
+                            isAHoliday = isHoliday(tempDate);
+                        }
+                        if(cekMemo && cekMemo == 'Error - DO Cancelled'){
+                            result.setValue({
+                                fieldId : 'memo',
+                                value : ''
+                            })
+                        }
+                        log.debug('Final tempDate:', tempDate);
+                        updateItemFulfill(internalId, tempDate);
+                    }else{
+                        result.setValue({
+                            fieldId : 'memo',
+                            value : 'Error - DO Cancelled'
+                        })
+                        result.save()
                     }
-                
-                    let isAHoliday = isHoliday(tempDate);
-                    while (isAHoliday) {
-                        log.debug('Holiday found:', isAHoliday);
-                        tempDate = new Date(isAHoliday.endDate);
-                        tempDate.setDate(tempDate.getDate() + 1);
-                        isAHoliday = isHoliday(tempDate);
-                    }
-                
-                    log.debug('Final tempDate:', tempDate);
-                    updateItemFulfill(internalId, tempDate);
+                    
                 }
             }
         } catch(e){

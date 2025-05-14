@@ -11,26 +11,43 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         log.debug('init masuk');
     }
     function createInv(context) {
-        var processMsg = message.create({
-            title: "Processing",
-            message: "On Process. Please wait...",
-            type: message.Type.INFORMATION
-        });
-        processMsg.show();
+    // Disable button
+    var button = document.getElementById('custpage_button_recreate');
+    console.log('button')
+    if (button) {
+        console.log('masuk isbutton')
+        button.disabled = true;
+        button.innerText = 'Processing...'; // Optional: ubah teks tombol juga
+    }
 
-        setTimeout(function () {
-            try {
-                processTransaction(processMsg);
-            } catch (e) {
-                processMsg.hide(); 
+    var processMsg = message.create({
+        title: "Processing",
+        message: "On Process. Please wait...",
+        type: message.Type.INFORMATION
+    });
+    processMsg.show();
+
+    setTimeout(function () {
+        try {
+            processTransaction(processMsg);
+        } catch (e) {
+            processMsg.hide();
+            
+            // Enable button kembali jika error
+            if (button) {
+                    button.disabled = false;
+                    button.innerText = 'Create Inventory Transfer';
+                }
+
                 log.error("Error", e);
                 dialog.alert({
                     title: "Error",
                     message: "An unexpected error occurred: " + e.message
                 });
             }
-        }, 500); 
+        }, 500);
     }
+
     function processTransaction(processMsg){
         var rec = records;
         var ifId = rec.id;

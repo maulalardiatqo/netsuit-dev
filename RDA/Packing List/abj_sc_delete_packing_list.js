@@ -32,7 +32,8 @@ define(['N/log', 'N/record', 'N/search', 'N/runtime'], (log, record, search, run
                                 id: id,
                                 values: {
                                     custbody_rda_flag_centangpackinglist: isCentang,
-                                    custbody_rda_nopol: nopol
+                                    custbody_rda_nopol: nopol,
+                                    custbody_rda_packing_list_number : recordId
                                 }
                             });
                         }
@@ -52,7 +53,8 @@ define(['N/log', 'N/record', 'N/search', 'N/runtime'], (log, record, search, run
                                 id: id,
                                 values: {
                                     custbody_rda_flag_centangpackinglist: isCentang,
-                                    custbody_rda_nopol: nopol
+                                    custbody_rda_nopol: nopol,
+                                    custbody_rda_packing_list_number : ""
                                 }
                             });
                         }
