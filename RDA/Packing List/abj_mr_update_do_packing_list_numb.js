@@ -31,12 +31,14 @@ define(['N/search', 'N/record', 'N/log', 'N/runtime'], function (search, record,
             log.debug('result', result)
             const idTrans = result.id;
             const idIf = result.values["internalid.CUSTBODY_RDA_PACKLIST_DO_NUMBER"].value;
+            const nopol = result.values.custbody_rda_packlist_nopol;
+            log.debug('nopol', nopol)
             // log.debug('data', {idTrans : idTrans, idIf : idIf})
             
             // log.debug('datamap', {idTrans : idTrans, idIf : idIf})
             context.write({
                 key: idTrans,
-                value: JSON.stringify({ idTrans, idIf })
+                value: JSON.stringify({ idTrans, idIf, nopol })
             });
 
         }catch(e){
@@ -58,6 +60,7 @@ define(['N/search', 'N/record', 'N/log', 'N/runtime'], function (search, record,
                         values: {
                             custbody_rda_packing_list_number : data.idTrans,
                             custbody_rda_flag_centangpackinglist: true,
+                            custbody_rda_nopol : data.nopol
                         },
                         options: {
                             enableSourcing: false,
