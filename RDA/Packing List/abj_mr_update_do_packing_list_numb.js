@@ -56,7 +56,12 @@ define(['N/search', 'N/record', 'N/log', 'N/runtime'], function (search, record,
                         type: "itemfulfillment",
                         id: data.idIf,
                         values: {
-                            custbody_rda_packing_list_number : data.idTrans
+                            custbody_rda_packing_list_number : data.idTrans,
+                            custbody_rda_flag_centangpackinglist: true,
+                        },
+                        options: {
+                            enableSourcing: false,
+                            ignoreMandatoryFields: true
                         }
                     });
                 } else {

@@ -16,6 +16,7 @@ define(['N/log', 'N/record', 'N/search', 'N/runtime'], (log, record, search, run
                 var nopol = ''
                 var isCentang = false
                 if(eventTrigger == 'create'){
+                    log.debug('masuk kondisi create')
                     var dataRec = record.load({
                         type : 'customtransaction_rda_packing_list',
                         id : recordId
@@ -27,6 +28,7 @@ define(['N/log', 'N/record', 'N/search', 'N/runtime'], (log, record, search, run
                     allIdFul.forEach(function(id) {
                         totalData = totalData+1
                         if(id){
+                            log.debug('masuk id')
                             record.submitFields({
                                 type: "itemfulfillment",
                                 id: id,
@@ -34,6 +36,10 @@ define(['N/log', 'N/record', 'N/search', 'N/runtime'], (log, record, search, run
                                     custbody_rda_flag_centangpackinglist: isCentang,
                                     custbody_rda_nopol: nopol,
                                     custbody_rda_packing_list_number : recordId
+                                },
+                                options: {
+                                    enableSourcing: false,
+                                    ignoreMandatoryFields: true
                                 }
                             });
                         }
@@ -55,6 +61,10 @@ define(['N/log', 'N/record', 'N/search', 'N/runtime'], (log, record, search, run
                                     custbody_rda_flag_centangpackinglist: isCentang,
                                     custbody_rda_nopol: nopol,
                                     custbody_rda_packing_list_number : ""
+                                },
+                                options: {
+                                    enableSourcing: false,
+                                    ignoreMandatoryFields: true
                                 }
                             });
                         }

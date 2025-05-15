@@ -256,7 +256,7 @@ define(["N/record", "N/search", "N/log", "N/format"], function (record, search, 
                                     options: { enableSourcing: false, ignoreMandatoryFields: true }
                                 });
                             } catch (e) {
-                                log.error('Error creating Inventory Transfer', e);
+                                log.debug('Error creating Inventory Transfer', e);
                                 if(e.message == 'An unexpected SuiteScript error has occurred'){
                                     e.message = 'Another process with the same item is being processed, please press the recreate inventory transfer button'
                                 }
@@ -283,7 +283,7 @@ define(["N/record", "N/search", "N/log", "N/format"], function (record, search, 
                 }
             }
         } catch (e) {
-            log.error('Error in afterSubmit', e);
+            log.debug('Error in afterSubmit', e);
         }
     }
     return {
