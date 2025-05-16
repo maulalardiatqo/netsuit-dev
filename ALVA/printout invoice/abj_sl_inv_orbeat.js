@@ -447,9 +447,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "</tr>";
                 
                 body+= "<tr>";
-                if (urlLogo) {
-                    body += "<td class='tg-headerlogo' style='vertical-align:center; align:left; margin-left:0;' ><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
-                }
+                // if (urlLogo) {
+                //     body += "<td class='tg-headerlogo' style='vertical-align:center; align:left; margin-left:0;' ><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+                // }
+                body+="<td style='font-weight:bold;align:left;font-size:20px;'>"+escapeXmlSymbols(bankName)+"</td>";
                 body+="<td style='align:left;'></td>"; 
                 body+="<td style='color:#8c05ad; font-size:60px; align:right; font-weight:bold'>Invoice</td>"; 
                 body+= "</tr>";
