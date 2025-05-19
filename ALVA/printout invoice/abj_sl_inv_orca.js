@@ -269,9 +269,18 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     for (var i = 0; i < countItem.length; i++) {
                         var lineRec = countItem[i];
                         // dataLine
-                        var description = lineRec.getText({
-                            name: "item",
-                        });
+                        var description = ""
+                        var cekMemo = lineRec.getValue({
+                                name: "memo",
+                            });
+                            log.debug('cekMemo', cekMemo)
+                        if(cekMemo){
+                            description = cekMemo
+                        }else{
+                            description =  lineRec.getText({
+                                name: "item",
+                            });
+                        }
                         var ammount = lineRec.getValue({
                             name: "amount",
                         });
