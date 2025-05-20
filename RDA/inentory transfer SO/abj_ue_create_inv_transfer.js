@@ -21,7 +21,7 @@ define(["N/record", "N/search", "N/log", "N/format"], function (record, search, 
             log.debug('status', status);
             if(status != 'Closed'){
                 log.debug('status tidak sama dengan closed')
-                if(cekError){ 
+                if (cekError && cekError.indexOf('ErrorRe-Validate') === -1){
                     if((!cekInvTrans || cekInvTrans.length < 1)){
                         form.addButton({
                             id: 'custpage_button_recreate',
@@ -283,7 +283,7 @@ define(["N/record", "N/search", "N/log", "N/format"], function (record, search, 
                 }
             }
         } catch (e) {
-            log.debug('Error in afterSubmit', e);
+            log.debug('Error in afterSubmit', e.name + ': ' + e.message);
         }
     }
     return {
