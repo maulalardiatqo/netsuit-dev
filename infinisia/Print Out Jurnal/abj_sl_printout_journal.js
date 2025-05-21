@@ -240,7 +240,7 @@
                         footer += "<td style='align:center;'></td>"
                         footer += "<td></td>"
                         footer += "<td></td>"
-                        footer += "<td style='align:center;'>Presdent Director</td>"
+                        footer += "<td style='align:center;'>President Director</td>"
                         footer += "<td></td>"
                         footer += "</tr>"
                     }else{
@@ -288,7 +288,7 @@
                         footer += "<td style='align:center;'>FA Manager</td>"
                         footer += "<td></td>"
                         footer += "<td></td>"
-                        footer += "<td style='align:center;'>Presdent Director</td>"
+                        footer += "<td style='align:center;'>President Director</td>"
                         footer += "<td></td>"
                         footer += "</tr>"
                     }
@@ -327,50 +327,127 @@
                     var totalCredit = 0
                     if(dataLine.length > 0){
                     
-                        dataLine.forEach((data)=>{
-                            var numberAccount = data.numberCode;
-                            var accountName = data.accName;
-                            var memo = data.memo;
-                            var creditamount = data.amountCredit;
-                            var debitAmount = data.amountDebit;
-                            if (creditamount || debitAmount) {
-                                if(creditamount){
-                                    totalCredit += parseFloat(creditamount);
-                                    creditamount = pembulatan(creditamount)
-                                    creditamount = format.format({
-                                        value: creditamount,
-                                        type: format.Type.CURRENCY
-                                    });
-                                }
-                                if(debitAmount){
-                                    totalDebit +=  parseFloat(debitAmount);
-                                    debitAmount = pembulatan(debitAmount)
-                                    debitAmount = format.format({
-                                        value: debitAmount,
-                                        type: format.Type.CURRENCY
-                                    });
-                                }
-                                    body += "<tr>";
-                                    body += "<td>"+numberAccount+"</td>";
-                                    body += "<td>"+accountName+"</td>";
-                                    body += "<td></td>";
-                                    body += "<td>"+memo+"</td>";
-                                    log.debug('debitAmount', debitAmount)
-                                    if (debitAmount != 0) {
-                                        log.debug('masuk lebih besar dari 0')
-                                        body += "<td style='align:right;'>" + removeDecimalFormat(debitAmount) + "</td>";
-                                    } else {
-                                        body += "<td style='align:right;'>" + debitAmount + "</td>";
-                                    }
-                                    if (creditamount != 0) {
-                                        body += "<td style='align:right;'>"+removeDecimalFormat(creditamount)+"</td>";
-                                    } else {
-                                        body += "<td style='align:right;'>" + creditamount + "</td>";
-                                    }
+                        // dataLine.forEach((data)=>{
+                        //     var numberAccount = data.numberCode;
+                        //     var accountName = data.accName;
+                        //     var memo = data.memo;
+                        //     var creditamount = data.amountCredit;
+                        //     var debitAmount = data.amountDebit;
+                        //     if (creditamount || debitAmount) {
+                        //         if(creditamount){
+                        //             totalCredit += parseFloat(creditamount);
+                        //             creditamount = pembulatan(creditamount)
+                        //             creditamount = format.format({
+                        //                 value: creditamount,
+                        //                 type: format.Type.CURRENCY
+                        //             });
+                        //         }
+                        //         if(debitAmount){
+                        //             totalDebit +=  parseFloat(debitAmount);
+                        //             debitAmount = pembulatan(debitAmount)
+                        //             debitAmount = format.format({
+                        //                 value: debitAmount,
+                        //                 type: format.Type.CURRENCY
+                        //             });
+                        //         }
+                        //             body += "<tr>";
+                        //             body += "<td>"+numberAccount+"</td>";
+                        //             body += "<td>"+accountName+"</td>";
+                        //             body += "<td></td>";
+                        //             body += "<td>"+memo+"</td>";
+                        //             log.debug('debitAmount', debitAmount)
+                        //             if (debitAmount != 0) {
+                        //                 log.debug('masuk lebih besar dari 0')
+                        //                 body += "<td style='align:right;'>" + removeDecimalFormat(debitAmount) + "</td>";
+                        //             } else {
+                        //                 body += "<td style='align:right;'>" + debitAmount + "</td>";
+                        //             }
+                        //             if (creditamount != 0) {
+                        //                 body += "<td style='align:right;'>"+removeDecimalFormat(creditamount)+"</td>";
+                        //             } else {
+                        //                 body += "<td style='align:right;'>" + creditamount + "</td>";
+                        //             }
                                 
-                                    body += "</tr>";
+                        //             body += "</tr>";
+                        //     }
+                        // })
+                        let debitLines = [];
+                        let creditLines = [];
+                        let vatLines = [];
+
+                        // Pisahkan data berdasarkan kriteria
+                        dataLine.forEach((data) => {
+                            let creditamount = parseFloat(data.amountCredit) || 0;
+                            let debitAmount = parseFloat(data.amountDebit) || 0;
+                            let memo = data.memo || '';
+
+                            if (memo.toLowerCase().includes("vat")) {
+                                vatLines.push(data);
+                            } else if (debitAmount !== 0 && creditamount === 0) {
+                                debitLines.push(data);
+                            } else if (creditamount !== 0 && debitAmount === 0) {
+                                creditLines.push(data);
                             }
-                        })
+                        });
+
+                        // Simpan memo dari salah satu debit line (jika ada)
+                        let memoDebitReferensi = debitLines.length > 0 ? debitLines[0].memo : '';
+
+                        // Fungsi render baris HTML
+                        function renderLine(data, isVAT = false) {
+                            let numberAccount = data.numberCode;
+                            let accountName = data.accName;
+                            let memo = data.memo || '';
+                            let creditamount = parseFloat(data.amountCredit) || 0;
+                            let debitAmount = parseFloat(data.amountDebit) || 0;
+
+                            // Penambahan nilai total
+                            if (debitAmount) {
+                                totalDebit += debitAmount;
+                                debitAmount = pembulatan(debitAmount);
+                                debitAmount = format.format({
+                                    value: debitAmount,
+                                    type: format.Type.CURRENCY
+                                });
+                            }
+                            if (creditamount) {
+                                totalCredit += creditamount;
+                                creditamount = pembulatan(creditamount);
+                                creditamount = format.format({
+                                    value: creditamount,
+                                    type: format.Type.CURRENCY
+                                });
+                            }
+
+                            // Jika VAT, gabungkan memo
+                            if (isVAT && memoDebitReferensi) {
+                                memo = memoDebitReferensi + ' ' + '-' + ' ' + memo;
+                            }
+
+                            // Render baris HTML
+                            let html = "<tr>";
+                            html += "<td>" + numberAccount + "</td>";
+                            html += "<td>" + accountName + "</td>";
+                            html += "<td></td>";
+                            html += "<td>" + memo + "</td>";
+                            html += "<td style='align:right;'>" + (debitAmount != 0 ? removeDecimalFormat(debitAmount) : debitAmount) + "</td>";
+                            html += "<td style='align:right;'>" + (creditamount != 0 ? removeDecimalFormat(creditamount) : creditamount) + "</td>";
+                            html += "</tr>";
+
+                            return html;
+                        }
+
+                        // Gabungkan baris berdasarkan urutan
+                        debitLines.forEach(data => {
+                            body += renderLine(data);
+                        });
+                        creditLines.forEach(data => {
+                            body += renderLine(data);
+                        });
+                        vatLines.forEach(data => {
+                            body += renderLine(data, true); // Flag isVAT = true
+                        });
+
                         
                     }
                     if(totalCredit){

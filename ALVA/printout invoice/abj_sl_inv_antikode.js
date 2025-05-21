@@ -458,12 +458,22 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if (urlLogo) {
                     body += "<td class='tg-headerlogo' style='vertical-align:center; align:left; margin-left:0;' rowspan='4' ><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
                 }
-                body += "<td style='text-align:left;'>" + legalName + "</td>";
+                body += "<td style='text-align:left;'>Antikode</td>";
                 body += "<td style=' font-size:60px; text-align:right; font-weight:bold;'></td>";
                 body += "</tr>";
                 
                 body += "<tr>";
                 body += "<td style='text-align:left;'>" + addresSubsidiaries + "</td>";
+                body += "<td style=' font-size:60px; text-align:right; font-weight:bold;'></td>";
+                body += "</tr>";
+
+                body += "<tr>";
+                body += "<td style='text-align:left;'>finance@antikode</td>";
+                body += "<td style=' font-size:60px; text-align:right; font-weight:bold;'></td>";
+                body += "</tr>";
+
+                body += "<tr>";
+                body += "<td style='text-align:left;'>http://www.antikode.com</td>";
                 body += "<td style=' font-size:60px; text-align:right; font-weight:bold;'></td>";
                 body += "</tr>";
                 
