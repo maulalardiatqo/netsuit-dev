@@ -267,9 +267,18 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     for (var i = 0; i < countItem.length; i++) {
                         var lineRec = countItem[i];
                         // dataLine
-                        var description = lineRec.getText({
-                            name: "item",
-                        });
+                        var description = ""
+                        var cekMemo = lineRec.getValue({
+                                name: "memo",
+                            });
+                            log.debug('cekMemo', cekMemo)
+                        if(cekMemo){
+                            description = cekMemo
+                        }else{
+                            description =  lineRec.getText({
+                                name: "item",
+                            });
+                        }
                         var rate = lineRec.getValue({
                             name: "rate",
                         });
@@ -455,27 +464,42 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tr>";
                 
                 body += "<tr>";
-                if (urlLogo) {
-                    body += "<td class='tg-headerlogo' style='vertical-align:center; align:left; margin-left:0;' rowspan='4' ><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+ if (urlLogo) {
+                    body += "<td class='tg-headerlogo' style='vertical-align:center; align:left; margin-left:0;' rowspan='6' ><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
                 }
-                body += "<td style='text-align:left;'>Antikode</td>";
-                body += "<td style=' font-size:60px; text-align:right; font-weight:bold;'></td>";
-                body += "</tr>";
-                
-                body += "<tr>";
-                body += "<td style='text-align:left;'>" + addresSubsidiaries + "</td>";
-                body += "<td style=' font-size:60px; text-align:right; font-weight:bold;'></td>";
-                body += "</tr>";
+body += "<td style='text-align:left; font-weight:bold; font-size:12pt;'>Antikode</td>";
+body += "</tr>";
 
-                body += "<tr>";
-                body += "<td style='text-align:left;'>finance@antikode</td>";
-                body += "<td style=' font-size:60px; text-align:right; font-weight:bold;'></td>";
-                body += "</tr>";
+body += "<tr>";
+body += "<td style='text-align:left; font-size:10pt;'>Jl. Jurangmangu Barat No. 008 RT 004 RW001</td>";
+body += "</tr>";
 
-                body += "<tr>";
-                body += "<td style='text-align:left;'>http://www.antikode.com</td>";
-                body += "<td style=' font-size:60px; text-align:right; font-weight:bold;'></td>";
-                body += "</tr>";
+body += "<tr>";
+body += "<td style='text-align:left; font-size:10pt;'>Jurangmangu Barat, Pondok Aren, Tangerang Selatan</td>";
+body += "</tr>";
+
+body += "<tr>";
+body += "<td style='text-align:left; font-size:10pt;'>Banten 15223 ID</td>";
+body += "</tr>";
+
+body += "<tr>";
+body += "<td style='text-align:left; font-size:10pt;'>finance@antikode.com</td>";
+body += "</tr>";
+
+body += "<tr>";
+body += "<td style='text-align:left; font-size:10pt;'>http://www.antikode.com</td>";
+body += "</tr>";
+
+
+                // body += "<tr>";
+                // body += "<td style='text-align:left;'>finance@antikode</td>";
+                // body += "<td style=' font-size:60px; text-align:right; font-weight:bold;'></td>";
+                // body += "</tr>";
+
+                // body += "<tr>";
+                // body += "<td style='text-align:left;'>http://www.antikode.com</td>";
+                // body += "<td style=' font-size:60px; text-align:right; font-weight:bold;'></td>";
+                // body += "</tr>";
                 
               
                 
@@ -627,6 +651,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<tr style=''>";
                 footer += "<td style='font-weight:bold;font-size:20px;'></td>"
                 footer += "<td style='align:right;' colspan='2'>"+nameSignatured+"</td>"
+                footer += "</tr>";
+
+                footer += "<tr style=''>";
+                footer += "<td style='font-weight:bold;font-size:20px;'></td>"
+                footer += "<td style='align:right;' colspan='2'>Finance dept.</td>"
                 footer += "</tr>";
 
 
