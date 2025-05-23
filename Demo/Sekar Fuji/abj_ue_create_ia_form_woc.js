@@ -28,6 +28,46 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
                     var location = newRec.getValue('location');
                     var invDetail = newRec.getValue('inventorydetail');
                     log.debug('invDetail', invDetail)
+
+                    var linkIa1
+                    var linkIa2
+                    var cekLineCoProd = newRec.getLineCount({sublistId : 'recmachcustrecord202'});
+                    if(cekLineCoProd > 0){
+                        for(var i = 0; i < cekLineCoProd; i++){
+                            var inv1 = newRec.getSublistValue({ 
+                                sublistId: 'recmachcustrecord202', 
+                                fieldId: 'custrecord207', 
+                                line: i 
+                            });
+                            if(inv1){
+                                linkIa1 = inv1
+                            }
+                            var inv2 = newRec.getSublistValue({ 
+                                sublistId: 'recmachcustrecord202', 
+                                fieldId: 'custrecord209', 
+                                line: i 
+                            });
+                            if(inv2){
+                                linkIa2 = inv2
+                            }
+
+                            
+                        }
+                    }
+                    if(linkIa1){
+                        record.delete({
+                            type: record.Type.INVENTORY_ADJUSTMENT,
+                            id: linkIa1
+                        });
+                        log.debug('deleted record ia 1')
+                    }
+                    if(linkIa2){
+                        record.delete({
+                            type: record.Type.INVENTORY_ADJUSTMENT,
+                            id: linkIa2
+                        });
+                        log.debug('deleted record ia 2')
+                    }
                     // create inv_adjust 1
                     const inventoryAdjustment1 = record.create({
                         type: record.Type.INVENTORY_ADJUSTMENT,
@@ -63,16 +103,18 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
                         fieldId: 'location',
                         value: location
                     });
+                    var negativeQty = qtyProject > 0 ? -qtyProject : qtyProject;
                     inventoryAdjustment1.setCurrentSublistValue({
                         sublistId: 'inventory',
                         fieldId: 'adjustqtyby',
-                        value: qtyProject
+                        value: negativeQty
                     });
-
+                
                     inventoryAdjustment1.setCurrentSublistValue({
                         sublistId: 'inventory',
                         fieldId: 'unitcost',
-                        value: projectValue
+                        value: projectValue,
+                        ignoreFieldChange: true
                     });
                     var subrecord = inventoryAdjustment1.getCurrentSublistSubrecord({
                         sublistId: 'inventory',
@@ -119,30 +161,33 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
                             });
 
                             subrecord.selectNewLine({ sublistId: 'inventoryassignment' });
-
+                            log.debug('issueInventoryNumber', issueInventoryNumber)
+                            log.debug('binNumber', binNumber);
+                            log.debug('qty', qty)
+                            if (issueInventoryNumber)
+                                subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'receiptinventorynumber', value: issueInventoryNumber });
                             if (binNumber)
                                 subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'binnumber', value: binNumber });
 
                             if (inventoryStatus)
                                 subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'inventorystatus', value: inventoryStatus });
 
-                            if (issueInventoryNumber)
-                                subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'receiptinventorynumber', value: issueInventoryNumber });
+                            
 
                             if (expirationDate)
                                 subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'expirationdate', value: expirationDate });
-
-                            subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'quantity', value: qty });
+                            var qtyNeg = qty > 0 ? -qty : qty;
+                            subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'quantity', value: qtyNeg });
 
                             subrecord.commitLine({ sublistId: 'inventoryassignment' });
                         }
                     }
                     inventoryAdjustment1.commitLine({ sublistId: 'inventory' });
-                    // const inventoryAdjustment1Id = inventoryAdjustment1.save({
-                    //     enableSourcing: false, 
-                    //     ignoreMandatoryFields: true 
-                    // });
-                    // log.debug('inventoryAdjustment1Id', inventoryAdjustment1Id)
+                    const inventoryAdjustment1Id = inventoryAdjustment1.save({
+                        enableSourcing: false, 
+                        ignoreMandatoryFields: true 
+                    });
+                    log.debug('inventoryAdjustment1Id', inventoryAdjustment1Id)
                     var cekLineCount = newRec.getLineCount({sublistId : 'recmachcustrecord202'});
                     log.debug('cekLineCount', cekLineCount);
 
@@ -292,14 +337,16 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
 
                                     subrecord.selectNewLine({ sublistId: 'inventoryassignment' });
 
+                                    if (issueInventoryNumber)
+                                        subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'receiptinventorynumber', value: issueInventoryNumber });
+
                                     if (binNumber)
                                         subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'binnumber', value: binNumber });
 
                                     if (inventoryStatus)
                                         subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'inventorystatus', value: inventoryStatus });
 
-                                    if (issueInventoryNumber)
-                                        subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'receiptinventorynumber', value: issueInventoryNumber });
+                                    
 
                                     if (expirationDate)
                                         subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'expirationdate', value: expirationDate });
@@ -317,6 +364,36 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
                         ignoreMandatoryFields: true 
                     });
                     log.debug('inventoryAdjustment1Id2', inventoryAdjustment1Id2)
+                    if(inventoryAdjustment1Id2){
+                        var cekLineCount = newRec.getLineCount({sublistId : 'recmachcustrecord202'});
+                        if(cekLineCount > 0){
+                            for(var i = 0; i < cekLineCount; i++){
+                                newRec.setSublistValue({
+                                        sublistId: 'recmachcustrecord202',
+                                        fieldId: 'custrecord205',
+                                        line: i,
+                                        value: toGetFixUcost
+                                });
+                                newRec.setSublistValue({
+                                        sublistId: 'recmachcustrecord202',
+                                        fieldId: 'custrecord207',
+                                        line: i,
+                                        value: inventoryAdjustment1Id2
+                                });
+                                if(inventoryAdjustment1Id){
+                                    newRec.setSublistValue({
+                                        sublistId: 'recmachcustrecord202',
+                                        fieldId: 'custrecord209',
+                                        line: i,
+                                        value: inventoryAdjustment1Id
+                                });
+                                }
+
+                                
+                            }
+                        }
+                    }
+                    newRec.save();
                 }
               
             }
