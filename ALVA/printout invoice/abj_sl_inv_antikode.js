@@ -219,7 +219,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 log.debug('nameSignatured', nameSignatured)
                 var template = invoiceRecord.getText({ name :'custbody10'});
-                var terms = invoiceRecord.getValue({ name :"terms"}) || '';
+                var terms = invoiceRecord.getText({ name :"terms"}) || '';
                 var fakturPajak = invoiceRecord.getValue({ name :"custbody_fcn_faktur_pajak"});
                 var subTotal = invoiceRecord.getValue({name: "formulacurrency",
                     formula: "{totalamount}+{taxtotal}",}) || 0;
@@ -459,36 +459,36 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 
                 body += "<tr>";
                 body += "<td style='width:25%;'></td>";
-                body += "<td style='width:40%;'></td>";
-                body += "<td style='width:35%;'></td>";
+                body += "<td style='width:50%;'></td>";
+                body += "<td style='width:25%;'></td>";
                 body += "</tr>";
                 
                 body += "<tr>";
- if (urlLogo) {
+                if (urlLogo) {
                     body += "<td class='tg-headerlogo' style='vertical-align:center; align:left; margin-left:0;' rowspan='6' ><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
                 }
-body += "<td style='text-align:left; font-weight:bold; font-size:12pt;'>Antikode</td>";
-body += "</tr>";
+                body += "<td style='text-align:left; font-weight:bold; font-size:12pt;'>Antikode</td>";
+                body += "</tr>";
 
-body += "<tr>";
-body += "<td style='text-align:left; font-size:10pt;'>Jl. Jurangmangu Barat No. 008 RT 004 RW001</td>";
-body += "</tr>";
+                body += "<tr>";
+                body += "<td style='text-align:left; font-size:10pt;'>Jl. Jurangmangu Barat No. 008 RT 004 RW001</td>";
+                body += "</tr>";
 
-body += "<tr>";
-body += "<td style='text-align:left; font-size:10pt;'>Jurangmangu Barat, Pondok Aren, Tangerang Selatan</td>";
-body += "</tr>";
+                body += "<tr>";
+                body += "<td style='text-align:left; font-size:10pt;'>Jurangmangu Barat, Pondok Aren, Tangerang Selatan</td>";
+                body += "</tr>";
 
-body += "<tr>";
-body += "<td style='text-align:left; font-size:10pt;'>Banten 15223 ID</td>";
-body += "</tr>";
+                body += "<tr>";
+                body += "<td style='text-align:left; font-size:10pt;'>Banten 15223 ID</td>";
+                body += "</tr>";
 
-body += "<tr>";
-body += "<td style='text-align:left; font-size:10pt;'>finance@antikode.com</td>";
-body += "</tr>";
+                body += "<tr>";
+                body += "<td style='text-align:left; font-size:10pt;'>finance@antikode.com</td>";
+                body += "</tr>";
 
-body += "<tr>";
-body += "<td style='text-align:left; font-size:10pt;'>http://www.antikode.com</td>";
-body += "</tr>";
+                body += "<tr>";
+                body += "<td style='text-align:left; font-size:10pt;'>http://www.antikode.com</td>";
+                body += "</tr>";
 
 
                 // body += "<tr>";
@@ -511,8 +511,8 @@ body += "</tr>";
                 
                 body += "<tr>";
                 body += "<td style='width:40%;'></td>";
-                body += "<td style='width:20%;'></td>";
-                body += "<td style='width:40%;'></td>";
+                body += "<td style='width:15%;'></td>";
+                body += "<td style='width:45%;'></td>";
                 body += "</tr>";
 
                 body += "<tr>";
@@ -527,10 +527,14 @@ body += "</tr>";
                 body += "</tr>";
 
                 body += "<tr>";
-                body += "<td style='text-align:left;' rowspan='2'>"+custAddres+"</td>";
-                body += "<td style='text-align:left; font-weight:bold;'></td>";
-                body += "<td style='background-color:#212841FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:40px; margin-bottom:10px;'>DATE <span style='font-size:10px; font-weight:none;vertical-align:center;' >" + InvDate + "</span><span style='font-size:16px; font-weight:bold; padding-left:5px;'>TERMS <p style='font-weight:none;font-size:10px;'>"+terms+"</p></span></td>";
-                body += "</tr>";
+body += "<td style='text-align:left;' rowspan='2'>" + custAddres + "</td>";
+body += "<td style='text-align:left; font-weight:bold;'></td>";
+body += "<td style='background-color:#212841FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:40px; margin-bottom:10px;'>"
+      + "DATE <span style='font-size:10px; font-weight:normal; vertical-align:middle;'>" + InvDate + "</span>"
+      + "<span style='font-size:16px; font-weight:bold; padding-left:15px;'>TERMS "
+      + "<span style='font-weight:normal; font-size:10px;'>" + terms + "</span></span></td>";
+body += "</tr>";
+
 
                 body += "<tr>";
                 body += "<td style='text-align:left; font-weight:bold;'></td>";
