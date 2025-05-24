@@ -114,7 +114,9 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
                         fieldId: 'item',
                         value: itemWo
                     });
-
+                    log.debug('location', location);
+                    var locationText =  newRec.getText('location');
+                    log.debug('locationText', locationText)
                     inventoryAdjustment1.setCurrentSublistValue({
                         sublistId: 'inventory',
                         fieldId: 'location',
@@ -137,68 +139,99 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
                         sublistId: 'inventory',
                         fieldId: 'inventorydetail'
                     });
-
-                    if (invDetail) {
-                        var invRec = record.load({
-                            type : 'inventorydetail',
-                            id : invDetail,
+                    var isUseBins = false
+                    if(itemWo){
+                        var itemSearchObj = search.create({
+                        type: "item",
+                        filters:
+                        [
+                            ["internalid","anyof",itemWo]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({name: "usebins", label: "Use Bins"})
+                        ]
                         });
+                        var searchResultCount = itemSearchObj.runPaged().count;
+                        log.debug("itemSearchObj result count",searchResultCount);
+                        itemSearchObj.run().each(function(result){
+                            isUseBins = result.getValue({
+                                name : "usebins"
+                            })
+                        return true;
+                        });
+                    }
+                    log.debug('isUseBins', isUseBins)
+                    
+                    if(isUseBins){
+                        if (invDetail) {
+                            // var invRec = newRec.getSubrecord({
+                            //     fieldId: 'inventorydetail'
+                            // });
+                            // log.debug('invRec', invRec)
 
-                        var invAssignments = invRec.getLineCount({ sublistId: 'inventoryassignment' });
+                            // var invAssignments = invRec.getLineCount({ sublistId: 'inventoryassignment' });
 
-                        for (var i = 0; i < invAssignments; i++) {
-                            var qty = invRec.getSublistValue({
-                                sublistId: 'inventoryassignment',
-                                fieldId: 'quantity',
-                                line: i
-                            });
+                            // for (var i = 0; i < invAssignments; i++) {
+                            //     var qty = invRec.getSublistValue({
+                            //         sublistId: 'inventoryassignment',
+                            //         fieldId: 'quantity',
+                            //         line: i
+                            //     });
 
-                            var binNumber = invRec.getSublistValue({
-                                sublistId: 'inventoryassignment',
-                                fieldId: 'binnumber',
-                                line: i
-                            });
+                            //     var binNumber = invRec.getSublistValue({
+                            //         sublistId: 'inventoryassignment',
+                            //         fieldId: 'binnumber',
+                            //         line: i
+                            //     });
 
-                            var inventoryStatus = invRec.getSublistValue({
-                                sublistId: 'inventoryassignment',
-                                fieldId: 'inventorystatus',
-                                line: i
-                            });
+                            //     var inventoryStatus = invRec.getSublistValue({
+                            //         sublistId: 'inventoryassignment',
+                            //         fieldId: 'inventorystatus',
+                            //         line: i
+                            //     });
 
-                            var issueInventoryNumber = invRec.getSublistValue({
-                                sublistId: 'inventoryassignment',
-                                fieldId: 'receiptinventorynumber',
-                                line: i
-                            });
+                            //     var issueInventoryNumber = invRec.getSublistValue({
+                            //         sublistId: 'inventoryassignment',
+                            //         fieldId: 'receiptinventorynumber',
+                            //         line: i
+                            //     });
 
-                            var expirationDate = invRec.getSublistValue({
-                                sublistId: 'inventoryassignment',
-                                fieldId: 'expirationdate',
-                                line: i
-                            });
+                            //     var expirationDate = invRec.getSublistValue({
+                            //         sublistId: 'inventoryassignment',
+                            //         fieldId: 'expirationdate',
+                            //         line: i
+                            //     });
+                            //     log.debug('issueInventoryNumber', issueInventoryNumber)
+                            //     log.debug('binNumber', binNumber);
+                            //     log.debug('qty', qty)
+                            //     log.debug('inventoryStatus', inventoryStatus)
+                               
+                            // }
+                             subrecord.selectNewLine({ sublistId: 'inventoryassignment' });
+                                
+                                // if (issueInventoryNumber)
+                                    subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'issueinventorynumber', value: 10025 });
 
-                            subrecord.selectNewLine({ sublistId: 'inventoryassignment' });
-                            log.debug('issueInventoryNumber', issueInventoryNumber)
-                            log.debug('binNumber', binNumber);
-                            log.debug('qty', qty)
-                            if (issueInventoryNumber)
-                                subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'receiptinventorynumber', value: issueInventoryNumber });
-                            if (binNumber)
-                                subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'binnumber', value: binNumber });
+                                // if (issueInventoryNumber)
+                                    subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'receiptinventorynumber', value: 10025 });
+                                // if (binNumber)
+                                    // subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'binnumber', value: '495' });
 
-                            if (inventoryStatus)
-                                subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'inventorystatus', value: inventoryStatus });
+                                // if (inventoryStatus)
+                                    // subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'inventorystatus', value: 1 });
 
-                            
+                                // if (expirationDate)
+                                //     subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'expirationdate', value: expirationDate });
+                                // var qtyNeg = -Math.abs(Number(qty));
+                                // log.debug('qtyNeg', qtyNeg)
+                                subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'quantity', value: -7 });
 
-                            if (expirationDate)
-                                subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'expirationdate', value: expirationDate });
-                            var qtyNeg = qty > 0 ? -qty : qty;
-                            subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'quantity', value: qtyNeg });
-
-                            subrecord.commitLine({ sublistId: 'inventoryassignment' });
+                                subrecord.commitLine({ sublistId: 'inventoryassignment' });
+                           
                         }
                     }
+                    
                     inventoryAdjustment1.commitLine({ sublistId: 'inventory' });
                     const inventoryAdjustment1Id = inventoryAdjustment1.save({
                         enableSourcing: false, 
@@ -347,16 +380,112 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
                             fieldId: 'unitcost',
                             value: unitCost
                         });
-                        if(coProduct == itemWo){
-                            var subrecord = inventoryAdjustment2.getCurrentSublistSubrecord({
-                                sublistId: 'inventory',
-                                fieldId: 'inventorydetail'
+                        var isUseBins = false
+                        if(coProduct){
+                            var itemSearchObj = search.create({
+                            type: "item",
+                            filters:
+                            [
+                                ["internalid","anyof",coProduct]
+                            ],
+                            columns:
+                            [
+                                search.createColumn({name: "usebins", label: "Use Bins"})
+                            ]
                             });
-
-                            if (invDetail) {
-                                var invRec = record.load({
+                            var searchResultCount = itemSearchObj.runPaged().count;
+                            log.debug("itemSearchObj result count",searchResultCount);
+                            itemSearchObj.run().each(function(result){
+                                isUseBins = result.getValue({
+                                    name : "usebins"
+                                })
+                            return true;
+                            });
+                        }
+                        if(isUseBins){
+                        var isValidInvDetail = false
+                        if (invDetail) {
+                            var searchItemCekAvailable = search.create({
+                                type: "item",
+                                filters:
+                                [
+                                    ["internalid","anyof",itemWo], 
+                                    "AND", 
+                                    ["inventorynumber.location","anyof",location], 
+                                    "AND", 
+                                    ["inventorynumber.internalid","anyof",invDetail]
+                                ],
+                                columns:
+                                [
+                                    search.createColumn({name: "islotitem", label: "Is Lot Numbered Item"}),
+                                    search.createColumn({name: "serialnumber", label: "Serial/Lot Number"}),
+                                    search.createColumn({
+                                        name: "quantityavailable",
+                                        join: "inventoryNumber",
+                                        label: "Available"
+                                    })
+                                ]
+                            });
+                            var searchResultCount = searchItemCekAvailable.runPaged().count;
+                            log.debug("searchItemCekAvailable result count",searchResultCount);
+                            searchItemCekAvailable.run().each(function(resultData){
+                                var cekAvailable = resultData.getValue({
+                                    name: "quantityavailable",
+                                    join: "inventoryNumber",
+                                })
+                                if(cekAvailable >= qtyProject){
+                                    isValidInvDetail = true
+                                }
+                                return true;
+                            });
+                            var idInvDetail
+                            if(isValidInvDetail){
+                                idInvDetail = invDetail
+                            }else{
+                                var anotherInvNumbSearch = search.create({
+                                type: "item",
+                                filters:
+                                [
+                                    ["internalid","anyof",itemWo], 
+                                    "AND", 
+                                    ["inventorynumber.location","anyof",location], 
+                                    "AND", 
+                                    ["inventorynumber.quantityavailable","greaterthanorequalto",qtyProject]
+                                ],
+                                columns:
+                                [
+                                    search.createColumn({name: "islotitem", label: "Is Lot Numbered Item"}),
+                                    search.createColumn({name: "serialnumber", label: "Serial/Lot Number"}),
+                                    search.createColumn({
+                                        name: "quantityavailable",
+                                        join: "inventoryNumber",
+                                        label: "Available"
+                                    }),
+                                    search.createColumn({
+                                        name: "internalid",
+                                        join: "inventoryNumber",
+                                        label: "Internal ID"
+                                    })
+                                ]
+                                });
+                                var searchResultCount = anotherInvNumbSearch.runPaged().count;
+                                log.debug("anotherInvNumbSearch result count",searchResultCount);
+                                anotherInvNumbSearch.run().each(function(result2){
+                                    var anotherId = result2.getValue({
+                                        name: "internalid",
+                                        join: "inventoryNumber",
+                                    })
+                                    if(anotherId){
+                                        idInvDetail = anotherId
+                                    }
+                                    return false;
+                                });
+                            }
+                            log.debug('idInvDetail2', idInvDetail)
+                            if(idInvDetail){
+                                 var invRec = record.load({
                                     type : 'inventorydetail',
-                                    id : invDetail,
+                                    id : idInvDetail,
                                 });
 
                                 var invAssignments = invRec.getLineCount({ sublistId: 'inventoryassignment' });
@@ -393,10 +522,11 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
                                     });
 
                                     subrecord.selectNewLine({ sublistId: 'inventoryassignment' });
-
+                                    log.debug('issueInventoryNumber', issueInventoryNumber)
+                                    log.debug('binNumber', binNumber);
+                                    log.debug('qty', qty)
                                     if (issueInventoryNumber)
                                         subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'receiptinventorynumber', value: issueInventoryNumber });
-
                                     if (binNumber)
                                         subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'binnumber', value: binNumber });
 
@@ -407,13 +537,15 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
 
                                     if (expirationDate)
                                         subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'expirationdate', value: expirationDate });
-
-                                    subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'quantity', value: qty });
+                                    var qtyNeg = qty > 0 ? -qty : qty;
+                                    subrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'quantity', value: qtyNeg });
 
                                     subrecord.commitLine({ sublistId: 'inventoryassignment' });
                                 }
                             }
+                           
                         }
+                    }
                         inventoryAdjustment2.commitLine({ sublistId: 'inventory' });
                     });
                      const inventoryAdjustment1Id2 = inventoryAdjustment2.save({
