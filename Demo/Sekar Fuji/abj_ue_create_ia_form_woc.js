@@ -28,6 +28,23 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
                     var location = newRec.getValue('location');
                     var invDetail = newRec.getValue('inventorydetail');
                     log.debug('invDetail', invDetail)
+                    var cekLinkBody1 = newRec.getValue('custbody_abj_inv_adj_coproduct1');
+                    var cekLinkBody2 = newRec.getValue('custbody_abj_inv_adj_coproduct2');
+                    var unitUom = Number(projectValue) / Number(qtyProject)
+                    if(cekLinkBody1){
+                        record.delete({
+                            type: record.Type.INVENTORY_ADJUSTMENT,
+                            id: cekLinkBody1
+                        });
+                        log.debug('deleted record bodyy ia 1')
+                    }
+                    if(cekLinkBody2){
+                        record.delete({
+                            type: record.Type.INVENTORY_ADJUSTMENT,
+                            id: cekLinkBody2
+                        });
+                        log.debug('deleted record body ia 2')
+                    }
 
                     var linkIa1
                     var linkIa2
@@ -187,59 +204,98 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
                         enableSourcing: false, 
                         ignoreMandatoryFields: true 
                     });
+                    if(inventoryAdjustment1Id){
+                        newRec.setValue({
+                            fieldId : "custbody_abj_inv_adj_coproduct1",
+                            value : inventoryAdjustment1Id
+                        })
+                    }
                     log.debug('inventoryAdjustment1Id', inventoryAdjustment1Id)
                     var cekLineCount = newRec.getLineCount({sublistId : 'recmachcustrecord202'});
                     log.debug('cekLineCount', cekLineCount);
 
                     var allData2 = []
+                    var prorateProsent = 100;
+                    var costTotal = 0
                     if(cekLineCount > 0){
                         for(var i = 0; i < cekLineCount; i++){
                             var coProduct = newRec.getSublistValue({ sublistId: 'recmachcustrecord202', fieldId: 'custrecord203', line: i });
                             var coQty = newRec.getSublistValue({ sublistId: 'recmachcustrecord202', fieldId: 'custrecord204', line: i });
+                            var prorate = newRec.getSublistValue({sublistId : 'recmachcustrecord202', fieldId : 'custrecord206', line : i})
                             var amt1 = ((Number(coQty) / Number(qtyProject)) * Number(projectValue)) / Number(coQty);
                             var amt2 = Number(amt1) * Number(coQty)
-
+                            log.debug('prorate', prorate)
+                            var totalCost = Number(projectValue) * Number(prorate) / 100;
+                            costTotal = Number(costTotal) + Number(totalCost)
+                            log.debug('totalCost', totalCost)
+                            log.debug('coQty', coQty)
+                            var unitCOst = Number(totalCost) / Number(coQty);
+                            log.debug('unitCOst', unitCOst)
+                            prorateProsent = Number(prorateProsent) - Number(prorate)
                             allData2.push({
                                 coProduct : coProduct,
                                 coQty : coQty,
                                 amt1 : amt1,
                                 amt2 : amt2,
+                                prorate : prorate,
+                                unitCOst : unitCOst,
+                                totalCost : totalCost
                             })
                         }
                     }
-                    var pengurangan = Number(projectValue)
-                    var totalQty = 0
-                    var totalAmt2 = 0
-                    allData2.forEach((data)=>{
-                        var coQty = data.coQty
-                        var amt2 = data.amt2
-                        totalQty = Number(totalQty) + Number(coQty)
-                        totalAmt2 = Number(totalAmt2) + Number(amt2)
-                        pengurangan = Number(pengurangan) - Number(amt2)
-                    });
-                    log.debug('pengurangan', pengurangan);
-                    var amt1Hard = Number(pengurangan) / Number(qtyProject);
-                    var amt2Hard = Number(amt1Hard) * Number(qtyProject);
-                    log.debug('amt1Hard', amt1Hard);
-                    log.debug('amt2Hard', amt2Hard);
-                    totalQty = Number(totalQty) + Number(qtyProject);
-                    totalAmt2 = Number(totalAmt2) + Number(amt2Hard);
-                    log.debug('totalQty', totalQty);
-                    log.debug('totalAmt2', totalAmt2)
-                    var toGetFixUcost = (Number(totalAmt2) / Number(totalQty)).toFixed(2);
-                    log.debug('toGetFixUcost', toGetFixUcost)
+                    log.debug('unitUom', unitUom)
+                    log.debug('prorateProsent', prorateProsent)
+                    
+                    var unitCostEx = Number(prorateProsent) * Number(unitUom) / 100;
+                    log.debug('unitCostEx', unitCostEx)
+                    var totalUnitCostEx = Number(unitCostEx) * Number(qtyProject)
+                    costTotal = Number(costTotal) + Number(totalUnitCostEx) 
+                    log.debug('costTotal', costTotal)
+                    log.debug('totalUnitCostEx', totalUnitCostEx)
                     allData2.push({
                         coProduct : itemWo,
                         coQty : qtyProject,
-                        amt1 : amt1Hard,
-                        amt2 : amt2Hard,
+                        amt1 : 0,
+                        amt2 : 0,
+                        prorate : prorateProsent,
+                        unitCOst : unitCostEx,
+                        totalCost : totalUnitCostEx
+
                     })
-                    for (let i = 0; i < allData2.length; i++) {
-                        let coQty = allData2[i].coQty;
-                        let unitCost = Number(coQty) * Number(toGetFixUcost);
-                        allData2[i].unitCost = unitCost;
-                    }
                     log.debug('allData2', allData2)
+                    // var pengurangan = Number(projectValue)
+                    // var totalQty = 0
+                    // var totalAmt2 = 0
+                    // allData2.forEach((data)=>{
+                    //     var coQty = data.coQty
+                    //     var amt2 = data.amt2
+                    //     totalQty = Number(totalQty) + Number(coQty)
+                    //     totalAmt2 = Number(totalAmt2) + Number(amt2)
+                    //     pengurangan = Number(pengurangan) - Number(amt2)
+                    // });
+                    // log.debug('pengurangan', pengurangan);
+                    // var amt1Hard = Number(pengurangan) / Number(qtyProject);
+                    // var amt2Hard = Number(amt1Hard) * Number(qtyProject);
+                    // log.debug('amt1Hard', amt1Hard);
+                    // log.debug('amt2Hard', amt2Hard);
+                    // totalQty = Number(totalQty) + Number(qtyProject);
+                    // totalAmt2 = Number(totalAmt2) + Number(amt2Hard);
+                    // log.debug('totalQty', totalQty);
+                    // log.debug('totalAmt2', totalAmt2)
+                    // var toGetFixUcost = (Number(totalAmt2) / Number(totalQty)).toFixed(2);
+                    // log.debug('toGetFixUcost', toGetFixUcost)
+                    // allData2.push({
+                    //     coProduct : itemWo,
+                    //     coQty : qtyProject,
+                    //     amt1 : amt1Hard,
+                    //     amt2 : amt2Hard,
+                    // })
+                    // for (let i = 0; i < allData2.length; i++) {
+                    //     let coQty = allData2[i].coQty;
+                    //     let unitCost = Number(coQty) * Number(toGetFixUcost);
+                    //     allData2[i].unitCost = unitCost;
+                    // }
+                    // log.debug('allData2', allData2)
                     // create inv adjust2
                     const inventoryAdjustment2 = record.create({
                         type: record.Type.INVENTORY_ADJUSTMENT,
@@ -266,7 +322,8 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
                         var coQty = itemData.coQty
                         var amt1 = itemData.amt1
                         var amt2 = itemData.amt2
-                        var unitCost = itemData.unitCost
+                        var unitCost = itemData.unitCOst
+                        var totalCost = itemData.totalCost
                         inventoryAdjustment2.selectNewLine({ sublistId: 'inventory' });
                         inventoryAdjustment2.setCurrentSublistValue({
                             sublistId: 'inventory',
@@ -365,32 +422,55 @@ define(["N/record", "N/search", "N/log", "N/format","N/query"], function (record
                     });
                     log.debug('inventoryAdjustment1Id2', inventoryAdjustment1Id2)
                     if(inventoryAdjustment1Id2){
+                        newRec.setValue({
+                            fieldId : "custbody_abj_inv_adj_coproduct2",
+                            value : inventoryAdjustment1Id2
+                        })
                         var cekLineCount = newRec.getLineCount({sublistId : 'recmachcustrecord202'});
                         if(cekLineCount > 0){
-                            for(var i = 0; i < cekLineCount; i++){
-                                newRec.setSublistValue({
-                                        sublistId: 'recmachcustrecord202',
-                                        fieldId: 'custrecord205',
-                                        line: i,
-                                        value: toGetFixUcost
-                                });
-                                newRec.setSublistValue({
-                                        sublistId: 'recmachcustrecord202',
-                                        fieldId: 'custrecord207',
-                                        line: i,
-                                        value: inventoryAdjustment1Id2
-                                });
-                                if(inventoryAdjustment1Id){
-                                    newRec.setSublistValue({
-                                        sublistId: 'recmachcustrecord202',
-                                        fieldId: 'custrecord209',
-                                        line: i,
-                                        value: inventoryAdjustment1Id
-                                });
-                                }
+                            for (var i = 0; i < cekLineCount; i++) {
+                            var cekCoProduct = newRec.getSublistValue({
+                                sublistId: 'recmachcustrecord202',
+                                fieldId: 'custrecord203',
+                                line: i
+                            });
 
-                                
+                            var cekProrate = newRec.getSublistValue({
+                                sublistId: 'recmachcustrecord202',
+                                fieldId: 'custrecord206',
+                                line: i
+                            });
+
+                            // Cari data yang cocok di allData2
+                            var match = allData2.find(function (data) {
+                                return data.coProduct === cekCoProduct && Number(data.prorate) === Number(cekProrate);
+                            });
+
+                            if (match) {
+                                newRec.setSublistValue({
+                                    sublistId: 'recmachcustrecord202',
+                                    fieldId: 'custrecord205', // costTotal
+                                    line: i,
+                                    value: match.totalCost
+                                });
                             }
+
+                            newRec.setSublistValue({
+                                sublistId: 'recmachcustrecord202',
+                                fieldId: 'custrecord207',
+                                line: i,
+                                value: inventoryAdjustment1Id2
+                            });
+
+                            if (inventoryAdjustment1Id) {
+                                newRec.setSublistValue({
+                                    sublistId: 'recmachcustrecord202',
+                                    fieldId: 'custrecord209',
+                                    line: i,
+                                    value: inventoryAdjustment1Id
+                                });
+                            }
+                        }
                         }
                     }
                     newRec.save();
