@@ -46,6 +46,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 log.debug('soId', soId);
                 var orderDate
                 var order
+                var shipAddressSO = ''
                 if (soId) {
                     recSo = record.load({
                         type: 'salesorder',
@@ -57,6 +58,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var trandId = recSo.getValue('tranid');
                     order = trandId
                     var poCust = recSo.getValue('otherrefnum');
+                    shipAddressSO = recSo.getValue('shipaddress');
                 }
                 var shippingDate = ifRec.getValue({ name: 'trandate' });
                 // var dikirim = ifRec.getValue('shipcarrier') || '';
@@ -340,7 +342,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body1 += "<tr>";
                 body1 += "<td style='font-weight:bold; vertical-align:top; width:100px;'>Kirim Ke</td>";
                 body1 += "<td colspan='3' style='vertical-align:top; word-wrap:break-word; word-break:break-word; white-space:normal; max-width:400px;'>"
-                    + ": " + escapeXmlSymbols(shipTo).trim()
+                    + ": " + escapeXmlSymbols(shipAddressSO).trim()
                     + "</td>";
                 body1 += "</tr>";
 
@@ -410,7 +412,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body2 += "</tr>";
                 body2 += "<tr>";
                 body2 += "<td style='font-weight:bold'>Kirim Ke</td>";
-                body2 += "<td rowspan='2' colspan='3'>: " + escapeXmlSymbols(shipTo) + "</td>";
+                body2 += "<td rowspan='2' colspan='3'>: " + escapeXmlSymbols(shipAddressSO) + "</td>";
                 body2 += "</tr>";
                 body2 += "<tr>";
                 body2 += "<td style='height:30px'></td>";
