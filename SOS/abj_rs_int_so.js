@@ -111,7 +111,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
         return {
           status: 'success',
           message: 'Sales Order created successfully.',
-          data: result
+          data: salesOrderId
         };
 
       } catch (e) {
