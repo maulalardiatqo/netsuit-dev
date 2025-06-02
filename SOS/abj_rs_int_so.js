@@ -3,20 +3,28 @@
  * @NScriptType Restlet
  */
 
-define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration_log_record'], (record, log, error, format, integrationLogRecord) => {
+define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration_log_record', 'N/search'], (record, log, error, format, integrationLogRecord, search) => {
   const createSalesOrder = (data) => {
     try {
       const so = record.create({
         type: record.Type.SALES_ORDER,
-        isDynamic: false
+        isDynamic: true
       });
       log.debug('data.tran_date', data.tran_date)
       var dateObj = new Date(data.tran_date);
       log.debug('dateObj', dateObj)
       var shipDateObj = new Date(data.ship_date);
       log.debug('shipDateObj', shipDateObj)
+      so.setValue({ fieldId: 'customform', value: 125});
+      log.debug('transType', data.order_type);
+      
       so.setValue({ fieldId: 'entity', value: data.entity.internal_id });
-      so.setValue({ fieldId: 'subsidiary', value: data.subsidiary.internal_id });
+      // so.setValue({ fieldId: 'subsidiary', value: data.subsidiary.internal_id });
+      // if(data.order_type && data.order_type == 'preorder'){
+      //   log.debug('masuk order type', data.order_type)
+        
+      // }
+      so.setValue({ fieldId: 'custbody_sos_transaction_types', value: data.order_type.internal_id});
       so.setValue({ fieldId: 'trandate', value: dateObj });
       so.setValue({ fieldId: 'location', value: data.location.internal_id });
       so.setValue({ fieldId: 'class', value: data.class.internal_id });
@@ -24,35 +32,80 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
       so.setValue({ fieldId: 'currency', value: data.currency.internal_id });
       so.setValue({ fieldId: 'exchangerate', value: data.exchange_rate });
       so.setValue({ fieldId: 'memo', value: data.memo || '' });
+      so.setValue({ fieldId: 'custbody_sos_tran_etp', value: data.tran_etp || '' });
+      var cekMID = so.getValue('custbody_sos_merchant_id');
+      log.debug('cekMID', cekMID)
+      if(cekMID){
+        log.debug('ada cekMID')
+      }else{
+        so.setValue({ fieldId: 'custbody_sos_tran_etp', value: data.merchant_id || '' });
+      }
+      
       if (data.sales_rep) so.setValue({ fieldId: 'salesrep', value: data.sales_rep.internal_id });
       if (data.ship_date) so.setValue({ fieldId: 'shipdate', value: shipDateObj });
       if (data.ship_address_list) so.setValue({ fieldId: 'shipaddresslist', value: data.ship_address_list.internal_id });
+      data.order_items.forEach((line) => {
+        so.selectNewLine({ sublistId: 'item' });
 
-      data.order_items.forEach((line, index) => {
-        so.setSublistValue({ sublistId: 'item', fieldId: 'item', line: index, value: line.item.internal_id });
-        so.setSublistValue({ sublistId: 'item', fieldId: 'quantity', line: index, value: line.quantity });
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'item',
+          value: line.item.internal_id
+        });
 
-        // Set price ke custom
-        so.setSublistValue({ sublistId: 'item', fieldId: 'price', line: index, value: '-1' });
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'quantity',
+          value: line.quantity
+        });
 
-        // Pastikan rate bukan NaN
-        var rateValue = parseFloat(line.rate);
-        if (isNaN(rateValue)) {
-            throw 'Rate is not a number!';
-        }
-        so.setSublistValue({ sublistId: 'item', fieldId: 'rate', line: index, value: rateValue });
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'price',
+          value: '-1'
+        });
 
+        
         if (line.units) {
-            so.setSublistValue({ sublistId: 'item', fieldId: 'units', line: index, value: line.units.internal_id });
+          so.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'units',
+            value: line.units.internal_id
+          });
         }
+        var rateValue = parseFloat(line.rate);
+        log.debug('rateValue', rateValue)
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'rate',
+          value: rateValue
+        });
+        var amount = Number(rateValue) * Number(line.quantity)
+        log.debug('amount', amount)
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'amount',
+          value: amount
+        });
         if (line.description) {
-            so.setSublistValue({ sublistId: 'item', fieldId: 'description', line: index, value: line.description });
+          so.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'description',
+            value: line.description
+          });
         }
-        if (line.tax_code) {
-            so.setSublistValue({ sublistId: 'item', fieldId: 'taxcode', line: index, value: line.tax_code.internal_id });
-        }
-    });
 
+        if (line.tax_code) {
+          so.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'taxcode',
+            value: line.tax_code.internal_id
+          });
+        }
+
+        so.commitLine({ sublistId: 'item' });
+      });
+      
       const salesOrderId = so.save({ enableSourcing: true, ignoreMandatoryFields: false });
       log.debug('salesOrderId', salesOrderId)
       
@@ -65,6 +118,129 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
       log.error('Error creating Sales Order', e);
       throw error.create({
         name: 'SALES_ORDER_CREATION_FAILED',
+        message: e.message,
+        notifyOff: false
+      });
+    }
+  };
+  const updateSalesOrder = (data, internalId) => {
+    try {
+      log.debug('data update', data);
+      log.debug('internalID', internalId);
+
+      const so = record.load({
+        type: record.Type.SALES_ORDER,
+        id: internalId,
+        isDynamic: true
+      });
+
+      var dateObj = new Date(data.tran_date);
+      var shipDateObj = new Date(data.ship_date);
+
+      so.setValue({ fieldId: 'entity', value: data.entity.internal_id });
+      so.setValue({ fieldId: 'custbody_sos_transaction_types', value: data.order_type.internal_id });
+      so.setValue({ fieldId: 'trandate', value: dateObj });
+      so.setValue({ fieldId: 'location', value: data.location.internal_id });
+      so.setValue({ fieldId: 'class', value: data.class.internal_id });
+      so.setValue({ fieldId: 'department', value: data.department.internal_id });
+      so.setValue({ fieldId: 'currency', value: data.currency.internal_id });
+      so.setValue({ fieldId: 'exchangerate', value: data.exchange_rate });
+      so.setValue({ fieldId: 'memo', value: data.memo || '' });
+      so.setValue({ fieldId: 'custbody_sos_tran_etp', value: data.tran_etp || '' });
+
+      if (data.sales_rep) so.setValue({ fieldId: 'salesrep', value: data.sales_rep.internal_id });
+      if (data.ship_date) so.setValue({ fieldId: 'shipdate', value: shipDateObj });
+      if (data.ship_address_list) so.setValue({ fieldId: 'shipaddresslist', value: data.ship_address_list.internal_id });
+
+      // Hapus semua item line sebelum menambahkan ulang
+      const numLines = so.getLineCount({ sublistId: 'item' });
+      for (let i = numLines - 1; i >= 0; i--) {
+        so.removeLine({
+          sublistId: 'item',
+          line: i
+        });
+      }
+
+      // Tambahkan kembali item lines dari data.order_items
+      data.order_items.forEach((line) => {
+        so.selectNewLine({ sublistId: 'item' });
+
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'item',
+          value: line.item.internal_id
+        });
+
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'quantity',
+          value: line.quantity
+        });
+
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'price',
+          value: '-1'
+        });
+
+        if (line.units) {
+          so.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'units',
+            value: line.units.internal_id
+          });
+        }
+
+        const rateValue = parseFloat(line.rate);
+        const amount = Number(rateValue) * Number(line.quantity);
+
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'rate',
+          value: rateValue
+        });
+
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'amount',
+          value: amount
+        });
+
+        if (line.description) {
+          so.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'description',
+            value: line.description
+          });
+        }
+
+        if (line.tax_code) {
+          so.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'taxcode',
+            value: line.tax_code.internal_id
+          });
+        }
+
+        so.commitLine({ sublistId: 'item' });
+      });
+
+      const updatedId = so.save({
+        enableSourcing: true,
+        ignoreMandatoryFields: false
+      });
+
+      log.debug('Updated SO ID', updatedId);
+
+      return {
+        success: true,
+        salesOrderId: updatedId
+      };
+
+    } catch (e) {
+      log.error('Error updating Sales Order', e);
+      throw error.create({
+        name: 'SALES_ORDER_UPDATE_FAILED',
         message: e.message,
         notifyOff: false
       });
@@ -93,8 +269,43 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
             notifyOff: false
           });
         }
+        var cekTranEtp = context.data.tran_etp;
+        log.debug('cekTranEtp', cekTranEtp)
+        var result
+        if(cekTranEtp){
+            var salesorderSearchObj = search.create({
+                type: "salesorder",
+                settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
+                filters: [
+                    ["type", "anyof", "SalesOrd"],
+                    "AND",
+                    ["custbody_sos_tran_etp", "is", cekTranEtp],
+                    "AND",
+                    ["mainline", "is", "T"]
+                ],
+                columns: [
+                    search.createColumn({name: "internalid", label: "Internal ID"})
+                ]
+            });
 
-        const result = createSalesOrder(context.data);
+            var resultSet = salesorderSearchObj.run().getRange({
+                start: 0,
+                end: 1
+            });
+
+            if (resultSet.length > 0) {
+                var searchResult = resultSet[0];
+                var internalId = searchResult.getValue({ name: "internalid" });
+                log.debug("Found Sales Order Internal ID", internalId);
+                result = updateSalesOrder(context.data, internalId);
+            }else{
+              result = createSalesOrder(context.data);
+            }
+
+        }else{
+           result = createSalesOrder(context.data);
+        }
+        
         log.debug('result', result)
         var salesOrderId = result.salesOrderId
         log.debug('salesOrderId cek', salesOrderId)
