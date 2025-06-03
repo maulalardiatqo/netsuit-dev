@@ -257,13 +257,14 @@ define(["N/record", "N/search", "N/log", "N/format"], function (record, search, 
                                 });
                             } catch (e) {
                                 log.debug('Error creating Inventory Transfer', e);
+                                var msgSet = 'Error creating Inventory Transfer';
                                 if(e.message == 'An unexpected SuiteScript error has occurred'){
-                                    e.message = 'Another process with the same item is being processed, please press the recreate inventory transfer button'
+                                    msgSet = 'Another process with the same item is being processed, please press the recreate inventory transfer button'
                                 }
                                 record.submitFields({
                                     type: 'salesorder',
                                     id: soId,
-                                    values: { custbody_rda_error_message_ivnt_trf: e.message },
+                                    values: { custbody_rda_error_message_ivnt_trf: msgSet },
                                     options: { enableSourcing: false, ignoreMandatoryFields: true }
                                 });
                             }
