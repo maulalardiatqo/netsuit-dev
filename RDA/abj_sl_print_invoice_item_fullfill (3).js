@@ -166,7 +166,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
                         join: 'customer',
                         name : 'addresslabel'
                     }),     
-                    search.createColumn({ name: 'custbody_fcn_faktur_pajak' }), 
+                    // search.createColumn({ name: 'custbody_fcn_faktur_pajak' }), 
                     search.createColumn({ name: 'cseg_rda_sales_type' }), 
                     search.createColumn({ name: 'trandate' }),       
                     search.createColumn({ name: 'createdfrom' }),   
@@ -182,7 +182,8 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
                         join: 'item',
                         name : 'displayname'
                     }), 
-                    search.createColumn({ name: 'quantity' }), 
+                    search.createColumn({ name: 'quantity' }),
+                    search.createColumn({ name: 'custcol_flx_is_free_goods' }),
                     search.createColumn({ name: 'subsidiarynohierarchy' }), 
                     search.createColumn({ name: 'unit' }),
                     search.createColumn({ name: 'rate' }),           // Rate of the item
@@ -228,6 +229,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
                     search.createColumn({ name: 'custcol_rda_tax_amount' }),
                     search.createColumn({ name: 'custbody_rda_tax_amount_disc_header' }),
                     search.createColumn({ name: 'taxamount' }),
+                    search.createColumn({ name: 'subsidiary' }),
                     
                     
 
@@ -294,9 +296,9 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             // var totalPages = 1;
             // log.debug("TOTAL PAGE", totalPages)
             var isA4 = context.request.parameters.isa4;
-            var fontSize = 10
+            var fontSize = 8
             if(isA4){
-                fontSize = 12
+                fontSize = 8
             }
             var logoUrl = '';
             var fileLogo = file.load({
@@ -320,6 +322,8 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             let companyName = "PT. REJEKI DAMAI ABADI";
             let companyAddress = data[0].getText({name : "subsidiarynohierarchy"}) || '';
             let isCanvasTrx = data[0].getValue({name : "custbody_rda_canvas_trx"});
+            let subsId = data[0].getValue({name : "subsidiary"});
+            log.debug('subsId', subsId)
 
             // log.debug('IS CANVAS TRX', isCanvasTrx);
             let custName = data[0].getValue({name : "altname", join: 'customer'});
@@ -396,7 +400,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
 
             // round up
             total = Math.ceil(Number(total))
-            let terbilang =terbilangRupiah(total)
+            // let terbilang =terbilangRupiah(total)
 
 
             
@@ -480,6 +484,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             
                 for (let i = 0; i < itemCount; i++) {
                     let itemType = dataItems[i].getValue({name : 'itemtype'});
+                    let isFreeGoods = dataItems[i].getValue({name : 'custcol_flx_is_free_goods'});
                     let kode = dataItems[i].getValue({join:'item',name :"itemid"});
                     let namaProduk = dataItems[i].getValue({join:'item',name :"displayname"});
                     let jumlahBarang = dataItems[i].getValue({name :"quantity"}) +" PCS";
@@ -571,7 +576,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
                     jumlahRP = Number(jumlahRP)
                     log.debug('data',`${line} | ${kode} | ${namaProduk} | ${detailQtyConcat} | ${jumlahBarang} | ${hargaJual} | ${rebateOrPotongan} | ${jumlahRP}`)
                         // subTotal = Number(subTotal) + Number(totalAmount);
-                    if(itemType !== "Discount" && itemType !== 'TaxItem' && Number(jumlahRP) > 0){
+                    if(itemType !== "Discount" && itemType !== 'TaxItem' && (jumlahRP || isFreeGoods === true)){
                         items++;
                         
                         // if(recType == 'invoice'){
@@ -627,13 +632,13 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             <table width="100%" style="border-collapse: collapse;">
                 <thead>
                     <tr>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;border-left: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}">Kode</td>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}">Nama Produk</td>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}"><p style='text-align:left;'>Detail Qty</p></td>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}">Jumlah Brg in Pcs</td>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}">Hrg Jual</td>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}">Rabat/Potongan</td>
-                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}">Jumlah RP</td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;border-left: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}"><p style='text-align:left;white-space:nowrap;'>Kode</p></td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}"><p style='text-align:left;white-space:nowrap;'>Nama Produk</p></td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}"><p style='text-align:left;white-space:nowrap;'>Detail Qty</p></td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}"><p style='text-align:left;white-space:nowrap;'>Jumlah Brg in Pcs</p></td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}"><p style='text-align:left;white-space:nowrap;'>Hrg Jual</p></td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}"><p style='text-align:left;white-space:nowrap;'>Rabat/Potongan</p></td>
+                        <td style="border-bottom: 1px solid black;border-right: 1px solid black;border-top: 1px solid black;align:center;font-weight:bold;font-size:${fontSize}"><p style='text-align:left;white-space:nowrap;'>Jumlah RP</p></td>
                     </tr>
                 </thead>a
                 <tbody>
@@ -653,11 +658,11 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             if(totalPage > 1){
                 for (let page = 1; page < totalPage; page++) {
                     
-                    style += "#page"+page+" {footer:nlfooter;footer-height:45%;}";
+                    style += "#page"+page+" {footer:nlfooter;footer-height:40%;}";
                     
                 }
             }
-            style += "#page"+totalPage+" {footer:nlfooterlastpage;footer-height:45%;}";
+            style += "#page"+totalPage+" {footer:nlfooterlastpage;footer-height:40%;}";
 
             style += "</style>";
 
@@ -669,7 +674,14 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             if(recType == 'invoice'){
                 totalPPN = data[0].getValue({name :"taxtotal"}) ||  0;
             }
+            // if(recType == 'itemfulfillment'){
+            //     totalPPN = data[0].getValue({name :"custbody_rda_tax_amount_disc_header"}) ||  0;
+            // }
             total = subTotal + Number(totalPPN) - totalHeaderDiscount;
+            log.debug('TOTAL', total);
+            var totalFormated =format.format({value: total, type : format.Type.CURRENCY});
+
+            terbilang = terbilangRupiah(totalFormated.replace(/,/g, ''));
 
             footerRegular = `
             <div style="height:90%;"></div>
@@ -790,7 +802,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             var pageHeight = 14.8;
             var paddingBottom = '0';
             
-            var paddingTop = 20
+            var paddingTop = 10
             var paddingRight = 5
             var paddingLeft = 5
             var minTopFooter = 10
@@ -803,7 +815,17 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
                 paddingRight = 10;
                 minTopFooter = 30;
             }
-
+            if(subsId == '7'){
+                log.debug('masuk subsId7', subsId)
+                pageWidth = 21;
+                pageHeight = 13.97;
+                paddingBottom = '0';
+                
+                paddingTop = 20
+                paddingRight = 10
+                paddingLeft = 10
+                minTopFooter = 10
+            }
             var xml = '<?xml version="1.0"?>\n<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">';
             xml += "<pdf>";
             xml += "<head>";
@@ -820,7 +842,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             xml += "</macro>";
             xml += "</macrolist>";
             xml += "</head>"
-            xml += `<body font-size='9' size="A4" orientation="landscape" class='page' style="font-family: Tahoma, sans-serif;font-weight:500;width: ${pageWidth}cm; height: ${pageHeight}cm;padding-left:'${paddingLeft}';padding-right:'${paddingRight}';padding-top:'${paddingTop}';padding-bottom:${paddingBottom}" header='nlheader' header-height='${headerHeight}'>`;
+            xml += `<body font-size='9' size="A4" orientation="landscape" class='page' style="font-family: Tahoma, sans-serif;font-weight:500;width: ${pageWidth}cm; height: ${pageHeight}cm;padding-left:'${paddingLeft}';padding-right:'${paddingRight}';padding-top:'${paddingTop}';padding-bottom:${paddingBottom};margin-top:-10px;" header='nlheader' header-height='${headerHeight}'>`;
             xml += body;
             // xml += "<pbr pagenumber='"+totalPages+"' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter2' footer-height='20%'/>";
             xml += "\n</body>\n</pdf>";
