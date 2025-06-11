@@ -153,13 +153,21 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                                     value: 'Sales order quantity is greater than the quantity on hand'
                                 });
                             }else{
-                                log.debug('quantity lebih kecil');
-                                newRec.setSublistValue({
+                                log.debug('quantity lebih kecil', i);
+                                var cekerror = newRec.getSublistValue({
                                     sublistId: 'item',
-                                    fieldId: 'custcol_rda_it_error_for_do_line',
-                                    line: i,
-                                    value: ''
-                                });
+                                    fieldId : 'custcol_rda_it_error_for_do_line',
+                                    line : i
+                                })
+                                if(cekerror){
+                                    newRec.setSublistValue({
+                                        sublistId: 'item',
+                                        fieldId: 'custcol_rda_it_error_for_do_line',
+                                        line: i,
+                                        value: ''
+                                    });
+                                }
+                                
                             }
                             allItem.push({ item: item, units: units, qty: qty });
                             
@@ -168,6 +176,7 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                     log.debug('allItem', allItem)
                     log.debug('validateOnhand', validateOnhand)
                     newRec.save();
+                    log.debug('afterSave IF')
                     if (!validateOnhand) {
                         var msg = 'One of the lines in transaction has a Quantity Onhand that is smaller than the Quantity Transfer.';
                             record.submitFields({
@@ -177,7 +186,6 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                                 options: { enableSourcing: false, ignoreMandatoryFields: true }
                             });
                     }
-                
                     if (validateOnhand == true && allItem.length > 0) {
                         try {
                             log.debug('masuk kondisi')

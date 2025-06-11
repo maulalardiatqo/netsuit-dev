@@ -102,6 +102,13 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
             value: line.tax_code.internal_id
           });
         }
+        if(line.brand.internal_id){
+           so.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'cseg_sos_brand',
+            value: line.brand.internal_id
+          });
+        }
 
         so.commitLine({ sublistId: 'item' });
       });
@@ -205,7 +212,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           fieldId: 'amount',
           value: amount
         });
-
+        log.debug('line brand', line.brand.internal_id)
         if (line.description) {
           so.setCurrentSublistValue({
             sublistId: 'item',
@@ -219,6 +226,13 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
             sublistId: 'item',
             fieldId: 'taxcode',
             value: line.tax_code.internal_id
+          });
+        }
+        if(line.brand.internal_id){
+           so.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'cseg_sos_brand',
+            value: line.brand.internal_id
           });
         }
 
@@ -297,13 +311,36 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
                 var searchResult = resultSet[0];
                 var internalId = searchResult.getValue({ name: "internalid" });
                 log.debug("Found Sales Order Internal ID", internalId);
-                result = updateSalesOrder(context.data, internalId);
+                try {
+                  result = updateSalesOrder(context.data, internalId);
+                } catch (e) {
+                  log.error('Update SO failed', e);
+                  result = {
+                    success: false,
+                    message: e.message
+                  };
+                }
             }else{
-              result = createSalesOrder(context.data);
+              try{
+                result = createSalesOrder(context.data);
+              }catch(e){
+                result = {
+                    success: false,
+                    message: e.message
+                  };
+              }
+              
             }
 
         }else{
-           result = createSalesOrder(context.data);
+          try{
+                result = createSalesOrder(context.data);
+              }catch(e){
+                result = {
+                    success: false,
+                    message: e.message
+                  };
+              }
         }
         
         log.debug('result', result)
