@@ -33,6 +33,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
       so.setValue({ fieldId: 'exchangerate', value: data.exchange_rate });
       so.setValue({ fieldId: 'memo', value: data.memo || '' });
       so.setValue({ fieldId: 'custbody_sos_tran_etp', value: data.tran_etp || '' });
+      so.setValue({ fieldId : 'orderstatus', value : 'B'});
       var cekMID = so.getValue('custbody_sos_merchant_id');
       log.debug('cekMID', cekMID)
       if(cekMID){
@@ -44,6 +45,49 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
       if (data.sales_rep) so.setValue({ fieldId: 'salesrep', value: data.sales_rep.internal_id });
       if (data.ship_date) so.setValue({ fieldId: 'shipdate', value: shipDateObj });
       if (data.ship_address_list) so.setValue({ fieldId: 'shipaddresslist', value: data.ship_address_list.internal_id });
+      // set ship address
+      if (data.ship_to) {
+        so.setValue({ fieldId: 'shipaddresslist', value: null });
+
+        const shippingSubrec = so.getSubrecord({ fieldId: 'shippingaddress' });
+
+        if (data.ship_to.country) {
+          shippingSubrec.setValue({ fieldId: 'country', value: 'ID' }); // hardcode atau ambil dari data.ship_to.country jika kamu punya mapping
+          so.setValue({ fieldId: 'shipcountry', value: 'ID' });
+        }
+        if (data.ship_to.attention) {
+          shippingSubrec.setValue({ fieldId: 'attention', value: data.ship_to.attention });
+          so.setValue({ fieldId: 'shipattention', value: data.ship_to.attention });
+        }
+        if (data.ship_to.addressee) {
+          shippingSubrec.setValue({ fieldId: 'addressee', value: data.ship_to.addressee });
+          so.setValue({ fieldId: 'shipaddressee', value: data.ship_to.addressee });
+        }
+        if (data.ship_to.phone) {
+          shippingSubrec.setValue({ fieldId: 'phone', value: data.ship_to.phone });
+          so.setValue({ fieldId: 'shipphone', value: data.ship_to.phone });
+        }
+        if (data.ship_to.address1) {
+          shippingSubrec.setValue({ fieldId: 'addr1', value: data.ship_to.address1 });
+          so.setValue({ fieldId: 'shipaddr1', value: data.ship_to.address1 });
+        }
+        if (data.ship_to.address2) {
+          shippingSubrec.setValue({ fieldId: 'addr2', value: data.ship_to.address2 });
+          so.setValue({ fieldId: 'shipaddr2', value: data.ship_to.address2 });
+        }
+        if (data.ship_to.city) {
+          shippingSubrec.setValue({ fieldId: 'city', value: data.ship_to.city });
+          so.setValue({ fieldId: 'shipcity', value: data.ship_to.city });
+        }
+        if (data.ship_to.state) {
+          shippingSubrec.setValue({ fieldId: 'state', value: data.ship_to.state });
+          so.setValue({ fieldId: 'shipstate', value: data.ship_to.state });
+        }
+        if (data.ship_to.zip) {
+          shippingSubrec.setValue({ fieldId: 'zip', value: data.ship_to.zip });
+          so.setValue({ fieldId: 'shipzip', value: data.ship_to.zip });
+        }
+      }
       data.order_items.forEach((line) => {
         so.selectNewLine({ sublistId: 'item' });
 
@@ -64,29 +108,6 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           fieldId: 'price',
           value: '-1'
         });
-
-        
-        if (line.units) {
-          so.setCurrentSublistValue({
-            sublistId: 'item',
-            fieldId: 'units',
-            value: line.units.internal_id
-          });
-        }
-        var rateValue = parseFloat(line.rate);
-        log.debug('rateValue', rateValue)
-        so.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'rate',
-          value: rateValue
-        });
-        var amount = Number(rateValue) * Number(line.quantity)
-        log.debug('amount', amount)
-        so.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'amount',
-          value: amount
-        });
         if (line.description) {
           so.setCurrentSublistValue({
             sublistId: 'item',
@@ -95,13 +116,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           });
         }
 
-        if (line.tax_code) {
-          so.setCurrentSublistValue({
-            sublistId: 'item',
-            fieldId: 'taxcode',
-            value: line.tax_code.internal_id
-          });
-        }
+        
         if(line.brand.internal_id){
            so.setCurrentSublistValue({
             sublistId: 'item',
@@ -109,6 +124,51 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
             value: line.brand.internal_id
           });
         }
+        
+        // if (line.units) {
+        //   so.setCurrentSublistValue({
+        //     sublistId: 'item',
+        //     fieldId: 'units',
+        //     value: line.units.internal_id
+        //   });
+        // }
+        var grossAmt = line.gross_amount
+        // var rateValue = parseFloat(line.rate);
+        // log.debug('rateValue', rateValue)
+       
+        if (line.tax_code) {
+            so.setCurrentSublistValue({
+              sublistId: 'item',
+              fieldId: 'taxcode',
+              value: line.tax_code.internal_id
+            });
+        }
+        so.setCurrentSublistValue({
+          sublistId : 'item',
+          fieldId : 'grossamt',
+          value : grossAmt
+        })
+        var amtLine = so.getCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'amount'
+        });
+        log.debug('amtLine', amtLine);
+        var rateSet = Number(amtLine) / Number(line.quantity);
+        log.debug('rateSet', rateSet);
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'rate',
+          value: rateSet,
+          ignoreFieldChange : true
+        });
+        // var amount = Number(rateValue) * Number(line.quantity)
+        // log.debug('amount', amount)
+        // so.setCurrentSublistValue({
+        //   sublistId: 'item',
+        //   fieldId: 'amount',
+        //   value: amount
+        // });
+        
 
         so.commitLine({ sublistId: 'item' });
       });
@@ -123,138 +183,8 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
 
     } catch (e) {
       log.error('Error creating Sales Order', e);
-      throw error.create({
+      throw new Error({
         name: 'SALES_ORDER_CREATION_FAILED',
-        message: e.message,
-        notifyOff: false
-      });
-    }
-  };
-  const updateSalesOrder = (data, internalId) => {
-    try {
-      log.debug('data update', data);
-      log.debug('internalID', internalId);
-
-      const so = record.load({
-        type: record.Type.SALES_ORDER,
-        id: internalId,
-        isDynamic: true
-      });
-
-      var dateObj = new Date(data.tran_date);
-      var shipDateObj = new Date(data.ship_date);
-
-      so.setValue({ fieldId: 'entity', value: data.entity.internal_id });
-      so.setValue({ fieldId: 'custbody_sos_transaction_types', value: data.order_type.internal_id });
-      so.setValue({ fieldId: 'trandate', value: dateObj });
-      so.setValue({ fieldId: 'location', value: data.location.internal_id });
-      so.setValue({ fieldId: 'class', value: data.class.internal_id });
-      so.setValue({ fieldId: 'department', value: data.department.internal_id });
-      so.setValue({ fieldId: 'currency', value: data.currency.internal_id });
-      so.setValue({ fieldId: 'exchangerate', value: data.exchange_rate });
-      so.setValue({ fieldId: 'memo', value: data.memo || '' });
-      so.setValue({ fieldId: 'custbody_sos_tran_etp', value: data.tran_etp || '' });
-
-      if (data.sales_rep) so.setValue({ fieldId: 'salesrep', value: data.sales_rep.internal_id });
-      if (data.ship_date) so.setValue({ fieldId: 'shipdate', value: shipDateObj });
-      if (data.ship_address_list) so.setValue({ fieldId: 'shipaddresslist', value: data.ship_address_list.internal_id });
-
-      // Hapus semua item line sebelum menambahkan ulang
-      const numLines = so.getLineCount({ sublistId: 'item' });
-      for (let i = numLines - 1; i >= 0; i--) {
-        so.removeLine({
-          sublistId: 'item',
-          line: i
-        });
-      }
-
-      // Tambahkan kembali item lines dari data.order_items
-      data.order_items.forEach((line) => {
-        so.selectNewLine({ sublistId: 'item' });
-
-        so.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'item',
-          value: line.item.internal_id
-        });
-
-        so.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'quantity',
-          value: line.quantity
-        });
-
-        so.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'price',
-          value: '-1'
-        });
-
-        if (line.units) {
-          so.setCurrentSublistValue({
-            sublistId: 'item',
-            fieldId: 'units',
-            value: line.units.internal_id
-          });
-        }
-
-        const rateValue = parseFloat(line.rate);
-        const amount = Number(rateValue) * Number(line.quantity);
-
-        so.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'rate',
-          value: rateValue
-        });
-
-        so.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'amount',
-          value: amount
-        });
-        log.debug('line brand', line.brand.internal_id)
-        if (line.description) {
-          so.setCurrentSublistValue({
-            sublistId: 'item',
-            fieldId: 'description',
-            value: line.description
-          });
-        }
-
-        if (line.tax_code) {
-          so.setCurrentSublistValue({
-            sublistId: 'item',
-            fieldId: 'taxcode',
-            value: line.tax_code.internal_id
-          });
-        }
-        if(line.brand.internal_id){
-           so.setCurrentSublistValue({
-            sublistId: 'item',
-            fieldId: 'cseg_sos_brand',
-            value: line.brand.internal_id
-          });
-        }
-
-        so.commitLine({ sublistId: 'item' });
-      });
-
-      const updatedId = so.save({
-        enableSourcing: true,
-        ignoreMandatoryFields: false
-      });
-
-      log.debug('Updated SO ID', updatedId);
-
-      return {
-        success: true,
-        salesOrderId: updatedId
-      };
-
-    } catch (e) {
-      log.error('Error updating Sales Order', e);
-      throw error.create({
-        name: 'SALES_ORDER_UPDATE_FAILED',
         message: e.message,
         notifyOff: false
       });
@@ -268,7 +198,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
 
         // Validate transaction_type
         if (!context.transaction_type || context.transaction_type !== 'sales_order') {
-          throw error.create({
+          throw new Error({
             name: 'INVALID_TRANSACTION_TYPE',
             message: 'This endpoint only accepts transaction_type = "sales_order".',
             notifyOff: false
@@ -277,7 +207,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
 
         // Validate required data
         if (!context.data || !context.data.entity) {
-          throw error.create({
+          throw new Error({
             name: 'MISSING_REQUIRED_DATA',
             message: 'Entity data is required in payload.',
             notifyOff: false
@@ -308,38 +238,30 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
             });
 
             if (resultSet.length > 0) {
-                var searchResult = resultSet[0];
-                var internalId = searchResult.getValue({ name: "internalid" });
-                log.debug("Found Sales Order Internal ID", internalId);
-                try {
-                  result = updateSalesOrder(context.data, internalId);
-                } catch (e) {
-                  log.error('Update SO failed', e);
-                  result = {
-                    success: false,
-                    message: e.message
-                  };
-                }
+                result = {
+                  status: false,
+                  message: 'ETP Number Already Exist',
+                };
             }else{
               try{
                 result = createSalesOrder(context.data);
               }catch(e){
                 result = {
-                    success: false,
-                    message: e.message
-                  };
+                  status: false,
+                  message: e.message
+                };
               }
               
             }
 
         }else{
-          try{
+              try{
                 result = createSalesOrder(context.data);
               }catch(e){
                 result = {
-                    success: false,
-                    message: e.message
-                  };
+                  status: false,
+                  message: e.message
+                };
               }
         }
         
@@ -355,21 +277,28 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           linkTrx: salesOrderId
       });
       log.debug('integrationLogRec', integrationLogRec)
-
-        return {
-          status: 'success',
-          message: 'Sales Order created successfully.',
-          data: salesOrderId
-        };
+        log.debug('result Status', result.status)
+        if(!result.status){
+            throw new Error(result.message)
+        }else{
+            return {
+              status: true,
+              message: 'Sales Order created successfully.',
+              data: salesOrderId
+            };
+        }
+       
 
       } catch (e) {
         log.error('RESTlet Error', e);
 
-        return {
-          status: 'error',
-          message: e.message || 'Unexpected error occurred.',
-          code: e.name || 'UNEXPECTED_ERROR'
+        result = {
+          status: false,
+          message: error.message
         };
+        if(!result.status){
+          throw new Error(result.message)
+        }
       }
     }
   };
