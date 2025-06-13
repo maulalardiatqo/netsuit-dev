@@ -290,11 +290,11 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
        
 
       } catch (e) {
-        log.error('RESTlet Error', e);
+        log.debug('RESTlet Error', e);
 
         result = {
           status: false,
-          message: error.message
+          message: e.message
         };
         if(!result.status){
           throw new Error(result.message)

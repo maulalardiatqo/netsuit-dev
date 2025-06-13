@@ -13,10 +13,8 @@ define(['N/file', 'N/record', 'N/runtime', 'N/log'], (file, record, runtime, log
 
       // Buang header jika ada
       if (lines[0].toLowerCase().includes('customer_id')) {
-        log.debug('masuk kondisi')
         lines.shift();
       }
-      log.debug('lines update', lines)
 
       return lines;
     } catch (e) {
@@ -61,7 +59,7 @@ define(['N/file', 'N/record', 'N/runtime', 'N/log'], (file, record, runtime, log
           outletId = 1;
           break;
         default:
-          outletId = outletId; // biarkan sesuai nilai asli kalau di luar list
+          outletId = outletId;
           break;
       }
 
@@ -79,9 +77,8 @@ define(['N/file', 'N/record', 'N/runtime', 'N/log'], (file, record, runtime, log
         voucher: parseFloat(voucher),
         discount: parseFloat(discount)
       };
-      log.debug('parseData', parsedData)
       context.write({
-        key: context.key,
+        key: orderName,
         value: parsedData
       });
 
@@ -93,40 +90,87 @@ define(['N/file', 'N/record', 'N/runtime', 'N/log'], (file, record, runtime, log
 
 
   const reduce = (context) => {
-    // context.values.forEach(value => {
-    //   try {
-    //     const data = JSON.parse(value);
+  try {
+    function parseNetSuiteDate(dateStr) {
+      const parts = dateStr.split('/');
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // bulan dimulai dari 0
+      const year = parseInt(parts[2], 10);
 
-    //     // Validasi angka
-    //     if (isNaN(data.customerId) || isNaN(data.itemId) || isNaN(data.quantity) || isNaN(data.rate)) {
-    //       log.error('Invalid numeric values', data);
-    //       return;
-    //     }
+      return new Date(year, month, day); // format: new Date(YYYY, MM, DD)
+    }
+    const orderLines = context.values.map(JSON.parse);
 
-    //     const cashSale = record.create({
-    //       type: record.Type.CASH_SALE,
-    //       isDynamic: true
-    //     });
+    const headerData = orderLines[0];
+    const cashSale = record.create({
+      type: record.Type.CASH_SALE,
+      isDynamic: true
+    });
 
-    //     cashSale.setValue({
-    //       fieldId: 'entity',
-    //       value: data.customerId
-    //     });
+    cashSale.setValue({ fieldId: 'entity', value: headerData.customerId });
+    const parsedDate = parseNetSuiteDate(headerData.date);
+    cashSale.setValue({ fieldId: 'trandate', value: parsedDate });
+    cashSale.setValue({ fieldId: 'memo', value: 'Upload CSV'});
+    cashSale.setValue({ fieldId: 'location', value: headerData.outletId });
+    cashSale.setValue({ fieldId: 'account', value: 1 });
+    cashSale.setValue({ fieldId: 'tranid', value: headerData.orderName});
+    cashSale.setValue({ fieldId: 'externalid', value: headerData.orderName});
 
-    //     cashSale.selectNewLine({ sublistId: 'item' });
-    //     cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: data.itemId });
-    //     cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: data.quantity });
-    //     cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'rate', value: data.rate });
-    //     cashSale.commitLine({ sublistId: 'item' });
+    orderLines.forEach(line => {
+      cashSale.selectNewLine({ sublistId: 'item' });
+      cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: line.itemId });
+      cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'price', value: "-1" });
+      cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: line.quantity });
+      if(line.itemId == '243'){
+        cashSale.setCurrentSublistValue({sublistId : 'item', fieldId : 'taxcode', value: "5"})
+      }else{
+        cashSale.setCurrentSublistValue({sublistId : 'item', fieldId : 'taxcode', value: "6"})
+      }
+      cashSale.setCurrentSublistValue({ sublistId: 'item', fieldId: 'grossamt', value: line.amount });
+      var cekLineAmt = cashSale.getCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'amount'
+      });
+      log.debug('cekLineAmt', cekLineAmt)
+      var rateSet = Number(cekLineAmt) / Number(line.quantity);
+      log.debug('rateSet', rateSet);
+      cashSale.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'rate',
+          value: rateSet,
+          ignoreFieldChange : true
+        });
+      cashSale.commitLine({ sublistId: 'item' });
+    });
 
-    //     const recordId = cashSale.save({ ignoreMandatoryFields: false });
+    const id = cashSale.save();
+    log.audit('Cash Sale Created', `Order: ${context.key}, ID: ${id}`);
+  } catch (e) {
+    log.error('reduce error', `Order: ${context.key}, Error: ${e.message}`);
+    try {
+      const errorRecord = record.create({
+        type: 'customrecord1426',
+        isDynamic: true
+      });
 
-    //     log.audit('Cash Sale created', `ID: ${recordId} for customer ${data.customerId}`);
-    //   } catch (e) {
-    //     log.error('reduce error', `Key ${context.key}: ${e.message}`);
-    //   }
-    // });
-  };
+      errorRecord.setValue({
+        fieldId: 'custrecord_document_number',
+        value: context.key
+      });
+
+      errorRecord.setValue({
+        fieldId: 'custrecord_error_msg',
+        value: e.message
+      });
+
+      const errorId = errorRecord.save();
+      log.audit('Error Record Created', `Order: ${context.key}, Error Record ID: ${errorId}`);
+    } catch (err) {
+      log.error('Gagal simpan error record', `Order: ${context.key}, Error: ${err.message}`);
+    }
+  }
+};
+
 
   return { getInputData, map, reduce };
 });

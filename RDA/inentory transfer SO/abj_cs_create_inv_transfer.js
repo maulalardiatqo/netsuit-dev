@@ -22,7 +22,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 processTransaction(processMsg);
             } catch (e) {
                 processMsg.hide(); 
-                log.error("Error", e);
+                console.log("Error", e);
                 dialog.alert({
                     title: "Error",
                     message: e.message
@@ -59,7 +59,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             } else {
                 dialog.alert({
                     title: result.success ? "Success" : "Error",
-                    message: message
+                    message: result.message
                 }).then(function () {
                     window.location.reload(); 
                 });
@@ -71,6 +71,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 title: "Error",
                 message: "Failed to communicate with Suitelet: " + e.message
             });
+            // throw e
         });
     }
     
