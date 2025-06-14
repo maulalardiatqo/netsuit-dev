@@ -385,6 +385,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     // customerSalesman = `${salesRepDetails.firstname} ${salesRepDetails.lastname} - ${salesRepDetails.custrecord_rda_mapsales_employee_id.name}`
                     kolektor = `${salesRepDetails.firstname} ${salesRepDetails.lastname}`
                 }
+                log.debug('finalData', finalData)
                
                 var halaman = 1
                 // page print
@@ -484,6 +485,22 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var jumlahNota = 0
                 var subTotal = 0
                 var totalOutstand = 0
+                finalData.sort((a, b) => {
+                    const getNamePart = (str) => {
+                        if (!str) return '';
+                        const parts = str.trim().split(' ');
+                        // Ambil semua kata setelah bagian kode (anggap kode selalu berada di depan, dipisah spasi)
+                        parts.shift(); // Buang bagian pertama (kode)
+                        return parts.join(' ').toLowerCase(); // Gabungkan sisa jadi nama
+                    };
+
+                    const nameA = getNamePart(a.cussId);
+                    const nameB = getNamePart(b.cussId);
+
+                    if (nameA < nameB) return -1;
+                    if (nameA > nameB) return 1;
+                    return 0;
+                });
                 finalData.forEach(item => {
                     jumlahNota ++
                     var amtCount = item.amtTotal
@@ -650,6 +667,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "</table>";
 
                 // render XML
+                // render XML
                 var xml = '<?xml version="1.0"?>\n<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">';
                 xml += "<pdf>";
                 xml += "<head>";
@@ -658,14 +676,20 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "<macro id=\"nlheader\">";
                 xml += header;
                 xml += "</macro>";
-                xml += "<macro id=\"nlfooter\">";
-                xml += footer;
-                xml += "</macro>";
                 xml += "</macrolist>";
-                xml += "</head>"
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 21cm; width: 29.7cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='20%'>";
+                xml += "</head>";
+
+                // Jangan pakai footer='nlfooter' lagi di body
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 21cm; width: 29.7cm;' header='nlheader' header-height='" + headerHeight + "'>";
+
+                // Masukkan body di sini
                 xml += body;
+
+                // Masukkan footer langsung di akhir body (halaman terakhir)
+                xml += footer;
+
                 xml += "\n</body>\n</pdf>";
+
 
                 xml = xml.replace(/ & /g, ' &amp; ');
                 response.renderPdf({
