@@ -328,7 +328,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             // log.debug('IS CANVAS TRX', isCanvasTrx);
             let custName = data[0].getValue({name : "altname", join: 'customer'});
             let custCode = data[0].getValue({name : "entityid", join: 'customer'});
-            let custAdress = data[0].getValue({join:'customer',name :"addresslabel"});
+            let custAdress = data[0].getValue({join:'customer',name :"address"});
             let listFaktur = {
                 "Credit": "KREDIT",
                 "Cash": "TUNAI"
@@ -405,10 +405,10 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
 
             
 
-            header = `<table width="100%"  style="table-layout:auto;">
+            header = `<table width="100%"  style="table-layout:fixed;">
                 <tbody>
                     <tr>
-                        <td style="width:45%;table-layout:fixed;">
+                        <td style="width:45%; max-width:45%; table-layout:fixed; ">
                             <table width="100%">
                                 <tbody>
                                     <tr>
@@ -427,7 +427,7 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
                         </td>
                         <td style="text-align:center;align:center;width:10%;">
                         </td>
-                        <td style="width:45%;">
+                        <td style="width:45%; max-width:45%;">
                             <table width="100%">
                                 <tbody>
                                     <tr>
@@ -477,10 +477,8 @@ define(['N/format', 'N/log', 'N/record', 'N/search', "N/file","./dateUtils",'N/r
             let itemCount = dataItems.length;
             let itemRows = "";
             let linePrinted = [];
-            let perPage = 4;
-            if(subsId == '7'){
-                perPage = 3
-            }
+            // let perPage = 4;
+            let perPage = subsId == '7' ? 3 : 4;
             let currentPage = 1;
 
             // Loop through each line item in the purchase order

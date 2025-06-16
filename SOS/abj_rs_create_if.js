@@ -12,13 +12,20 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
                 toType: record.Type.ITEM_FULFILLMENT,
                 isDynamic: true
             });
-
+            itemFulfillRec.setValue({
+                fieldId : 'customform',
+                value : '103'
+            })
             if (data.tran_date) {
                 itemFulfillRec.setValue({
                     fieldId: 'trandate',
                     value: new Date(data.tran_date)
                 });
             }
+            itemFulfillRec.setValue({
+                fieldId : 'custbody_sos_transaction_types',
+                value : '2'
+            })
             if (data.memo) {
                 itemFulfillRec.setValue({
                     fieldId: 'memo',
@@ -91,17 +98,17 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
             });
 
             return {
-                success: true,
+                status: true,
                 ifId: ifId
             };
 
         } catch (e) {
             log.error('Error createItemFulfill', e);
-            throw new Error({
-                name: 'CREATE_ITEM_FULFILL_ERROR',
-                message: e.message,
-                notifyOff: false
-            });
+            log.debug('e.message', e.message)
+             const err = new Error(e.message);
+                err.name = 'ITEM_FULFILLMENT_CREATION_FAILED';
+                err.notifyOff = false;
+                throw err;
         }
     }
 
@@ -133,11 +140,11 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
         try{
             result = createItemFulfill(context.data);
         }catch(e){
-             throw new Error({
-                name: 'Error',
-                message: e.message,
-                notifyOff: false
-            });
+            log.debug('e', e)
+            result = {
+                status: false,
+                message: e.message || JSON.stringify(e)
+            };
         }
         
         log.debug('result', result)
@@ -150,15 +157,19 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
             reqBody: JSON.stringify(context.data),
             resBody: JSON.stringify(result),
             linkTrx: IfId
-      });
+        });
       log.debug('integrationLogRec', integrationLogRec)
+        if(!result.status){
+           throw new Error(result.message)
 
-        return {
-            status: true,
-            message: 'Itemfulfill created successfully.',
-            data: IfId
-        };
-
+        }else{
+             return {
+                status: true,
+                message: 'Itemfulfill created successfully.',
+                data: IfId
+            };
+        }
+       
       } catch (e) {
         log.error('RESTlet Error', e);
 
@@ -166,6 +177,16 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
             status: false,
             message: e.message || 'Unexpected error occurred.',
         };
+        const integrationLogRec = integrationLogRecord.createSOSIntegrationLog({
+            jobName: '- ABJ RS | ETP create IF',
+            jobType: 'Restlet - POST',
+            jobLink: 'JOB LINK - URL DARI POS',
+            reqBody: JSON.stringify(context.data),
+            resBody: JSON.stringify(result),
+            linkTrx: ''
+        });
+        log.debug('integrationLogRec', integrationLogRec)
+        log.debug('resultMessage', result.message)
         if(!result.status){
             throw new Error(result.message)
         }
