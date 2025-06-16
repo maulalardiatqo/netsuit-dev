@@ -53,6 +53,10 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                     fieldId : 'custbody_sos_transaction_types',
                     value : '2'
                 })
+                invoiceRecord.setValue({
+                    fieldId : 'approvalstatus',
+                    value : '2'
+                })
                 const invoiceLineCount = invoiceRecord.getLineCount({ sublistId: 'item' });
 
                 for (let i = invoiceLineCount - 1; i >= 0; i--) {

@@ -28,7 +28,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
       so.setValue({ fieldId: 'trandate', value: dateObj });
       so.setValue({ fieldId: 'location', value: data.location.internal_id });
       so.setValue({ fieldId: 'class', value: data.class.internal_id });
-      so.setValue({ fieldId: 'department', value: data.department.internal_id });
+      so.setValue({ fieldId: 'department', value: "6" });
       so.setValue({ fieldId: 'currency', value: data.currency.internal_id });
       so.setValue({ fieldId: 'exchangerate', value: data.exchange_rate });
       so.setValue({ fieldId: 'memo', value: data.memo || '' });
@@ -171,6 +171,11 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           value: rateSet,
           ignoreFieldChange : true
         });
+        so.setCurrentSublistValue({
+          sublistId : 'item',
+          fieldId : 'custcol_sos_disc_amount',
+          value : line.discount_line
+        })
         // var amount = Number(rateValue) * Number(line.quantity)
         // log.debug('amount', amount)
         // so.setCurrentSublistValue({
