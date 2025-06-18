@@ -45,7 +45,48 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
                     value: data.ships_tatus.internal_id
                 });
             }
+            if (data.ship_to) {
+                itemFulfillRec.setValue({ fieldId: 'shipaddresslist', value: null });
 
+                const shippingSubrec = itemFulfillRec.getSubrecord({ fieldId: 'shippingaddress' });
+
+                if (data.ship_to.country) {
+                    shippingSubrec.setValue({ fieldId: 'country', value: 'ID' }); // hardcode atau ambil dari data.ship_to.country jika kamu punya mapping
+                    itemFulfillRec.setValue({ fieldId: 'shipcountry', value: 'ID' });
+                }
+                if (data.ship_to.attention) {
+                    shippingSubrec.setValue({ fieldId: 'attention', value: data.ship_to.attention });
+                    itemFulfillRec.setValue({ fieldId: 'shipattention', value: data.ship_to.attention });
+                }
+                if (data.ship_to.addressee) {
+                    shippingSubrec.setValue({ fieldId: 'addressee', value: data.ship_to.addressee });
+                    itemFulfillRec.setValue({ fieldId: 'shipaddressee', value: data.ship_to.addressee });
+                }
+                if (data.ship_to.phone) {
+                    shippingSubrec.setValue({ fieldId: 'phone', value: data.ship_to.phone });
+                    itemFulfillRec.setValue({ fieldId: 'shipphone', value: data.ship_to.phone });
+                }
+                if (data.ship_to.address1) {
+                    shippingSubrec.setValue({ fieldId: 'addr1', value: data.ship_to.address1 });
+                    itemFulfillRec.setValue({ fieldId: 'shipaddr1', value: data.ship_to.address1 });
+                }
+                if (data.ship_to.address2) {
+                    shippingSubrec.setValue({ fieldId: 'addr2', value: data.ship_to.address2 });
+                    itemFulfillRec.setValue({ fieldId: 'shipaddr2', value: data.ship_to.address2 });
+                }
+                if (data.ship_to.city) {
+                    shippingSubrec.setValue({ fieldId: 'city', value: data.ship_to.city });
+                    itemFulfillRec.setValue({ fieldId: 'shipcity', value: data.ship_to.city });
+                }
+                if (data.ship_to.state) {
+                    shippingSubrec.setValue({ fieldId: 'state', value: data.ship_to.state });
+                    itemFulfillRec.setValue({ fieldId: 'shipstate', value: data.ship_to.state });
+                }
+                if (data.ship_to.zip) {
+                    shippingSubrec.setValue({ fieldId: 'zip', value: data.ship_to.zip });
+                    itemFulfillRec.setValue({ fieldId: 'shipzip', value: data.ship_to.zip });
+                }
+            }
             const lineCount = itemFulfillRec.getLineCount({ sublistId: 'item' });
 
             for (let i = 0; i < lineCount; i++) {

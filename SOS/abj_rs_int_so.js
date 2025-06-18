@@ -158,6 +158,8 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           fieldId : 'grossamt',
           value : grossAmt
         })
+        var amtAftDisc = Number(grossAmt) - Number(line.discount_line);
+        log.debug('amtAftDisc', amtAftDisc);
         var amtLine = so.getCurrentSublistValue({
           sublistId: 'item',
           fieldId: 'amount'
@@ -175,6 +177,11 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           sublistId : 'item',
           fieldId : 'custcol_sos_disc_amount',
           value : line.discount_line
+        })
+        so.setCurrentSublistValue({
+          sublistId : 'item',
+          fieldId : 'custcol_sos_amount_after_disc',
+          value : amtAftDisc
         })
         // var amount = Number(rateValue) * Number(line.quantity)
         // log.debug('amount', amount)
@@ -227,7 +234,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
       soRecord.setValue({ fieldId: 'trandate', value: dateObj });
       soRecord.setValue({ fieldId: 'location', value: data.location.internal_id });
       soRecord.setValue({ fieldId: 'class', value: data.class.internal_id });
-      soRecord.setValue({ fieldId: 'department', value: data.department.internal_id });
+      soRecord.setValue({ fieldId: 'department', value: "6" });
       soRecord.setValue({ fieldId: 'currency', value: data.currency.internal_id });
       soRecord.setValue({ fieldId: 'exchangerate', value: data.exchange_rate });
       soRecord.setValue({ fieldId: 'memo', value: data.memo || '' });
@@ -375,7 +382,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
               }catch(e){
                 result = {
                   status: false,
-                  message: e.message
+                  message: e.message || JSON.stringify(e.message)
                 };
               }
         }

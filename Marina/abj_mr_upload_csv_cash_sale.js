@@ -94,7 +94,7 @@ define(['N/file', 'N/record', 'N/runtime', 'N/log'], (file, record, runtime, log
     function parseNetSuiteDate(dateStr) {
       const parts = dateStr.split('/');
       const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1; // bulan dimulai dari 0
+      const month = parseInt(parts[1], 10) - 1; 
       const year = parseInt(parts[2], 10);
 
       return new Date(year, month, day); // format: new Date(YYYY, MM, DD)
@@ -132,7 +132,7 @@ define(['N/file', 'N/record', 'N/runtime', 'N/log'], (file, record, runtime, log
           fieldId: 'amount'
       });
       log.debug('cekLineAmt', cekLineAmt)
-      var rateSet = Number(cekLineAmt) / Number(line.quantity);
+      var rateSet = parseFloat((Number(cekLineAmt) / Number(line.quantity)).toFixed(2));
       log.debug('rateSet', rateSet);
       cashSale.setCurrentSublistValue({
           sublistId: 'item',
