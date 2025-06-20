@@ -449,6 +449,7 @@
                             itemID : itemID, locationID : locationID
                         })
                         log.debug('isUseBin', isUseBin)
+                        log.debug('itemId', itemID)
                         if (isUseBin) {
                             var itemSearchObj = search.create({
                                 type: "item",
@@ -492,16 +493,9 @@
                                 line: i,
                             });
                         } else {
-                            dataRec.insertLine({
-                                sublistId: "item",
-                                line: i,
-                            });
+                            dataRec.selectNewLine({ sublistId: 'item' });
                         }
-                        dataRec.setCurrentSublistValue({
-                            sublistId: "item",
-                            fieldId: "item",
-                            value: itemID,
-                        });
+                        log.debug('itemId to set', itemID)
                         dataRec.setCurrentSublistValue({
                             sublistId: "item",
                             fieldId: "item",
@@ -540,15 +534,23 @@
                             fieldId: "price",
                             value: "-1",
                         });
+                        
                         dataRec.setCurrentSublistValue({
                             sublistId: "item",
-                            fieldId: "rate",
-                            value: rate,
+                            fieldId: "grossamt",
+                            value: amount,
                         });
                         dataRec.setCurrentSublistValue({
                             sublistId: "item",
                             fieldId: "amount",
                             value: amount,
+                        });
+                        rateToset = Number(amount) / Number(quantity)
+                        dataRec.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "rate",
+                            value: rateToset,
+                            ignoreFieldChange : true
                         });
                         dataRec.setCurrentSublistValue({
                             sublistId: "item",
