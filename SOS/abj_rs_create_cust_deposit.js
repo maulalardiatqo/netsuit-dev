@@ -27,7 +27,6 @@ define([
                 value: data.entity.internal_id
             });
 
-
             custDeposit.setValue({
                 fieldId: 'subsidiary',
                 value: data.subsidiary.internal_id
@@ -69,7 +68,11 @@ define([
                 fieldId: 'payment',
                 value: data.payment_amount
             });
-
+            custDeposit.setValue({
+                fieldId: 'undepfunds',
+                value: "T",
+                ignoreFieldChange : true
+            });
             const custDepId = custDeposit.save();
             return {
                 status: true,

@@ -46,6 +46,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 log.debug('soId', soId);
                 var orderDate
                 var order
+                var shipAddressSO = ''
                 if (soId) {
                     recSo = record.load({
                         type: 'salesorder',
@@ -57,17 +58,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var trandId = recSo.getValue('tranid');
                     order = trandId
                     var poCust = recSo.getValue('otherrefnum');
+                    shipAddressSO = recSo.getValue('shipaddress');
                 }
                 var shippingDate = ifRec.getValue({ name: 'trandate' });
                 // var dikirim = ifRec.getValue('shipcarrier') || '';
 
                 var docnumber = ifRec.getValue({ name: 'tranid' });
-                log.debug('dikirim', dikirim)
+                // log.debug('dikirim', dikirim)
                 var ekspedisi = ifRec.getText({ name: 'shipmethod' });
-                var shipTo = ifRec.getValue({
-                    name: "address",
-                    join: "customer",
-                });
+                // var shipTo = ifRec.getValue({
+                //     name: "address",
+                //     join: "customer",
+                // });
+                var shipTo = ifRec.getValue({name : 'shipaddress'})
                 var nopolMobil = ifRec.getValue({ name: 'custbody_abj_nopol_mobil' })
                 var driverName = ifRec.getValue({ name: 'custbody_abj_driver_name' }) //added by kurnia
                 if (ekspedisi.includes('&')) {
@@ -80,6 +83,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     join: "customer",
                 })
                 log.debug('custName', custName)
+                log.debug('shipAddressSO', shipAddressSO)
                 //added by kurnia
                 var busDevRep = ifRec.getText({ name: 'custbody_abj_sales_rep_fulfillment' })
                 var nameArr = busDevRep.split(' ')
@@ -325,8 +329,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body1 += "</tr>";
                 log.debug('custName', custName);
                 log.debug('shipto', shipTo)
-                if (shipTo.includes("\n")) {
-                    shipTo = shipTo.replace(/\r?\n/g, '<br/>');
+                if (shipAddressSO.includes("\n")) {
+                    shipAddressSO = shipAddressSO.replace(/\r?\n/g, '<br/>');
                 } else {
                     log.debug("shipTo tidak mengandung ENTER", false);
                 }
@@ -339,19 +343,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body1 += "<tr>";
                 body1 += "<td style='font-weight:bold; vertical-align:top; width:100px;'>Kirim Ke</td>";
                 body1 += "<td colspan='3' style='vertical-align:top; word-wrap:break-word; word-break:break-word; white-space:normal; max-width:400px;'>"
-                    + ": " + escapeXmlSymbols(shipTo).trim()
+                    + ": " + escapeXmlSymbols(shipAddressSO).trim()
                     + "</td>";
                 body1 += "</tr>";
 
 
 
                 body1 += "<tr>";
-                // body1 += "<td style='height:30px'></td>";
                 body1 += "<td style='height:10px'></td>";
                 body1 += "</tr>";
                 body1 += "</tbody>";
                 body1 += "</table>";
-                // body1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
                 body1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
                 body1 += "<tbody>";
                 body1 += "<tr>";
@@ -374,44 +376,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body1 += getLine(context, allDataItem);
                 body1 += "</tbody>";
                 body1 += "</table>";
-                // body1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
-                body1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
-                body1 += "<tbody>";
-                body1 += "<tr>";
-                body1 += "<td style='width:25%'></td>";
-                // body1 += "<td style='width:20%'></td>";
-                body1 += "<td style='width:25%'></td>";
-                body1 += "<td style='width:25%'></td>";
-                body1 += "<td style='width:25%'></td>";
-                body1 += "</tr>";
-                body1 += "<tr>";
-                body1 += "<td style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black' >Diterima Oleh :</td>";
-                // body1 += "<td style='border-top:1px solid black; border-right:1px solid black; align:center;'>Track Tag #</td>";
-                body1 += "<td style='border-top:1px solid black; border-right:1px solid black'>Driver,</td>";
-                body1 += "<td style='border-top:1px solid black; border-right:1px solid black' >Warehouse,</td>";
-                body1 += "<td style='border-top:1px solid black; border-right:1px solid black' >Administrasi,</td>";
-                body1 += "</tr>";
-                // body1 += "<tr style='height:60px'>";
-                body1 += "<tr style='height:40px'>";
-                body1 += "<td style='border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black' ></td>";
-                // body1 += "<td style='border-bottom:1px solid black; border-right:1px solid black; font-size:9px; align:center;'>http://crm.infinisia.co.id/check</td>";
-                // body1 += "<td style='border-bottom:1px solid black; border-right:1px solid black; font-size:8px; align:center;'>http://crm.infinisia.co.id/check</td>";
-                body1 += "<td style='border-bottom:1px solid black; border-right:1px solid black'></td>";
-                body1 += "<td style='border-bottom:1px solid black; border-right:1px solid black' ></td>";
-                body1 += "<td style='border-bottom:1px solid black; border-right:1px solid black' ></td>";
-                body1 += "</tr>";
-                // body1 += "<tr style='height:5px'>";
-                // body1 += "</tr>"; 
-                body1 += "<tr>";
-                // body1 += "<td style='font-size:14px;font-weight:bold'>" + nopolMobil + "</td>";
-                body1 += "</tr>";
-                // body1 += "<tr style='height:40px'>";
-                // body1 += "</tr>"; 
-                body1 += "</tbody>";
-                body1 += "</table>";
+               
 
                 // Konten untuk halaman kedua
-                // body2 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
                 body2 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
                 body2 += "<tbody>";
                 body2 += "<tr>";
@@ -427,7 +394,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 body2 += "<td></td>";
                 body2 += "<td style='font-size:18px; font-weight:bold; align:right' colspan='2'>Surat Daftar Kemasan / Packing List</td>";
-                // body2 += "<td style='font-size:16px; font-weight:bold; align:right' colspan='2'>Surat Daftar Kemasan / Packing List</td>";
                 body2 += "</tr>";
                 body2 += "<tr>";
                 body2 += "<td style='font-weight:bold'>DO#</td>";
@@ -447,7 +413,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body2 += "</tr>";
                 body2 += "<tr>";
                 body2 += "<td style='font-weight:bold'>Kirim Ke</td>";
-                body2 += "<td rowspan='2' colspan='3'>: " + escapeXmlSymbols(shipTo) + "</td>";
+                body2 += "<td rowspan='2' colspan='3'>: " + escapeXmlSymbols(shipAddressSO) + "</td>";
                 body2 += "</tr>";
                 body2 += "<tr>";
                 body2 += "<td style='height:30px'></td>";
@@ -485,36 +451,34 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body2 += "</tbody>";
                 body2 += "</table>";
 
-                // body2 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
-                body2 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
-                body2 += "<tbody>";
-                body2 += "<tr>";
-                body2 += "<td style='width:20%'></td>";
-                body2 += "<td style='width:30%'></td>";
-                body2 += "<td style='width:25%'></td>";
-                body2 += "<td style='width:25%'></td>";
-                body2 += "</tr>";
-                body2 += "<tr>";
-                body2 += "<td style='border-top:1px solid black; border-left:1px solid black'>Diterima oleh,</td>"
-                body2 += "<td style='border-top:1px solid black; border-left:1px solid black'></td>"
-                body2 += "<td style='border-top:1px solid black; border-left:1px solid black'>Disiapkan oleh,</td>"
-                body2 += "<td style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black'>Diperiksa oleh,</td>"
-                body2 += "</tr>";
-
-                // body2 += "<tr style='height:60px'>";
-                body2 += "<tr style='height:40px'>";
-                body2 += "<td style='border-bottom:1px solid black; border-left:1px solid black'></td>"
-                body2 += "<td style='border-bottom:1px solid black; border-left:1px solid black'></td>"
-                body2 += "<td style='border-bottom:1px solid black; border-left:1px solid black'></td>"
-                body2 += "<td style='border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black'></td>"
-                body2 += "</tr>";
-
-                body2 += "</tbody>";
-                body2 += "</table>";
-
-                footer1 += "<table class='tg' style='table-layout: fixed;'>";
+                footer1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
                 footer1 += "<tbody>";
-                footer1 += "<tr style='height:100px;'>";
+                footer1 += "<tr>";
+                footer1 += "<td style='width:25%'></td>";
+                footer1 += "<td style='width:25%'></td>";
+                footer1 += "<td style='width:25%'></td>";
+                footer1 += "<td style='width:25%'></td>";
+                footer1 += "</tr>";
+                footer1 += "<tr>";
+                footer1 += "<td style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black' >Diterima Oleh :</td>";
+                footer1 += "<td style='border-top:1px solid black; border-right:1px solid black'>Driver,</td>";
+                footer1 += "<td style='border-top:1px solid black; border-right:1px solid black' >Warehouse,</td>";
+                footer1 += "<td style='border-top:1px solid black; border-right:1px solid black' >Administrasi,</td>";
+                footer1 += "</tr>";
+                footer1 += "<tr style='height:40px'>";
+                footer1 += "<td style='border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black' ></td>";
+                footer1 += "<td style='border-bottom:1px solid black; border-right:1px solid black'></td>";
+                footer1 += "<td style='border-bottom:1px solid black; border-right:1px solid black' ></td>";
+                footer1 += "<td style='border-bottom:1px solid black; border-right:1px solid black' ></td>";
+                footer1 += "</tr>";
+                footer1 += "<tr>";
+                footer1 += "</tr>";
+                footer1 += "</tbody>";
+                footer1 += "</table>";
+
+                footer1 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+                footer1 += "<tbody>";
+                footer1 += "<tr style=''>";
                 footer1 += "<td style='width:25%'></td>";
                 footer1 += "<td style='width:25%'></td>";
                 footer1 += "<td style='width:25%'></td>";
@@ -527,14 +491,39 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer1 += "<td style='align:center'>Page 1 of 1</td>";
                 footer1 += "</tr>";
                 footer1 += "<tr style='height:90px;'>";
-                // footer1 += "<td colspan='4' style='border-bottom:1px solid black;'></td>"
                 footer1 += "</tr>";
                 footer1 += "</tbody>";
                 footer1 += "</table>";
 
-                footer2 += "<table class='tg' style='table-layout: fixed;'>";
+                footer2 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
                 footer2 += "<tbody>";
-                footer2 += "<tr style='height:100px;'>";
+                footer2 += "<tr>";
+                footer2 += "<td style='width:20%'></td>";
+                footer2 += "<td style='width:30%'></td>";
+                footer2 += "<td style='width:25%'></td>";
+                footer2 += "<td style='width:25%'></td>";
+                footer2 += "</tr>";
+                footer2 += "<tr>";
+                footer2 += "<td style='border-top:1px solid black; border-left:1px solid black'>Diterima oleh,</td>"
+                footer2 += "<td style='border-top:1px solid black; border-left:1px solid black'></td>"
+                footer2 += "<td style='border-top:1px solid black; border-left:1px solid black'>Disiapkan oleh,</td>"
+                footer2 += "<td style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black'>Diperiksa oleh,</td>"
+                footer2 += "</tr>";
+
+                // footer2 += "<tr style='height:60px'>";
+                footer2 += "<tr style='height:40px'>";
+                footer2 += "<td style='border-bottom:1px solid black; border-left:1px solid black'></td>"
+                footer2 += "<td style='border-bottom:1px solid black; border-left:1px solid black'></td>"
+                footer2 += "<td style='border-bottom:1px solid black; border-left:1px solid black'></td>"
+                footer2 += "<td style='border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black'></td>"
+                footer2 += "</tr>";
+
+                footer2 += "</tbody>";
+                footer2 += "</table>";
+
+                footer2 += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
+                footer2 += "<tbody>";
+                footer2 += "<tr style=''>";
                 footer2 += "<td style='width:23%'></td>";
                 footer2 += "<td style='width:30%'></td>";
                 footer2 += "<td style='width:25%'></td>";
@@ -543,7 +532,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer2 += "<tr>";
                 footer2 += "<td style='align:center'>" + escapeXmlSymbols(busDevRepName) + "</td>";
                 footer2 += "<td style='align:center; font-size:10px;'>Surat Daftar Kemasan/Packing List</td>";
-                // footer2 += "<td style='align:center; font-size:9px;'>Surat Daftar Kemasan/Packing List</td>";
                 footer2 += "<td style='align:center'>" + escapeXmlSymbols(docnumber) + "</td>";
                 footer2 += "<td style='align:center'>Page 1 of 1</td>";
                 footer2 += "</tr>";
@@ -554,38 +542,39 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "<pdf>";
                 xml += "<head>";
                 xml += style;
-                // xml += "<macrolist>";
-                // xml += "<macro id='nlheader'>";
-                // xml += header;
-                // xml += "</macro>";
-                // xml += "<macro id='nlfooter1'>";
-                // xml += footer1;
-                // xml += "</macro>";
-                // xml += "<macro id='nlfooter2'>";
-                // xml += footer2;
-                // xml += "</macro>";
-                // xml += "</macrolist>";
-                xml += "</head>";
-
-                // xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter1' footer-height='10%'>";
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 30cm; width: 21cm; padding: 1mm 1mm 1mm 1mm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter1' footer-height='5%'>";
-
+                xml += "<macrolist>";
+                xml += "<macro id=\"nlheader\">";
+                xml += header;
+                xml += "</macro>";
+                xml += "<macro id=\"nlfooter1\">";
+                xml += footer1;
+                xml += "</macro>";
+                xml += "</macrolist>";
+                xml += "</head>"
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;padding:8px;height: 13cm; width: 21cm;' header='nlheader' header-height='0cm' footer='nlfooter1' footer-height='3cm'>";
                 xml += body1;
-                xml += footer1
+                xml += "\n</body>";
 
-                // xml += "</body>";
-                // xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter2' footer-height='10%'>";
-                // xml += "<body font-size='8' style='font-family: Tahoma,sans-serif;height: 13.75cm; width: 21.5cm; padding: 1mm 10mm 1mm 10mm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter2' footer-height='5%'>";
+                xml += "<head>";
+                xml += style;
+                xml += "<macrolist>";
+                xml += "<macro id=\"nlheaderBarang\">";
+                xml += header;
+                xml += "</macro>";
+                xml += "<macro id=\"nlfooter2\">";
+                xml += footer2;
+                xml += "</macro>";
+                xml += "</macrolist>";
+                xml += "</head>"
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;padding:8px;height: 13cm; width: 21cm;' header='nlheaderBarang' header-height='0cm' footer='nlfooter2' footer-height='3cm'>";
                 xml += body2;
-                xml += footer2
-
-                xml += "</body>";
-                xml += "</pdf>";
+                xml += "\n</body>\n</pdf>";
 
                 xml = xml.replace(/ & /g, ' &amp; ');
                 response.renderPdf({
                     xmlString: xml
                 });
+
 
             }
             function getLine(context, allDataItem) {
@@ -685,43 +674,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         }
                         log.debug('allLot', allLot)
                         const convLot = allLot.join(",<br/> ");
-                        // var lotNumberItem = ''
-                        // log.debug('recId', recid)
-                        // var itemfulfillmentSearchObj = search.create({
-                        //     type: "itemfulfillment",
-                        //     filters:
-                        //     [
-                        //         ["type","anyof","ItemShip"], 
-                        //         "AND", 
-                        //         ["internalid","anyof",recid], 
-                        //         "AND", 
-                        //         ["inventorydetail.inventorynumber","noneof","@NONE@"], 
-                        //         "AND", 
-                        //         ["item","anyof",itemId]
-                        //     ],
-                        //     columns:
-                        //     [
-                        //         search.createColumn({
-                        //             name: "inventorynumber",
-                        //             join: "inventoryDetail",
-                        //             label: " Number"
-                        //         })
-                        //     ]
-                        // });
-                        // var searchResultCount = itemfulfillmentSearchObj.runPaged().count;
-                        // log.debug("itemfulfillmentSearchObj result count",searchResultCount);
-                        // itemfulfillmentSearchObj.run().each(function(result){
-                        //     var lot = result.getText({
-                        //         name: "inventorynumber",
-                        //         join: "inventoryDetail",
-                        //     })
-                        //     log.debug('lot', lot);
-                        //     if(lot){
-                        //         lotNumberItem = lot
-                        //     }
-                        // return true;
-                        // });
-                        // log.debug('lotNumberItem', lotNumberItem)
                         nomor++;
                         body += "<tr>";
                         body += "<td style=''>" + nomor + "</td>";

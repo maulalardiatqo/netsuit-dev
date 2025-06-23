@@ -30,6 +30,10 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                         value : customerId
                     });
                     recDeposit.setValue({
+                        fieldId : 'undepfunds',
+                        value : true
+                    })
+                    recDeposit.setValue({
                         fieldId: 'salesorder',
                         value : idRec
                     });
@@ -55,6 +59,11 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                             value : classId
                         })
                     }
+                    recDeposit.setValue({
+                        fieldId: 'undepfunds',
+                        value: "T",
+                        ignoreFieldChange : true
+                    })
                     var depositId = recDeposit.save({ enableSourcing: true, ignoreMandatoryFields: false });
                     log.debug('Customer Deposit created', depositId);
                     

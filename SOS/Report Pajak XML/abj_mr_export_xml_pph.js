@@ -11,7 +11,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
         const dateFrom = script.getParameter({ name: 'custscript_date_from' });
         const dateTo = script.getParameter({ name: 'custscript_date_to' });
         const npwp = script.getParameter({ name: 'custscript_npwp' });
-
+        const jobAction = script.getParameter({ name : 'custscript_job_action'})
         log.debug('PARAMETERS', { subsidiary, dateFrom, dateTo, npwp });
 
         const searchLoad = search.load({ id: 'customsearch_sos_wht_' });
@@ -77,8 +77,6 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             ${values.custbody_sos_no_sp2d ? `<SP2DNumber>${values.custbody_sos_no_sp2d}</SP2DNumber>` : `<SP2DNumber xsi:nil="true"/>`}
             <WithholdingDate>${values["applyingTransaction.trandate"]}</WithholdingDate>
         </Bpu>`;
-
-        // Gunakan key statik agar masuk ke satu group reduce
         context.write({ key: 'bpu_group', value: xmlRow });
     }
 
@@ -89,21 +87,26 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             rows += row;
         });
 
-        const npwpPemotong = '3172022408981234'; // Ganti dengan NPWP pemotong yang sesuai
-
+        const npwpPemotong = '3172022408981234'; 
+        log.debug('npwpPemotong', npwpPemotong)
         const fullXML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<BpuBulk xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <TIN>${npwpPemotong}</TIN>
-    <ListOfBpu>
-        ${rows}
-    </ListOfBpu>
-</BpuBulk>`;
+        <BpuBulk xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <TIN>${npwpPemotong}</TIN>
+            <ListOfBpu>
+                ${rows}
+            </ListOfBpu>
+        </BpuBulk>`;
+        log.debug('fullXML', fullXML)
+        const script = runtime.getCurrentScript();
 
+        const idRecord = script.getParameter({ name: 'custscript_id_cust_rec' });
+        log.debug('idRecord', idRecord)
         const xmlFile = file.create({
-            name: `BPPU_Excel_To_XML_PPh23.xml`,
+            name: `BPPU_Excel_To_XML_PPh23_${idRecord}.xml`,
             fileType: file.Type.XMLDOC,
             contents: fullXML,
-            folder: 546 // Ganti dengan folder ID tujuan di File Cabinet
+            encoding: file.Encoding.UTF8,
+            folder: 546
         });
 
         const fileId = xmlFile.save();

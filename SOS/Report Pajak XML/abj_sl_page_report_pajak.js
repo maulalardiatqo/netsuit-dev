@@ -2,7 +2,7 @@
  * @NApiVersion 2.1
  * @NScriptType Suitelet
  */
-define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/message', 'N/runtime'], function (serverWidget, task, search, log, record, message, runtime) {
+define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/message', 'N/runtime', 'N/redirect'], function (serverWidget, task, search, log, record, message, runtime, redirect) {
 
     function onRequest(context) {
         if (context.request.method === 'GET') {
@@ -42,57 +42,70 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 label: 'Date To'
             });
             dateTo.isMandatory = true
+            var jobActionField = form.addField({
+                id: 'custpage_job_action',
+                type: serverWidget.FieldType.TEXT,
+                label: 'Job Action'
+            });
+            jobActionField.updateDisplayType({
+                displayType: serverWidget.FieldDisplayType.HIDDEN
+            });
 
             // form.addSubmitButton({
             //     label: 'Export To XML'
             // });
             form.addButton({
-                id: 'custpage_custom_submit',
+                id: 'custpage_custom_submit_xml',
                 label: 'Export To XML',
-                functionName: 'submitWithLoading'
+                functionName: 'submitWithLoadingXML'
             });
-             form.addButton({
-                id: 'custpage_custom_submit',
+            form.addButton({
+                id: 'custpage_custom_submit_excel',
                 label: 'Export To EXCEL',
-                functionName: 'submitWithLoading'
+                functionName: 'submitWithLoadingExcel'
             });
+
             form.clientScriptModulePath = "SuiteScripts/abj_cs_report_pajak.js";
             context.response.writePage(form);
         }else{
             const req = context.request;
             log.debug('req', req)
-            const mapReduceTask = task.create({
-                taskType: task.TaskType.MAP_REDUCE,
-                scriptId: 'customscript_abj_mr_export_xml_pph',
-                deploymentId: 'customdeploy_abj_mr_export_xml_pph', 
-                params: {
-                    custscript_subsidiary: req.parameters.custpage_subsidiary,
-                    custscript_date_from: req.parameters.custpage_date_from,
-                    custscript_date_to: req.parameters.custpage_date_to,
-                    custscript_npwp: req.parameters.custpage_npwp
+            
+
+            var subsId = req.parameters.custpage_subsidiary;
+            var dateFromPar = req.parameters.custpage_date_from;
+            var dateToPar = req.parameters.custpage_date_to;
+            var npwpPar = req.parameters.custpage_npwp;
+            var jobAction = req.parameters.custpage_job_action
+            var fakturRecord = record.create({
+                type: 'customrecord_id_for_faktur_pajak',
+                isDynamic: true
+            });
+
+            fakturRecord.setValue({
+                fieldId: 'custrecord_subsidiary', 
+                value: subsId
+            });
+
+            fakturRecord.setValue({
+                fieldId: 'custrecord_date', 
+                value: new Date()
+            });
+            var newRecordId = fakturRecord.save();
+            log.debug('Created Faktur Pajak Record ID', newRecordId);
+            redirect.toSuitelet({
+                scriptId: 'customscript_abj_sl_download_report_paja',
+                deploymentId: 'customdeploy_abj_sl_download_report_paja',
+                parameters: {
+                    subsId : subsId,
+                    dateFromPar : dateFromPar,
+                    dateToPar : dateToPar,
+                    npwpPar : npwpPar,
+                    action : 'start',
+                    idRecord : newRecordId,
+                    jobAction : jobAction
                 }
             });
-
-            const taskId = mapReduceTask.submit();
-
-            // Tampilkan message atau redirect ke status page
-            const form = serverWidget.createForm({
-                title: 'Processing Request'
-            });
-
-            form.addPageLink({
-                type: serverWidget.FormPageLinkType.CROSSLINK,
-                title: 'Check Task Status',
-                url: `/app/common/scripting/mapreducescriptstatus.nl?whence=&id=${taskId}`
-            });
-
-            form.addField({
-                id: 'custpage_info',
-                type: serverWidget.FieldType.INLINEHTML,
-                label: 'Info'
-            }).defaultValue = `<div style="color:green;">Your request is being processed. You can check the status <a href="/app/common/scripting/mapreducescriptstatus.nl?whence=&id=${taskId}" target="_blank">here</a>.</div>`;
-
-            context.response.writePage(form);
         }
     }
      return {

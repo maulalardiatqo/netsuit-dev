@@ -33,30 +33,47 @@ function(error, dialog, message, url, record, currentRecord, log, search, runtim
         }
     }
 
-    function submitWithLoading() {
-        var processMsg = message.create({
-            title: "Processing",
-            message: "On Process. Please wait...",
-            type: message.Type.INFORMATION
-        });
-        processMsg.show();
+    function submitWithLoadingXML() {
+    submitWithLoading('xml');
+}
 
-        setTimeout(function () {
-            try {
-                document.forms[0].submit();
-            } catch (e) {
-                processMsg.hide();
-                console.log("Error", e);
-                dialog.alert({
-                    title: "Error",
-                    message: e.message
-                });
-            }
-        }, 500);
-    }
+function submitWithLoadingExcel() {
+    submitWithLoading('excel');
+}
+
+function submitWithLoading(actionType) {
+    var currentRec = currentRecord.get();
+    currentRec.setValue({
+        fieldId: 'custpage_job_action',
+        value: actionType
+    });
+
+    var processMsg = message.create({
+        title: "Processing",
+        message: "On Process. Please wait...",
+        type: message.Type.INFORMATION
+    });
+    processMsg.show();
+
+    setTimeout(function () {
+        try {
+            document.forms[0].submit();
+        } catch (e) {
+            processMsg.hide();
+            console.log("Error", e);
+            dialog.alert({
+                title: "Error",
+                message: e.message
+            });
+        }
+    }, 500);
+}
+
 
     return {
-        fieldChanged: fieldChanged,
-        submitWithLoading: submitWithLoading
-    };
+    fieldChanged: fieldChanged,
+    submitWithLoadingXML: submitWithLoadingXML,
+    submitWithLoadingExcel: submitWithLoadingExcel
+};
+
 });
