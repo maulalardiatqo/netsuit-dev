@@ -7,7 +7,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
     function onRequest(context) {
         if (context.request.method === 'GET') {
             var form = serverWidget.createForm({
-                title: 'BPPU Excel to XML PPh23'
+                title: 'FAKTUR PK'
             });
 
             var filterOption = form.addFieldGroup({
@@ -51,9 +51,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 displayType: serverWidget.FieldDisplayType.HIDDEN
             });
 
-            // form.addSubmitButton({
-            //     label: 'Export To XML'
-            // });
             form.addButton({
                 id: 'custpage_custom_submit_xml',
                 label: 'Export To XML',
@@ -64,13 +61,8 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 label: 'Export To EXCEL',
                 functionName: 'submitWithLoadingExcel'
             });
-            form.addButton({
-                id: 'custpage_custom_submit_sxd',
-                label: 'Download SXD File',
-                functionName: 'submitWithLoadingSxd'
-            });
 
-            form.clientScriptModulePath = "SuiteScripts/abj_cs_report_pajak.js";
+            form.clientScriptModulePath = "SuiteScripts/abj_cs_faktur_pk.js";
             context.response.writePage(form);
         }else{
             const req = context.request;
@@ -79,53 +71,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             var dateToPar = req.parameters.custpage_date_to;
             var npwpPar = req.parameters.custpage_npwp;
             var jobAction = req.parameters.custpage_job_action
-            if (jobAction === 'sxd') {
-    var fileUrl = 'https://9484296.app.netsuite.com/core/media/media.nl?id=3619&c=9484296&h=vgN3oeGaPgAttC08CPQYldsQo96Xdfo5QDLf9GTB3UnBuLhB&_xt=.xsd';
 
-    context.response.write(`
-        <html>
-            <head>
-                <title>Download File</title>
-                <style>
-                    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-                    #goBackBtn {
-                        display: none;
-                        margin-top: 20px;
-                        padding: 10px 20px;
-                        background-color: #4CAF50;
-                        color: white;
-                        border: none;
-                        border-radius: 5px;
-                        cursor: pointer;
-                    }
-                    #goBackBtn:hover {
-                        background-color: #45a049;
-                    }
-                </style>
-                <script>
-                    window.onload = function() {
-                        // Mulai download setelah halaman dimuat
-                        window.location.href = "${fileUrl}";
-                        
-                        // Setelah 3 detik, tampilkan tombol "Go Back"
-                        setTimeout(function() {
-                            document.getElementById('goBackBtn').style.display = 'inline-block';
-                        }, 3000);
-                    };
-
-                    function goBack() {
-                        history.back();
-                    }
-                </script>
-            </head>
-            <body>
-                <h3>File sedang didownload...</h3>
-                <button id="goBackBtn" onclick="goBack()">Go Back</button>
-            </body>
-        </html>
-    `);
-    return;
-}else{
                 var fakturRecord = record.create({
                 type: 'customrecord_id_for_faktur_pajak',
                 isDynamic: true
@@ -142,22 +88,22 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             });
             var newRecordId = fakturRecord.save();
             log.debug('Created Faktur Pajak Record ID', newRecordId);
-            redirect.toSuitelet({
-                scriptId: 'customscript_abj_sl_download_report_paja',
-                deploymentId: 'customdeploy_abj_sl_download_report_paja',
-                parameters: {
-                    subsId : subsId,
-                    dateFromPar : dateFromPar,
-                    dateToPar : dateToPar,
-                    npwpPar : npwpPar,
-                    action : 'start',
-                    idRecord : newRecordId,
-                    jobAction : jobAction
-                }
-            });
+                redirect.toSuitelet({
+                    scriptId: 'customscript_abj_sl_download_faktur_pk',
+                    deploymentId: 'customdeploy_abj_sl_download_faktur_pk',
+                    parameters: {
+                        subsId : subsId,
+                        dateFromPar : dateFromPar,
+                        dateToPar : dateToPar,
+                        npwpPar : npwpPar,
+                        action : 'start',
+                        idRecord : newRecordId,
+                        jobAction : jobAction
+                    }
+                });
             }
             
-        }
+        
     }
      return {
         onRequest: onRequest

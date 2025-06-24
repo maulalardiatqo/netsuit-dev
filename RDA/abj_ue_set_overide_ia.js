@@ -75,20 +75,14 @@ define(['N/search', 'N/log', 'N/error', 'N/record'], (search, log, error, record
                             fieldId: 'unitcost',
                             line: i
                         });
-                        log.debug('unitCostOverride in line exist', unitCostOverride)
+                        
                         if ((unitCostOverride === '' || unitCostOverride === null || unitCostOverride == 0) &&
                             itemCostMap[itemId] !== null && itemCostMap[itemId] !== '') {
+                                log.debug('unitCostOverride in line exist', unitCostOverride)
                                 log.debug('itemCostMap[itemId]', itemCostMap[itemId])
                                 rec.setSublistValue({
                                     sublistId: 'inventory',
                                     fieldId: 'unitcost',
-                                    line: i,
-                                    value: Number(itemCostMap[itemId]),
-                                    ignoreFieldChange : true
-                                });
-                                rec.setSublistValue({
-                                    sublistId: 'inventory',
-                                    fieldId: 'memo',
                                     line: i,
                                     value: Number(itemCostMap[itemId]),
                                     ignoreFieldChange : true
@@ -110,57 +104,13 @@ define(['N/search', 'N/log', 'N/error', 'N/record'], (search, log, error, record
                                     'Silakan isi nilai Unit Cost atau perbaiki Average Cost pada master item.';
                         throw message;
                     }
-                    rec.save()    
             } catch (e) {
                 log.error('Error in beforeSubmit', e);
                 throw e;
             }
         }
     };
-    const afterSubmit = (context) => {
-        try {
-            const rec = record.load({
-                type: context.newRecord.type,
-                id: context.newRecord.id,
-                isDynamic: false
-            });
 
-            const lineCount = rec.getLineCount({ sublistId: 'inventory' });
-            let isChanged = false;
-
-            for (let i = 0; i < lineCount; i++) {
-                const memoValue = rec.getSublistValue({
-                    sublistId: 'inventory',
-                    fieldId: 'memo',
-                    line: i
-                });
-                log.debug('memoValue', memoValue)
-                if (memoValue !== null && memoValue !== '' && Number(memoValue) !== 0) {
-                    rec.setSublistValue({
-                        sublistId: 'inventory',
-                        fieldId: 'unitcost',
-                        line: i,
-                        value: Number(memoValue)
-                    });
-                    isChanged = true;
-                }
-                var cekUnitCost = rec.getSublistValue({
-                    sublistId: 'inventory',
-                    fieldId : 'unitcost',
-                    line: i
-                });
-                log.debug('cekUnitCost', cekUnitCost)
-            }
-
-            if (isChanged) {
-                rec.save({ ignoreMandatoryFields: true });
-                log.debug('AfterSubmit Update', 'Unit Cost updated from Memo values.');
-            }
-
-        } catch (e) {
-            log.error('Error in afterSubmit', e);
-        }
-    };
-    return { beforeSubmit, afterSubmit };
+    return { beforeSubmit};
 
 });

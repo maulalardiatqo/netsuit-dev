@@ -18,22 +18,22 @@ define(['N/task', 'N/search', 'N/record', 'N/log', 'N/runtime'], function(task, 
         var pageContent = '';
 
         if (request.method === 'GET') {
-            var script = '990';
-            var deploy = '1'
+            var script = '1000';
+            var deploy = '2'
             var action = request.parameters.action;
             var taskId = request.parameters.taskId || '';
             if (action === 'start') {
                 var mrTask = task.create({
                     taskType: task.TaskType.MAP_REDUCE,
-                    scriptId: 'customscript_abj_mr_export_xml_pph',
+                    scriptId: 'customscript_abj_mr_download_faktur_pk',
                     // deploymentId: 'customdeploy_abj_mr_export_xml_pph',
                     params: {
-                        custscript_subsidiary: subsId,
-                        custscript_date_from: dateFrom,
-                        custscript_date_to: dateTo,
-                        custscript_npwp: npwp,
-                        custscript_id_cust_rec : idRecord,
-                        custscript_job_action : jobAction
+                        custscript_subs_id: subsId,
+                        custscript_date_from_pk: dateFrom,
+                        custscript_date_to_pk: dateTo,
+                        custscript_npwp_pk: npwp,
+                        custscript_id_cust_rec_pk : idRecord,
+                        custscript_job_action_pk : jobAction
                     }
                 });
 
@@ -43,7 +43,7 @@ define(['N/task', 'N/search', 'N/record', 'N/log', 'N/runtime'], function(task, 
                 '<p>Click the button below to check if the file is ready.</p>';
 
             }
-            var contine_file = 'PPh23_' + idRecord
+            var contine_file = 'PK_' + idRecord
             if (action === 'status' && taskId) {
                 var taskStatus = task.checkStatus({ taskId: taskId });
                 log.debug('taskStatus', taskStatus)

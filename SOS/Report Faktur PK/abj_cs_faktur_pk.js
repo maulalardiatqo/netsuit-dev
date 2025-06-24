@@ -40,9 +40,6 @@ function(error, dialog, message, url, record, currentRecord, log, search, runtim
     function submitWithLoadingExcel() {
         submitWithLoading('excel');
     }
-    function submitWithLoadingSxd(){
-        submitWithLoading('sxd');
-    }
 function submitWithLoading(actionType) {
     var currentRec = currentRecord.get();
 
@@ -91,8 +88,7 @@ function submitWithLoading(actionType) {
     return {
     fieldChanged: fieldChanged,
     submitWithLoadingXML: submitWithLoadingXML,
-    submitWithLoadingExcel: submitWithLoadingExcel,
-    submitWithLoadingSxd : submitWithLoadingSxd
+    submitWithLoadingExcel: submitWithLoadingExcel
 };
 
 });
