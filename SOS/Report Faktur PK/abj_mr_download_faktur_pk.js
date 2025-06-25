@@ -137,7 +137,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                     d.id,
                     getText(v.custbody_sos_barang_jasa),
                     getText(v.custbody_sos_kode_barang_jasa),
-                    v.item || '',
+                    getText(v.item),
                     getText(v.custbody_sos_nama_satuan_ukur),
                     v.custbody_fam_specdeprjrn_rate || '',
                     v.quantity || '',
@@ -145,7 +145,9 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                     v.amount || '',
                     v.custcol_sos_dpp_nilai_lain || '',
                     v.custbody_sos_tax_code || '',
-                    v.custbody_sos_tax_amount || ''
+                    v.custbody_sos_tax_amount || '',
+                    '0',
+                    '0.00',
                 ];
             });
 
@@ -167,12 +169,12 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             xmlParts.push(`<TaxInvoice>`);
             xmlParts.push(`<TaxInvoiceDate>${formatDate(header.trandate)}</TaxInvoiceDate>`);
             xmlParts.push(`<TaxInvoiceOpt>${getText(header.custbody_sos_jenis_fp)}</TaxInvoiceOpt>`);
-            xmlParts.push(`<TrxCode>07</TrxCode>`);
+            xmlParts.push(`<TrxCode>${header.custbody_sos_kode_transaksi_trx}</TrxCode>`);
             xmlParts.push(`<AddInfo>${getText(header.custbody_sos_ket_tamb)}</AddInfo>`);
             xmlParts.push(`<CustomDoc>${header.custbody_sos_dok_pendukung || ''}</CustomDoc>`);
             xmlParts.push(`<CustomDocMonthYear>${header.custbody_sos_period_dok_pendukung || ''}</CustomDocMonthYear>`);
-            xmlParts.push(`<RefDesc/>`);
-            xmlParts.push(`<FacilityStamp>TD.01102</FacilityStamp>`);
+            xmlParts.push(`<RefDesc>${header.refnumber || ''}</RefDesc>`);
+            xmlParts.push(`<FacilityStamp>${header.custbody_sos_cap_fasilitas || ''}</FacilityStamp>`);
             xmlParts.push(`<SellerIDTKU>${header.custbody_sos_id_tku_sales || ''}</SellerIDTKU>`);
             xmlParts.push(`<BuyerTin>${header.custbody_sos_npwp_nik_pembeli || ''}</BuyerTin>`);
             xmlParts.push(`<BuyerDocument>${getText(header.custbody_sos_jenis_id_buyer)}</BuyerDocument>`);
@@ -189,17 +191,17 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 xmlParts.push(`<GoodService>`);
                 xmlParts.push(`<Opt>${getText(v.custbody_sos_barang_jasa)}</Opt>`);
                 xmlParts.push(`<Code>${getText(v.custbody_sos_kode_barang_jasa)}</Code>`);
-                xmlParts.push(`<Name>Barang</Name>`);
+                xmlParts.push(`<Name>${getText(v.item)}</Name>`);
                 xmlParts.push(`<Unit>${getText(v.custbody_sos_nama_satuan_ukur)}</Unit>`);
                 xmlParts.push(`<Price>${v.custbody_fam_specdeprjrn_rate || '0'}</Price>`);
                 xmlParts.push(`<Qty>${v.quantity || '0'}</Qty>`);
                 xmlParts.push(`<TotalDiscount>${v.discountamount || '0'}</TotalDiscount>`);
                 xmlParts.push(`<TaxBase>${v.amount || '0'}</TaxBase>`);
                 xmlParts.push(`<OtherTaxBase>${v.custcol_sos_dpp_nilai_lain || '0'}</OtherTaxBase>`);
-                xmlParts.push(`<VATRate>11</VATRate>`);
+                xmlParts.push(`<VATRate>${v.custbody_sos_tax_code}</VATRate>`);
                 xmlParts.push(`<VAT>${v.custbody_sos_tax_amount || '0'}</VAT>`);
-                xmlParts.push(`<STLGRate>20</STLGRate>`);
-                xmlParts.push(`<STLG>580000</STLG>`);
+                xmlParts.push(`<STLGRate>0</STLGRate>`);
+                xmlParts.push(`<STLG>0.00</STLG>`);
                 xmlParts.push(`</GoodService>`);
             });
             xmlParts.push(`</ListOfGoodService>`);
@@ -307,14 +309,12 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
     function createExcelXml(fakturRows, detailRows, npwpValue) {
         let xml = [];
 
-        // XML header
         xml.push(`<?xml version="1.0"?>`);
         xml.push(`<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
             xmlns:o="urn:schemas-microsoft-com:office:office"
             xmlns:x="urn:schemas-microsoft-com:office:excel"
             xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">`);
 
-        // Styles
         xml.push(`<Styles>
             <Style ss:ID="HeaderBold">
                 <Font ss:Bold="1"/>
@@ -328,19 +328,15 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             </Style>
         </Styles>`);
 
-        // Worksheet Faktur
         xml.push(`<Worksheet ss:Name="Faktur"><Table>`);
 
-        // Baris 1
         xml.push(`<Row>
             <Cell ss:MergeAcross="1" ss:StyleID="HeaderBoldCenter"><Data ss:Type="String">NPWP Penjual</Data></Cell>
             <Cell><Data ss:Type="String">${escapeXml(npwpValue)}</Data></Cell>
         </Row>`);
 
-        // Baris 2 (kosong)
         xml.push(`<Row></Row>`);
 
-        // Baris 3 - Header Faktur (bold)
         xml.push(`<Row>` +
             [
                 "Baris", "Tanggal Faktur", "Jenis Faktur", "Kode Transaksi", "Keterangan Tambahan",
@@ -351,22 +347,18 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             .map(text => `<Cell ss:StyleID="HeaderBold"><Data ss:Type="String">${escapeXml(text)}</Data></Cell>`).join('') +
             `</Row>`);
 
-        // Data Faktur
         fakturRows.forEach(row => {
             xml.push(`<Row>` + row.map(val => `<Cell><Data ss:Type="String">${escapeXml(val)}</Data></Cell>`).join('') + `</Row>`);
         });
 
-        // Baris END di Faktur
         xml.push(`<Row>
             <Cell ss:StyleID="Bold"><Data ss:Type="String">END</Data></Cell>
         </Row>`);
 
         xml.push(`</Table></Worksheet>`);
 
-        // Worksheet Detail Faktur
         xml.push(`<Worksheet ss:Name="Detail Faktur"><Table>`);
 
-        // Header Detail Faktur (normal)
         xml.push(`<Row>` +
             [
                 "Baris", "Barang/Jasa", "Kode Barang Jasa", "Nama Barang/Jasa", "Nama Satuan Ukuran",
@@ -376,12 +368,10 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             .map(text => `<Cell><Data ss:Type="String">${escapeXml(text)}</Data></Cell>`).join('') +
             `</Row>`);
 
-        // Data Detail Faktur
         detailRows.forEach(row => {
             xml.push(`<Row>` + row.map(val => `<Cell><Data ss:Type="String">${escapeXml(val)}</Data></Cell>`).join('') + `</Row>`);
         });
 
-        // Baris END di Detail Faktur
         xml.push(`<Row>
             <Cell><Data ss:Type="String">END</Data></Cell>
         </Row>`);

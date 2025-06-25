@@ -22,6 +22,14 @@
       }
   
       function onRequest(context) {
+        var currentUser = runtime.getCurrentUser();
+        var roleId = currentUser.role;
+
+        var allowedRoles = [1019, 3]; 
+
+        if (!allowedRoles.includes(roleId)){
+          return
+        } 
       var contextRequest = context.request;
       var form = serverWidget.createForm({
           title: "PR to PO",
