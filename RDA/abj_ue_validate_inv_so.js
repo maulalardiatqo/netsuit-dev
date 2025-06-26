@@ -107,8 +107,8 @@ define(['N/search', 'N/error'], (search, error) => {
                     }
 
                     if (invAmount > soAmount) {
-                        const message = `Invoice amount on line ${orderLine} (${invAmount}) exceeds the Sales Order amount (${soAmount}).`;
-                        throw new Error(message);
+                        var message = `Invoice amount on line ${orderLine} (${invAmount}) exceeds the Sales Order amount (${soAmount}).`;
+                        throw message;
                     }
                 }
             }
