@@ -484,7 +484,7 @@
                         }
                         
                         let rate = data.items[i].rate;
-                        let amount = data.items[i].amount;
+                        let amount = data.items[i].grossAmt;
                         let taxCode = data.items[i].taxCode;
                         log.debug('taxCode', taxCode)
                         if (internalID) {
@@ -531,32 +531,34 @@
                         log.debug('after set invassignment')
                         dataRec.setCurrentSublistValue({
                             sublistId: "item",
+                            fieldId: "taxcode",
+                            value: taxCode,
+                        });
+                        dataRec.setCurrentSublistValue({
+                            sublistId: "item",
                             fieldId: "price",
                             value: "-1",
                         });
-                        
+                        log.debug('amount', amount)
+                       
                         dataRec.setCurrentSublistValue({
                             sublistId: "item",
                             fieldId: "grossamt",
                             value: amount,
                         });
-                        dataRec.setCurrentSublistValue({
-                            sublistId: "item",
-                            fieldId: "amount",
-                            value: amount,
+                        var amtLinet = dataRec.getCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'amount'
                         });
-                        rateToset = Number(amount) / Number(quantity)
+                        log.debug('amtLinet',amtLinet)
+                        rateToset = Number(amtLinet) / Number(quantity)
                         dataRec.setCurrentSublistValue({
                             sublistId: "item",
                             fieldId: "rate",
                             value: rateToset,
                             ignoreFieldChange : true
                         });
-                        dataRec.setCurrentSublistValue({
-                            sublistId: "item",
-                            fieldId: "taxcode",
-                            value: taxCode,
-                        });
+                        
                         log.debug('after set taxcode')
                         dataRec.commitLine({
                             sublistId: "item",
