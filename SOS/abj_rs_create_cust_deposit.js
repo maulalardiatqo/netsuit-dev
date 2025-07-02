@@ -63,6 +63,13 @@ define([
                     value: data.memo
                 });
             }
+            log.debug('payment_name', data.payment_name)
+            if (data.payment_name) {
+                custDeposit.setValue({
+                    fieldId: 'custbody_sos_payment_name',
+                    value: data.payment_name
+                });
+            }
 
             custDeposit.setValue({
                 fieldId: 'payment',

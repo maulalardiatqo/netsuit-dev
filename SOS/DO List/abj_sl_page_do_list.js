@@ -57,6 +57,13 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 label: 'Date To'
             });
             date_to.isMandatory = true;
+            var date_trandate = form.addField({
+                id: 'custpage_date_trandate', 
+                type: serverWidget.FieldType.DATE,
+                container: "valueRedord",
+                label: 'Ship Date'
+            });
+            date_trandate.isMandatory = true;
            
             var sublist = form.addSublist({
                 id: 'custpage_sublist',
@@ -158,8 +165,18 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             form.clientScriptModulePath = "SuiteScripts/abj_cs_page_do_list.js";
             context.response.writePage(form);
         }else{
+            function convertDate(dateStr) {
+                const date = new Date(dateStr);
+            
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0'); 
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            }
             try{
                 var subsidiary = context.request.parameters.custpage_subsidiary;
+                var shipDate = convertDate(context.request.parameters.custpage_date_trandate);
+                log.debug('shipDate', shipDate)
                 var lineCount = context.request.getLineCount({
                     group: 'custpage_sublist'
                 });
@@ -203,7 +220,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         });
                         createRec.setValue({
                             fieldId: "trandate",
-                            value: new Date(),
+                            value: new Date(shipDate),
                             ignoreFieldChange: true,
                         });
                         var saveCreate = createRec.save();

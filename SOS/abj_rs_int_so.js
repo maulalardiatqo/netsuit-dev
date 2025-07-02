@@ -88,6 +88,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           so.setValue({ fieldId: 'shipzip', value: data.ship_to.zip });
         }
       }
+
       data.order_items.forEach((line) => {
         so.selectNewLine({ sublistId: 'item' });
 
@@ -194,6 +195,62 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
 
         so.commitLine({ sublistId: 'item' });
       });
+      if(data.voucher_amount && data.voucher_amount != 0){
+        so.selectNewLine({ sublistId: 'item' });
+
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'item',
+          value: "2081"
+        });
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'quantity',
+          value: '1'
+        });
+
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'price',
+          value: '-1'
+        });
+        var voucherMin = Number(data.voucher_amount) * -1;
+        log.debug('voucherMin', voucherMin)
+        so.setCurrentSublistValue({
+          sublistId : 'item',
+          fieldId : 'grossamt',
+          value : voucherMin
+        });
+        so.commitLine({ sublistId: 'item' });
+      }
+      if(data.point_amount && data.point_amount != 0){
+        so.selectNewLine({ sublistId: 'item' });
+
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'item',
+          value: "2082"
+        });
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'quantity',
+          value: '1'
+        });
+
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'price',
+          value: '-1'
+        });
+        var pointMin = Number(data.point_amount) * -1;
+        log.debug('pointMin', pointMin)
+        so.setCurrentSublistValue({
+          sublistId : 'item',
+          fieldId : 'grossamt',
+          value : pointMin
+        });
+        so.commitLine({ sublistId: 'item' });
+      }
       
       const salesOrderId = so.save({ enableSourcing: true, ignoreMandatoryFields: false });
       log.debug('salesOrderId', salesOrderId)
@@ -205,11 +262,10 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
 
     } catch (e) {
       log.error('Error creating Sales Order', e);
-      throw new Error({
-        name: 'SALES_ORDER_CREATION_FAILED',
-        message: e.message,
-        notifyOff: false
-      });
+      return {
+        status: false,
+        message: e.message || JSON.stringify(e.message)
+      }
     }
   };
  const updateSalesOrder = (data, internalId) => {
