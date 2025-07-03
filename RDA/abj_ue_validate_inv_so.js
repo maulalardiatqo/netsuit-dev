@@ -8,8 +8,6 @@ define(['N/search', 'N/error'], (search, error) => {
 
         const invoice = context.newRecord;
         const createdFrom = invoice.getValue('createdfrom');
-        const createdFromText = invoice.getText('createdfrom');
-        log.debug('createdFromText', createdFromText)
         if(createdFrom){
             const result = search.lookupFields({
                 type: 'transaction',
@@ -29,7 +27,7 @@ define(['N/search', 'N/error'], (search, error) => {
 
                 for (let i = 0; i < invoiceLineCount; i++) {
                     const orderLine = invoice.getSublistValue({ sublistId: 'item', fieldId: 'orderline', line: i });
-
+                    log.debug('orderLine', orderLine)
                     if (!orderLine) {
                         var message = 'Warning! You are not allowed to add a line that is not from the related Sales Order.';
                         throw message;
@@ -93,21 +91,30 @@ define(['N/search', 'N/error'], (search, error) => {
                         var message = 'Item in the Invoice does not match the Item in the Sales Order.';
                         throw message;
                     }
-
+                    var invQty = invLine.quantity
+                    var soQTy = soLine.quantity
+                    log.debug('data banding qty', {invQty : invQty, soQTy : soQTy} )
                     if (invLine.quantity > soLine.quantity) {
                         var message = `Invoice quantity on line ${orderLine} (${invLine.quantity}) exceeds the Sales Order quantity (${soLine.quantity}).`;
                         throw message;
                     }
+                    log.debug('soLine AMount', soLine.amount);
+                    log.debug('invLine Amount', invLine.amount)
+                    const toInteger = (val) => {
+                    const num = Number(val);
+                    if (isNaN(num)) return NaN;
+                        return Math.trunc(num); 
+                    };
 
-                    const invAmount = Math.floor(Number(invLine.amount));
-                    const soAmount = Math.floor(Number(soLine.amount));
+                    const invAmount = toInteger(invLine.amount);
+                    const soAmount = toInteger(soLine.amount);
 
                     if (isNaN(invAmount) || isNaN(soAmount)) {
                         throw new Error(`Invalid numeric value on line ${orderLine}.`);
                     }
-
-                    if (invAmount > soAmount) {
-                        var message = `Invoice amount on line ${orderLine} (${invAmount}) exceeds the Sales Order amount (${soAmount}).`;
+                    log.debug('perbandingan data amount', {invAmount : invAmount, soAmount : soAmount})
+                    if (Math.abs(invAmount) > Math.abs(soAmount)) {
+                        const message = `Invoice amount on line ${orderLine} (${invAmount}) exceeds the Sales Order amount (${soAmount}).`;
                         throw message;
                     }
                 }

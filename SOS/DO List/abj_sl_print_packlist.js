@@ -28,12 +28,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var result = searchCreateSet.getRange(0, 1);
                 var packRecord = result[0];
                 // data header
-                var subsidiary = packRecord.getValue({name :'subsidiarynohierarchy'});
-                var addr1 = packRecord.getValue({name :'name: "address1",join: "subsidiary"'});
+                var subsidiary = packRecord.getText({name :'subsidiarynohierarchy'});
+                var addr1 = packRecord.getValue({name :"address1", join: "subsidiary",});
                 var docNumb = packRecord.getValue({name :'tranid'});
                 var shipDate = packRecord.getValue({name :'trandate'});
                 var listDo = packRecord.getValue({name :'custbody_do_list'});
                 log.debug('listDo', listDo);
+                log.debug('addr1', addr1)
                 var doIds = listDo ? listDo.split(',') : [];
                 log.debug('doIds array', doIds);
                 var allDataLineByCustomer = {};
@@ -55,15 +56,27 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     searchResult.forEach(function (result) {
                         var itemFulfillmentId = result.getValue({ name: 'custrecord_packship_itemfulfillment' });
-                        var carton = result.getValue({ name: 'custrecord_packship_carton' });
-                        var item = result.getValue({ name: 'custrecord_packship_fulfillmentitem' });
+                        var itemFulfillmentText = result.getText({ name: 'custrecord_packship_itemfulfillment' });
+                        var carton = result.getText({ name: 'custrecord_packship_carton' });
+                        var item = result.getText({ name: 'custrecord_packship_fulfillmentitem' });
                         var totalPickedQty = result.getValue({ name: 'custrecord_packship_totalpickedqty' });
                         var totalPackedQty = result.getValue({ name: 'custrecord_packship_totalpackedqty' });
                         var customer = result.getValue({
                             name: "entity",
                             join: "CUSTRECORD_PACKSHIP_ITEMFULFILLMENT"
                         });
-
+                        var customerName = result.getText({
+                            name: "entity",
+                            join: "CUSTRECORD_PACKSHIP_ITEMFULFILLMENT"
+                        });
+                        var displayNameitem = result.getValue({
+                            name: "displayname",
+                            join: "CUSTRECORD_PACKSHIP_FULFILLMENTITEM",
+                        });
+                        var sizeItem = result.getText({
+                            name: "custitem_item_size",
+                            join: "CUSTRECORD_PACKSHIP_FULFILLMENTITEM",
+                        })
                         // Cek apakah customer sudah ada di object
                         if (!allDataLineByCustomer[customer]) {
                             allDataLineByCustomer[customer] = [];
@@ -72,10 +85,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         // Push data line ke array berdasarkan customer
                         allDataLineByCustomer[customer].push({
                             itemFulfillmentId: itemFulfillmentId,
+                            itemFulfillmentText: itemFulfillmentText,
+                            customerName : customerName,
                             carton: carton,
                             item: item,
                             totalPickedQty: totalPickedQty,
-                            totalPackedQty: totalPackedQty
+                            totalPackedQty: totalPackedQty,
+                            displayNameitem : displayNameitem,
+                            sizeItem : sizeItem
                         });
                     });
                 }
@@ -84,15 +101,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var xml = "";
                 var header = "";
                 var body = "";
-                var headerHeight = '26%';
+                var headerHeight = '0%';
                 var style = "";
                 var footer = "";
                 var pdfFile = null;
                 
                 // css
                 style += "<style type='text/css'>";
-                style += "*{padding : 0; margin:0;}";
-                style += "body{padding-left : 5px; padding-right : 5px;}";
+                style += "*{padding : 0; margin:0, 2, 0, 2;}";
+                style += "body{padding-left : 15px; padding-right : 15px;}";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
                 style += ".tg .tg-headerlogo {align:right; border:none;}";
                 style += ".tg .tg-img-logo {width:195px; height:90px; object-fit:cover;}";
@@ -109,7 +126,111 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 style += ".tg .tg-foot {font-size:11px; color: #808080; position: absolute; bottom: 0;}";
                 style += "</style>";
 
-                    // render XML
+                header += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
+                header += "<tbody>";
+
+                
+
+                header += "</tbody>";
+                header += "</table>";
+                const customerIds = Object.keys(allDataLineByCustomer);
+
+                customerIds.forEach((customerId, index) => {
+                    const customerLines = allDataLineByCustomer[customerId];
+                
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+                    body += "<tbody>";
+
+                    body += "<tr>"
+                    body += "<td style='width:40%'></td>"
+                    body += "<td style='width:20%'></td>"
+                    body += "<td style='width:15%'></td>"
+                    body += "<td style='width:25%'></td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='font-size:18px; align:center; font-weight:bold;' colspan='4'>Packing List</td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='font-size:12px;'>"+escapeXmlSymbols(subsidiary)+"</td>"
+                    body += "<td style='font-size:12px;'></td>"
+                    body += "<td style='font-size:12px;'>Paking List No :</td>"
+                    body += "<td style='font-size:12px;'>"+escapeXmlSymbols(docNumb)+"</td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='font-size:12px;' rowspan='3'>"+escapeXmlSymbols(addr1)+"</td>"
+                    body += "<td style='font-size:12px;'></td>"
+                    body += "<td style='font-size:12px;'>Tanggal Kirim :</td>"
+                    body += "<td style='font-size:12px;'>"+escapeXmlSymbols(shipDate)+"</td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='font-size:12px;'></td>"
+                    body += "<td style='font-size:12px;'>Tanggal Terima :</td>"
+                    body += "<td style='font-size:12px;'></td>"
+                    body += "</tr>"
+
+                    body += "<tr style='height:30px;'>"
+                    body += "<td style='font-size:12px;' colspan='3'></td>"
+                    body += "</tr>"
+
+                    const customerName = customerLines[0].customerName;
+
+                    const noDOList = [...new Set(customerLines.map(line => line.itemFulfillmentText))].join(', ');
+                    body += "<tr>"
+                    body += "<td style='font-size:12px;'> Customer : "+ escapeXmlSymbols(customerName) + "</td>";
+                    body += "<td style='font-size:12px; align:right;'>No DO :</td>";
+                    body += "<td style='font-size:12px;' colspan='2'>"+ escapeXmlSymbols(noDOList) +"</td>";
+                    body += "</tr>"
+
+                    body += "</tbody>";
+                    body += "</table>";
+                    
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
+                    body += "<tbody>";
+
+                    body += "<tr>"
+                    body += "<td style='width:5%; align:center; border: solid black 1px;'>No.</td>"
+                    body += "<td style='width:15%; align:center; border: solid black 1px;'>Item Code</td>"
+                    body += "<td style='width:35%; align:center; border: solid black 1px;'>Item Description</td>"
+                    body += "<td style='width:10%; align:center; border: solid black 1px;'>Size</td>"
+                    body += "<td style='width:10%; align:center; border: solid black 1px;'>Qty</td>"
+                    body += "<td style='width:25%; align:center; border: solid black 1px;'>Box. No.</td>"
+                    body += "</tr>"
+                    var Nomor = 1
+                    var qtyTotal = 0
+                    customerLines.forEach((line, idx) => {
+                        body += "<tr>"
+                        body += "<td style='border: solid black 1px;'>"+Nomor+"</td>"
+                        body += "<td style='border: solid black 1px;'>"+escapeXmlSymbols(line.displayNameitem || '')+"</td>"
+                        body += "<td style='border: solid black 1px;'>"+escapeXmlSymbols(line.item || '')+"</td>"
+                        body += "<td style='border: solid black 1px; align:center;'>"+escapeXmlSymbols(line.sizeItem || '')+"</td>"
+                        body += "<td style='border: solid black 1px;'>"+escapeXmlSymbols(line.totalPickedQty || '')+"</td>"
+                        body += "<td style='border: solid black 1px;'>"+escapeXmlSymbols(line.carton || '')+"</td>"
+                        body += "</tr>"
+                        Nomor += 1
+                        qtyTotal += parseInt(line.totalPickedQty || 0)
+                        
+                    });
+                    body += "<tr>"
+                    body += "<td style='border: solid black 1px; align:center;' colspan='4'>Total Quantity</td>"
+                    body += "<td style='border: solid black 1px;' colspan='2'>"+qtyTotal+"</td>"
+                    body += "</tr>"
+                    body += "</tbody>";
+                    body += "</table>";
+
+
+                });
+
+                footer += "<table class='tg' style='table-layout: fixed;'>";
+                footer += "<tbody>";
+                footer += "<tr style='height:40px;'>";
+                footer += "</tr>";
+                footer += "</tbody>";
+                footer += "</table>";
+                
                 var xml = '<?xml version="1.0"?>\n<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">';
                 xml += "<pdf>";
                 xml += "<head>";
@@ -121,7 +242,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "</macrolist>";
                 xml += "</head>";
 
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 21cm; width: 29.7cm;' header='nlheader' header-height='" + headerHeight + "'>";
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "'>";
                 xml += body;
                 xml += footer;
                 xml += "\n</body>\n</pdf>";
