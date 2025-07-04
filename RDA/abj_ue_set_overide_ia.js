@@ -105,8 +105,7 @@ define(['N/search', 'N/log', 'N/error', 'N/record'], (search, log, error, record
                         throw message;
                     }
             } catch (e) {
-                log.error('Error in beforeSubmit', e);
-                throw e;
+                log.debug('Error in beforeSubmit', e);
             }
         }
     };

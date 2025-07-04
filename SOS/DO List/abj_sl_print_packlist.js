@@ -70,7 +70,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             join: "CUSTRECORD_PACKSHIP_ITEMFULFILLMENT"
                         });
                         var displayNameitem = result.getValue({
-                            name: "displayname",
+                            name: "itemid",
                             join: "CUSTRECORD_PACKSHIP_FULFILLMENTITEM",
                         });
                         var sizeItem = result.getText({
@@ -137,6 +137,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 customerIds.forEach((customerId, index) => {
                     const customerLines = allDataLineByCustomer[customerId];
+                    log.debug('index', index)
+                    if (index > 0) {
+                         body += "<div style='page-break-before:always'></div>";
+                    }
                 
                     body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
                     body += "<tbody>";
@@ -155,21 +159,21 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tr>"
                     body += "<td style='font-size:12px;'>"+escapeXmlSymbols(subsidiary)+"</td>"
                     body += "<td style='font-size:12px;'></td>"
-                    body += "<td style='font-size:12px;'>Paking List No :</td>"
-                    body += "<td style='font-size:12px;'>"+escapeXmlSymbols(docNumb)+"</td>"
+                    body += "<td style='font-size:12px;'>Paking List No </td>"
+                    body += "<td style='font-size:12px;'>: "+escapeXmlSymbols(docNumb)+"</td>"
                     body += "</tr>"
 
                     body += "<tr>"
                     body += "<td style='font-size:12px;' rowspan='3'>"+escapeXmlSymbols(addr1)+"</td>"
                     body += "<td style='font-size:12px;'></td>"
-                    body += "<td style='font-size:12px;'>Tanggal Kirim :</td>"
-                    body += "<td style='font-size:12px;'>"+escapeXmlSymbols(shipDate)+"</td>"
+                    body += "<td style='font-size:12px;'>Tanggal Kirim </td>"
+                    body += "<td style='font-size:12px;'>: "+escapeXmlSymbols(shipDate)+"</td>"
                     body += "</tr>"
 
                     body += "<tr>"
                     body += "<td style='font-size:12px;'></td>"
-                    body += "<td style='font-size:12px;'>Tanggal Terima :</td>"
-                    body += "<td style='font-size:12px;'></td>"
+                    body += "<td style='font-size:12px;'>Tanggal Terima </td>"
+                    body += "<td style='font-size:12px;'>:</td>"
                     body += "</tr>"
 
                     body += "<tr style='height:30px;'>"
@@ -178,7 +182,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     const customerName = customerLines[0].customerName;
 
-                    const noDOList = [...new Set(customerLines.map(line => line.itemFulfillmentText))].join(', ');
+                    const noDOList = [...new Set(
+                        customerLines.map(line => line.itemFulfillmentText.replace('Item Fulfillment ', ''))
+                    )].join(', ');
                     body += "<tr>"
                     body += "<td style='font-size:12px;'> Customer : "+ escapeXmlSymbols(customerName) + "</td>";
                     body += "<td style='font-size:12px; align:right;'>No DO :</td>";
@@ -192,22 +198,28 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tbody>";
 
                     body += "<tr>"
-                    body += "<td style='width:5%; align:center; border: solid black 1px;'>No.</td>"
-                    body += "<td style='width:15%; align:center; border: solid black 1px;'>Item Code</td>"
-                    body += "<td style='width:35%; align:center; border: solid black 1px;'>Item Description</td>"
-                    body += "<td style='width:10%; align:center; border: solid black 1px;'>Size</td>"
-                    body += "<td style='width:10%; align:center; border: solid black 1px;'>Qty</td>"
-                    body += "<td style='width:25%; align:center; border: solid black 1px;'>Box. No.</td>"
+                    body += "<td style='width:5%; align:center; border: solid black 1px; border-right:none;'>No.</td>"
+                    body += "<td style='width:15%; align:center; border: solid black 1px; border-right:none;'>Item Code</td>"
+                    body += "<td style='width:35%; align:center; border: solid black 1px; border-right:none;'>Item Description</td>"
+                    body += "<td style='width:10%; align:center; border: solid black 1px; border-right:none;'>Size</td>"
+                    body += "<td style='width:10%; align:center; border: solid black 1px; border-right:none;'>Qty</td>"
+                    body += "<td style='width:25%; align:center; border: solid black 1px; '>Box. No.</td>"
                     body += "</tr>"
                     var Nomor = 1
                     var qtyTotal = 0
                     customerLines.forEach((line, idx) => {
+                        log.debug('line.displayNameitem', line.displayNameitem)
+                        var itemFullName = line.displayNameitem
+                        var afterSplit = itemFullName.split(':')[1].trim();
+                        let firstSpaceIndex = afterSplit.indexOf(' ');
+                        let itemCode = afterSplit.substring(0, firstSpaceIndex);
+                        let itemDesc = afterSplit.substring(firstSpaceIndex + 1);
                         body += "<tr>"
-                        body += "<td style='border: solid black 1px;'>"+Nomor+"</td>"
-                        body += "<td style='border: solid black 1px;'>"+escapeXmlSymbols(line.displayNameitem || '')+"</td>"
-                        body += "<td style='border: solid black 1px;'>"+escapeXmlSymbols(line.item || '')+"</td>"
-                        body += "<td style='border: solid black 1px; align:center;'>"+escapeXmlSymbols(line.sizeItem || '')+"</td>"
-                        body += "<td style='border: solid black 1px;'>"+escapeXmlSymbols(line.totalPickedQty || '')+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;'>"+Nomor+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;'>"+escapeXmlSymbols(itemCode || '')+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;'>"+escapeXmlSymbols(itemDesc || '')+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none; align:center;'>"+escapeXmlSymbols(line.sizeItem || '')+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;'>"+escapeXmlSymbols(line.totalPickedQty || '')+"</td>"
                         body += "<td style='border: solid black 1px;'>"+escapeXmlSymbols(line.carton || '')+"</td>"
                         body += "</tr>"
                         Nomor += 1
@@ -215,7 +227,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         
                     });
                     body += "<tr>"
-                    body += "<td style='border: solid black 1px; align:center;' colspan='4'>Total Quantity</td>"
+                    body += "<td style='border: solid black 1px; border-right:none; align:center;' colspan='4'>Total Quantity</td>"
                     body += "<td style='border: solid black 1px;' colspan='2'>"+qtyTotal+"</td>"
                     body += "</tr>"
                     body += "</tbody>";
@@ -232,7 +244,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "</table>";
                 
                 var xml = '<?xml version="1.0"?>\n<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">';
-                xml += "<pdf>";
+                xml += "<pdf xmlns:pdf=\"http://ns.adobe.com/pdf/1.3/\">";
                 xml += "<head>";
                 xml += style;
                 xml += "<macrolist>";
