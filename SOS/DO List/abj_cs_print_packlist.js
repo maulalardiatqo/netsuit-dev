@@ -24,9 +24,24 @@
                 newWindow = window.open(createPDFURL);
             }
         } 
+        function printPDFSt(){
+            var id = records.id;
+            var createPDFURL = url.resolveScript({
+                scriptId: 'customscript_abj_sl_print_surat_jalan',
+                deploymentId: 'customdeploy_abj_sl_print_surat_jalan',
+                returnExternalUrl: false
+            })
+            console.log("id",id);
+            console.log("urlpdf", createPDFURL);
+            createPDFURL += '&id=' +  id;
+                if (createPDFURL) {
+                    newWindow = window.open(createPDFURL);
+                }
+        }
         return {
             pageInit: pageInit,
             printPDF : printPDF,
+            printPDFSt : printPDFSt
         };
     }); 
     

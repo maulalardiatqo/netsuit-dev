@@ -16,6 +16,11 @@ define(["N/runtime", "N/log"], (runtime, log) => {
             label: "Print Packing List",
             functionName: "printPDF()"
         });
+        form.addButton({
+            id: 'custpage_button_print_st',
+            label: "Print Surat Jalan",
+            functionName: "printPDFSt()"
+        });
         context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_packlist.js"
         }
 }

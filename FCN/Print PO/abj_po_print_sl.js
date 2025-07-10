@@ -226,8 +226,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var total = 0;
                 var duedate = poRecord.getValue('duedate');
                 var jobNumber = poRecord.getValue('custbody_abj_custom_jobnumber');
+                jobNumber = escapeXmlSymbols(jobNumber);
+
                 if (jobNumber.includes('\\')) {
-                    jobNumber = jobNumber.replace(/\\/g, '<br/>')
+                    jobNumber = jobNumber.replace(/\\/g, '<br/>');
                 }
                 var subTotal = poRecord.getValue('subtotal') || 0;
     
@@ -710,7 +712,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<table class='tg' style='table-layout: fixed;'>";
                 footer += "<tbody>";
                 footer += "<tr class='tg-foot'>";
-                footer += "<td style='align:left'>Purchase Order # " + tandId + "</td>"
+                footer += "<td style='align:left'>Purchase Order # " + escapeXmlSymbols(tandId) + "</td>"
                 footer += "<td style='align:right'></td>"
                 footer += "</tr>";
                 footer += "</tbody>";
@@ -758,6 +760,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId: 'description',
                             line: index
                         });
+                        description = escapeXmlSymbols(description);
                         if (description.includes('\\')) {
                             description = description.replace(/\\/g, '<br/>');
                         }
@@ -828,7 +831,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         if (alva) {
                             body += "<tr>";
                             body += "<td class='tg-b_body'>" + qty + " - " + unit + "Pcs</td>";
-                            body += "<td class='tg-b_body'>" + escapeXmlSymbols(description) + "</td>";
+                            body += "<td class='tg-b_body'>" + description + "</td>";
                             body += "<td class='tg-b_body' style='align:right'>" + rate + "</td>";
                             body += "<td class='tg-b_body' style='align:right'> X </td>";
                             body += "<td class='tg-b_body' style='align:right;'>" + ammount + "</td>";
@@ -836,7 +839,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         } else {
                             body += "<tr>";
                             body += "<td class='tg-b_body'>" + qty + " - " + unit + "Pcs</td>";
-                            body += "<td class='tg-b_body'>" + escapeXmlSymbols(description) + "</td>";
+                            body += "<td class='tg-b_body'>" + description + "</td>";
                             body += "<td class='tg-b_body' style='align:right'>" + removeDecimalFormat(rate) + "</td>";
                             body += "<td class='tg-b_body' style='align:right'> X </td>";
                             body += "<td class='tg-b_body' style='align:right;'>" + removeDecimalFormat(ammount) + "</td>";
@@ -861,6 +864,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             fieldId: 'memo',
                             line: index
                         });
+                        description = escapeXmlSymbols(description);
                         if (description.includes('\\')) {
                             description = description.replace(/\\/g, '<br/>');
                         }
@@ -915,7 +919,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         if (alva) {
                             body += "<tr>";
                             body += "<td class='tg-b_body'>" + qty + "</td>";
-                            body += "<td class='tg-b_body'>" + escapeXmlSymbols(description) + "</td>";
+                            body += "<td class='tg-b_body'>" + description + "</td>";
                             body += "<td class='tg-b_body' style='align:right'>" + amount + "</td>";
                             body += "<td class='tg-b_body' style='align:right'>X</td>";
                             body += "<td class='tg-b_body' style='align:right;'>" + grosamt_exp + "</td>";
@@ -923,7 +927,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         } else {
                             body += "<tr>";
                             body += "<td class='tg-b_body'>" + qty + "</td>";
-                            body += "<td class='tg-b_body'>" + escapeXmlSymbols(description) + "</td>";
+                            body += "<td class='tg-b_body'>" + description + "</td>";
                             body += "<td class='tg-b_body' style='align:right'>" + removeDecimalFormat(amount) + "</td>";
                             body += "<td class='tg-b_body' style='align:right'>X</td>";
                             body += "<td class='tg-b_body' style='align:right;'>" + removeDecimalFormat(grosamt_exp) + "</td>";

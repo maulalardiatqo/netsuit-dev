@@ -41,12 +41,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 if (doIds.length > 0) {
                     var doSearch = search.load({
-                        id: 'customsearch514'
+                        id: 'customsearch_print_out_surat_jalan'
                     });
 
                     var filters = doSearch.filters;
                     filters.push(search.createFilter({
-                        name: 'custrecord_packship_itemfulfillment',
+                        name: 'internalid',
                         operator: search.Operator.ANYOF,
                         values: doIds
                     }));
@@ -55,27 +55,36 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     log.debug('search result count', searchResult.length);
 
                     searchResult.forEach(function (result) {
-                        var itemFulfillmentId = result.getValue({ name: 'custrecord_packship_itemfulfillment' });
-                        var itemFulfillmentText = result.getText({ name: 'custrecord_packship_itemfulfillment' });
-                        var carton = result.getText({ name: 'custrecord_packship_carton' });
-                        var item = result.getText({ name: 'custrecord_packship_fulfillmentitem' });
-                        var totalPickedQty = result.getValue({ name: 'custrecord_packship_totalpickedqty' });
-                        var totalPackedQty = result.getValue({ name: 'custrecord_packship_totalpackedqty' });
+                        var itemFulfillmentId = result.getValue({ name: 'internalid' });
                         var customer = result.getValue({
-                            name: "entity",
-                            join: "CUSTRECORD_PACKSHIP_ITEMFULFILLMENT"
+                            name: "entity"
                         });
                         var customerName = result.getText({
-                            name: "entity",
-                            join: "CUSTRECORD_PACKSHIP_ITEMFULFILLMENT"
+                            name: "entity"
                         });
+                        var qty = result.getValue({
+                            name  : "quantity"
+                        });
+                        var shipAddr = result.getValue({
+                            name : "shipaddress"
+                        });
+                        var color = result.getValue({
+                            name: "custitem_item_color",
+                            join: "item",
+                        });
+                        var size = result.getValue({
+                            name: "custitem_item_size",
+                            join: "item",
+                        });
+                        var item = result.getText({
+                            name : "item"
+                        })
                         var displayNameitem = result.getValue({
                             name: "itemid",
-                            join: "CUSTRECORD_PACKSHIP_FULFILLMENTITEM",
-                        });
-                        var sizeItem = result.getText({
-                            name: "custitem_item_size",
-                            join: "CUSTRECORD_PACKSHIP_FULFILLMENTITEM",
+                            join: "item",
+                        })
+                        var doNo = result.getValue({
+                            name : "tranid"
                         })
                         // Cek apakah customer sudah ada di object
                         if (!allDataLineByCustomer[customer]) {
@@ -85,14 +94,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         // Push data line ke array berdasarkan customer
                         allDataLineByCustomer[customer].push({
                             itemFulfillmentId: itemFulfillmentId,
-                            itemFulfillmentText: itemFulfillmentText,
-                            customerName : customerName,
-                            carton: carton,
                             item: item,
-                            totalPickedQty: totalPickedQty,
-                            totalPackedQty: totalPackedQty,
+                            size: size,
+                            color: color,
+                            qty : qty,
+                            shipAddr : shipAddr,
+                            customerName : customerName,
+                            customer : customer,
                             displayNameitem : displayNameitem,
-                            sizeItem : sizeItem
+                            doNo : doNo
                         });
                     });
                 }
@@ -108,7 +118,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 
                 // css
                 style += "<style type='text/css'>";
-                style += "*{padding : 0; margin:0, 2, 0, 2;}";
+                style += "*{padding : 0; margin:0;}";
                 style += "body{padding-left : 15px; padding-right : 15px;}";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
                 style += ".tg .tg-headerlogo {align:right; border:none;}";
@@ -126,89 +136,65 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 style += ".tg .tg-foot {font-size:11px; color: #808080; position: absolute; bottom: 0;}";
                 style += "</style>";
 
-                header += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
+                header += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;background-color:yellow;\">";
                 header += "<tbody>";
-
-                
-
                 header += "</tbody>";
                 header += "</table>";
                 const customerIds = Object.keys(allDataLineByCustomer);
 
                 customerIds.forEach((customerId, index) => {
                     const customerLines = allDataLineByCustomer[customerId];
+                    log.debug('customerLines', customerLines)
                     log.debug('index', index)
                     if (index > 0) {
                          body += "<div style='page-break-before:always'></div>";
                     }
                 
-                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
                     body += "<tbody>";
-
-                    body += "<tr>"
-                    body += "<td style='width:40%'></td>"
-                    body += "<td style='width:20%'></td>"
-                    body += "<td style='width:15%'></td>"
-                    body += "<td style='width:25%'></td>"
-                    body += "</tr>"
-
-                    body += "<tr>"
-                    body += "<td style='font-size:18px; align:center; font-weight:bold;' colspan='4'>Packing List</td>"
-                    body += "</tr>"
-
-                    body += "<tr>"
-                    body += "<td style='font-size:12px;'>"+escapeXmlSymbols(subsidiary)+"</td>"
-                    body += "<td style='font-size:12px;'></td>"
-                    body += "<td style='font-size:12px;'>Paking List No </td>"
-                    body += "<td style='font-size:12px;'>: "+escapeXmlSymbols(docNumb)+"</td>"
-                    body += "</tr>"
-
-                    body += "<tr>"
-                    body += "<td style='font-size:12px;' rowspan='3'>"+escapeXmlSymbols(addr1)+"</td>"
-                    body += "<td style='font-size:12px;'></td>"
-                    body += "<td style='font-size:12px;'>Tanggal Kirim </td>"
-                    body += "<td style='font-size:12px;'>: "+escapeXmlSymbols(shipDate)+"</td>"
-                    body += "</tr>"
-
-                    body += "<tr>"
-                    body += "<td style='font-size:12px;'></td>"
-                    body += "<td style='font-size:12px;'>Tanggal Terima </td>"
-                    body += "<td style='font-size:12px;'>:</td>"
-                    body += "</tr>"
-
-                    body += "<tr style='height:30px;'>"
-                    body += "<td style='font-size:12px;' colspan='3'></td>"
-                    body += "</tr>"
-
+                    var addressShip = customerLines[0].shipAddr
+                    log.debug('addressShip', addressShip)
                     const customerName = customerLines[0].customerName;
 
-                    const noDOList = [...new Set(
-                        customerLines.map(line => line.itemFulfillmentText.replace('Item Fulfillment ', ''))
-                    )].join(', ');
                     body += "<tr>"
-                    body += "<td style='font-size:12px;'> Customer : "+ escapeXmlSymbols(customerName) + "</td>";
-                    body += "<td style='font-size:12px; align:right;'>No DO :</td>";
-                    body += "<td style='font-size:12px;' colspan='2'>"+ escapeXmlSymbols(noDOList) +"</td>";
+                    body += "<td style='width:50%'></td>"
+                    body += "<td style='width:50%'></td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='font-size:18px; align:center; font-weight:bold;' colspan='2'>Delivery Notes</td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='font-size:10px; border-top:1px solid black; border-left:1px solid black; border-right:4px solid black; border-bottom:1px solid black;'><p>"+escapeXmlSymbols(subsidiary)+"</p>"+escapeXmlSymbols(addr1)+"</td>"
+                    body += "<td style='font-size:10px; border-top:1px solid black; border-bottom:1px solid black; border-right:1px solid black;'><p>Kepada Yth,"+escapeXmlSymbols(customerName)+"</p>"+escapeXmlSymbols(addressShip)+"</td>"
+                    body += "</tr>"
+
+                    body += "<tr>";
+                    body += "<td colspan='2' style='width:2px; background-color:black; height:10px; padding:0;'></td>";
+                    body += "</tr>";
+
+                    body += "<tr>"
+                    body += "<td style='font-size:10px; border: 1px solid black' colspan='2'><p>No. Bukti : ST"+escapeXmlSymbols(docNumb)+"</p>No. Refference : SL"+escapeXmlSymbols(docNumb)+"</td>"
                     body += "</tr>"
 
                     body += "</tbody>";
                     body += "</table>";
-                    
-                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
+
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
                     body += "<tbody>";
 
                     body += "<tr>"
-                    body += "<td style='width:5%; align:center; border: solid black 1px; border-right:none;'>No.</td>"
-                    body += "<td style='width:10%; align:center; border: solid black 1px; border-right:none;'>Item Code</td>"
-                    body += "<td style='width:35%; align:center; border: solid black 1px; border-right:none;'>Item Description</td>"
-                    body += "<td style='width:10%; align:center; border: solid black 1px; border-right:none;'>Size</td>"
-                    body += "<td style='width:10%; align:center; border: solid black 1px; border-right:none;'>Qty order</td>"
-                    body += "<td style='width:10%; align:center; border: solid black 1px; border-right:none;'>Qty Pack</td>"
-                    body += "<td style='width:20%; align:center; border: solid black 1px; '>Box. No.</td>"
+                    body += "<td style='width:5%; align:center; border: solid black 1px; border-right:none;'>NO.</td>"
+                    body += "<td style='width:25%; align:center; border: solid black 1px; border-right:none;'>NO. DO</td>"
+                    body += "<td style='width:15%; align:center; border: solid black 1px; border-right:none;'>ITEM CODE</td>"
+                    body += "<td style='width:35%; align:center; border: solid black 1px; border-right:none;'>ARTICLE</td>"
+                    body += "<td style='width:7%; align:center; border: solid black 1px; border-right:none;'>COLOR</td>"
+                    body += "<td style='width:5%; align:center; border: solid black 1px; border-right:none;'>SIZE</td>"
+                    body += "<td style='width:8%; align:center; border: solid black 1px;'>QTY</td>"
                     body += "</tr>"
                     var Nomor = 1
                     var qtyTotal = 0
-                    var qtyPackedTotal = 0
                     customerLines.forEach((line, idx) => {
                         log.debug('line.displayNameitem', line.displayNameitem)
                         var itemFullName = line.displayNameitem
@@ -218,26 +204,67 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         let itemDesc = afterSplit.substring(firstSpaceIndex + 1);
                         body += "<tr>"
                         body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>"+Nomor+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>"+escapeXmlSymbols(line.doNo || '')+"</td>"
                         body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>"+escapeXmlSymbols(itemCode || '')+"</td>"
                         body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>"+escapeXmlSymbols(itemDesc || '')+"</td>"
-                        body += "<td style='border: solid black 1px; border-right:none;  border-top:none; align:center;'>"+escapeXmlSymbols(line.sizeItem || '')+"</td>"
-                        body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>"+escapeXmlSymbols(line.totalPickedQty || '')+"</td>"
-                        body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>"+escapeXmlSymbols(line.totalPackedQty || '')+"</td>"
-                        body += "<td style='border: solid black 1px;'>"+escapeXmlSymbols(line.carton || '')+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>"+escapeXmlSymbols(line.color || '')+"</td>"
+                        body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>"+escapeXmlSymbols(line.size || '')+"</td>"
+                        body += "<td style='border: solid black 1px; border-top:none;'>"+escapeXmlSymbols(line.qty || '')+"</td>"
                         body += "</tr>"
+
                         Nomor += 1
-                        qtyTotal += parseInt(line.totalPickedQty || 0)
-                        qtyPackedTotal += parseInt(line.totalPackedQty)
-                        
+                        qtyTotal += parseInt(line.qty || 0)
                     });
                     body += "<tr>"
-                    body += "<td style='border: solid black 1px; border-right:none; align:center;' colspan='5'>Total Quantity</td>"
-                    body += "<td style='border: solid black 1px; border-right:none;'>"+qtyPackedTotal+"</td>"
-                    body += "<td style='border: solid black 1px;'></td>"
+                    body += "<td style='border: solid black 1px; border-right:none;' colspan='6'>Total Quantity</td>"
+                    body += "<td style='border: solid black 1px;'>"+qtyTotal+"</td>"
                     body += "</tr>"
+
+                    body += "<tr style='height:20px;'>"
+                    body += "</tr>"
+
                     body += "</tbody>";
                     body += "</table>";
 
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+                    body += "<tbody>";
+
+                    body += "<tr>"
+                    body += "<td style='width:20%'></td>"
+                    body += "<td style='width:20%'></td>"
+                    body += "<td style='width:20%'></td>"
+                    body += "<td style='width:20%'></td>"
+                    body += "<td style='width:20%'></td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='font-size:14px; align:center; background-color:black; color:white;' colspan='4'>PREPARED BY</td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; align:center;'>Diserahkan Oleh,</td>"
+                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; align:center;'>Dikirim Oleh,</td>"
+                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; align:center;'>Mengetahui,</td>"
+                    body += "<td style='border: 1px solid black; border-bottom:none; align:center;'>Diterima Oleh,</td>"
+                    body += "</tr>"
+
+                    body += "<tr style='height:60px;'>"
+                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; border-top:none; align:center;'></td>"
+                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; border-top:none; align:center;'>Bag. Expedisi</td>"
+                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; border-top:none; align:center;'>Ka. Gudang</td>"
+                    body += "<td style='border: 1px solid black; border-bottom:none; border-top:none;'></td>"
+                    body += "</tr>"
+
+
+                    body += "<tr style=''>"
+                    body += "<td style='border: 1px solid black; border-right:none; border-top:none; align:center;'>(.........................)</td>"
+                    body += "<td style='border: 1px solid black; border-right:none; border-top:none; align:center;'>(.........................)</td>"
+                    body += "<td style='border: 1px solid black; border-right:none; border-top:none; align:center;'>(.........................)</td>"
+                    body += "<td style='border: 1px solid black; border-top:none; align:center;'>(.........................)</td>"
+                    body += "</tr>"
+
+                    body += "</tbody>";
+                    body += "</table>";
                 });
 
                 footer += "<table class='tg' style='table-layout: fixed;'>";
@@ -251,17 +278,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "<pdf xmlns:pdf=\"http://ns.adobe.com/pdf/1.3/\">";
                 xml += "<head>";
                 xml += style;
-                xml += "<macrolist>";
-                xml += "<macro id=\"nlheader\">";
-                xml += header;
-                xml += "</macro>";
-                xml += "</macrolist>";
                 xml += "</head>";
 
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "'>";
+                // Persempit margin body
+               xml += "<body font-size='10' style='font-family: Tahoma,sans-serif; margin:0; padding:0; padding-left:15px; padding-right:15px; height: 14cm; width: 21cm;'>";
+
+
                 xml += body;
                 xml += footer;
                 xml += "\n</body>\n</pdf>";
+
                 xml = xml.replace(/ & /g, ' &amp; ');
                 response.renderPdf({
                     xmlString: xml
