@@ -68,11 +68,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var shipAddr = result.getValue({
                             name : "shipaddress"
                         });
-                        var color = result.getValue({
+                        var color = result.getText({
                             name: "custitem_item_color",
                             join: "item",
                         });
-                        var size = result.getValue({
+                        var size = result.getText({
                             name: "custitem_item_size",
                             join: "item",
                         });
