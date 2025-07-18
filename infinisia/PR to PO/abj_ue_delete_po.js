@@ -7,14 +7,25 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
 
     function beforeSubmit(context) {
         if (context.type == context.UserEventType.DELETE) {
+            log.debug('delete triggered')
             var dataRec = context.oldRecord;
             var dataRecID = context.oldRecord.id;
+            log.debug('dataRecID', dataRecID)
+            var triggerCek = false
             var isConvertPR = dataRec.getValue("custbody_convert_from_pr");
             var fromPRID = dataRec.getValue("custbody_convert_from_prid");
+            if(fromPRID == '' || fromPRID == null){
+                triggerCek = true
+                fromPRID = dataRec.getValue("custbody_abj_pr_number");
+            }
+            log.debug('isConvertPR', isConvertPR)
+            log.debug('fromPRID', fromPRID);
             if (isConvertPR && fromPRID) {
+                log.debug('masuk isconvert delete')
                 var dataLineCount = dataRec.getLineCount({
                     sublistId : "item"
                 });
+                log.debug('dataLineCount', dataLineCount)
                 var dataFromPR = []
                 if(dataLineCount > 0){
                     for(var i = 0; i < dataLineCount; i++){
@@ -28,6 +39,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                         fieldId : "quantity",
                         line : i
                     })
+                    log.debug('qtyData', qtyData)
                     var internalidPR = dataRec.getSublistValue({
                         sublistId : "item",
                         fieldId : "custcol_abj_pr_number",
@@ -40,71 +52,133 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     })
                     dataFromPR.push(
                         {
-                            itemIdData : itemIdData,
-                            qtyData : qtyData,
-                            internalidPR : internalidPR,
-                            lineId : lineId
+                        itemIdData : itemIdData,
+                        qtyData : qtyData,
+                        internalidPR : internalidPR,
+                        lineId : lineId
                         }
                     )
                     }
                 }
-                fromPRID.forEach(function (internalid) {
+                log.debug('fromPRID to deleete', fromPRID)
+                if(triggerCek){
                     var prData = record.load({
-                        type: "purchaseorder",
-                        id: internalid,
-                        isDynamic: false,
-                    });
-                    prData.setValue({
-                        fieldId: "custbody_po_converted",
-                        value: dataRecID,
-                        ignoreFieldChange: true,
-                    });
-                    var lineinPr = prData.getLineCount({
-                        sublistId : "recmachcustrecord_iss_pr_parent"
-                    });
-                    log.debug('lineinPr', lineinPr)
-                    if(lineinPr > 0){
-                        for(var i = 0; i < lineinPr; i++){
-                            var itemId = prData.getSublistValue({
-                                sublistId : "recmachcustrecord_iss_pr_parent",
-                                fieldId : "custrecord_iss_pr_item",
-                                line : i
-                            });
-                            var line_id = prData.getSublistValue({
-                                sublistId : "recmachcustrecord_iss_pr_parent",
-                                fieldId : "id",
-                                line : i
-                            });
-                            log.debug('line_id', line_id)
-                            var currntQtyPO = prData.getSublistValue({
-                                sublistId : "recmachcustrecord_iss_pr_parent",
-                                fieldId : "custrecord_prsum_qtypo",
-                                line : i
-                            }) || 0;
-                            
-                            var matchingData = dataFromPR.find(function (data) {
-                                return data.internalidPR === internalid && data.itemIdData === itemId && data.lineId == line_id;
-                            });
-                            log.debug('matchingData', matchingData)
-                            if (matchingData) {
-                                var qtyPo  = Number(currntQtyPO) - Number(matchingData.qtyData)
-                                log.debug('qtyPo', qtyPo)
-                                
-                                prData.setSublistValue({
-                                    sublistId: "recmachcustrecord_iss_pr_parent",
-                                    fieldId: "custrecord_prsum_qtypo",
-                                    line: i,
-                                    value: qtyPo
+                            type: "purchaseorder",
+                            id: fromPRID,
+                            isDynamic: false,
+                        });
+                        prData.setValue({
+                            fieldId: "custbody_po_converted",
+                            value: dataRecID,
+                            ignoreFieldChange: true,
+                        });
+                        var
+                        lineinPr = prData.getLineCount({
+                            sublistId : "recmachcustrecord_iss_pr_parent"
+                        });
+                        log.debug('lineinPr', lineinPr)
+                        if(lineinPr > 0){
+                            for(var i = 0; i < lineinPr; i++){
+                                var itemId = prData.getSublistValue({
+                                    sublistId : "recmachcustrecord_iss_pr_parent",
+                                    fieldId : "custrecord_iss_pr_item",
+                                    line : i
                                 });
+                                var line_id = prData.getSublistValue({
+                                    sublistId : "recmachcustrecord_iss_pr_parent",
+                                    fieldId : "id",
+                                    line : i
+                                });
+                                log.debug('line_id', line_id)
+                                var currntQtyPO = prData.getSublistValue({
+                                    sublistId : "recmachcustrecord_iss_pr_parent",
+                                    fieldId : "custrecord_prsum_qtypo",
+                                    line : i
+                                }) || 0;
+                                
+                                var matchingData = dataFromPR.find(function (data) {
+                                    return data.internalidPR === fromPRID && data.itemIdData === itemId && data.lineId == line_id;
+                                });
+                                log.debug('matchingData', matchingData)
+                                if (matchingData) {
+                                    var qtyPo  = Number(currntQtyPO) - Number(matchingData.qtyData)
+                                    log.debug('qtyPo', qtyPo)
+                                    
+                                    prData.setSublistValue({
+                                        sublistId: "recmachcustrecord_iss_pr_parent",
+                                        fieldId: "custrecord_prsum_qtypo",
+                                        line: i,
+                                        value: qtyPo
+                                    });
+                                }
                             }
                         }
-                    }
-                
-                        prData.save({
-                        enableSourcing: true,
-                        ignoreMandatoryFields: true,
+                    
+                            prData.save({
+                            enableSourcing: true,
+                            ignoreMandatoryFields: true,
+                        });
+                }else{
+                    fromPRID.forEach(function (internalid) {
+                        var prData = record.load({
+                            type: "purchaseorder",
+                            id: internalid,
+                            isDynamic: false,
+                        });
+                        prData.setValue({
+                            fieldId: "custbody_po_converted",
+                            value: dataRecID,
+                            ignoreFieldChange: true,
+                        });
+                        var
+                        lineinPr = prData.getLineCount({
+                            sublistId : "recmachcustrecord_iss_pr_parent"
+                        });
+                        log.debug('lineinPr', lineinPr)
+                        if(lineinPr > 0){
+                            for(var i = 0; i < lineinPr; i++){
+                                var itemId = prData.getSublistValue({
+                                    sublistId : "recmachcustrecord_iss_pr_parent",
+                                    fieldId : "custrecord_iss_pr_item",
+                                    line : i
+                                });
+                                var line_id = prData.getSublistValue({
+                                    sublistId : "recmachcustrecord_iss_pr_parent",
+                                    fieldId : "id",
+                                    line : i
+                                });
+                                log.debug('line_id', line_id)
+                                var currntQtyPO = prData.getSublistValue({
+                                    sublistId : "recmachcustrecord_iss_pr_parent",
+                                    fieldId : "custrecord_prsum_qtypo",
+                                    line : i
+                                }) || 0;
+                                
+                                var matchingData = dataFromPR.find(function (data) {
+                                    return data.internalidPR === internalid && data.itemIdData === itemId && data.lineId == line_id;
+                                });
+                                log.debug('matchingData', matchingData)
+                                if (matchingData) {
+                                    var qtyPo  = Number(currntQtyPO) - Number(matchingData.qtyData)
+                                    log.debug('qtyPo', qtyPo)
+                                    
+                                    prData.setSublistValue({
+                                        sublistId: "recmachcustrecord_iss_pr_parent",
+                                        fieldId: "custrecord_prsum_qtypo",
+                                        line: i,
+                                        value: qtyPo
+                                    });
+                                }
+                            }
+                        }
+                    
+                            prData.save({
+                            enableSourcing: true,
+                            ignoreMandatoryFields: true,
+                        });
                     });
-                });
+                }
+                
             }
         }
         
@@ -190,7 +264,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                             fieldId : "custrecord_iss_pr_item",
                             line : i
                         });
-                        var line_id = prData.getSublistValue({
+                            var line_id = prData.getSublistValue({
                             sublistId : "recmachcustrecord_iss_pr_parent",
                             fieldId : "id",
                             line : i
@@ -214,7 +288,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                                 log.debug('matchingData.qtyDataNew', matchingData.qtyDataNew)
                                 var qtyPo = Number(qtyPoUpdate) + Number(matchingData.qtyDataNew)
                                 
-                                log.debug('qtyPo', qtyPo)
+                                log.debug('qtyPo deleted', qtyPo)
                                 prData.setSublistValue({
                                     sublistId: "recmachcustrecord_iss_pr_parent",
                                     fieldId: "custrecord_prsum_qtypo",
@@ -228,8 +302,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     }
                 
                     prData.save({
-                        enableSourcing: true,
-                        ignoreMandatoryFields: true,
+                    enableSourcing: true,
+                    ignoreMandatoryFields: true,
                     });
                 });
             }

@@ -8,66 +8,142 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 function (runtime, log, url, currentRecord, currency, record, search, message) {
 
     var records = currentRecord.get();
+    let isDeleting = false;
+    let currentItemLineId = null;
+    
 
     function pageInit(context) {
         console.log('Page Init masuk');
-
-        var lineCount = records.getLineCount({
-            sublistId: 'recmachcustrecord_transaction_id'
-        });
-
-        for (var i = 0; i < lineCount; i++) {
-            var prosentField = records.getSublistField({
-                sublistId: 'recmachcustrecord_transaction_id',
-                fieldId: 'custrecord_asf_prosent',
-                line: i
-            });
-            prosentField.isDisabled = true;
-        }
+        
         var newRowButton = document.getElementById('uir-new-row-content');
         if (newRowButton) {
             newRowButton.style.display = 'none';
             console.log('Tombol New Line disembunyikan');
         }
-    }
-    
-    function sublistChanged(context) {
-        var sublistId = context.sublistId;
-        if (context.operation === 'remove' && context.sublistId === 'item') {
-            var removedLineIndex = context.line;
-            // Ambil item dan line index yang dihapus
-            var removedItemValue = records.getSublistValue({
-                sublistId: 'item',
-                fieldId: 'item',
-                line: removedLineIndex
-            });
-            var combinedRemovedKey = removedItemValue + '_' + removedLineIndex;
-            console.log('Baris dihapus. combinedRemovedKey:', combinedRemovedKey);
-
-            // Dapatkan jumlah baris di sublist pembobotan
-            var totalPembobotanLine = records.getLineCount({
+        var recordType = records.type;
+        console.log('recordType', recordType)
+        if (recordType === 'salesorder') {
+            var mode = context.mode;
+            console.log('mode', mode)
+            if(mode == 'copy' || mode == 'create'){
+                var customForm = records.getValue('customform');
+                var createdFrom = records.getValue('createdfrom');
+                if(customForm == 157){
+                    if(createdFrom){
+                        loadPembobotanFromQuote(createdFrom, records)
+                    }
+                }
+            }
+            var lineCount = records.getLineCount({
                 sublistId: 'recmachcustrecord_transaction_id'
             });
-
-            // Loop dari belakang agar tidak terjadi shifting index saat remove
-            for (var i = totalPembobotanLine - 1; i >= 0; i--) {
-                var lineIdValue = records.getSublistValue({
-                    sublistId: 'recmachcustrecord_transaction_id',
-                    fieldId: 'custrecord_id_line',
-                    line: i
-                });
-
-                if (lineIdValue === combinedRemovedKey) {
-                    console.log('Menghapus baris pembobotan ke-' + i + ' dengan ID:', lineIdValue);
-                    records.removeLine({
+            console.log('lineCount', lineCount);
+            if(lineCount > 0){
+                for (var i = 0; i < lineCount; i++) {
+                    var prosentField = records.getSublistField({
                         sublistId: 'recmachcustrecord_transaction_id',
-                        line: i,
-                        ignoreRecalc: true
+                        fieldId: 'custrecord_asf_prosent',
+                        line: i
                     });
+
+                    var pembobotanValue = records.getSublistValue({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId: 'custrecord_asf_pembobotan',
+                        line: i
+                    });
+
+                    console.log('masuk disable');
+
+                    // Set isDisabled berdasarkan nilai pembobotanValue
+                    prosentField.isDisabled = pembobotanValue !== true;
+                }
+            }
+        }else if(recordType === 'estimate') {
+             var lineCount = records.getLineCount({
+                sublistId: 'recmachcustrecord_transaction_id'
+            });
+            console.log('lineCount', lineCount);
+            if(lineCount > 0){
+                for (var i = 0; i < lineCount; i++) {
+                    var prosentField = records.getSublistField({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId: 'custrecord_asf_prosent',
+                        line: i
+                    });
+
+                    var pembobotanValue = records.getSublistValue({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId: 'custrecord_asf_pembobotan',
+                        line: i
+                    });
+                    if(pembobotanValue){
+                        console.log('pembobotanValue for disable', pembobotanValue);
+                        prosentField.isDisabled = true;
+                    }else{
+                        console.log('pembobotanValue for disable', pembobotanValue);
+                        prosentField.isDisabled = false;
+                    }
                 }
             }
         }
+    }
+    function loadPembobotanFromQuote(estimateId, rec) {
+        try {
+            var estimateRecord = record.load({
+                type: 'estimate',
+                id: estimateId,
+                isDynamic: false
+            });
+
+            var lineCount = estimateRecord.getLineCount({
+                sublistId: 'recmachcustrecord_transaction_id'
+            });
+            if(lineCount > 0){
+                for (var i = 0; i < lineCount; i++) {
+                    var lineValues = {
+                        custrecord_id_line: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_id_line', line: i }),
+                        custrecord_position: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_position', line: i }),
+                        custrecord_desc_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_desc_pembobotan', line: i }),
+                        custrecord_rate_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_rate_pembobotan', line: i }),
+                        custrecord_hour_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_hour_pembobotan', line: i }),
+                        custrecord_amount_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_amount_pembobotan', line: i }),
+                        custrecord_category_sow: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_category_sow', line: i }),
+                        custrecord_department_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_department_pembobotan', line: i }),
+                        custrecord_asf_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_asf_pembobotan', line: i }),
+                        custrecord_asf_prosent: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_asf_prosent', line: i }),
+                        custrecord_item_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_item_pembobotan', line: i })
+                    };
+
+                    // Tambahkan line baru di sublist record yang sedang diedit
+                    rec.selectNewLine({ sublistId: 'recmachcustrecord_transaction_id' });
+
+                    for (var fieldId in lineValues) {
+                        if (lineValues[fieldId]) {
+                            rec.setCurrentSublistValue({
+                                sublistId: 'recmachcustrecord_transaction_id',
+                                fieldId: fieldId,
+                                value: lineValues[fieldId]
+                            });
+                        }
+                    }
+
+                    rec.commitLine({ sublistId: 'recmachcustrecord_transaction_id' });
+                }
+            }
+            
+
+        } catch (e) {
+            console.log('ERROR loadPembobotanFromQuote', e);
+        }
+    }
+    function sublistChanged(context) {
+        var sublistId = context.sublistId;
         if (sublistId === 'item') {
+            if (isDeleting) {
+                console.log('Skipping sublistChanged because delete is in progress');
+                isDeleting = false; 
+                return;
+            }
             var quotationTier = records.getValue({
                 fieldId: 'custbody_abj_quotation_tier'
             });
@@ -83,10 +159,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     sublistId: 'item',
                     fieldId: 'line'
                 });
-                var complexity = records.getCurrentSublistValue({
-                    sublistId: 'item',
-                    fieldId: 'custcol_abj_complexity_level_line'
-                });
+
                 
                 var combinedValue = itemValue + '_' + lineItem;
                 if (itemValue) {
@@ -100,18 +173,15 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 }
                 console.log('Line:', lineItem);
                 console.log('Item Value:', itemValue);
-                console.log('complexity:', complexity);
 
-                if(itemValue && complexity){
+                if(itemValue){
                     var customrecord_abj_ratecardSearchObj = search.create({
                     type: "customrecord_abj_ratecard",
                     filters:
                     [
                         ["custrecord_abj_rate_card_item_name","anyof",itemValue], 
                         "AND", 
-                        ["custrecord_abj_rate_hour_type","anyof",quotationTier], 
-                        "AND", 
-                        ["custrecord_abj_ratecard_complexity_level","anyof",complexity]
+                        ["custrecord_abj_rate_hour_type","anyof",quotationTier]
                     ],
                     columns:
                     [
@@ -153,6 +223,16 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                             name: "custrecord_abj_ratecard_hours_rate",
                             join: "CUSTRECORD_ABJ_RATECARD_ID",
                             label: "Rate"
+                        }),
+                        search.createColumn({
+                            name: "custrecord4",
+                            join: "CUSTRECORD_ABJ_RATECARD_ID",
+                            label: "ASF"
+                        }),
+                        search.createColumn({
+                            name: "custrecord_abj_ratecard_hours_total",
+                            join: "CUSTRECORD_ABJ_RATECARD_ID",
+                            label: "Total"
                         })
                     ]
                     });
@@ -162,6 +242,10 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     customrecord_abj_ratecardSearchObj.run().each(function(result){
                         var position = result.getValue({
                             name: "custrecord_abj_ratecard_hours_position",
+                            join: "CUSTRECORD_ABJ_RATECARD_ID",
+                        })
+                        var amountPembobotan = result.getValue({
+                             name: "custrecord_abj_ratecard_hours_total",
                             join: "CUSTRECORD_ABJ_RATECARD_ID",
                         })
                         var CategorySOW = result.getValue({
@@ -184,6 +268,10 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                             name: "custrecord_abj_ratecard_hours_rate",
                             join: "CUSTRECORD_ABJ_RATECARD_ID",
                         })
+                        var asf = result.getValue({
+                            name: "custrecord4",
+                            join: "CUSTRECORD_ABJ_RATECARD_ID",
+                        })
                         allDataToset.push({
                             position: position,
                             CategorySOW: CategorySOW,
@@ -193,11 +281,35 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                             rate: rate,
                             lineItem : lineItem,
                             itemValue : itemValue,
-                            combinedValue : combinedValue
+                            combinedValue : combinedValue,
+                            asf : asf,
+                            amountPembobotan : amountPembobotan
                         })
                         return true;
                     });
                     if (allDataToset.length > 0) {
+                        var alreadyExists = false;
+                        var lineCount = records.getLineCount({
+                            sublistId: 'recmachcustrecord_transaction_id'
+                        });
+
+                        for (var j = 0; j < lineCount; j++) {
+                            var existingLineId = records.getSublistValue({
+                                sublistId: 'recmachcustrecord_transaction_id',
+                                fieldId: 'custrecord_id_line',
+                                line: j
+                            });
+
+                            if (existingLineId === combinedValue) {
+                                alreadyExists = true;
+                                break;
+                            }
+                        }
+
+                        if (alreadyExists) {
+                            console.log('Line dengan ID', combinedValue, 'sudah ada, tidak ditambahkan lagi');
+                            return;
+                        }
                         allDataToset.forEach(function(data) {
                             // Tambah baris baru di sublist
                             records.selectNewLine({
@@ -251,13 +363,15 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                                 fieldId: 'custrecord_item_pembobotan',
                                 value: data.itemValue
                             });
-
-                            // Hitung amount: Number(rate) * Number(hourRate)
-                            var amount = Number(data.rate) * Number(data.hourRate);
+                            records.setCurrentSublistValue({
+                                sublistId: 'recmachcustrecord_transaction_id',
+                                fieldId: 'custrecord_asf_pembobotan',
+                                value: data.asf
+                            });
                             records.setCurrentSublistValue({
                                 sublistId: 'recmachcustrecord_transaction_id',
                                 fieldId: 'custrecord_amount_pembobotan',
-                                value: amount
+                                value: data.amountPembobotan
                             });
                             var prosentField = records.getSublistField({
                                 sublistId: 'recmachcustrecord_transaction_id',
@@ -300,7 +414,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     fieldId: 'custrecord_department_pembobotan',
                     line: line
                 });
-
+                console.log('fieldChaged', pembobotanChecked)
                 if (pembobotanChecked) {
                     prosentField.isDisabled = false;
                     deptField.isDisabled = false;
@@ -308,6 +422,23 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     prosentField.isDisabled = true;
                     deptField.isDisabled = true;
                 }
+            }
+            if (sublistId === 'recmachcustrecord_transaction_id' && fieldId === 'custrecord_rate_pembobotan') {
+                var ratePembobotan = records.getCurrentSublistValue({
+                    sublistId: 'recmachcustrecord_transaction_id',
+                    fieldId: 'custrecord_rate_pembobotan'
+                });
+                var hour = records.getCurrentSublistValue({
+                    sublistId: 'recmachcustrecord_transaction_id',
+                    fieldId: 'custrecord_hour_pembobotan'
+                });
+                var amountCount = Number(ratePembobotan) * Number(hour);
+                console.log('amountCount', amountCount)
+                records.setCurrentSublistValue({
+                    sublistId: 'recmachcustrecord_transaction_id',
+                    fieldId: 'custrecord_amount_pembobotan',
+                    value : amountCount
+                })
             }
             if(sublistId == 'item' && fieldId == 'item'){
                 var itemValue = records.getCurrentSublistValue({
@@ -344,16 +475,56 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     return true
                 }else{
                     alert('Anda tidak diizinkan menambahkan baris manual.');
-                    return false; // tolak insert line manual
+                    return false;
                 }
                 
             }
             return true;
         }
+
+        function validateDelete(context) {
+            if (context.sublistId !== 'item') return true;
+
+            isDeleting = true; // ← tandai bahwa proses ini delete
+
+            const currentRecord = context.currentRecord;
+            const sublistName = context.sublistId;
+            if (sublistName === 'item') {
+                const itemId = currentRecord.getCurrentSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'custcol_item_id_pembobotan'
+                });
+                console.log('itemId', itemId)
+                 const totalLines = currentRecord.getLineCount({
+                    sublistId: 'recmachcustrecord_transaction_id'
+                });
+                console.log('totalLines', totalLines)
+                for (let i = totalLines - 1; i >= 0; i--) {
+                    const relatedLineId = currentRecord.getSublistValue({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId: 'custrecord_id_line',
+                        line: i
+                    });
+                    console.log('relatedLineId', relatedLineId)
+                    if (relatedLineId === itemId) {
+                        currentRecord.removeLine({
+                            sublistId: 'recmachcustrecord_transaction_id',
+                            line: i,
+                            ignoreRecalc: true
+                        });
+                    }
+                }
+
+            }
+            
+            return true;
+        }
+
     return {
         pageInit: pageInit,
         sublistChanged: sublistChanged,
         fieldChanged : fieldChanged,
-        validateLine : validateLine
+        validateLine : validateLine,
+        validateDelete : validateDelete
     };
 });

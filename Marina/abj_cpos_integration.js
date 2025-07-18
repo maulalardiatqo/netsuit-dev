@@ -454,9 +454,13 @@
                             var itemSearchObj = search.create({
                                 type: "item",
                                 filters: [
-                                    ["internalid", "anyof", itemID], 
-                                    "AND",
-                                    ["binonhand.location", "anyof", locationID]
+                                    ["binonhand.quantityonhand","greaterthan","0"], 
+                                    "AND", 
+                                    ["usebins","is","T"], 
+                                    "AND", 
+                                    ["internalid","anyof","45087",itemID], 
+                                    "AND", 
+                                    ["binonhand.location","anyof",locationID]
                                 ],
                                 columns: [
                                     search.createColumn({ name: "binnumber", join: "binOnHand", label: "Bin Number" }),
@@ -472,7 +476,7 @@
                         
                                 let idBin = result.getValue({ name: "binnumber", join: "binOnHand" });
                                 let qtyAvailable = parseInt(result.getValue({ name: "quantityavailable", join: "binOnHand" }), 10);
-                        
+                                log.debug('hasil saved search', {idBin : idBin, qtyAvailable : qtyAvailable})
                                 if (qtyAvailable > 0) {
                                     let qtyToAllocate = Math.min(remainingQty, qtyAvailable);
                                     allocatedBins.push({ idBin, quantity: qtyToAllocate });
@@ -512,23 +516,7 @@
                             fieldId: "quantity",
                             value: quantity,
                         });
-                        if(isUseBin){
-                            let inventoryDetailSubrecord = dataRec.getCurrentSublistSubrecord({
-                                sublistId: 'item',
-                                fieldId: 'inventorydetail'
-                            });
-                            log.debug("Allocated Bins", JSON.stringify(allocatedBins));
-                            
-                            allocatedBins.forEach(bin => {
-                                inventoryDetailSubrecord.selectNewLine({ sublistId: 'inventoryassignment' });
-                                inventoryDetailSubrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'binnumber', value: bin.idBin });
-                                inventoryDetailSubrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'quantity', value: bin.quantity });
-                                inventoryDetailSubrecord.commitLine({ sublistId: 'inventoryassignment' });
-                            });
-                        }
-                        
 
-                        log.debug('after set invassignment')
                         dataRec.setCurrentSublistValue({
                             sublistId: "item",
                             fieldId: "taxcode",
@@ -540,7 +528,34 @@
                             value: "-1",
                         });
                         log.debug('amount', amount)
-                       
+                        if(isUseBin){
+                            let inventoryDetailSubrecord = dataRec.getCurrentSublistSubrecord({
+                                sublistId: 'item',
+                                fieldId: 'inventorydetail'
+                            });
+                            log.debug('inventoryDetailSubrecord', inventoryDetailSubrecord)
+                            log.debug("Allocated Bins", JSON.stringify(allocatedBins));
+                            let lineCount = inventoryDetailSubrecord.getLineCount({ sublistId: 'inventoryassignment' });
+                            for (let i = lineCount - 1; i >= 0; i--) {
+                                inventoryDetailSubrecord.removeLine({
+                                    sublistId: 'inventoryassignment',
+                                    line: i
+                                });
+                            }
+                            allocatedBins.forEach(bin => {
+                                var binId = bin.idBin;
+                                var qtyBin = bin.quantity
+                                log.debug('data set bin', {binId : binId, qtyBin : qtyBin})
+                                inventoryDetailSubrecord.selectNewLine({ sublistId: 'inventoryassignment' });
+                                inventoryDetailSubrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'binnumber', value: bin.idBin });
+                                inventoryDetailSubrecord.setCurrentSublistValue({ sublistId: 'inventoryassignment', fieldId: 'quantity', value: bin.quantity });
+                                inventoryDetailSubrecord.commitLine({ sublistId: 'inventoryassignment' });
+                            });
+                            log.debug('setAfter',  inventoryDetailSubrecord)
+                        }
+                        
+
+                        log.debug('after set invassignment')
                         dataRec.setCurrentSublistValue({
                             sublistId: "item",
                             fieldId: "grossamt",
@@ -564,6 +579,56 @@
                             sublistId: "item",
                         });
                         log.debug('after commit')
+                    }
+                    const payments = data?.payments || [];
+                    log.debug('payments', payments)
+                    let voucherAmount = 0;
+
+                    payments.forEach(payment => {
+                        if (
+                            typeof payment.paymentName === 'string' &&
+                            payment.paymentName.toLowerCase().includes('voucher')
+                        ) {
+                            const amount = parseFloat(payment.amount);
+                            if (!isNaN(amount)) {
+                                voucherAmount += amount;
+                            }
+                        }
+                    });
+
+                    log.debug('Voucher Amount:', voucherAmount);
+                    if(voucherAmount > 0){
+                        dataRec.selectNewLine({ sublistId: 'item' });
+                        voucherAmount = Number(voucherAmount) * -1;
+                        dataRec.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "item",
+                            value: "243",
+                        });
+                        dataRec.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "taxcode",
+                            value: "5",
+                        });
+                        dataRec.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "price",
+                            value: "-1",
+                        });
+                        dataRec.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "rate",
+                            value: voucherAmount,
+                        });
+                         dataRec.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "quantity",
+                            value: 1,
+                        });
+                        dataRec.commitLine({
+                            sublistId: "item",
+                        });
+                        
                     }
                     dataRec.setValue({
                         fieldId : 'custbody_msa_response_body',

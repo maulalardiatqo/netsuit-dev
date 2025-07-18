@@ -133,11 +133,15 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
 
             const detailRows = grouped.details.map(d => {
                 const v = d.values;
+                 let itemName = getText(v.item);
+                if (itemName && itemName.includes(':')) {
+                    itemName = itemName.split(':')[0].trim(); // Ambil sebelum titik dua
+                }
                 return [
                     d.id,
                     getText(v.custbody_sos_barang_jasa),
                     getText(v.custbody_sos_kode_barang_jasa),
-                    getText(v.item),
+                    itemName,
                     getText(v.custbody_sos_nama_satuan_ukur),
                     v.custbody_fam_specdeprjrn_rate || '',
                     v.quantity || '',
@@ -188,10 +192,16 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             xmlParts.push(`<ListOfGoodService>`);
             grouped.details.forEach(detail => {
                 const v = detail.values;
+
+                let itemName = getText(v.item);
+                if (itemName && itemName.includes(':')) {
+                    itemName = itemName.split(':')[0].trim();
+                }
+
                 xmlParts.push(`<GoodService>`);
                 xmlParts.push(`<Opt>${getText(v.custbody_sos_barang_jasa)}</Opt>`);
                 xmlParts.push(`<Code>${getText(v.custbody_sos_kode_barang_jasa)}</Code>`);
-                xmlParts.push(`<Name>${getText(v.item)}</Name>`);
+                xmlParts.push(`<Name>${itemName}</Name>`);
                 xmlParts.push(`<Unit>${getText(v.custbody_sos_nama_satuan_ukur)}</Unit>`);
                 xmlParts.push(`<Price>${v.custbody_fam_specdeprjrn_rate || '0'}</Price>`);
                 xmlParts.push(`<Qty>${v.quantity || '0'}</Qty>`);
