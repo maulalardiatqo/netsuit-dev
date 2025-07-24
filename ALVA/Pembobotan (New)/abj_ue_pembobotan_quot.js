@@ -117,7 +117,7 @@ define(["N/record", "N/search"], function(
                                             value: settotalAsf
                                         });
                                         var prorateASF = Number(settotalAsf) / Number(qty);
-                                        var rateToset = Number(amountPembobotan) / Number(qty);
+                                        var rateToset = (Number(amountPembobotan) / Number(qty)) + Number(prorateASF);
                                         log.debug('rateToset', rateToset)
                                         soRec.setCurrentSublistValue({
                                             sublistId: 'item',
@@ -131,10 +131,17 @@ define(["N/record", "N/search"], function(
                                             value: amountToset
                                         });
                                         
-                                         soRec.setCurrentSublistValue({
+                                        soRec.setCurrentSublistValue({
                                             sublistId: 'item',
                                             fieldId: 'custcol_alvaprorateasf',
                                             value: prorateASF
+                                        });
+                                        var grossAmt = Number(amountToset) +(Number(prorateASF) * Number(qty));
+                                        log.debug('grossAmt', grossAmt)
+                                        soRec.setCurrentSublistValue({
+                                            sublistId: 'item',
+                                            fieldId: 'grossamt',
+                                            value: amountToset
                                         });
                                         soRec.commitLine({
                                             sublistId: 'item'

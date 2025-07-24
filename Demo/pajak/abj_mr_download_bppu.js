@@ -52,7 +52,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
         const values = result.values;
 
         const rowData = {
-            masaPajak: values.custbody_sos_masa_pajak,
+             masaPajak: values.custbody_sos_masa_pajak,
             tahunPajak: values.custbody_sos_tahun_pajak,
             npwp: values.custbody_sos_npwp_vendor,
             idTkuPenerima: values.custbody_sos_id_tku_penerima_penghasil,
@@ -115,18 +115,17 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                     <ListOfBpu>${xmlRows}</ListOfBpu>
                 </BpuBulk>`;
 
-            const xmlFile = file.create({
+           const xmlFile = file.create({
                 name: `BPPU_XML_PPh23_${idRecord}.xml`,
                 fileType: file.Type.XMLDOC,
                 contents: fullXML,
                 encoding: file.Encoding.UTF8,
-                folder: 546
+                folder: 6757
             });
 
             const fileId = xmlFile.save();
             log.audit('XML File Saved', `File ID: ${fileId}`);
         }
-
         else if (jobAction === 'excel') {
 
             let xmlStr = `<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>
@@ -225,7 +224,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 fileType: file.Type.PLAINTEXT,
                 contents: xmlStr,
                 encoding: file.Encoding.UTF8,
-                folder: 546
+                folder: 6757
             });
 
             const fileId = excelFile.save();

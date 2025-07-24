@@ -22,15 +22,17 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
         }
         var recordType = records.type;
         console.log('recordType', recordType)
+        var trigger = ''
         if (recordType === 'salesorder') {
             var mode = context.mode;
             console.log('mode', mode)
             if(mode == 'copy' || mode == 'create'){
                 var customForm = records.getValue('customform');
                 var createdFrom = records.getValue('createdfrom');
+                trigger = 'salesorder'
                 if(customForm == 157){
                     if(createdFrom){
-                        loadPembobotanFromQuote(createdFrom, records)
+                        loadPembobotanFromQuote(createdFrom, records, trigger)
                     }
                 }
             }
@@ -85,12 +87,173 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     }
                 }
             }
+        }else if(recordType === 'invoice'){
+            var mode = context.mode;
+            console.log('mode', mode)
+            if(mode == 'copy' || mode == 'create'){
+                var customForm = records.getValue('customform');
+                var createdFrom = records.getValue('createdfrom');
+                trigger = 'invoice'
+                console.log('customForm', customForm)
+                if(customForm == 158){
+                    if(createdFrom){
+                        loadPembobotanFromQuote(createdFrom, records, trigger)
+                        setTimeout(function() {
+                            disableSublistFields(records);
+                        }, 500);
+                    }
+                }
+            }
+            var lineCount = records.getLineCount({
+                sublistId: 'recmachcustrecord_transaction_id'
+            });
+            console.log('lineCount', lineCount);
+            if(lineCount > 0){
+                for (var i = 0; i < lineCount; i++) {
+                    var prosentField = records.getSublistField({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId: 'custrecord_asf_prosent',
+                        line: i
+                    });
+
+                    var pembobotanValue = records.getSublistValue({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId: 'custrecord_asf_pembobotan',
+                        line: i
+                    });
+
+                    console.log('masuk disable');
+
+                    // Set isDisabled berdasarkan nilai pembobotanValue
+                    prosentField.isDisabled = pembobotanValue !== true;
+                }
+            }
+        }else if(recordType === 'returnauthorization'){
+            var mode = context.mode;
+            console.log('mode', mode)
+            if(mode == 'copy' || mode == 'create'){
+                var createdFrom = records.getValue('createdfrom');
+                trigger = 'returnauthorization'
+                console.log('customForm', customForm)
+                
+                    if(createdFrom){
+                        loadPembobotanFromQuote(createdFrom, records, trigger)
+                        setTimeout(function() {
+                            disableSublistFields(records);
+                        }, 500);
+                    }
+            }
+            var lineCount = records.getLineCount({
+                sublistId: 'recmachcustrecord_transaction_id'
+            });
+            console.log('lineCount', lineCount);
+            if(lineCount > 0){
+                for (var i = 0; i < lineCount; i++) {
+                    var prosentField = records.getSublistField({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId: 'custrecord_asf_prosent',
+                        line: i
+                    });
+
+                    var pembobotanValue = records.getSublistValue({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId: 'custrecord_asf_pembobotan',
+                        line: i
+                    });
+
+                    console.log('masuk disable');
+
+                    // Set isDisabled berdasarkan nilai pembobotanValue
+                    prosentField.isDisabled = pembobotanValue !== true;
+                }
+            }
+        }else if(recordType === 'creditmemo'){
+            var mode = context.mode;
+            console.log('mode', mode)
+            if(mode == 'copy' || mode == 'create'){
+                var customForm = records.getValue('customform');
+                var createdFrom = records.getValue('createdfrom');
+                trigger = 'creditmemo'
+                console.log('customForm', customForm)
+                if(customForm == 159){
+                    if(createdFrom){
+                        loadPembobotanFromQuote(createdFrom, records, trigger)
+                        setTimeout(function() {
+                            disableSublistFields(records);
+                        }, 500);
+                    }
+                }
+            }
+            var lineCount = records.getLineCount({
+                sublistId: 'recmachcustrecord_transaction_id'
+            });
+            console.log('lineCount', lineCount);
+            if(lineCount > 0){
+                for (var i = 0; i < lineCount; i++) {
+                    var prosentField = records.getSublistField({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId: 'custrecord_asf_prosent',
+                        line: i
+                    });
+
+                    var pembobotanValue = records.getSublistValue({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId: 'custrecord_asf_pembobotan',
+                        line: i
+                    });
+
+                    console.log('masuk disable');
+
+                    // Set isDisabled berdasarkan nilai pembobotanValue
+                    prosentField.isDisabled = pembobotanValue !== true;
+                }
+            }
         }
     }
-    function loadPembobotanFromQuote(estimateId, rec) {
+    function disableSublistFields(rec) {
+        const sublistId = 'recmachcustrecord_transaction_id';
+        const fieldIds = [
+            'custrecord_position',
+            'custrecord_desc_pembobotan',
+            'custrecord_rate_pembobotan',
+            'custrecord_hour_pembobotan',
+            'custrecord_amount_pembobotan',
+            'custrecord_category_sow',
+            'custrecord_department_pembobotan',
+            'custrecord_asf_pembobotan',
+            'custrecord_asf_prosent',
+            'custrecord_item_pembobotan'
+        ];
+
+        var lineCount = rec.getLineCount({ sublistId });
+
+        for (var i = 0; i < lineCount; i++) {
+            fieldIds.forEach(function(fieldId) {
+                var field = rec.getSublistField({
+                    sublistId: sublistId,
+                    fieldId: fieldId,
+                    line: i
+                });
+
+                if (field) {
+                    field.isDisabled = true;
+                }
+            });
+        }
+    }
+    function loadPembobotanFromQuote(estimateId, rec, trigger) {
         try {
+            var recordToLoad = '';
+            if(trigger == 'salesorder'){
+                recordToLoad = 'estimate'
+            }else if(trigger == 'creditmemo'){
+                recordToLoad = 'returnauthorization'
+            }else{
+                recordToLoad = 'salesorder'
+            }
+            console.log('recordToLoad', recordToLoad)
             var estimateRecord = record.load({
-                type: 'estimate',
+                type: recordToLoad,
                 id: estimateId,
                 isDynamic: false
             });
@@ -432,6 +595,24 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     sublistId: 'recmachcustrecord_transaction_id',
                     fieldId: 'custrecord_hour_pembobotan'
                 });
+                var amountCount = Number(ratePembobotan) * Number(hour);
+                console.log('amountCount', amountCount)
+                records.setCurrentSublistValue({
+                    sublistId: 'recmachcustrecord_transaction_id',
+                    fieldId: 'custrecord_amount_pembobotan',
+                    value : amountCount
+                })
+            }
+            if(sublistId === 'recmachcustrecord_transaction_id' && fieldId === 'custrecord_hour_pembobotan'){
+                 var hour = records.getCurrentSublistValue({
+                    sublistId: 'recmachcustrecord_transaction_id',
+                    fieldId: 'custrecord_hour_pembobotan'
+                });
+                var ratePembobotan = records.getCurrentSublistValue({
+                    sublistId: 'recmachcustrecord_transaction_id',
+                    fieldId: 'custrecord_rate_pembobotan'
+                });
+               
                 var amountCount = Number(ratePembobotan) * Number(hour);
                 console.log('amountCount', amountCount)
                 records.setCurrentSublistValue({

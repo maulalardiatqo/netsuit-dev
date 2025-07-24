@@ -109,7 +109,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             if (parsed.type === 'faktur') grouped.faktur = parsed;
             else if (parsed.type === 'faktur_detail') grouped.details.push(parsed);
         });
-        log.debug('grouped', grouped)
+
         if (jobAction === 'excel') {
                 const fakturRow = grouped.faktur ? [
                 grouped.faktur.id,
@@ -132,29 +132,28 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             ] : null;
 
             const detailRows = grouped.details.map(d => {
-            const v = d.values;
-            let itemName = getText(v.item);
-            if (itemName && itemName.includes(':')) {
-                itemName = itemName.split(':')[0].trim(); // Ambil sebelum titik dua
-            }
-            return [
-                d.id,
-                getText(v.custbody_sos_barang_jasa),
-                getText(v.custbody_sos_kode_barang_jasa),
-                itemName,
-                getText(v.custbody_sos_nama_satuan_ukur),
-                v.rate || '',
-                v.quantity || '',
-                v.discountamount || '',
-                v.amount || '',
-                v.custcol_sos_dpp_nilai_lain || '',
-                (getText(v.taxcode)?.replace(/vat/gi, '').replace(/%/g, '').trim()) || '',
-                v.taxamount || '',
-                '0',
-                '0.00',
-            ];
-        });
-
+                const v = d.values;
+                 let itemName = getText(v.item);
+                if (itemName && itemName.includes(':')) {
+                    itemName = itemName.split(':')[0].trim(); // Ambil sebelum titik dua
+                }
+                return [
+                    d.id,
+                    getText(v.custbody_sos_barang_jasa),
+                    getText(v.custbody_sos_kode_barang_jasa),
+                    itemName,
+                    getText(v.custbody_sos_nama_satuan_ukur),
+                    v.rate || '',
+                    v.quantity || '',
+                    v.discountamount || '',
+                    v.amount || '',
+                    v.custcol_sos_dpp_nilai_lain || '',
+                    (getText(v.taxcode)?.replace(/vat/gi, '').replace(/%/g, '').trim()) || '',
+                    v.taxamount || '',
+                    '0',
+                    '0.00',
+                ];
+            });
 
             context.write({
                 key: context.key,
@@ -178,8 +177,8 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             xmlParts.push(`<AddInfo>${getText(header.custbody_sos_ket_tamb)}</AddInfo>`);
             xmlParts.push(`<CustomDoc>${header.custbody_sos_dok_pendukung || ''}</CustomDoc>`);
             xmlParts.push(`<CustomDocMonthYear>${header.custbody_sos_period_dok_pendukung || ''}</CustomDocMonthYear>`);
-            xmlParts.push(`<RefDesc>${header.invoicenum|| ''}</RefDesc>`);
-            xmlParts.push(`<FacilityStamp>${getText(header.custbody_sos_cap_fasilitas) || ''}</FacilityStamp>`);
+            xmlParts.push(`<RefDesc>${header.invoicenum || ''}</RefDesc>`);
+            xmlParts.push(`<FacilityStamp>${header.custbody_sos_cap_fasilitas || ''}</FacilityStamp>`);
             xmlParts.push(`<SellerIDTKU>${header.custbody_sos_id_tku_sales || ''}</SellerIDTKU>`);
             xmlParts.push(`<BuyerTin>${header.custbody_sos_npwp_nik_pembeli || ''}</BuyerTin>`);
             xmlParts.push(`<BuyerDocument>${getText(header.custbody_sos_jenis_id_buyer)}</BuyerDocument>`);
@@ -265,7 +264,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 name: `Faktur PK_${idCustRec}.xls`,
                 fileType: file.Type.PLAINTEXT,
                 contents: content,
-                folder: 549
+                folder: 6756
             });
             const fileId = excelFile.save();
             log.audit('Excel File Saved', `File ID: ${fileId}`);
@@ -290,7 +289,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 name: `Faktur PK_${idCustRec}.xml`,
                 fileType: file.Type.XMLDOC,
                 contents: finalXml.join('\n'),
-                folder: 549
+                folder: 6756
             });
 
             const fileId = xmlFile.save();
