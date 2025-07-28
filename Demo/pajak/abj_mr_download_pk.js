@@ -128,9 +128,10 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 grouped.faktur.values.custbody_sos_no_dok_pembeli || '',
                 grouped.faktur.values.custbody_sos_nama_pembeli || '',
                 grouped.faktur.values.custbody_sos_alamat_pembeli || '',
-                grouped.faktur.values.custbody_sos_email_pembeli || ''
+                grouped.faktur.values.custbody_sos_email_pembeli || '',
+                grouped.faktur.values.custbody_sos_id_tku_pembeli_trx || '',
             ] : null;
-
+            log.debug('fakturRow', fakturRow)
             const detailRows = grouped.details.map(d => {
                 const v = d.values;
                  let itemName = getText(v.item);

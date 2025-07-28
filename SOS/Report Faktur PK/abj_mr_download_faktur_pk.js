@@ -128,14 +128,15 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 grouped.faktur.values.custbody_sos_no_dok_pembeli || '',
                 grouped.faktur.values.custbody_sos_nama_pembeli || '',
                 grouped.faktur.values.custbody_sos_alamat_pembeli || '',
-                grouped.faktur.values.custbody_sos_email_pembeli || ''
+                grouped.faktur.values.custbody_sos_email_pembeli || '',
+                grouped.faktur.values.custbody_sos_id_tku_pembeli_trx || '',
             ] : null;
 
             const detailRows = grouped.details.map(d => {
             const v = d.values;
             let itemName = getText(v.item);
             if (itemName && itemName.includes(':')) {
-                itemName = itemName.split(':')[0].trim(); // Ambil sebelum titik dua
+                itemName = itemName.split(':')[0].trim();
             }
             return [
                 d.id,
@@ -248,16 +249,15 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             let rowCounter = 1;
 
             allFakturRows.forEach(fakturRow => {
-                const fakturId = fakturRow[0]; // ambil id faktur
-                fakturIdToRowNumber[fakturId] = rowCounter; // mapping ke nomor urut
-                fakturRow[0] = rowCounter; // replace fakturRow[0] dengan nomor urut
+                const fakturId = fakturRow[0]; 
+                fakturIdToRowNumber[fakturId] = rowCounter; 
+                fakturRow[0] = rowCounter; 
                 rowCounter++;
             });
 
-            // Replace detailRows baris ke-0 nya sesuai mapping faktur row number
             allDetailRows.forEach(detailRow => {
-                const fakturId = detailRow[0]; // ambil id faktur
-                detailRow[0] = fakturIdToRowNumber[fakturId]; // ganti dengan nomor urut
+                const fakturId = detailRow[0]; 
+                detailRow[0] = fakturIdToRowNumber[fakturId]; 
             });
 
             const content = createExcelXml(allFakturRows, allDetailRows, npwp);

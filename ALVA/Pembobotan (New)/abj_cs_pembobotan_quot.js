@@ -61,6 +61,8 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 }
             }
         }else if(recordType === 'estimate') {
+            var mode = context.mode;
+            console.log('mode', mode)
              var lineCount = records.getLineCount({
                 sublistId: 'recmachcustrecord_transaction_id'
             });
@@ -584,6 +586,71 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 } else {
                     prosentField.isDisabled = true;
                     deptField.isDisabled = true;
+                }
+            }
+            if(sublistId == 'recmachcustrecord_transaction_id' && fieldId == 'custrecord_asf_prosent'){
+                const lineCount = records.getLineCount({ sublistId: 'recmachcustrecord_transaction_id' });
+                var prosent = records.getCurrentSublistValue({
+                    sublistId: 'recmachcustrecord_transaction_id',
+                    fieldId: 'custrecord_asf_prosent'
+                });
+                var kategorySOW = records.getCurrentSublistValue({
+                    sublistId: 'recmachcustrecord_transaction_id',
+                    fieldId: 'custrecord_category_sow'
+                });
+                var isPembobotan = records.getCurrentSublistValue({
+                    sublistId: 'recmachcustrecord_transaction_id',
+                    fieldId: 'custrecord_asf_pembobotan'
+                });
+                var idLine = records.getCurrentSublistValue({
+                    sublistId : 'recmachcustrecord_transaction_id',
+                    fieldId : 'custrecord_id_line'
+                })
+                console.log('lineCount', lineCount);
+
+                console.log('dataCount', {prosent : prosent,kategorySOW : kategorySOW})
+                var totalAmountAsf = 0
+                if(lineCount > 0){
+                    for(var i = 0; i < lineCount; i ++){
+                        const idLineIn = records.getSublistValue({
+                            sublistId: 'recmachcustrecord_transaction_id',
+                            fieldId: 'custrecord_id_line',
+                            line: i
+                        });
+                        const kategorySOWIn = records.getSublistValue({
+                            sublistId: 'recmachcustrecord_transaction_id',
+                            fieldId: 'custrecord_category_sow',
+                            line: i
+                        });
+                        const isPembobotan = records.getSublistValue({
+                            sublistId: 'recmachcustrecord_transaction_id',
+                            fieldId: 'custrecord_asf_pembobotan',
+                            line: i
+                        });
+
+                        if (
+                            idLineIn === idLine &&
+                            kategorySOWIn === kategorySOW &&
+                            isPembobotan === false
+                        ) {
+                            const amount = parseFloat(records.getSublistValue({
+                                sublistId: 'recmachcustrecord_transaction_id',
+                                fieldId: 'custrecord_amount_pembobotan',
+                                line: i
+                            })) || 0;
+                            totalAmountAsf += amount;
+                        }
+                    }
+                }
+                console.log('totalAmountAsf', totalAmountAsf)
+                if(totalAmountAsf && totalAmountAsf != 0){
+                    totalAmountAsf = Number(totalAmountAsf) * prosent / 100
+                    console.log('totalAmountAsf after count', totalAmountAsf)
+                    records.setCurrentSublistValue({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId : 'custrecord_amount_asf_pembobotan',
+                        value : totalAmountAsf
+                    })
                 }
             }
             if (sublistId === 'recmachcustrecord_transaction_id' && fieldId === 'custrecord_rate_pembobotan') {

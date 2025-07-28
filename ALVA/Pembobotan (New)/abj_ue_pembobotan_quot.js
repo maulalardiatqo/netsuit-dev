@@ -46,13 +46,19 @@ define(["N/record", "N/search"], function(
                                 fieldId: 'custrecord_asf_prosent',
                                 line: i
                             });
+                            var amtAsf = soRec.getSublistValue({
+                                sublistId: 'recmachcustrecord_transaction_id',
+                                fieldId: 'custrecord_amount_asf_pembobotan',
+                                line: i
+                            });
                             if (!groupedData[lineId]) {
                                 groupedData[lineId] = [];
                             }
 
                             groupedData[lineId].push({
                                 amount: amount,
-                                asfProsent: asfProsent
+                                asfProsent: asfProsent,
+                                amtAsf : amtAsf
                             });
                             
                         }
@@ -78,13 +84,15 @@ define(["N/record", "N/search"], function(
                                             fieldId: 'quantity',
                                             line: j
                                         })) || 0;
-
+                                        
                                         var totalAmount = 0;
-                                        var totalProsent = 0
+                                        var totalProsent = 0;
+                                        var totalAmtAsf = 0;
                                         log.debug('qty', qty)
                                         groupedData[lineKey].forEach(function(item){
                                             totalAmount += parseFloat(item.amount) || 0;
                                             totalProsent += parseFloat(item.asfProsent) || 0;
+                                            totalAmtAsf += parseFloat(item.amtAsf) || 0;
                                         });
                                         log.debug('totalAmount', totalAmount);
                                         log.debug('totalProsent', totalProsent)
@@ -96,6 +104,11 @@ define(["N/record", "N/search"], function(
                                             sublistId: 'item',
                                             line: j
                                         });
+                                        soRec.setCurrentSublistValue({
+                                            sublistId: 'item',
+                                            fieldId: 'price',
+                                            value: '-1'
+                                        })
                                         log.debug('rate', rate)
                                         soRec.setCurrentSublistValue({
                                             sublistId: 'item',
@@ -109,39 +122,61 @@ define(["N/record", "N/search"], function(
                                             fieldId: 'custcol_amount_pembobotan',
                                             value: amountPembobotan
                                         });
-                                        var settotalAsf = (Number(amountPembobotan) * Number(totalProsent)) / 100;
-                                        log.debug('settotalAsf', settotalAsf)
+                                        log.debug('totalAmtAsf', totalAmtAsf)
                                         soRec.setCurrentSublistValue({
                                             sublistId: 'item',
                                             fieldId: 'custcol_total_amount_asf',
-                                            value: settotalAsf
+                                            value: totalAmtAsf
                                         });
-                                        var prorateASF = Number(settotalAsf) / Number(qty);
+                                        var prorateASF = Number(totalAmtAsf) / Number(qty);
+                                        log.debug('prorateASF', prorateASF)
                                         var rateToset = (Number(amountPembobotan) / Number(qty)) + Number(prorateASF);
                                         log.debug('rateToset', rateToset)
-                                        soRec.setCurrentSublistValue({
-                                            sublistId: 'item',
-                                            fieldId: 'rate',
-                                            value: rateToset
-                                        });
+                                        log.debug('qty', qty)
                                         var amountToset = Number(rateToset) * Number(qty);
-                                        soRec.setCurrentSublistValue({
-                                            sublistId: 'item',
-                                            fieldId: 'amount',
-                                            value: amountToset
-                                        });
+                                        log.debug('amountToset 1', amountToset)
+                                        
                                         
                                         soRec.setCurrentSublistValue({
                                             sublistId: 'item',
                                             fieldId: 'custcol_alvaprorateasf',
                                             value: prorateASF
                                         });
-                                        var grossAmt = Number(amountToset) +(Number(prorateASF) * Number(qty));
+                                        var amtTax = soRec.getCurrentSublistValue({
+                                            sublistId: 'item',
+                                            fieldId : 'tax1amt'
+                                        }) || 0;
+                                        
+                                        var discountAmt = soRec.getCurrentSublistValue({
+                                            sublistId: 'item',
+                                            fieldId : 'custcol_abj_disc_line'
+                                        }) || 0;
+                                        log.debug('amtTax', amtTax);
+                                        log.debug('discountAmt', discountAmt)
+                                        log.debug('amountToset', amountToset)
+                                        var grossAmt = (Number(amountToset) - Number(discountAmt)) +(Number(amtTax));
                                         log.debug('grossAmt', grossAmt)
                                         soRec.setCurrentSublistValue({
                                             sublistId: 'item',
                                             fieldId: 'grossamt',
-                                            value: amountToset
+                                            value: grossAmt
+                                        });
+                                        var cekAmount = soRec.getCurrentSublistValue({
+                                            sublistId: 'item',
+                                            fieldId: 'amount'
+                                        })
+                                        log.debug('cekAmount', cekAmount)
+                                         soRec.setCurrentSublistValue({
+                                            sublistId: 'item',
+                                            fieldId: 'rate',
+                                            value: rateToset,
+                                            ignoreFieldChange : true
+                                        });
+                                        soRec.setCurrentSublistValue({
+                                            sublistId: 'item',
+                                            fieldId: 'amount',
+                                            value: amountToset,
+                                            ignoreFieldChange : true
                                         });
                                         soRec.commitLine({
                                             sublistId: 'item'

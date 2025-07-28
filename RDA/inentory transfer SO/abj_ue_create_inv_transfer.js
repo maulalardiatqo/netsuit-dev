@@ -105,12 +105,33 @@ define(["N/record", "N/search", "N/log", "N/format"], function (record, search, 
                     var Outbound;
 
                     if (subsId) {
-                        var recSubs = record.load({
-                            type: 'subsidiary',
-                            id: subsId
+                        var subsidiarySearchObj = search.create({
+                            type: "subsidiary",
+                            filters: [
+                                ["internalid", "anyof", subsId]
+                            ],
+                            columns: [
+                                search.createColumn({
+                                    name: "custrecordcustrecord_rda_location_gs",
+                                    label: "RDA - Location GoodStock Default"
+                                }),
+                                search.createColumn({
+                                    name: "custrecord_rda_location_intransit_out",
+                                    label: "RDA - Location Intransit Outbound"
+                                })
+                            ]
                         });
-                        goodStock = recSubs.getValue('custrecordcustrecord_rda_location_gs');
-                        Outbound = recSubs.getValue('custrecord_rda_location_intransit_out');
+
+                        var searchResult = subsidiarySearchObj.run().getRange({ start: 0, end: 1 });
+                        if (searchResult.length > 0) {
+                            var result = searchResult[0];
+                            goodStock = result.getValue({
+                                name: "custrecordcustrecord_rda_location_gs"
+                            });
+                            Outbound = result.getValue({
+                                name: "custrecord_rda_location_intransit_out"
+                            });
+                        }
                     }
 
                     var department = newRec.getValue('department');
@@ -123,58 +144,83 @@ define(["N/record", "N/search", "N/log", "N/format"], function (record, search, 
                     var allItem = [];
                     var cekLineCount = newRec.getLineCount('item');
                     if (cekLineCount > 0) {
+                        if (cekLineCount >= 200) {
+                            var msg = 'Usage Limit Exceeded, Please Click Button Re-Create Inv Transfer';
+                            record.submitFields({
+                                type: 'salesorder',
+                                id: soId,
+                                values: {
+                                    custbody_rda_error_message_ivnt_trf: msg
+                                },
+                                options: {
+                                    enableSourcing: false,
+                                    ignoreMandatoryFields: true
+                                }
+                            });
+                            log.debug('Line item too many', msg);
+                            return;
+                        }
+                        let allItemIds = [];
+                        let itemQtyOnHandMap = {};
+
+                        for (var i = 0; i < cekLineCount; i++) {
+                            var itemId = newRec.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'item',
+                                line: i
+                            });
+                            if (itemId && allItemIds.indexOf(itemId) === -1) {
+                                allItemIds.push(itemId);
+                            }
+                        }
+                        var itemSearchObj = search.create({
+                            type: "item",
+                            filters: [
+                                ["internalid", "anyof", allItemIds],
+                                "AND",
+                                ["inventorylocation", "anyof", location]
+                            ],
+                            columns: [
+                                search.createColumn({ name: "internalid", label: "Internal ID" }),
+                                search.createColumn({ name: "locationquantityonhand", label: "Location On Hand" })
+                            ]
+                        });
+
+                        itemSearchObj.run().each(function (result) {
+                            var id = result.getValue({ name: 'internalid' });
+                            var qtyOnHand = parseFloat(result.getValue({ name: 'locationquantityonhand' }) || 0);
+                            itemQtyOnHandMap[id] = qtyOnHand;
+                            return true;
+                        });
+
                         for (var i = 0; i < cekLineCount; i++) {
                             var item = newRec.getSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'item',
                                 line: i
                             });
-                            var unitRate = newRec.getSublistValue({
+
+                            var unitRate = parseFloat(newRec.getSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'unitconversionrate',
                                 line: i
-                            });
-                            var itemSearchObj = search.create({
-                                type: "item",
-                                filters:
-                                [
-                                    ["internalid","anyof",item], 
-                                    "AND", 
-                                    ["inventorylocation","anyof",location]
-                                ],
-                                columns:
-                                [
-                                    search.createColumn({name: "itemid", label: "Name"}),
-                                    search.createColumn({name: "displayname", label: "Display Name"}),
-                                    search.createColumn({name: "quantityonhand", label: "On Hand"}),
-                                    search.createColumn({name: "inventorylocation", label: "Inventory Location"}),
-                                    search.createColumn({name: "locationquantityonhand", label: "Location On Hand"})
-                                ]
-                            });
-                            
-                            var searchResults = itemSearchObj.run().getRange({ start: 0, end: 1 });
-                            
-                            if (searchResults.length > 0) {
-                                var quantityOnHand = searchResults[0].getValue({ name: "locationquantityonhand" }) * unitRate;
-                                
-                            } 
-                            
+                            }) || 1);
+
                             var units = newRec.getSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'units',
                                 line: i
                             });
-                            var qty = newRec.getSublistValue({
+                            var qty = parseFloat(newRec.getSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'quantity',
                                 line: i
-                            });
+                            }) || 0);
                             var qtyCommited = newRec.getSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'quantitycommitted',
                                 line: i
                             });
-                            
                             var isFulfill = newRec.getSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'fulfillable',
@@ -182,32 +228,27 @@ define(["N/record", "N/search", "N/log", "N/format"], function (record, search, 
                             });
 
                             if (isFulfill == true) {
+                                var quantityOnHand = (itemQtyOnHandMap[item] || 0) * unitRate;
                                 log.debug("data banding", {
-                                    qty : qty,
-                                    quantityOnHand : quantityOnHand
+                                    qty: qty,
+                                    quantityOnHand: quantityOnHand
                                 });
-                                var dataBanding
-                                if(cekApprovReq){
-                                    log.debug('masuk kondisi cekApprov')
-                                    dataBanding = Number(quantityOnHand)
-                                }else{
-                                    dataBanding = Number(quantityOnHand)
-                                }
-                                log.debug('dataBanding', dataBanding)
-                                if(qty > dataBanding){
-                                    validateOnhand = false
+
+                                var dataBanding = Number(quantityOnHand); 
+                                if (qty > dataBanding) {
+                                    validateOnhand = false;
                                     newRec.setSublistValue({
                                         sublistId: 'item',
                                         fieldId: 'custcol_rda_error_message_line',
                                         line: i,
                                         value: 'Sales order quantity is greater than the quantity on hand'
                                     });
-                                    
                                 }
                                 allItem.push({ item: item, units: units, qty: qty });
                             }
                         }
                     }
+
                     var saveRec = newRec.save({
                         enableSourcing: false,
                         ignoreMandatoryFields: true
