@@ -499,11 +499,11 @@ function getRateCard(item,complexityLevel,tier){
     detailBody += '<table class="tg" width="100%" style="table-layout:fixed; font-size:11px;">';
     detailBody += "<tbody>";
     detailBody += "<tr>";
-    detailBody += "<td style='width:5%;'></td>";
+    detailBody += "<td style='width:3%;'></td>";
     detailBody += "<td style='width:45%;'></td>";
     detailBody += "<td style='width:15%;'></td>";
     detailBody += "<td style='width:15%;'></td>";
-    detailBody += "<td style='width:5%;'></td>";
+    detailBody += "<td style='width:7%;'></td>";
     detailBody += "<td style='width:15%;'></td>";
     detailBody += "</tr>";
 
@@ -726,19 +726,45 @@ function getRateCard(item,complexityLevel,tier){
   if (cekPembobotan <= 0) return "";
 
   for (var j = 0; j < cekPembobotan; j++) {
-    dataPembobotan.push({
-      idLinePembobotan: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_id_line", line: j }),
-      ratePembobotan: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_rate_pembobotan", line: j }),
-      hourPembobotan: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_hour_pembobotan", line: j }),
-      department: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_department_pembobotan", line: j }),
-      departmentText: dataRec.getSublistText({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_department_pembobotan", line: j }),
-      sowPembobotan: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_category_sow", line: j }),
-      sowPembobotanText: dataRec.getSublistText({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_category_sow", line: j }),
-      descPembobotan: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_desc_pembobotan", line: j }),
-      isAsf: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_asf_pembobotan", line: j }),
-      asfProsent: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_asf_prosent", line: j })
+    var isAsf = dataRec.getSublistValue({
+      sublistId: "recmachcustrecord_transaction_id",
+      fieldId: "custrecord_asf_pembobotan",
+      line: j
     });
+
+    var amount = null;
+    if (isAsf === true || isAsf === 'T') {
+      amount = dataRec.getSublistValue({
+        sublistId: "recmachcustrecord_transaction_id",
+        fieldId: "custrecord_amount_asf_pembobotan",
+        line: j
+      });
+    } else {
+      amount = dataRec.getSublistValue({
+        sublistId: "recmachcustrecord_transaction_id",
+        fieldId: "custrecord_amount_pembobotan",
+        line: j
+      });
+    }
+
+    if (amount !== null && amount !== 0 && amount !== '') {
+      dataPembobotan.push({
+        idLinePembobotan: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_id_line", line: j }),
+        ratePembobotan: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_rate_pembobotan", line: j }),
+        hourPembobotan: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_hour_pembobotan", line: j }),
+        department: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_department_pembobotan", line: j }),
+        departmentText: dataRec.getSublistText({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_department_pembobotan", line: j }),
+        sowPembobotan: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_category_sow", line: j }),
+        sowPembobotanText: dataRec.getSublistText({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_category_sow", line: j }),
+        descPembobotan: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_desc_pembobotan", line: j }),
+        isAsf: isAsf,
+        asfProsent: dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId: "custrecord_asf_prosent", line: j }),
+        amountAsf : dataRec.getSublistValue({ sublistId: "recmachcustrecord_transaction_id", fieldId : "custrecord_amount_asf_pembobotan", line : j})
+      });
+    }
   }
+
+
 
   // === Proses grouping
   let groupedData = {};
@@ -746,24 +772,26 @@ function getRateCard(item,complexityLevel,tier){
     const lineIdItem = item.lineIdItem;
     groupedData[lineIdItem] = {};
   });
+  log.debug('dataPembobotan', dataPembobotan)
+ dataPembobotan.forEach(row => {
+  const { idLinePembobotan, sowPembobotan, isAsf } = row;
+  if (!groupedData[idLinePembobotan]) return;
 
-  dataPembobotan.forEach(row => {
-    const { idLinePembobotan, sowPembobotan, isAsf, asfProsent } = row;
-    if (!groupedData[idLinePembobotan]) return;
+  if (!groupedData[idLinePembobotan][sowPembobotan]) {
+    groupedData[idLinePembobotan][sowPembobotan] = {
+      nonAsf: [],
+      asfList: [] // ← simpan semua baris isAsf true secara individual
+    };
+  }
 
-    if (!groupedData[idLinePembobotan][sowPembobotan]) {
-      groupedData[idLinePembobotan][sowPembobotan] = {
-        nonAsf: [],
-        totalAsf: 0
-      };
-    }
+  if (isAsf) {
+    groupedData[idLinePembobotan][sowPembobotan].asfList.push(row);
+  } else {
+    groupedData[idLinePembobotan][sowPembobotan].nonAsf.push(row);
+  }
+});
 
-    if (isAsf) {
-      groupedData[idLinePembobotan][sowPembobotan].totalAsf += parseFloat(asfProsent || 0);
-    } else {
-      groupedData[idLinePembobotan][sowPembobotan].nonAsf.push(row);
-    }
-  });
+
 
   log.debug('groupedData', groupedData);
 
@@ -772,7 +800,8 @@ function getRateCard(item,complexityLevel,tier){
 }
 function generateDetailRows(groupedData, dataItem) {
   let html = "";
-
+  var no = 1;
+  var subTotal = 0;
   dataItem.forEach(item => {
     const lineId = item.lineIdItem;
     const itemText = item.itemText;
@@ -780,190 +809,103 @@ function generateDetailRows(groupedData, dataItem) {
     if (!groupSow) return;
 
     // Judul per item
-    html += `<tr><td colspan='6' style='font-weight:bold;'>${itemText}</td></tr>`;
+    html += "<tr style='background-color:orange;'>"
+    html += "<td style='font-weight:bold; align: center; vertical-align:middle; border: solid black 1px; border-right:none;' rowspan='2'>"+no+"</td>"
+    html += "<td style='font-weight:bold; align: center; vertical-align:middle; border: solid black 1px; border-right:none;' rowspan='2'>"+itemText+"</td>"
+    html += "<td style='font-weight:bold; align: center; border: solid black 1px;' colspan='4'>Breakdown (Basic)</td>"
+    html += "</tr>"
 
+    html += "<tr style='background-color:orange;'>"
+    html += "<td style='font-weight:bold; align: center;  border: solid black 1px; border-right:none; border-top:none;'>Funtion</td>"
+    html += "<td style='font-weight:bold; align: center;  border: solid black 1px; border-right:none; border-top:none;'>Hourly Rate</td>"
+    html += "<td style='font-weight:bold; align: center;  border: solid black 1px; border-right:none; border-top:none;'>Hours</td>"
+    html += "<td style='font-weight:bold; align: center;  border: solid black 1px; border-top:none;'>Sum - Fee</td>"
+    html += "</tr>"
+    var totalFee = 0
     Object.keys(groupSow).forEach((sowKey, indexSow) => {
       const group = groupSow[sowKey];
       const nonAsf = group.nonAsf;
-      const totalAsf = group.totalAsf;
+      const asfList = group.asfList || [];
       const abChar = String.fromCharCode(97 + indexSow); // a, b, c ...
 
       // Baris SOW Title
-      const firstRow = nonAsf[0] || {};
-      html += `<tr><td style='font-weight:bold;'>${abChar}</td><td colspan='5' style='font-weight:bold;'>${firstRow.sowPembobotanText}</td></tr>`;
+      const borderTopStyle = indexSow === 0 ? "border-top:none;" : "";
 
-      // Baris isi desc, fungsi, rate, hours, fee
+      // Baris SOW Title
+      const firstRow = nonAsf[0] || {};
+    
+      // Tentukan style khusus hanya untuk td abChar
+      let tdAbCharStyle = "font-weight:bold; border: solid black 1px; border-right:none; border-bottom:none;";
+      if (indexSow === 0) {
+          tdAbCharStyle += " border-top:none;";
+      }
+
+      html += "<tr style='background-color:#f9e6d4;'>";
+      html += `<td style='${tdAbCharStyle}'>${abChar}</td>`;
+      html += "<td style='font-weight:bold; border: solid black 1px; border-right:none; border-top:none;'>"+firstRow.sowPembobotanText+"</td>";
+      html += "<td style='border: solid black 1px; border-right:none; border-top:none;'></td>";
+      html += "<td style='border: solid black 1px; border-right:none; border-top:none;'></td>";
+      html += "<td style='border: solid black 1px; border-right:none; border-top:none;'></td>";
+      html += "<td style='border: solid black 1px; border-top:none;'></td>";
+      html += "</tr>";
+      log.debug('nonAsf', nonAsf)
       nonAsf.forEach((row, i) => {
         html += "<tr>";
 
-        if (i === 0) {
-          html += `<td></td><td rowspan='${nonAsf.length + (totalAsf > 0 ? 1 : 0)}'>${row.descPembobotan.replace(/\n/g, "<br/>")}</td>`;
-        }
+        html += "<td style='border: solid black 1px; border-right:none; border-top:none; border-bottom : none;'></td>"
 
         const fungsi = row.departmentText?.split(":")[1]?.trim() || "-";
         const rate = parseFloat(row.ratePembobotan || 0);
         const hours = parseFloat(row.hourPembobotan || 0);
         const fee = rate * hours;
-
-        html += `<td>${fungsi}</td>`;
-        html += `<td style='text-align:right;'>${rate.toLocaleString()}</td>`;
-        html += `<td style='text-align:right;'>${hours}</td>`;
-        html += `<td style='text-align:right;'>${fee.toLocaleString()}</td>`;
+        totalFee += fee;
+        html += `<td style='border: solid black 1px; border-right:none; border-top:none;'>${row.descPembobotan.replace(/\n/g, "<br/>")}</td>`;
+        html += `<td style='border: solid black 1px; border-right:none; border-top:none;'>${fungsi}</td>`;
+        html += `<td style='align:right; border: solid black 1px; border-right:none; border-top:none;'>${rate.toLocaleString()}</td>`;
+        html += `<td style='align:right; border: solid black 1px; border-right:none; border-top:none;'>${hours}</td>`;
+        html += `<td style='align:right; border: solid black 1px; border-top:none;'>${fee.toLocaleString()}</td>`;
 
         html += "</tr>";
       });
-
-      // Tambah baris ASF
-      if (totalAsf > 0) {
-        const thirdPartyTotal = nonAsf.reduce((sum, r) => sum + (r.ratePembobotan * r.hourPembobotan), 0);
-        const asfAmount = Math.round(thirdPartyTotal * totalAsf / 100);
+      asfList.forEach(asfRow => {
+        const amountAsf = parseFloat(asfRow.amountAsf || 0);
+        totalFee += amountAsf;
+        const prosentAsf = parseFloat(asfRow.asfProsent || 0);
+        const fungsi = asfRow.departmentText?.split(":")[1]?.trim() || "-";
 
         html += "<tr>";
-        html += `<td></td><td><i>Agency Service Fee (ASF) ${totalAsf}% for Third Party Cost</i></td>`;
-        html += `<td colspan='2'></td>`;
-        html += `<td style='text-align:right;'>${totalAsf.toFixed(2)}%</td>`;
-        html += `<td style='text-align:right;'>${asfAmount.toLocaleString()}</td>`;
+        html += "<td style='border: solid black 1px; border-right:none; border-top:none; border-bottom : none;'></td>";
+        html += `<td style='border: solid black 1px; border-right:none; border-top:none;' colspan='3'>${asfRow.descPembobotan.replace(/\n/g, "<br/>")} <i>(ASF)</i></td>`;
+        html += `<td style='align:right; border: solid black 1px; border-right:none; border-top:none;'>${prosentAsf}%</td>`;
+        html += `<td style='align:right; border: solid black 1px; border-top:none;'>${amountAsf.toLocaleString()}</td>`;
         html += "</tr>";
-      }
+      });
+      
+
     });
+    html += "<tr style='background-color:#f9e6d4;'>";
+    html += "<td style='border-top: solid black 2px; border-right:none; border-left: solid black 1px; border-bottom: solid black 1px;'></td>";
+    html += "<td style='border: solid black 1px; border-right:none; border-left:none; font-weight:bold; font-size:12px; align:right;' colspan='4'>SUM</td>";
+    html += "<td style='border: solid black 1px; font-weight:bold; font-size:12px; align:right;'>"+totalFee.toLocaleString()+"</td>"
+    html += "</tr>";
+
+    html += "<tr style='height:10px;'>"
+  html += "</tr>"
+    log.debug('totalFee', totalFee)
+    subTotal += totalFee;
+    no = Number(no) + 1
   });
 
+  html += "<tr style='height:10px; background-color:#f9e6d4;'>"
+  html += "</tr>"
+
+  html += "<tr style='background-color:#f9e6d4;'>";
+  html += "<td style='border: solid black 1px; font-weight:bold; font-size:12px; align:right;' colspan='4'>SUBTOTAL</td>";
+  html += "<td></td>"
+  html += "<td style='border: solid black 1px; font-weight:bold; font-size:12px; align:right;'>"+subTotal.toLocaleString()+"</td>"
+  html += "</tr>";
   return html;
 }
-
-  // function getItemPembobotan(dataRec){
-  //   var body = '';
-  //   var itemCount = dataRec.getLineCount({
-  //     sublistId: "item",
-  //   });
-  //   if(itemCount > 0){
-  //     var dataItem = [];
-  //     var dataPembobotan = []
-  //     for(var i = 0; i < itemCount; i++){
-  //       var itemId = dataRec.getSublistValue({
-  //         sublistId: "item",
-  //         fieldId: "item",
-  //         line: i,
-  //       });
-  //       var itemText = dataRec.getSublistText({
-  //         sublistId: "item",
-  //         fieldId: "item",
-  //         line: i,
-  //       });
-  //       var lineIdItem = dataRec.getSublistValue({
-  //         sublistId : "item",
-  //         fieldId : "custcol_item_id_pembobotan",
-  //         line : i
-  //       })
-  //       dataItem.push({
-  //         itemId: itemId,
-  //         itemText : itemText,
-  //         lineIdItem : lineIdItem
-  //       });
-  //     }
-  //     var cekPembobotan = dataRec.getLineCount({
-  //       sublistId: "recmachcustrecord_transaction_id",
-  //     });
-  //     log.debug('cekPembobotan', cekPembobotan)
-  //     if(cekPembobotan > 0){
-  //       for(var j = 0; j < cekPembobotan; j++){
-  //         var ratePembobotan = dataRec.getSublistValue({
-  //           sublistId: "recmachcustrecord_transaction_id",
-  //           fieldId : "custrecord_rate_pembobotan",
-  //           line : j
-  //         })
-  //         var hourPembobotan = dataRec.getSublistValue({
-  //           sublistId: "recmachcustrecord_transaction_id",
-  //           fieldId : "custrecord_hour_pembobotan",
-  //           line : j
-  //         })
-  //         var department = dataRec.getSublistValue({
-  //           sublistId: "recmachcustrecord_transaction_id",
-  //           fieldId : "custrecord_department_pembobotan",
-  //           line : j
-  //         })
-  //         var departmentText = dataRec.getSublistText({
-  //           sublistId: "recmachcustrecord_transaction_id",
-  //           fieldId : "custrecord_department_pembobotan",
-  //           line : j
-  //         })
-  //         var idLinePembobotan = dataRec.getSublistValue({
-  //           sublistId: "recmachcustrecord_transaction_id",
-  //           fieldId : "custrecord_id_line",
-  //           line : j
-  //         })
-  //         var sowPembobotan = dataRec.getSublistValue({
-  //           sublistId: "recmachcustrecord_transaction_id",
-  //           fieldId : "custrecord_category_sow",
-  //           line : j
-  //         })
-  //         var sowPembobotanText = dataRec.getSublistText({
-  //           sublistId: "recmachcustrecord_transaction_id",
-  //           fieldId : "custrecord_category_sow",
-  //           line : j
-  //         })
-  //         var descPembobotan = dataRec.getSublistValue({
-  //           sublistId: "recmachcustrecord_transaction_id",
-  //           fieldId : "custrecord_desc_pembobotan",
-  //           line : j
-  //         })
-  //         var isAsf = dataRec.getSublistValue({
-  //           sublistId: "recmachcustrecord_transaction_id",
-  //           fieldId : "custrecord_asf_pembobotan",
-  //           line : j
-  //         })
-  //         var asfProsent = dataRec.getSublistValue({
-  //           sublistId: "recmachcustrecord_transaction_id",
-  //           fieldId : "custrecord_asf_prosent",
-  //           line : j
-  //         });
-  //         dataPembobotan.push({
-  //           idLinePembobotan : idLinePembobotan,
-  //           ratePembobotan : ratePembobotan,
-  //           hourPembobotan : hourPembobotan,
-  //           department : department,
-  //           departmentText : departmentText,
-  //           sowPembobotan : sowPembobotan,
-  //           sowPembobotanText : sowPembobotanText,
-  //           descPembobotan : descPembobotan,
-  //           isAsf : isAsf,
-  //           asfProsent : asfProsent
-  //         })
-
-  //       }
-  //       log.debug('dataItem', dataItem);
-  //       log.debug('dataPembobotan', dataPembobotan);
-  //       let groupedData = {};
-
-  //       dataItem.forEach(item => {
-  //         const lineIdItem = item.lineIdItem;
-  //         groupedData[lineIdItem] = {}; 
-  //       });
-  //       dataPembobotan.forEach(row => {
-  //         const { idLinePembobotan, sowPembobotan, isAsf, asfProsent } = row;
-
-  //         if (!groupedData[idLinePembobotan]) return;
-
-  //         if (!groupedData[idLinePembobotan][sowPembobotan]) {
-  //           groupedData[idLinePembobotan][sowPembobotan] = {
-  //             nonAsf: [],
-  //             totalAsf: 0
-  //           };
-  //         }
-
-  //         if (isAsf) {
-  //           groupedData[idLinePembobotan][sowPembobotan].totalAsf += parseFloat(asfProsent || 0);
-  //         } else {
-  //           groupedData[idLinePembobotan][sowPembobotan].nonAsf.push(row);
-  //         }
-  //       });
-
-  //       log.debug('groupedData', groupedData);
-
-
-  //     }
-  //   }
-  // }
   return {
     onRequest: onRequest,
   };
