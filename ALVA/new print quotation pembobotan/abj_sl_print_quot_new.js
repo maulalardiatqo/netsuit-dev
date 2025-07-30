@@ -616,7 +616,7 @@ function getRateCard(item,complexityLevel,tier){
         subTotal = Number(subTotal) + Number(amount);
         body += "<tr>";
         body += `<td style='align: center; '>${!hasASF ? no : ''}</td>`;
-        body += `<td style='align: center; '>${scopeOfWork}</td>`;
+        body += `<td style='align: left; '>${scopeOfWork}</td>`;
         body += `<td style='align: right; '>${quantity}</td>`;
         body += `<td style='align: center; '>${units}</td>`;
         body += `<td style='align: left; '>${tlcCurr}</td>`;
@@ -889,15 +889,12 @@ function generateDetailRows(groupedData, dataItem) {
     html += "<td style='border: solid black 1px; font-weight:bold; font-size:12px; align:right;'>"+totalFee.toLocaleString()+"</td>"
     html += "</tr>";
 
-    html += "<tr style='height:10px;'>"
+    html += "<tr style='height:20px;'>"
   html += "</tr>"
     log.debug('totalFee', totalFee)
     subTotal += totalFee;
     no = Number(no) + 1
   });
-
-  html += "<tr style='height:10px; background-color:#f9e6d4;'>"
-  html += "</tr>"
 
   html += "<tr style='background-color:#f9e6d4;'>";
   html += "<td style='border: solid black 1px; font-weight:bold; font-size:12px; align:right;' colspan='4'>SUBTOTAL</td>";

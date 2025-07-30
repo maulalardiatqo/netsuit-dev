@@ -156,6 +156,10 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
 
      return {
     post: (context) => {
+        var integrationLogRecordId = context.log_id || null;
+      const scriptObj = runtime.getCurrentScript();
+      var scriptId = scriptObj.id;
+      var deploymentId = scriptObj.deploymentId;
       try {
         log.audit('Received Data', JSON.stringify(context));
 
@@ -195,9 +199,13 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
             jobName: '- ABJ RS | ETP create IF',
             jobType: 'Restlet - POST',
             jobLink: 'JOB LINK - URL DARI POS',
-            reqBody: JSON.stringify(context.data),
+            reqBody: JSON.stringify(context),
             resBody: JSON.stringify(result),
-            linkTrx: IfId
+            linkTrx: IfId,
+            status : true,
+            logId : integrationLogRecordId,
+            scriptId : scriptId,
+            deploymentId : deploymentId
         });
       log.debug('integrationLogRec', integrationLogRec)
         if(!result.status){
@@ -222,9 +230,13 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
             jobName: '- ABJ RS | ETP create IF',
             jobType: 'Restlet - POST',
             jobLink: 'JOB LINK - URL DARI POS',
-            reqBody: JSON.stringify(context.data),
+            reqBody: JSON.stringify(context),
             resBody: JSON.stringify(result),
-            linkTrx: ''
+            linkTrx: '',
+            status : false,
+          logId : integrationLogRecordId,
+          scriptId : scriptId,
+          deploymentId : deploymentId
         });
         log.debug('integrationLogRec', integrationLogRec)
         log.debug('resultMessage', result.message)

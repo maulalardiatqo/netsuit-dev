@@ -97,6 +97,10 @@ define([
 
     return {
         post: (context) => {
+            var integrationLogRecordId = context.log_id || null;
+      const scriptObj = runtime.getCurrentScript();
+      var scriptId = scriptObj.id;
+      var deploymentId = scriptObj.deploymentId
             let result;
             try {
                 result = createCustDeposit(context.data);
@@ -114,9 +118,13 @@ define([
                 jobName: '- ABJ RS | ETP create Cust Deposit',
                 jobType: 'Restlet - POST',
                 jobLink: 'JOB LINK - URL DARI POS',
-                reqBody: JSON.stringify(context.data),
+                reqBody: JSON.stringify(context),
                 resBody: JSON.stringify(result),
-                linkTrx: custDepId
+                linkTrx: custDepId,
+                status : result.status,
+                logId : integrationLogRecordId,
+                scriptId : scriptId,
+                deploymentId : deploymentId
             });
 
             if (!result.status) {

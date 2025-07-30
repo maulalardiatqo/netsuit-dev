@@ -251,7 +251,15 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
             }else if(trigger == 'creditmemo'){
                 recordToLoad = 'returnauthorization'
             }else{
-                recordToLoad = 'salesorder'
+                 const result = search.lookupFields({
+                            type: 'transaction',
+                            id: estimateId,
+                            columns: ['recordtype', 'tranid']
+                        });
+
+                        const recordType = result.recordtype;
+                        const tranid = result.tranid;
+                recordToLoad = recordType
             }
             console.log('recordToLoad', recordToLoad)
             var estimateRecord = record.load({
