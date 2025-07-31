@@ -3,7 +3,7 @@
  * @NScriptType Restlet
  */
 
-define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration_log_record', 'N/search'], (record, log, error, format, integrationLogRecord, search) => {
+define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration_log_record', 'N/search', 'N/runtime'], (record, log, error, format, integrationLogRecord, search, runtime) => {
   const createSalesOrder = (data) => {
     try {
       const so = record.create({
@@ -371,134 +371,125 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
 
   return {
     post: (context) => {
-      var integrationLogRecordId = context.log_id || null;
-      const scriptObj = runtime.getCurrentScript();
-      var scriptId = scriptObj.id;
-      var deploymentId = scriptObj.deploymentId;
-      try {
-        log.audit('Received Data', JSON.stringify(context));
+  var integrationLogRecordId = context.log_id || null;
+  const scriptObj = runtime.getCurrentScript();
+  var scriptId = scriptObj.id;
+  var deploymentId = scriptObj.deploymentId;
 
-        // Validate transaction_type
-        if (!context.transaction_type || context.transaction_type !== 'sales_order') {
-          throw new Error({
-            name: 'INVALID_TRANSACTION_TYPE',
-            message: 'This endpoint only accepts transaction_type = "sales_order".',
-            notifyOff: false
-          });
-        }
+  try {
+    log.audit('Received Data', JSON.stringify(context));
 
-        // Validate required data
-        if (!context.data || !context.data.entity) {
-          throw new Error({
-            name: 'MISSING_REQUIRED_DATA',
-            message: 'Entity data is required in payload.',
-            notifyOff: false
-          });
-        }
-        var cekTranEtp = context.data.tran_etp;
-        log.debug('cekTranEtp', cekTranEtp)
-        var result
-        if(cekTranEtp){
-            var salesorderSearchObj = search.create({
-                type: "salesorder",
-                settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
-                filters: [
-                    ["type", "anyof", "SalesOrd"],
-                    "AND",
-                    ["custbody_sos_tran_etp", "is", cekTranEtp],
-                    "AND",
-                    ["mainline", "is", "T"]
-                ],
-                columns: [
-                    search.createColumn({name: "internalid", label: "Internal ID"})
-                ]
-            });
+    // Validate transaction_type
+    if (!context.transaction_type || context.transaction_type !== 'sales_order') {
+      throw new Error({
+        name: 'INVALID_TRANSACTION_TYPE',
+        message: 'This endpoint only accepts transaction_type = "sales_order".',
+        notifyOff: false
+      });
+    }
 
-            var resultSet = salesorderSearchObj.run().getRange({
-                start: 0,
-                end: 1
-            });
+    // Validate required data
+    if (!context.data || !context.data.entity) {
+      throw new Error({
+        name: 'MISSING_REQUIRED_DATA',
+        message: 'Entity data is required in payload.',
+        notifyOff: false
+      });
+    }
 
-            if (resultSet.length > 0) {
-                result = {
-                  status: false,
-                  message: 'ETP Number Already Exist',
-                };
-            }else{
-              try{
-                result = createSalesOrder(context.data);
-              }catch(e){
-                result = {
-                  status: false,
-                  message: e.message
-                };
-              }
-              
-            }
+    var cekTranEtp = context.data.tran_etp;
+    log.debug('cekTranEtp', cekTranEtp);
 
-        }else{
-              try{
-                result = createSalesOrder(context.data);
-              }catch(e){
-                result = {
-                  status: false,
-                  message: e.message || JSON.stringify(e.message)
-                };
-              }
-        }
-        log.debug('result', result)
-        var salesOrderId = result.salesOrderId
-        log.debug('salesOrderId cek', salesOrderId)
-        const integrationLogRec = integrationLogRecord.createSOSIntegrationLog({
-            jobName: '- ABJ RS | ETP create SO',
-            jobType: 'Restlet - POST',
-            jobLink: 'JOB LINK - URL DARI POS',
-            reqBody: JSON.stringify(context),
-            resBody: JSON.stringify(result),
-            linkTrx: salesOrderId,
-            status : true,
-            logId : integrationLogRecordId,
-            scriptId : scriptId,
-            deploymentId : deploymentId
-            
-        });
-      log.debug('integrationLogRec', integrationLogRec)
-        log.debug('result Status', result.status)
-        if(!result.status){
-            throw new Error(result.message)
-        }else{
-            return {
-              status: true,
-              message: 'Sales Order created successfully.',
-              data: salesOrderId
-            };
-        }
-      } catch (e) {
-        log.debug('masuk catch juga')
-        log.debug('RESTlet Error', e);
+    var result;
 
+    if (cekTranEtp) {
+      // Cek apakah sudah ada SO dengan ETP yang sama
+      var salesorderSearchObj = search.create({
+        type: "salesorder",
+        settings: [{ name: "consolidationtype", value: "ACCTTYPE" }],
+        filters: [
+          ["type", "anyof", "SalesOrd"],
+          "AND",
+          ["custbody_sos_tran_etp", "is", cekTranEtp],
+          "AND",
+          ["mainline", "is", "T"]
+        ],
+        columns: [
+          search.createColumn({ name: "internalid", label: "Internal ID" })
+        ]
+      });
+
+      var resultSet = salesorderSearchObj.run().getRange({
+        start: 0,
+        end: 1
+      });
+
+      if (resultSet.length > 0) {
         result = {
           status: false,
-          message: e.message
+          message: 'ETP Number Already Exist'
         };
-        const integrationLogRec = integrationLogRecord.createSOSIntegrationLog({
-          jobName: '- ABJ RS | ETP create SO',
-          jobType: 'Restlet - POST',
-          jobLink: 'JOB LINK - URL DARI POS',
-          reqBody: JSON.stringify(context),
-          resBody: JSON.stringify(result),
-          linkTrx: '',
-          status : false,
-          logId : integrationLogRecordId,
-          scriptId : scriptId,
-          deploymentId : deploymentId
-        });
-        log.debug('integrationLogRec', integrationLogRec)
-        if(!result.status){
-          throw new Error(result.message)
-        }
+      } else {
+        result = createSalesOrder(context.data);
       }
-    },
+    } else {
+      result = createSalesOrder(context.data);
+    }
+
+    log.debug('result', result);
+
+    // Jika berhasil, baru buat integration log
+    if (result.status) {
+      const integrationLogRec = integrationLogRecord.createSOSIntegrationLog({
+        jobName: '- ABJ RS | ETP create SO',
+        jobType: 'Restlet - POST',
+        jobLink: 'JOB LINK - URL DARI POS',
+        reqBody: JSON.stringify(context),
+        resBody: JSON.stringify(result),
+        linkTrx: result.salesOrderId || '',
+        status: result.status,
+        logId: integrationLogRecordId,
+        scriptId: scriptId,
+        deploymentId: deploymentId
+      });
+
+      return {
+        status: 'success',
+        message: 'Sales Order created successfully.',
+        data: result.salesOrderId
+      };
+    } else {
+      // Error ditangani di catch
+      throw new Error(result.message);
+    }
+
+  } catch (e) {
+    log.debug('masuk catch');
+    log.debug('RESTlet Error', e);
+
+    var result = {
+      status: false,
+      message: e.message || JSON.stringify(e)
+    };
+
+    const integrationLogRec = integrationLogRecord.createSOSIntegrationLog({
+      jobName: '- ABJ RS | ETP create SO',
+      jobType: 'Restlet - POST',
+      jobLink: 'JOB LINK - URL DARI POS',
+      reqBody: JSON.stringify(context),
+      resBody: JSON.stringify(result),
+      linkTrx: '',
+      status: result.status,
+      logId: integrationLogRecordId,
+      scriptId: scriptId,
+      deploymentId: deploymentId
+    });
+
+    // Tetap throw untuk memberi tahu klien (POS) bahwa ada error
+    throw new Error(result.message);
+  }
+}
+,
     put: (context) => {
       try{
         var cekTranEtp = context.data.tran_etp;
@@ -546,7 +537,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           jobName: '- ABJ RS | ETP create SO',
           jobType: 'Restlet - PUT',
           jobLink: 'JOB LINK - URL DARI POS',
-          reqBody: JSON.stringify(context.data),
+          reqBody: JSON.stringify(context),
           resBody: JSON.stringify(result),
           linkTrx: soId
         });

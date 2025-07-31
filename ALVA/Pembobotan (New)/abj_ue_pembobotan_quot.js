@@ -8,6 +8,38 @@ define(["N/record", "N/search"], function(
     record,
     search,
   ) {
+    function beforeSubmit(context){
+        try {
+            if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT) {
+                var rec = context.newRecord;
+                var cekLinePembobotan = rec.getLineCount('recmachcustrecord_transaction_id');
+                 if (cekLinePembobotan > 0) {
+                    for (var i = 0; i < cekLinePembobotan; i++) {
+                        var isAsf = rec.getSublistValue({
+                            sublistId: 'recmachcustrecord_transaction_id',
+                            fieldId: 'custrecord_asf_pembobotan',
+                            line: i
+                        });
+                        log.debug('isAsf', isAsf)
+                        if (isAsf === true) {
+                            var accountAsf = rec.getSublistValue({
+                                sublistId: 'recmachcustrecord_transaction_id',
+                                fieldId: 'custrecord_pembobotan_account_asf',
+                                line: i
+                            });
+                            log.debug('accountAsf', accountAsf)
+                            if (!accountAsf) {
+                                var message = 'Please configure the account in rate card for line ASF';
+                                throw message
+                            }
+                        }
+                    }
+                }
+            }
+        }catch(e){
+            log.debug('error', e)
+        }
+    }
     function afterSubmit(context) {
         try {
             if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT) {
@@ -198,6 +230,7 @@ define(["N/record", "N/search"], function(
         }
     }
     return{
-        afterSubmit : afterSubmit
+        afterSubmit : afterSubmit,
+        beforeSubmit : beforeSubmit
     };
 });

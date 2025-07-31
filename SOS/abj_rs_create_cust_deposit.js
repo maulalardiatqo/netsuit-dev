@@ -8,8 +8,9 @@ define([
     'N/error',
     'N/format',
     './abj_utils_sos_integration_log_record',
-    'N/search'
-], (record, log, error, format, integrationLogRecord, search) => {
+    'N/search',
+    'N/runtime'
+], (record, log, error, format, integrationLogRecord, search, runtime) => {
 
     const createCustDeposit = (data) => {
         try {

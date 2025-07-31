@@ -3,7 +3,7 @@
  * @NScriptType Restlet
  */
 
-define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration_log_record', 'N/search'], (record, log, error, format, integrationLogRecord, search) => {
+define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration_log_record', 'N/search', 'N/runtime'], (record, log, error, format, integrationLogRecord, search, runtime) => {
     function createItemFulfill(data) {
         try {
             const itemFulfillRec = record.transform({

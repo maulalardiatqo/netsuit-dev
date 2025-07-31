@@ -284,7 +284,8 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                         custrecord_department_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_department_pembobotan', line: i }),
                         custrecord_asf_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_asf_pembobotan', line: i }),
                         custrecord_asf_prosent: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_asf_prosent', line: i }),
-                        custrecord_item_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_item_pembobotan', line: i })
+                        custrecord_item_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_item_pembobotan', line: i }),
+                        custrecord_pembobotan_account_asf :estimateRecord.getSublistValue({ sublistId : 'recmachcustrecord_transaction_id', fieldId : 'custrecord_pembobotan_account_asf', line : i})
                     };
 
                     // Tambahkan line baru di sublist record yang sedang diedit
@@ -406,7 +407,13 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                             name: "custrecord_abj_ratecard_hours_total",
                             join: "CUSTRECORD_ABJ_RATECARD_ID",
                             label: "Total"
+                        }),
+                        search.createColumn({
+                            name: "custrecord_alva_accountratecard",
+                            join: "CUSTRECORD_ABJ_RATECARD_ID",
+                            label: "account"
                         })
+
                     ]
                     });
                     var allDataToset = [];
@@ -445,6 +452,10 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                             name: "custrecord4",
                             join: "CUSTRECORD_ABJ_RATECARD_ID",
                         })
+                        var accountAsf = result.getValue({
+                            name: "custrecord_alva_accountratecard",
+                            join: "CUSTRECORD_ABJ_RATECARD_ID",
+                        })
                         allDataToset.push({
                             position: position,
                             CategorySOW: CategorySOW,
@@ -456,7 +467,8 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                             itemValue : itemValue,
                             combinedValue : combinedValue,
                             asf : asf,
-                            amountPembobotan : amountPembobotan
+                            amountPembobotan : amountPembobotan,
+                            accountAsf : accountAsf
                         })
                         return true;
                     });
@@ -545,6 +557,11 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                                 sublistId: 'recmachcustrecord_transaction_id',
                                 fieldId: 'custrecord_amount_pembobotan',
                                 value: data.amountPembobotan
+                            });
+                             records.setCurrentSublistValue({
+                                sublistId: 'recmachcustrecord_transaction_id',
+                                fieldId: 'custrecord_pembobotan_account_asf',
+                                value: data.accountAsf
                             });
                             var prosentField = records.getSublistField({
                                 sublistId: 'recmachcustrecord_transaction_id',
