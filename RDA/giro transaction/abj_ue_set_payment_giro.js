@@ -6,47 +6,65 @@
 
 define(["N/record", "N/search", "N/query"], function (record, search, query) {
 
-    function createnewRecord(linkGiro, amtpymt, idRec){
+   function createnewRecord(linkGiro, amtpymt, idRec) {
         var recGiro = record.load({
             type: 'customtransaction_rda_giro_trans',
             id: linkGiro,
             isDynamic: true,
         });
+
         var amountExist = recGiro.getValue('custbody_rda_amount_giro_outstanding');
+        var newAmount = Number(amtpymt) + Number(amountExist);
 
-        var newAMount = Number(amtpymt) + Number(amountExist);
-        let existingValues = recGiro.getValue({ fieldId: 'custbody_rda_giro_cuspaynum' }) || [];
+        let rawValue = recGiro.getValue({ fieldId: 'custbody_rda_giro_cuspaynum' });
+        log.debug('rawValue', rawValue);
 
-        if (!Array.isArray(existingValues)) {
-            existingValues = [existingValues];
+        let existingValues = [];
+
+        if (Array.isArray(rawValue)) {
+            existingValues = rawValue.map(String); 
+        } else if (rawValue) {
+            existingValues = [String(rawValue)];
         }
 
         log.debug('Existing Values', existingValues);
+        log.debug('Original idRec', idRec);
 
-        if (!existingValues.includes(idRec)) {
-            existingValues.push(idRec);
-            log.debug('Updated Values', existingValues);
+        if (idRec && String(idRec).trim() !== '' && String(idRec) !== '0') {
+            idRec = String(idRec);
 
-            recGiro.setValue({
-                fieldId: 'custbody_rda_giro_cuspaynum',
-                value: existingValues,
-                ignoreFieldChange: true,
-            });
+            if (!existingValues.includes(idRec)) {
+                existingValues.push(idRec);
+                log.debug('Updated Values', existingValues);
+
+                recGiro.setValue({
+                    fieldId: 'custbody_rda_giro_cuspaynum',
+                    value: existingValues,
+                    ignoreFieldChange: true,
+                });
+            } else {
+                log.debug('Value already exists', idRec);
+            }
         } else {
-            log.debug('Value already exists', idRec);
+            log.debug('Skipped adding invalid idRec', idRec);
         }
 
+        // Update amount outstanding
         recGiro.setValue({
-            fieldId : 'custbody_rda_amount_giro_outstanding',
-            value : newAMount,
+            fieldId: 'custbody_rda_amount_giro_outstanding',
+            value: newAmount,
             ignoreFieldChange: true,
         });
+
+        // Save the record
         var savetrans = recGiro.save({
             enableSourcing: false,
             ignoreMandatoryFields: true,
         });
+
         log.debug("saveTrans", savetrans);
     }
+
     function afterSubmit(context) {
         if (context.type === context.UserEventType.CREATE) {
             

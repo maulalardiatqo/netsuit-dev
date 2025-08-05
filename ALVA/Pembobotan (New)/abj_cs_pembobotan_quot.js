@@ -10,8 +10,331 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
     var records = currentRecord.get();
     let isDeleting = false;
     let currentItemLineId = null;
-    
+    function recalculateSingleLine(rec, currentLineIndex, qtyItem) {
+        var soRec = rec;
 
+        // Ambil ID pembobotan dari line item yang sedang diedit
+        var itemLineId = soRec.getSublistValue({
+            sublistId: 'item',
+            fieldId: 'custcol_item_id_pembobotan',
+            line: currentLineIndex
+        });
+
+        if (!itemLineId) {
+            console.log('❌ Tidak ada nilai custcol_item_id_pembobotan pada line ini');
+            return;
+        }
+
+        var qty = qtyItem
+
+        console.log('>> Triggered Single Line Recalculation');
+        console.log('itemLineId (custcol_item_id_pembobotan):', itemLineId, 'qty:', qty);
+
+        var pembobotanData = [];
+        var lineCount = soRec.getLineCount({
+            sublistId: 'recmachcustrecord_transaction_id'
+        });
+
+        for (var i = 0; i < lineCount; i++) {
+            var lineId = soRec.getSublistValue({
+                sublistId: 'recmachcustrecord_transaction_id',
+                fieldId: 'custrecord_id_line',
+                line: i
+            });
+
+            if (String(lineId) === String(itemLineId)) {
+                pembobotanData.push({
+                    amount: soRec.getSublistValue({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId: 'custrecord_amount_pembobotan',
+                        line: i
+                    }),
+                    asfProsent: soRec.getSublistValue({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId: 'custrecord_asf_prosent',
+                        line: i
+                    }),
+                    amtAsf: soRec.getSublistValue({
+                        sublistId: 'recmachcustrecord_transaction_id',
+                        fieldId: 'custrecord_amount_asf_pembobotan',
+                        line: i
+                    })
+                });
+            }
+        }
+
+        if (pembobotanData.length === 0) {
+            console.log('⚠️ Tidak ditemukan data pembobotan yang sesuai untuk line ini');
+            return;
+        }
+
+        // Kalkulasi
+        var totalAmount = 0;
+        var totalProsent = 0;
+        var totalAmtAsf = 0;
+
+        pembobotanData.forEach(function (item) {
+            totalAmount += parseFloat(item.amount) || 0;
+            totalProsent += parseFloat(item.asfProsent) || 0;
+            totalAmtAsf += parseFloat(item.amtAsf) || 0;
+        });
+
+        var rate = qty > 0 ? (totalAmount / qty) : 0;
+        console.log('rate', rate)
+        var amountPembobotan = rate * qty;
+        console.log('amountPembobotan', amountPembobotan)
+        var prorateASF = qty > 0 ? (totalAmtAsf / qty) : 0;
+        console.log('prorateASF', prorateASF)
+        var rateToSet = (amountPembobotan / qty) + prorateASF;
+        console.log('rateToSet', rateToSet)
+        var amountToSet = rateToSet * qty;
+        console.log('amountToSet', amountToSet)
+
+        // Tax dan Discount
+        var amtTax = soRec.getSublistValue({
+            sublistId: 'item',
+            fieldId: 'tax1amt',
+            line: currentLineIndex
+        }) || 0;
+
+        var discountAmt = soRec.getSublistValue({
+            sublistId: 'item',
+            fieldId: 'custcol_abj_disc_line',
+            line: currentLineIndex
+        }) || 0;
+
+        var grossAmt = (amountToSet - discountAmt) + amtTax;
+
+        // Set nilai baru
+        soRec.selectLine({
+            sublistId: 'item',
+            line: currentLineIndex
+        });
+
+        soRec.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'price',
+            value: '-1'
+        });
+
+        soRec.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'custcol_rate_pembobotan',
+            value: rate
+        });
+        soRec.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'custcol_amount_pembobotan',
+            value: amountPembobotan
+        });
+        soRec.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'custcol_total_amount_asf',
+            value: totalAmtAsf
+        });
+        soRec.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'custcol_alvaprorateasf',
+            value: prorateASF
+        });
+        soRec.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'grossamt',
+            value: grossAmt
+        });
+        soRec.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'rate',
+            value: rateToSet,
+            ignoreFieldChange: true
+        });
+        soRec.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'amount',
+            value: amountToSet,
+            ignoreFieldChange: true
+        });
+
+
+        console.log('✅ Selesai hitung ulang line:', currentLineIndex);
+    }
+
+    function recalculateItem(rec){
+        var soRec = rec
+        var lineCOunt = soRec.getLineCount({
+            sublistId : "recmachcustrecord_transaction_id"
+        });
+        console.log('lineCOunt recalculateItem', lineCOunt)
+        if(lineCOunt > 0){
+            var groupedData = {};
+            for(var i = 0; i < lineCOunt; i++){
+                var lineId = soRec.getSublistValue({
+                    sublistId: 'recmachcustrecord_transaction_id',
+                    fieldId: 'custrecord_id_line',
+                    line: i
+                });
+                var amount = soRec.getSublistValue({
+                    sublistId: 'recmachcustrecord_transaction_id',
+                    fieldId: 'custrecord_amount_pembobotan',
+                    line: i
+                });
+                var asfProsent = soRec.getSublistValue({
+                    sublistId: 'recmachcustrecord_transaction_id',
+                    fieldId: 'custrecord_asf_prosent',
+                    line: i
+                });
+                var amtAsf = soRec.getSublistValue({
+                    sublistId: 'recmachcustrecord_transaction_id',
+                    fieldId: 'custrecord_amount_asf_pembobotan',
+                    line: i
+                });
+                if (!groupedData[lineId]) {
+                    groupedData[lineId] = [];
+                }
+
+                groupedData[lineId].push({
+                    amount: amount,
+                    asfProsent: asfProsent,
+                    amtAsf : amtAsf
+                });
+                
+            }
+            console.log('groupedData', groupedData)
+            var itemLineCount = soRec.getLineCount({
+                sublistId: 'item'
+            });
+            console.log('itemLineCount', itemLineCount)
+            for (var lineKey in groupedData) {
+                
+                console.log('groupedData.hasOwnProperty(lineKey)', groupedData.hasOwnProperty(lineKey))
+                if (groupedData.hasOwnProperty(lineKey)) {
+                    for (var j = 0; j < itemLineCount; j++) {
+                        var itemLineId = soRec.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_item_id_pembobotan',
+                            line: j
+                        });
+                        console.log('isDataCocok', {itemLineId : itemLineId, lineKey : lineKey})
+                        if (itemLineId == lineKey) {
+                            var qty = parseFloat(soRec.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'quantity',
+                                line: j
+                            })) || 0;
+                            
+                            var totalAmount = 0;
+                            var totalProsent = 0;
+                            var totalAmtAsf = 0;
+                            console.log('qty', qty)
+                            groupedData[lineKey].forEach(function(item){
+                                totalAmount += parseFloat(item.amount) || 0;
+                                totalProsent += parseFloat(item.asfProsent) || 0;
+                                totalAmtAsf += parseFloat(item.amtAsf) || 0;
+                            });
+                            console.log('totalAmount', totalAmount);
+                            console.log('totalProsent', totalProsent)
+                            var rate = qty > 0 ? (totalAmount / qty) : 0;
+                            console.log('rate', rate)
+                            console.log('Set Rate', 'Line: ' + itemLineId + ', Qty: ' + qty + ', Amount: ' + totalAmount + ', Rate: ' + rate);
+
+                            soRec.selectLine({
+                                sublistId: 'item',
+                                line: j
+                            });
+                            soRec.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'price',
+                                value: '-1'
+                            })
+                            console.log('rate', rate)
+                            soRec.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_rate_pembobotan',
+                                value: rate
+                            });
+                            var amountPembobotan = Number(rate) * Number(qty);
+                            console.log('amountPembobotan', amountPembobotan)
+                            soRec.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_amount_pembobotan',
+                                value: amountPembobotan
+                            });
+                            console.log('totalAmtAsf', totalAmtAsf)
+                            soRec.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_total_amount_asf',
+                                value: totalAmtAsf
+                            });
+                            var prorateASF = Number(totalAmtAsf) / Number(qty);
+                            console.log('prorateASF', prorateASF)
+                            var rateToset = (Number(amountPembobotan) / Number(qty)) + Number(prorateASF);
+                            console.log('rateToset', rateToset)
+                            console.log('qty', qty)
+                            var amountToset = Number(rateToset) * Number(qty);
+                            console.log('amountToset 1', amountToset)
+                            
+                            
+                            soRec.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_alvaprorateasf',
+                                value: prorateASF
+                            });
+                            var amtTax = soRec.getCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId : 'tax1amt'
+                            }) || 0;
+                            
+                            var discountAmt = soRec.getCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId : 'custcol_abj_disc_line'
+                            }) || 0;
+                            console.log('amtTax', amtTax);
+                            console.log('discountAmt', discountAmt)
+                            console.log('amountToset', amountToset)
+                            var grossAmt = (Number(amountToset) - Number(discountAmt)) +(Number(amtTax));
+                            console.log('grossAmt', grossAmt)
+                            soRec.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'grossamt',
+                                value: 0
+                            });
+                            soRec.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'grossamt',
+                                value: grossAmt
+                            });
+                            var cekAmount = soRec.getCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'amount'
+                            })
+                            console.log('cekAmount', cekAmount)
+                            soRec.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'rate',
+                                value: 0,
+                                ignoreFieldChange : true
+                            });
+                            soRec.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'rate',
+                                value: rateToset,
+                                ignoreFieldChange : true
+                            });
+                            soRec.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'amount',
+                                value: amountToset,
+                                ignoreFieldChange : true
+                            });
+                            soRec.commitLine({
+                                sublistId: 'item'
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
     function pageInit(context) {
         console.log('Page Init masuk');
         
@@ -249,7 +572,15 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
             if(trigger == 'salesorder'){
                 recordToLoad = 'estimate'
             }else if(trigger == 'creditmemo'){
-                recordToLoad = 'returnauthorization'
+                 const result = search.lookupFields({
+                            type: 'transaction',
+                            id: estimateId,
+                            columns: ['recordtype', 'tranid']
+                        });
+
+                        const recordType = result.recordtype;
+                        const tranid = result.tranid;
+                recordToLoad = recordType
             }else{
                  const result = search.lookupFields({
                             type: 'transaction',
@@ -284,6 +615,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                         custrecord_department_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_department_pembobotan', line: i }),
                         custrecord_asf_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_asf_pembobotan', line: i }),
                         custrecord_asf_prosent: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_asf_prosent', line: i }),
+                        custrecord_amount_asf_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_amount_asf_pembobotan', line: i }),
                         custrecord_item_pembobotan: estimateRecord.getSublistValue({ sublistId: 'recmachcustrecord_transaction_id', fieldId: 'custrecord_item_pembobotan', line: i }),
                         custrecord_pembobotan_account_asf :estimateRecord.getSublistValue({ sublistId : 'recmachcustrecord_transaction_id', fieldId : 'custrecord_pembobotan_account_asf', line : i})
                     };
@@ -303,6 +635,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
 
                     rec.commitLine({ sublistId: 'recmachcustrecord_transaction_id' });
                 }
+                recalculateItem(rec)
             }
             
 
@@ -418,7 +751,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     });
                     var allDataToset = [];
                     var searchResultCount = customrecord_abj_ratecardSearchObj.runPaged().count;
-                    log.debug("customrecord_abj_ratecardSearchObj result count",searchResultCount);
+                    console.log("customrecord_abj_ratecardSearchObj result count",searchResultCount);
                     customrecord_abj_ratecardSearchObj.run().each(function(result){
                         var position = result.getValue({
                             name: "custrecord_abj_ratecard_hours_position",
@@ -583,9 +916,10 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
         }
     }
     function fieldChanged(context) {
-            var sublistId = context.sublistId;
-            var fieldId = context.fieldId;
-
+        var sublistId = context.sublistId;
+        var fieldId = context.fieldId;
+        var recordType = records.type;
+        if(recordType !== 'invoice' && recordType !== 'creditmemo'){
             if (sublistId === 'recmachcustrecord_transaction_id' && fieldId === 'custrecord_asf_pembobotan') {
                 var line = records.getCurrentSublistIndex({ sublistId: 'recmachcustrecord_transaction_id' });
                 var pembobotanChecked = records.getCurrentSublistValue({
@@ -696,7 +1030,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 })
             }
             if(sublistId === 'recmachcustrecord_transaction_id' && fieldId === 'custrecord_hour_pembobotan'){
-                 var hour = records.getCurrentSublistValue({
+                var hour = records.getCurrentSublistValue({
                     sublistId: 'recmachcustrecord_transaction_id',
                     fieldId: 'custrecord_hour_pembobotan'
                 });
@@ -704,7 +1038,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     sublistId: 'recmachcustrecord_transaction_id',
                     fieldId: 'custrecord_rate_pembobotan'
                 });
-               
+            
                 var amountCount = Number(ratePembobotan) * Number(hour);
                 console.log('amountCount', amountCount)
                 records.setCurrentSublistValue({
@@ -713,28 +1047,51 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     value : amountCount
                 })
             }
-            if(sublistId == 'item' && fieldId == 'item'){
-                var itemValue = records.getCurrentSublistValue({
+        }else{
+            if(sublistId == 'item' && fieldId == 'quantity'){
+                console.log('tertrigeer')
+                var qtyItem = records.getCurrentSublistValue({
                     sublistId: 'item',
-                    fieldId: 'item'
+                    fieldId: 'quantity'
                 });
-                var lineItem = records.getCurrentSublistIndex({
-                    sublistId: 'item',
-                    fieldId: 'line'
+                // var lineItemId = records.getCurrentSublistIndex({
+                //     sublistId: 'item',
+                //     fieldId: 'custcol_item_id_pembobotan'
+                // });
+                var rec = records;
+                var currentLine = rec.getCurrentSublistIndex({
+                    sublistId: 'item'
                 });
-                var combineLine = itemValue + '_' + lineItem;
-                console.log('combineLine', combineLine)
-                 if (itemValue) {
-                    console.log('masuk kondisi is item value')
-                    records.setCurrentSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'custcol_item_id_pembobotan',
-                        value: combineLine
-                    });
-                    console.log('Set custcol_item_id_pembobotan:', combineLine);
-                }
+
+            console.log('➡️ Field quantity berubah di line:', currentLine);
+            console.log('qtyItem', qtyItem)
+            recalculateSingleLine(rec, currentLine, qtyItem);
             }
         }
+        
+        if(sublistId == 'item' && fieldId == 'item'){
+            var itemValue = records.getCurrentSublistValue({
+                sublistId: 'item',
+                fieldId: 'item'
+            });
+            var lineItem = records.getCurrentSublistIndex({
+                sublistId: 'item',
+                fieldId: 'line'
+            });
+            var combineLine = itemValue + '_' + lineItem;
+            console.log('combineLine', combineLine)
+                if (itemValue) {
+                console.log('masuk kondisi is item value')
+                records.setCurrentSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'custcol_item_id_pembobotan',
+                    value: combineLine
+                });
+                console.log('Set custcol_item_id_pembobotan:', combineLine);
+            }
+        }
+        
+    }
         function validateLine(context) {
             var sublistId = context.sublistId;
             console.log('sublistId', sublistId)

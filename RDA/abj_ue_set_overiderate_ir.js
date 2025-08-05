@@ -154,7 +154,7 @@ define(['N/search', 'N/log', 'N/error', 'N/record'], (search, log, error, record
                     }
                     if (errorLines.length > 0) {
                         var message = 'Peringatan! Line ' + errorLines.join(', ') + ' memiliki Unit Cost Override kosong atau 0. ' +
-                                    'Silakan isi nilai Unit Cost atau perbaiki Average Cost pada master item.';
+                                    'Silahkan isi nilai Unit Cost atau perbaiki Average Cost pada master item.';
                         throw message;
                     }
                 }

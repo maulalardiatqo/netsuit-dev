@@ -1,0 +1,39 @@
+{
+    "type": "createCashRefund",
+    "data" : {
+        "cashSaleId": "12345",
+        "externalId": "6faee49a-d5ed-4a6c-953e-da4af9269604",
+        "billAddressList": {
+            "internalId": "20881"
+        },
+        "currency": {
+            "internalId": "1"
+        },
+        "email": "gabriellaputri49@gmail.com",
+        "entity": {
+            "internalId": "20703"
+        },
+        "location" : {
+            "internalId" : "2"
+        },
+        "subsidiary" : {
+            "internalId" : "1"
+        },
+        "undepFunds": true,
+        "source": "in_store",
+        "transDate": "31/07/2025",
+        "items" : [
+            {
+                "amount": "18018.018018",
+                "itemid": "44246",
+                "quantity": "2",
+                "grossAmt": "20000.000000",
+                "location": "1",
+                "price": "-1",
+                "rate": "10000",
+                "taxCode": "6",
+                "taxRate1": "0.11"
+            }
+        ]
+    }
+}

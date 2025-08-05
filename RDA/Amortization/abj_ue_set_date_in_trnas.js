@@ -12,7 +12,7 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
             Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
         };
         const currentMonth = monthMap[monthStr];
-    
+        log.debug('currentMonth', currentMonth)
         const nextMonthDate = new Date(year, currentMonth + 1, 1);
     
         nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
@@ -190,11 +190,10 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             });
                             
                             var account = recTempAmor.getValue('accttarget');
-                            var amortPeriod = recTempAmor.getValue('amortizationperiod'); 
+                            var amortPeriod = recTempAmor.getValue('amortizationperiod') || 1; 
                             var periodOffset = recTempAmor.getValue('periodoffset');      
                             var startOffset = recTempAmor.getValue('revrecoffset');        
-                            
-                            
+                            log.debug('amortPeriod', amortPeriod)
                             const { dateAwal, dateAhir } = getAmortizationDates(postingPeriodText, amortPeriod, periodOffset, startOffset);
                              
                             function sysDate(dateAwal, dateAhir) {
@@ -221,8 +220,10 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             
                             var startDate = convertToDate(result.lastDate);
                             var endDate = convertToDate(result.endDate);
+                            log.debug('endDate', endDate)
 
                             if(startOffset > 0){
+                                log.debug('startOffset', startOffset)
                                 amortPeriod = Number(amortPeriod) - Number(startOffset)
                             }
                             log.debug('amortPeriod', amortPeriod)
@@ -347,6 +348,7 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                             
                             var startDate = convertToDate(result.lastDate);
                             var endDate = convertToDate(result.endDate);
+                            log.debug('endDate', endDate)
 
                             if(startOffset > 0){
                                 amortPeriod = Number(amortPeriod) - Number(startOffset)
