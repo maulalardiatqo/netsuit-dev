@@ -444,12 +444,13 @@ define(["N/search", "N/record", "N/file", "N/https", "N/runtime", "N/format"], /
                 }
                 
                 let quantity = data.items[i].quantity;
-                let allocatedBins = [];
+                
                 log.debug('filter', {
                     itemID : itemID, locationID : locationID
                 })
                 log.debug('isUseBin', isUseBin)
                 log.debug('itemId', itemID)
+                let allocatedBins = [];
                 if (isUseBin) {
                     var itemSearchObj = search.create({
                         type: "item",
@@ -735,11 +736,14 @@ define(["N/search", "N/record", "N/file", "N/https", "N/runtime", "N/format"], /
                     });
                     var entity = data.entity.internalId
                     var billAddresId = data.billAddressList.internalId
-                    var locationId = data.location.internalId
-                    var subsidiaryId = data.subsidiary.internalId
+                    var locationID = data.location.internalId;
+                    var subsidiaryID = data.subsidiary.internalId;
                     var transDate = convertToDate(data.transDate);
                     var items = data.items;
+
                     log.debug('items', items);
+
+                    // 1. Transform Cash Sale → Cash Refund
                     const cashRefundRec = record.transform({
                         fromType: record.Type.CASH_SALE,
                         fromId: cashSaleId,
@@ -747,41 +751,205 @@ define(["N/search", "N/record", "N/file", "N/https", "N/runtime", "N/format"], /
                         isDynamic: true
                     });
 
-                    const refundItems = data.items; // dari request body, misalnya [{"itemid":"44246","quantity":"1"}]
+                    // 2. Buat refundItemMap
+                    const refundItems = data.items;
                     const refundItemMap = {};
 
-                    // Ubah array menjadi map agar pencarian lebih cepat
                     refundItems.forEach(item => {
-                        refundItemMap[item.itemid] = parseFloat(item.quantity);
+                        refundItemMap[String(item.itemid)] = {
+                            quantity: parseFloat(item.quantity),
+                            amount: parseFloat(item.amount)
+                        };
                     });
+
+                    const itemIDs = refundItems.map(item => item.itemid);
+                    const uniqueItemIDs = [...new Set(itemIDs)];
+
+                    // 4. Search Item Sekaligus
+                    const itemSearchObj = search.create({
+                        type: "item",
+                        filters: [
+                            ["internalid", "anyof", uniqueItemIDs]
+                        ],
+                        columns: [
+                            search.createColumn({ name: "itemid", label: "Name" }),
+                            search.createColumn({ name: "displayname", label: "Display Name" }),
+                            search.createColumn({ name: "isinactive", label: "Inactive" }),
+                            search.createColumn({ name: "usebins", label: "Use Bins" }),
+                            search.createColumn({ name: "type", label: "Type" })
+                        ]
+                    });
+
+                    // 5. Proses hasil search
+                    const itemSearchResults = {};
+                    const results = itemSearchObj.run().getRange({ start: 0, end: 1000 });
+
+                    results.forEach(function (result) {
+                        const internalId = String(result.id);
+                        const itemid = result.getValue({ name: "itemid" });
+                        const displayname = result.getValue({ name: "displayname" });
+                        const isInactive = result.getValue({ name: "isinactive" });
+                        const useBins = result.getValue({ name: "usebins" });
+                        const baseType = result.getValue({ name: "type" });
+
+                        let typeRecord = '';
+                        if (baseType === 'InvtPart') {
+                            typeRecord = 'inventoryitem';
+                        } else if (baseType === 'NonInvtPart') {
+                            typeRecord = 'noninventoryitem';
+                        } else if (baseType === 'Discount') {
+                            typeRecord = 'discountitem';
+                        }
+
+                        itemSearchResults[internalId] = {
+                            itemid,
+                            displayname,
+                            isInactive,
+                            useBins,
+                            typeRecord,
+                            allocatedBins: [] 
+                        };
+
+                        if (isInactive === true || isInactive === 'T') {
+                            const savedId = record.submitFields({
+                                type: typeRecord,
+                                id: internalId,
+                                values: {
+                                    'isinactive': false,
+                                    'custitem_msa_locpos': locationID,
+                                    'displayname': displayname || itemid
+                                }
+                            });
+                            log.debug('Item re-activated using submitFields, ID:', savedId);
+                        }
+                        log.debug('useBins', useBins)
+                        if ((useBins === true || useBins === 'T') && locationID && refundItemMap[internalId]) {
+                            const quantity = refundItemMap[internalId].quantity;
+                            let remainingQty = quantity;
+                            log.debug('remainingQty', remainingQty)
+                            log.debug('cek locationID', locationID)
+                            log.debug('cek internalId', internalId)
+                            const binSearch = search.create({
+                                type: "item",
+                                filters: [
+                                    ["binonhand.quantityonhand", "greaterthan", "0"],
+                                    "AND",
+                                    ["usebins", "is", "T"],
+                                    "AND",
+                                    ["internalid", "anyof", internalId],
+                                    "AND",
+                                    ["binonhand.location", "anyof", locationID]
+                                ],
+                                columns: [
+                                    search.createColumn({ name: "binnumber", join: "binOnHand", label: "Bin Number" }),
+                                    search.createColumn({ name: "quantityavailable", join: "binOnHand", label: "Available" })
+                                ]
+                            });
+
+                            const binResults = binSearch.run();
+                            log.debug('binResults', binResults)
+                            binResults.each(function (binResult) {
+                                if (remainingQty <= 0) return false;
+
+                                const idBin = binResult.getValue({ name: "binnumber", join: "binOnHand" });
+                                log.debug('idBin', idBin)
+                                const qtyAvailable = parseInt(binResult.getValue({ name: "quantityavailable", join: "binOnHand" }), 10);
+                                log.debug('qtyAvailable', qtyAvailable)
+                                if (qtyAvailable > 0) {
+                                    const qtyToAllocate = Math.min(remainingQty, qtyAvailable);
+                                    itemSearchResults[internalId].allocatedBins.push({
+                                        idBin,
+                                        quantity: qtyToAllocate
+                                    });
+                                    remainingQty -= qtyToAllocate;
+                                }
+
+                                return true;
+                            });
+                        }
+                    });
+
+                    log.debug('itemSearchResults', JSON.stringify(itemSearchResults));
 
                     const lineCount = cashRefundRec.getLineCount({ sublistId: 'item' });
 
-                    // Loop mundur agar aman saat hapus line
                     for (let i = lineCount - 1; i >= 0; i--) {
                         cashRefundRec.selectLine({ sublistId: 'item', line: i });
 
-                        const itemId = cashRefundRec.getCurrentSublistValue({
+                        const itemId = String(cashRefundRec.getCurrentSublistValue({
                             sublistId: 'item',
                             fieldId: 'item'
-                        });
+                        }));
 
-                        if (refundItemMap[itemId]) {
-                            // Item ada di list refund → ubah quantity
+                        const refundItem = refundItemMap[itemId];
+                        const itemData = itemSearchResults[itemId];
+
+                        if (refundItem) {
+                            // Set quantity dan location
                             cashRefundRec.setCurrentSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'quantity',
-                                value: refundItemMap[itemId]
+                                value: refundItem.quantity
                             });
+
+                            if (itemData && itemData.useBins && itemData.allocatedBins.length > 0) {
+                                const allocatedBins = itemData.allocatedBins;
+
+                                let inventoryDetailSubrecord = cashRefundRec.getCurrentSublistSubrecord({
+                                    sublistId: 'item',
+                                    fieldId: 'inventorydetail'
+                                });
+
+                                log.debug('inventoryDetailSubrecord', inventoryDetailSubrecord);
+                                log.debug('Allocated Bins', JSON.stringify(allocatedBins));
+
+                                // Bersihkan line inventoryassignment sebelumnya
+                                let assignLineCount = inventoryDetailSubrecord.getLineCount({
+                                    sublistId: 'inventoryassignment'
+                                });
+
+                                for (let j = assignLineCount - 1; j >= 0; j--) {
+                                    inventoryDetailSubrecord.removeLine({
+                                        sublistId: 'inventoryassignment',
+                                        line: j
+                                    });
+                                }
+
+                                allocatedBins.forEach(bin => {
+                                    var binId = bin.idBin;
+                                    var qtyBin = bin.quantity;
+
+                                    log.debug('data set bin', { binId: binId, qtyBin: qtyBin });
+
+                                    inventoryDetailSubrecord.selectNewLine({ sublistId: 'inventoryassignment' });
+
+                                    inventoryDetailSubrecord.setCurrentSublistValue({
+                                        sublistId: 'inventoryassignment',
+                                        fieldId: 'binnumber',
+                                        value: binId
+                                    });
+
+                                    inventoryDetailSubrecord.setCurrentSublistValue({
+                                        sublistId: 'inventoryassignment',
+                                        fieldId: 'quantity',
+                                        value: qtyBin
+                                    });
+
+                                    inventoryDetailSubrecord.commitLine({ sublistId: 'inventoryassignment' });
+                                });
+
+                                log.debug('setAfter', inventoryDetailSubrecord);
+                            }
+
                             cashRefundRec.commitLine({ sublistId: 'item' });
+
                         } else {
-                            // Item tidak termasuk dalam refund → hapus line
-                            cashRefundRec.removeLine({
-                                sublistId: 'item',
-                                line: i
-                            });
+                            // Hapus baris item yang tidak termasuk refund
+                            cashRefundRec.removeLine({ sublistId: 'item', line: i });
                         }
                     }
+
+
                     var cashrefundId = cashRefundRec.save();
                     log.debug('cashRefundId', cashrefundId )
                     var response = {
@@ -811,6 +979,12 @@ define(["N/search", "N/record", "N/file", "N/https", "N/runtime", "N/format"], /
 
         }catch(e){
             log.debug('error', e)
+            var response = {
+                status: "failed",
+                message: e.message,
+                internalid: ""
+            };
+            return JSON.stringify(response);
         }
     }
     /**

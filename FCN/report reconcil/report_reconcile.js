@@ -810,6 +810,11 @@ define(["N/ui/serverWidget", "N/render", "N/search", "N/record", "N/log", "N/fil
           log.debug('mergedJobDoneArray', mergedJobDoneArray)
           mergedJobDoneArray.forEach((row, index) => {
             var totalRev = Number(row.billingBeforeVat || 0) - Number(row.totalAmountPO || 0);
+            var cekBilling = row.billingBeforeVat;
+            var cekTotalAmountPO = row.totalAmountPO
+            log.debug('cekBilling', cekBilling)
+            log.debug('cekTotalAmountPO', cekTotalAmountPO);
+            log.debug('totalRev', totalRev)
             // if (index !== 0 && row.quoteNumberVal === mergedJobDoneArray[index - 1].quoteNumberVal) {
             //   row.billingBeforeVat = "";
             //   totalRev = Number(previousTotalRev) - Number(row.total || 0);

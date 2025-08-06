@@ -1,7 +1,7 @@
 {
     "type": "createCashRefund",
     "data" : {
-        "cashSaleId": "12345",
+        "cashSaleId": "2544961",
         "externalId": "6faee49a-d5ed-4a6c-953e-da4af9269604",
         "billAddressList": {
             "internalId": "20881"
@@ -14,7 +14,7 @@
             "internalId": "20703"
         },
         "location" : {
-            "internalId" : "2"
+            "internalId" : "1"
         },
         "subsidiary" : {
             "internalId" : "1"
@@ -26,7 +26,7 @@
             {
                 "amount": "18018.018018",
                 "itemid": "44246",
-                "quantity": "2",
+                "quantity": "1",
                 "grossAmt": "20000.000000",
                 "location": "1",
                 "price": "-1",
