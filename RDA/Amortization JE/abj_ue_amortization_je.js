@@ -24,8 +24,41 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
     
         return `${endOfMonth} ${endMonthStr} ${endYear}`;
     }
+    function beforeLoad(context){
+        
+        if (context.type === context.UserEventType.VIEW) {
+            if (context.type === context.UserEventType.VIEW) {
+                const form = context.form;
+                const newRecord = context.newRecord;
+                const lineCount = newRecord.getLineCount({ sublistId: 'line' });
+                let hasSchedule = false;
+
+                for (let i = 0; i < lineCount; i++) {
+                    const scheduleValue = newRecord.getSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'schedule',
+                        line: i
+                    });
+                    log.debug('scheduleValue', scheduleValue)
+                    if (scheduleValue) {
+                        hasSchedule = true;
+                        break;
+                    }
+                }
+
+                if (hasSchedule) {
+                    form.clientScriptModulePath = 'SuiteScripts/abj_cs_configure_amortization.js';
+                    form.addButton({
+                        id: 'custpage_configure_amort',
+                        label: 'Configure Amortization',
+                        functionName: 'configureAmortization'
+                    });
+                }
+            }
+        }
+    }
     function afterSubmit(context) {
-        if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.EDIT) {
+        if (context.type === context.UserEventType.CREATE ||context.type === context.UserEventType.EDIT) {
             try {
                 var rec = context.newRecord;
                 var recType = rec.type
@@ -207,6 +240,7 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                         if (matchLine) {
                             var idAmortTemp = matchLine.idAmortTemp;
                             var idAmortSched = matchLine.idAmortSched;
+                            var lineUniq = matchLine.lineKey
 
                             if (idAmortTemp) {
                                 var recTempAmor = record.load({
@@ -237,7 +271,8 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
                                     endDate: endDate,
                                     account: account,
                                     recId: recId,
-                                    amount: amount
+                                    amount: amount, 
+                                    lineUniq : lineUniq
                                 });
 
                                 recordLoad.selectLine({
@@ -286,7 +321,8 @@ define(["N/record", "N/search", "N/format", "N/task"], function (record, search,
         
     }
     return {
-        afterSubmit: afterSubmit
+        afterSubmit: afterSubmit,
+        beforeLoad : beforeLoad
       };
     });
     

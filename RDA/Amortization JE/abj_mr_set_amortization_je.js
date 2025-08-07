@@ -34,47 +34,59 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
         var formattedStartDate = data.startDate;
         var formattedEndDate = data.endDate;
         var amortizationId = data.idAmortSched;
-        var amount = data.amount;
+        var amount = data.amounttoSet;
         var account = data.account;
         var recId = data.recId;
         var totalAmount = data.amount
+        var lineUniq = data.lineUniq
+        log.debug('lineUniq', lineUniq)
         var startDate = formatDateToDDMMYYYY(formattedStartDate);
         var endDate = formatDateToDDMMYYYY(formattedEndDate);
         log.debug('startDate', startDate)
         log.debug('endDate', startDate)
-        var vendorbillSearchObj = search.create({
-            type: "vendorbill",
-            settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
-            filters:
-            [
-                ["type","anyof","VendBill"], 
-                "AND", 
-                ["amortizationschedule.internalid","noneof","@NONE@"], 
-                "AND", 
-                ["internalid","anyof",recId]
-            ],
-            columns:
-            [
-                search.createColumn({
-                    name: "internalid",
-                    join: "amortizationSchedule",
-                    label: "Internal ID"
-                })
-            ]
+
+        // searchNewIdAmort
+        var idAmortNew
+        var journalentrySearchObj = search.create({
+        type: "journalentry",
+        settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
+        filters:
+        [
+            ["type","anyof","Journal"], 
+            "AND", 
+            ["internalid","anyof",recId], 
+            "AND", 
+            ["isrevrectransaction","is","T"], 
+            "AND", 
+            ["lineuniquekey","equalto",lineUniq]
+        ],
+        columns:
+        [
+            search.createColumn({name: "lineuniquekey", label: "Line Unique Key"}),
+            search.createColumn({name: "isrevrectransaction", label: "Is Amortization/Revenue Recognition"}),
+            search.createColumn({
+                name: "internalid",
+                join: "amortizationSchedule",
+                label: "Internal ID"
+            }),
+            search.createColumn({
+                name: "amortemplate",
+                join: "amortizationSchedule",
+                label: "Template Name"
+            })
+        ]
         });
-        var searchResultCount = vendorbillSearchObj.runPaged().count;
-        log.debug("vendorbillSearchObj result count",searchResultCount);
-        vendorbillSearchObj.run().each(function(result){
-            var amortId = result.getValue({
+        var searchResultCount = journalentrySearchObj.runPaged().count;
+        log.debug("journalentrySearchObj result count",searchResultCount);
+        journalentrySearchObj.run().each(function(result){
+            idAmortNew = result.getValue({
                 name: "internalid",
                 join: "amortizationSchedule",
             })
-            // if(amortId){
-            //     log.debug('amortId', amortId)
-            //     amortizationId = amortId
-            // }
-            return false;
+            return true;
         });
+        log.debug('idAmortNew', idAmortNew)
+
 
         function getEndOfMonthRange(startDate, endDate) {
             const parseDate = (dateStr) => {
@@ -119,7 +131,7 @@ define(['N/record', 'N/runtime', 'N/search'], function(record, runtime, search) 
             log.debug('amortizationId', amortizationId)
             var amortizationScheduleRec = record.load({
                 type: 'revRecSchedule',
-                id: amortizationId,
+                id: idAmortNew,
                 isDynamic: true
             });
 
