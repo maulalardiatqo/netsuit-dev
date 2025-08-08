@@ -177,6 +177,49 @@ define(['N/log', 'N/task', 'N/record', 'N/search'], function (log, task, record,
                         var saveCreate = createRecord.save();
                         log.debug('saveCreate', saveCreate);
                         if(saveCreate){
+                                var salesorderSearchObj = search.create({
+                                type: "salesorder",
+                                settings: [
+                                    { name: "consolidationtype", value: "ACCTTYPE" },
+                                    { name: "includeperiodendtransactions", value: "F" }
+                                ],
+                                filters: [
+                                    ["type", "anyof", "SalesOrd"],
+                                    "AND",
+                                    ["internalid", "anyof", soId],
+                                    "AND",
+                                    ["mainline", "is", "T"]
+                                ],
+                                columns: [
+                                    search.createColumn({ name: "custbody_rda_inventory_trf_number", label: "RDA - Inventory Transfer Number" })
+                                ]
+                            });
+
+                            var invTrvId;
+                            var searchResultCount = salesorderSearchObj.runPaged().count;
+                            log.debug("salesorderSearchObj result count", searchResultCount);
+
+                            salesorderSearchObj.run().each(function (result) {
+                                invTrvId = result.getValue({
+                                    name: "custbody_rda_inventory_trf_number"
+                                });
+                                return false;
+                            });
+
+                            log.debug('invTrvId', invTrvId);
+
+                            if (invTrvId) {
+                                try {
+                                    record.delete({
+                                        type: record.Type.INVENTORY_TRANSFER,
+                                        id: invTrvId
+                                    });
+                                    log.debug('Inventory Transfer Deleted', 'ID: ' + invTrvId);
+                                } catch (e) {
+                                    log.debug('Gagal hapus Inventory Transfer', e.message);
+                                }
+                            }
+
                             successExecute = false
                             record.submitFields({
                                 type: 'salesorder',

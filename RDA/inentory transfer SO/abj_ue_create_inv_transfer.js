@@ -286,13 +286,56 @@ define(["N/record", "N/search", "N/log", "N/format"], function (record, search, 
     
                                 var saveCreate = createRecord.save();
                                 log.debug('saveCreate', saveCreate);
-    
+                                if(saveCreate){
+                                    var salesorderSearchObj = search.create({
+                                        type: "salesorder",
+                                        settings: [
+                                            { name: "consolidationtype", value: "ACCTTYPE" },
+                                            { name: "includeperiodendtransactions", value: "F" }
+                                        ],
+                                        filters: [
+                                            ["type", "anyof", "SalesOrd"],
+                                            "AND",
+                                            ["internalid", "anyof", soId],
+                                            "AND",
+                                            ["mainline", "is", "T"]
+                                        ],
+                                        columns: [
+                                            search.createColumn({ name: "custbody_rda_inventory_trf_number", label: "RDA - Inventory Transfer Number" })
+                                        ]
+                                    });
+
+                                    var invTrvId;
+                                    var searchResultCount = salesorderSearchObj.runPaged().count;
+                                    log.debug("salesorderSearchObj result count", searchResultCount);
+
+                                    salesorderSearchObj.run().each(function (result) {
+                                        invTrvId = result.getValue({
+                                            name: "custbody_rda_inventory_trf_number"
+                                        });
+                                        return false;
+                                    });
+
+                                    log.debug('invTrvId', invTrvId);
+
+                                    if (invTrvId) {
+                                        try {
+                                            record.delete({
+                                                type: record.Type.INVENTORY_TRANSFER,
+                                                id: invTrvId
+                                            });
+                                            log.debug('Inventory Transfer Deleted', 'ID: ' + invTrvId);
+                                        } catch (e) {
+                                            log.debug('Gagal hapus Inventory Transfer', e.message);
+                                        }
+                                    }
+                                }
                                 record.submitFields({
                                     type: 'salesorder',
                                     id: soId,
                                     values: { 
                                         custbody_rda_inventory_trf_number: saveCreate,
-                                        custbody_rda_error_message_ivnt_trf: '' // set jadi string kosong
+                                        custbody_rda_error_message_ivnt_trf: '' 
                                     },
                                     options: { enableSourcing: false, ignoreMandatoryFields: true }
                                 });

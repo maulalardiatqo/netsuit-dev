@@ -10,25 +10,32 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var records = currentRecord.get();
     }
     function createRec(context) {
-        var processMsg = message.create({
-            title: "Processing",
-            message: "On Process. Please wait...",
-            type: message.Type.INFORMATION
-        });
-        processMsg.show();
+         const button = document.getElementById('custpage_button_recreate');
+        if (button) {
+            button.disabled = true;
+            button.value = 'Sedang Diproses...';
 
-        setTimeout(function () {
-            try {
-                processTransaction(processMsg);
-            } catch (e) {
-                processMsg.hide(); 
-                console.log("Error", e);
-                dialog.alert({
-                    title: "Error",
-                    message: e.message
-                });
-            }
-        }, 500); 
+            var processMsg = message.create({
+                title: "Processing",
+                message: "On Process. Please wait...",
+                type: message.Type.INFORMATION
+            });
+            processMsg.show();
+
+            setTimeout(function () {
+                try {
+                    processTransaction(processMsg);
+                } catch (e) {
+                    processMsg.hide(); 
+                    console.log("Error", e);
+                    dialog.alert({
+                        title: "Error",
+                        message: e.message
+                    });
+                }
+            }, 500); 
+        }
+        
     }
     function processTransaction(processMsg){
         var records = currentRecord.get();
