@@ -309,7 +309,7 @@ function numberWithCommas(x) {
         );
         // end search data PO
         var myResults = getAllResults(pendingBillData);
-       
+        log.debug('myResults pending bill', myResults)
         var pendingBillDataArr = [];
         myResults.forEach(function (result) {
           let item = result.getValue('item');
@@ -388,7 +388,9 @@ function numberWithCommas(x) {
           }
           let quoteNumberVal = result.getValue("internalid");
           let projectVal = result.getValue("class");
+          log.debug('projectVal', projectVal)
           let deliverablesVal = result.getValue("line.cseg_abjproj_cust_");
+          log.debug('deliverablesVal', deliverablesVal)
           pendingBillDataArr.push({
             quoteNumber: quoteNumber,
             jobNumber: jobNumber,
@@ -417,7 +419,7 @@ function numberWithCommas(x) {
             deliverablesVal: deliverablesVal,
           });
         });
-
+        log.debug('pendingBillDataArr cek', pendingBillDataArr)
         var myResultsJob = getAllResults(jobDoneData);
         var jobDoneDataArr = [];
         myResultsJob.forEach(function (result) {
@@ -579,6 +581,7 @@ function numberWithCommas(x) {
           }
           return acc;
         }, []);
+        log.debug('groupedPendingBillArray', groupedPendingBillArray)
         const groupedJobDoneArray = jobDoneDataArr.reduce((acc, curr) => {
           const index = acc.findIndex((item) => item.quoteNumberVal === curr.quoteNumberVal);
           if (index !== -1) {
@@ -601,10 +604,9 @@ function numberWithCommas(x) {
           return acc;
         }, []);
         let mergedPendingBillArray = [];
+        log.debug('poDataArr', poDataArr)
         groupedPendingBillArray.forEach((pendingBillItem) => {
           let matchingPOs = poDataArr.filter((poItem) => {
-           
-            
             return poItem.quoteNumberVal === pendingBillItem.quoteNumberVal && poItem.projectVal === pendingBillItem.projectVal && poItem.deliverablesVal === pendingBillItem.deliverablesVal;
           });
           if (matchingPOs.length > 0) {

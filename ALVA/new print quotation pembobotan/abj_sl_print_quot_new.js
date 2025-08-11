@@ -422,7 +422,7 @@ function getRateCard(item,complexityLevel,tier){
     body += "<td style='background-color: orange; font-weight: bold; align: center; vertical-align: middle;'>Amount</td>";
     body += "</tr>";
 
-    body += getItem(context, dataRec);
+    body += getItem(context, dataRec, recid);
 
     body += "<tr>";
     body += "</tr>";
@@ -547,9 +547,82 @@ function getRateCard(item,complexityLevel,tier){
       xmlString: xml,
     });
   }
-  function getItem(context, dataRec) {
+  function getPembobobtanData(itemIdPembobotan, recid){
+    var totalAmountItem = 0
+    var dataAsf = [];
+    var estimateSearchObj = search.create({
+      type: "estimate",
+      settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
+      filters:
+      [
+          ["type","anyof","Estimate"], 
+          "AND", 
+          ["internalid","anyof",recid], 
+          "AND", 
+          ["custrecord_transaction_id.custrecord_id_line","is",itemIdPembobotan], 
+          "AND", 
+          ["mainline","is","T"]
+      ],
+      columns:
+      [
+          search.createColumn({
+            name: "custrecord_asf_pembobotan",
+            join: "CUSTRECORD_TRANSACTION_ID",
+            label: "ASF"
+          }),
+          search.createColumn({
+            name: "custrecord_amount_pembobotan",
+            join: "CUSTRECORD_TRANSACTION_ID",
+            label: "Amount"
+          }),
+          search.createColumn({
+            name: "custrecord_amount_asf_pembobotan",
+            join: "CUSTRECORD_TRANSACTION_ID",
+            label: "Amount ASF"
+          }),
+          search.createColumn({
+            name: "custrecord_desc_pembobotan",
+            join: "CUSTRECORD_TRANSACTION_ID",
+            label: "Desc"
+          })
+      ]
+    });
+    var searchResultCount = estimateSearchObj.runPaged().count;
+    log.debug("estimateSearchObj result count",searchResultCount);
+    estimateSearchObj.run().each(function(result){
+      var isAsf = result.getValue({
+        name: "custrecord_asf_pembobotan",
+        join: "CUSTRECORD_TRANSACTION_ID",
+      });
+      if(isAsf == false){
+        var amountNonAsf = result.getValue({
+          name: "custrecord_amount_pembobotan",
+          join: "CUSTRECORD_TRANSACTION_ID",
+        })
+        totalAmountItem = Number(totalAmountItem) + Number(amountNonAsf);
+      }else{
+        var descAsf = result.getValue({
+            name: "custrecord_desc_pembobotan",
+            join: "CUSTRECORD_TRANSACTION_ID",
+        })
+        var amountAsf = result.getValue({
+            name: "custrecord_amount_asf_pembobotan",
+            join: "CUSTRECORD_TRANSACTION_ID",
+        })
+        dataAsf.push({
+          descAsf : descAsf,
+          amountAsf : amountAsf
+        })
+      }
+      return true;
+    });
+    return{
+      totalAmountItem : totalAmountItem,
+      dataAsf : dataAsf
+    }
+  }
+  function getItem(context, dataRec, recid) {
     var tier = dataRec.getValue('custbody_abj_quotation_tier');
-
 
     var currenc = dataRec.getValue("currency");
     if (currenc) {
@@ -597,11 +670,11 @@ function getRateCard(item,complexityLevel,tier){
           fieldId: "units",
           line: index,
         });
-        var amount = dataRec.getSublistValue({
-          sublistId: "item",
-          fieldId: "amount",
-          line: index,
-        });
+        // var amount = dataRec.getSublistValue({
+        //   sublistId: "item",
+        //   fieldId: "amount",
+        //   line: index,
+        // });
         var complexityLevel = dataRec.getSublistValue({
           sublistId: "item",
           fieldId: "custcol_abj_complexity_level_line",
@@ -612,69 +685,94 @@ function getRateCard(item,complexityLevel,tier){
           fieldId: "custcol_abj_complexity_level_line",
           line: index,
         });
-        
-        subTotal = Number(subTotal) + Number(amount);
+        var itemIdPembobotan = dataRec.getSublistValue({
+            sublistId: "item",
+            fieldId : "custcol_item_id_pembobotan", 
+            line : index
+        })
+        var result = getPembobobtanData(itemIdPembobotan, recid)
+        var totalAmountItem = result.totalAmountItem
+        log.debug('totalAmountItem', totalAmountItem)
+        var dataAsf = result.dataAsf
+        log.debug('dataAsf', dataAsf)
+        subTotal = Number(subTotal) + Number(totalAmountItem);
         body += "<tr>";
         body += `<td style='align: center; '>${!hasASF ? no : ''}</td>`;
         body += `<td style='align: left; '>${scopeOfWork}</td>`;
         body += `<td style='align: right; '>${quantity}</td>`;
         body += `<td style='align: center; '>${units}</td>`;
         body += `<td style='align: left; '>${tlcCurr}</td>`;
-        body += `<td style='align: right; '>${numberWithCommasV2(amount)}</td>`;
+        body += `<td style='align: right; '>${numberWithCommasV2(totalAmountItem)}</td>`;
         body += "</tr>";
-
-        if (!hasASF && itemId && complexityLevel && tier) {
-          let rateCardData = getRateCard(itemId, complexityLevel, tier);
-          log.debug('DATA RATE CARD', rateCardData);
-          let letter = 'a';
-          let sumHours = 0;
-          let sumTotal = 0;
-
-          body += `<tr>
-            <td rowspan='2' style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>${no}</td>
-            <td rowspan='2' style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>${scopeOfWork}</td>
-            <td colspan='4' style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>Breakdown (${complexityLevelText})</td>
-          </tr>`;
-
-          body += `<tr>
-            <td style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>Function</td>
-            <td style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>Hourly Rate</td>
-            <td style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>Hours</td>
-            <td style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>Sum - Fee</td>
-          </tr>`;
-
-          rateCardData.map(rateCard => {
-            body += `<tr>
-              <td rowspan='${rateCard.items.length + 1}' style='align: center; vertical-align: middle; border:1px solid black;'>${letter}</td>
-              <td colspan='5' style='font-weight: bold; background-color: #fff2cc; align: left; vertical-align: middle; border-top:1px solid black; border-right:1px solid black;'>${rateCard.categorySOWText}</td>
-            </tr>`;
-
-            rateCard.items.map(item => {
-              sumHours += Number(item.hours);
-              sumTotal += Number(item.total);
-
-              body += `<tr>
-                <td style='border-top:1px solid black;border-right:1px solid black; align:left;'>${item.desc.replaceAll('\n', '<br/>')}</td>
-                <td style='border-top:1px solid black;border-right:1px solid black; align:left;'>${item.positionText}</td>
-                <td style='border-top:1px solid black;border-right:1px solid black; align:right;'>${numberWithCommasV2(item.rate)}</td>
-                <td style='border-top:1px solid black;border-right:1px solid black; align:right;'>${item.hours}</td>
-                <td style='border-top:1px solid black;border-right:1px solid black; align:right;'>${numberWithCommasV2(item.total)}</td>
-              </tr>`;
+        if (dataAsf && dataAsf.length > 0) {
+            dataAsf.forEach(function(item) {
+                var desc = item.descAsf;
+                var amount = item.amountAsf;
+                subTotal = Number(subTotal) + Number(amount);
+                log.debug('Desc ASF', desc);
+                log.debug('Amount ASF', amount);
+                body += "<tr>";
+                body += `<td style='align: center; '></td>`;
+                body += `<td style='align: left;'>${desc}</td>`;
+                body += `<td style='align: right; '></td>`;
+                body += `<td style='align: center; '></td>`;
+                body += `<td style='align: left; '>${tlcCurr}</td>`;
+                body += `<td style='align: right; '>${numberWithCommasV2(amount)}</td>`;
+                body += "</tr>"
             });
-
-            letter = String.fromCharCode(letter.charCodeAt(0) + 1);
-          });
-
-          sumSubTotal += sumTotal;
-
-          body += `<tr>
-            <td colspan='4' style='font-weight: bold; background-color: #fff2cc; align: right; vertical-align: middle; border:1px solid black;'>SUM Qty, Price</td>
-            <td style='font-weight: bold; background-color: #fff2cc; align: right; vertical-align: middle; border:1px solid black;'>${sumHours}</td>
-            <td style='font-weight: bold; background-color: #fff2cc; align: right; vertical-align: middle; border:1px solid black;'>${numberWithCommasV2(sumTotal)}</td>
-          </tr>`;
-
-          body += `<tr><td colspan='6' height='25px'></td></tr>`;
         }
+        // if (!hasASF && itemId && complexityLevel && tier) {
+        //   let rateCardData = getRateCard(itemId, complexityLevel, tier);
+        //   log.debug('DATA RATE CARD', rateCardData);
+        //   let letter = 'a';
+        //   let sumHours = 0;
+        //   let sumTotal = 0;
+
+        //   body += `<tr>
+        //     <td rowspan='2' style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>${no}</td>
+        //     <td rowspan='2' style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>${scopeOfWork}</td>
+        //     <td colspan='4' style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>Breakdown (${complexityLevelText})</td>
+        //   </tr>`;
+
+        //   body += `<tr>
+        //     <td style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>Function</td>
+        //     <td style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>Hourly Rate</td>
+        //     <td style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>Hours</td>
+        //     <td style='font-weight: bold; background-color: orange; align: center; vertical-align: middle; border:1px solid black;'>Sum - Fee</td>
+        //   </tr>`;
+
+        //   rateCardData.map(rateCard => {
+        //     body += `<tr>
+        //       <td rowspan='${rateCard.items.length + 1}' style='align: center; vertical-align: middle; border:1px solid black;'>${letter}</td>
+        //       <td colspan='5' style='font-weight: bold; background-color: #fff2cc; align: left; vertical-align: middle; border-top:1px solid black; border-right:1px solid black;'>${rateCard.categorySOWText}</td>
+        //     </tr>`;
+
+        //     rateCard.items.map(item => {
+        //       sumHours += Number(item.hours);
+        //       sumTotal += Number(item.total);
+
+        //       body += `<tr>
+        //         <td style='border-top:1px solid black;border-right:1px solid black; align:left;'>${item.desc.replaceAll('\n', '<br/>')}</td>
+        //         <td style='border-top:1px solid black;border-right:1px solid black; align:left;'>${item.positionText}</td>
+        //         <td style='border-top:1px solid black;border-right:1px solid black; align:right;'>${numberWithCommasV2(item.rate)}</td>
+        //         <td style='border-top:1px solid black;border-right:1px solid black; align:right;'>${item.hours}</td>
+        //         <td style='border-top:1px solid black;border-right:1px solid black; align:right;'>${numberWithCommasV2(item.total)}</td>
+        //       </tr>`;
+        //     });
+
+        //     letter = String.fromCharCode(letter.charCodeAt(0) + 1);
+        //   });
+
+        //   sumSubTotal += sumTotal;
+
+        //   body += `<tr>
+        //     <td colspan='4' style='font-weight: bold; background-color: #fff2cc; align: right; vertical-align: middle; border:1px solid black;'>SUM Qty, Price</td>
+        //     <td style='font-weight: bold; background-color: #fff2cc; align: right; vertical-align: middle; border:1px solid black;'>${sumHours}</td>
+        //     <td style='font-weight: bold; background-color: #fff2cc; align: right; vertical-align: middle; border:1px solid black;'>${numberWithCommasV2(sumTotal)}</td>
+        //   </tr>`;
+
+        //   body += `<tr><td colspan='6' height='25px'></td></tr>`;
+        // }
         
 
       }

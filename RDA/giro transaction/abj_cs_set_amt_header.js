@@ -26,8 +26,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     columns:
                     [
                         search.createColumn({name: "tranid", label: "Document Number"}),
-                        search.createColumn({name: "internalid", label: "Internal ID"}),
-                        search.createColumn({name: "amountremaining", label: "Amount Remaining"})
+                        search.createColumn({name: "internalid", label: "Internal ID"})
                     ]
                 });
                 var searchResultCount = invoiceSearchObj.runPaged().count;
@@ -125,10 +124,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var total = Number(amtHeader) + Number(amtLine);
             log.debug('total after add line', total);
 
-            // currentRecordObj.setValue({
-            //     fieldId: 'custbody_rda_giro_amount',
-            //     value: total,
-            // });
+            currentRecordObj.setValue({
+                fieldId: 'custbody_rda_giro_amount',
+                value: total,
+            });
             
         }
             
@@ -154,6 +153,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var sublistName = context.sublistId;
         if (sublistName === 'recmachcustrecord_rda_giro_id') {
             var currentRecordObj = context.currentRecord;
+
+           
             var amtHeader = currentRecordObj.getValue('custbody_rda_giro_amount') || 0;
 
             var amtLine = Math.abs(currentRecordObj.getCurrentSublistValue({
@@ -164,10 +165,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var total = Number(amtHeader) - Number(amtLine);
             log.debug('total after delete', total);
 
-            // currentRecordObj.setValue({
-            //     fieldId: 'custbody_rda_giro_amount',
-            //     value: total,
-            // });
+            currentRecordObj.setValue({
+                fieldId: 'custbody_rda_giro_amount',
+                value: total,
+            });
         }
         return true;
     }
@@ -207,48 +208,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 
                
             }   
-        }
-        if(sublistName == 'recmachcustrecord_rda_giro_id'){
-            if(fieldNam == 'custrecord_rda_giro_invoicenum'){
-                var invId = vrecord.getCurrentSublistValue({
-                    sublistId : 'recmachcustrecord_rda_giro_id',
-                    fieldId : 'custrecord_rda_giro_invoicenum'
-                })
-                console.log('invId', invId)
-                if(invId){
-                    var invoiceSearchObj = search.create({
-                        type: "invoice",
-                        settings: [
-                            {"name": "consolidationtype", "value": "ACCTTYPE"},
-                            {"name": "includeperiodendtransactions", "value": "F"}
-                        ],
-                        filters: [
-                            ["type", "anyof", "CustInvc"], 
-                            "AND", 
-                            ["status", "anyof", "CustInvc:A"], 
-                            "AND", 
-                            ["internalid", "anyof", invId], 
-                            "AND", 
-                            ["mainline", "is", "T"]
-                        ],
-                        columns: [
-                            search.createColumn({name: "amountremaining", label: "Amount Remaining"})
-                        ]
-                    });
-            
-                    var result = invoiceSearchObj.run().getRange({start: 0, end: 1});
-                    if(result.length > 0){
-                        var amountRemaining = result[0].getValue({name: "amountremaining"}) || 0;
-                        console.log('amountRemaining', amountRemaining)
-                        rec.setCurrentSublistValue({
-                            sublistId: 'recmachcustrecord_rda_giro_id',
-                            fieldId: 'custrecord_rda_giro_amountinvoice',
-                            value: amountRemaining
-                        });
-                    }
-                }
-                
-            }
         }
         if(sublistName == 'recmachcustrecord_rda_giro_id'){
             if(fieldNam == 'custrecord_rda_giro_amountinvoice'){

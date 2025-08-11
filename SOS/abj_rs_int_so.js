@@ -88,7 +88,8 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           so.setValue({ fieldId: 'shipzip', value: data.ship_to.zip });
         }
       }
-
+      var cekTransType = so.getValue("custbody_sos_transaction_types");
+      log.debug('cekTransType', cekTransType)
       data.order_items.forEach((line) => {
         so.selectNewLine({ sublistId: 'item' });
 
@@ -107,6 +108,35 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
               fieldId: 'cseg_sos_brand',
               value: line.brand.internal_id
             });
+        }
+        // set segment
+        var cekType = so.getCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'custcol_sos_production_types'
+        })
+        log.debug('cekType', cekType);
+        if(cekType){
+          if(cekType == '2'){
+            so.setCurrentSublistValue({
+              sublistId: 'item',
+              fieldId: 'cseg_sos_sales_segm',
+              value: 3
+            });
+          }else{
+            if(cekTransType == "9"){
+              so.setCurrentSublistValue({
+                sublistId: 'item',
+                fieldId: 'cseg_sos_sales_segm',
+                value: 2
+              });
+            }else{
+              so.setCurrentSublistValue({
+                sublistId: 'item',
+                fieldId: 'cseg_sos_sales_segm',
+                value: 1
+              });
+            }
+          }
         }
         so.setCurrentSublistValue({
           sublistId: 'item',
