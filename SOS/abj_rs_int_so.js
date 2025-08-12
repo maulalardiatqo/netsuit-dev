@@ -24,11 +24,12 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
       //   log.debug('masuk order type', data.order_type)
         
       // }
+      var departmentId = data.department.internal_id
+      var classId = data.class.internal_id
+      var locationId = data.location.internal_id
+      log.debug('data header', {departmentId : departmentId, classId : classId, locationId : locationId} )
       so.setValue({ fieldId: 'custbody_sos_transaction_types', value: data.order_type.internal_id});
       so.setValue({ fieldId: 'trandate', value: dateObj });
-      so.setValue({ fieldId: 'location', value: data.location.internal_id });
-      so.setValue({ fieldId: 'class', value: data.class.internal_id });
-      so.setValue({ fieldId: 'department', value: "6" });
       so.setValue({ fieldId: 'currency', value: data.currency.internal_id });
       so.setValue({ fieldId: 'exchangerate', value: data.exchange_rate });
       so.setValue({ fieldId: 'memo', value: data.memo || '' });
@@ -88,15 +89,32 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           so.setValue({ fieldId: 'shipzip', value: data.ship_to.zip });
         }
       }
+      so.setValue({ fieldId: 'location', value: data.location.internal_id });
+      so.setValue({ fieldId: 'department', value: "6"});
       var cekTransType = so.getValue("custbody_sos_transaction_types");
       log.debug('cekTransType', cekTransType)
-      data.order_items.forEach((line) => {
+      let firstLineClass = null;
+      // set line
+      data.order_items.forEach((line, index) => {
         so.selectNewLine({ sublistId: 'item' });
 
         so.setCurrentSublistValue({
           sublistId: 'item',
           fieldId: 'item',
           value: line.item.internal_id
+        });
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'department',
+          value: 6,
+          ignoreFieldChange : true
+        });
+        log.debug('locationId before set', locationId)
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'location',
+          value: locationId,
+          ignoreFieldChange : true
         });
         var brand = so.getCurrentSublistValue({
           sublistId: 'item',
@@ -138,11 +156,20 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
             }
           }
         }
+        var cekClass = so.getCurrentSublistValue({
+          sublistId: 'item',
+          fieldId : 'class'
+        })
+        log.debug('cekClass', cekClass);
+        if (index === 0 && cekClass) {
+          firstLineClass = cekClass;
+        }
         so.setCurrentSublistValue({
           sublistId: 'item',
           fieldId: 'quantity',
           value: line.quantity
         });
+       
 
         so.setCurrentSublistValue({
           sublistId: 'item',
@@ -156,27 +183,14 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
             value: line.description
           });
         }
-
-        
         if(line.brand.internal_id){
-           so.setCurrentSublistValue({
+          so.setCurrentSublistValue({
             sublistId: 'item',
             fieldId: 'cseg_sos_brand',
             value: line.brand.internal_id
           });
         }
-        
-        // if (line.units) {
-        //   so.setCurrentSublistValue({
-        //     sublistId: 'item',
-        //     fieldId: 'units',
-        //     value: line.units.internal_id
-        //   });
-        // }
         var grossAmt = line.gross_amount
-        // var rateValue = parseFloat(line.rate);
-        // log.debug('rateValue', rateValue)
-       
         if (line.tax_code) {
             so.setCurrentSublistValue({
               sublistId: 'item',
@@ -214,17 +228,14 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           fieldId : 'custcol_sos_amount_after_disc',
           value : amtAftDisc
         })
-        // var amount = Number(rateValue) * Number(line.quantity)
-        // log.debug('amount', amount)
-        // so.setCurrentSublistValue({
-        //   sublistId: 'item',
-        //   fieldId: 'amount',
-        //   value: amount
-        // });
-        
-
         so.commitLine({ sublistId: 'item' });
       });
+      if (firstLineClass) {
+          so.setValue({
+              fieldId: 'class',
+              value: firstLineClass
+          });
+      }
       if(data.voucher_amount && data.voucher_amount != 0){
         so.selectNewLine({ sublistId: 'item' });
 
@@ -232,6 +243,19 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           sublistId: 'item',
           fieldId: 'item',
           value: "2081"
+        });
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'department',
+          value: 6,
+          ignoreFieldChange : true
+        });
+        log.debug('locationId before set', locationId)
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'location',
+          value: locationId,
+          ignoreFieldChange : true
         });
         so.setCurrentSublistValue({
           sublistId: 'item',
@@ -260,6 +284,19 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           sublistId: 'item',
           fieldId: 'item',
           value: "2082"
+        });
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'department',
+          value: 6,
+          ignoreFieldChange : true
+        });
+        log.debug('locationId before set', locationId)
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'location',
+          value: locationId,
+          ignoreFieldChange : true
         });
         so.setCurrentSublistValue({
           sublistId: 'item',

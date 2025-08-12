@@ -266,6 +266,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             fieldId: 'custrecord_rda_girodetail_customer',
             value: custId
         });
+        setInv(custId, currentRecord)
         // currentRecordObj.commitLine({ sublistId: 'recmachcustrecord_rda_giro_id' });
     }
 
