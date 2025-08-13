@@ -17,19 +17,13 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
       log.debug('shipDateObj', shipDateObj)
       so.setValue({ fieldId: 'customform', value: 125});
       log.debug('transType', data.order_type);
-      
+      log.debug('idEntity', data.entity.internal_id)
       so.setValue({ fieldId: 'entity', value: data.entity.internal_id });
-      // so.setValue({ fieldId: 'subsidiary', value: data.subsidiary.internal_id });
-      // if(data.order_type && data.order_type == 'preorder'){
-      //   log.debug('masuk order type', data.order_type)
-        
-      // }
-      var departmentId = data.department.internal_id
-      var classId = data.class.internal_id
       var locationId = data.location.internal_id
-      log.debug('data header', {departmentId : departmentId, classId : classId, locationId : locationId} )
+      log.debug('orderTypeId', data.order_type.internal_id)
       so.setValue({ fieldId: 'custbody_sos_transaction_types', value: data.order_type.internal_id});
       so.setValue({ fieldId: 'trandate', value: dateObj });
+      log.debug('currency Id', data.currency.internal_id )
       so.setValue({ fieldId: 'currency', value: data.currency.internal_id });
       so.setValue({ fieldId: 'exchangerate', value: data.exchange_rate });
       so.setValue({ fieldId: 'memo', value: data.memo || '' });

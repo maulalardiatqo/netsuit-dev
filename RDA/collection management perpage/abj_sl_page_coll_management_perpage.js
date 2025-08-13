@@ -55,7 +55,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 ],
                 columns:
                 [
-                    search.createColumn({name: "entityid", label: "Name"}),
+                    search.createColumn({name: "altname", label: "Name"}),
                     search.createColumn({name: "internalid", label: "Internal ID"})
                 ]
             });
@@ -63,7 +63,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             log.debug("employeeSearchObj result count",searchResultCount);
             employeeSearchObj.run().each(function(result){
                 var nameSales = result.getValue({
-                    name: "entityid"
+                    name: "altname"
                 });
                 var idEmp = result.getValue({
                     name: "internalid"
@@ -386,7 +386,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                         //     type: format.Type.DATE
                         // });
                         // log.debug('formattedDate', formattedDate)
-                        const dateConvert = convertToDate(dateSet);
+                        // const dateConvert = convertToDate(dateSet);
                         const createRec = record.create({ type: "customtransaction_rda_collection_mgm" });
                         createRec.setValue({ fieldId: "trandate", value: currentDate, ignoreFieldChange: true });
                         createRec.setValue({ fieldId: "currency", value: currSet, ignoreFieldChange: true });

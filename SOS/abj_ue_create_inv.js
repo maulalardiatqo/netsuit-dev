@@ -98,8 +98,10 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                 for (let i = invoiceLineCount - 1; i >= 0; i--) {
                     invoiceRecord.selectLine({ sublistId: 'item', line: i });
                     const itemId = invoiceRecord.getCurrentSublistValue({ sublistId: 'item', fieldId: 'item' });
-
-                    if (!fulfilledItems[itemId]) {
+                    const itemType = invoiceRecord.getCurrentSublistValue({ sublistId: 'item', fieldId: 'itemtype'});
+                    log.debug('itemType', itemType)
+                    if(itemType == 'InvtPart'){
+                        if (!fulfilledItems[itemId]) {
                         invoiceRecord.removeLine({ sublistId: 'item', line: i });
                     } else {
                         invoiceRecord.setCurrentSublistValue({
@@ -117,6 +119,8 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
 
                         invoiceRecord.commitLine({ sublistId: 'item' });
                     }
+                    }
+                    
                 }
                 log.debug('totalDiscAmount', totalDiscAmount);
                 log.debug('taxToSet', taxToSet)
