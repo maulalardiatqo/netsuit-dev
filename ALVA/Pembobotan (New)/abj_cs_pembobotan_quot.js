@@ -635,7 +635,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
 
                     rec.commitLine({ sublistId: 'recmachcustrecord_transaction_id' });
                 }
-                recalculateItem(rec)
+                // recalculateItem(rec)
             }
             
 
@@ -1065,7 +1065,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
 
             console.log('➡️ Field quantity berubah di line:', currentLine);
             console.log('qtyItem', qtyItem)
-            recalculateSingleLine(rec, currentLine, qtyItem);
+            // recalculateSingleLine(rec, currentLine, qtyItem);
             }
         }
         
