@@ -8,6 +8,7 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
             for (var i = 0; i < data.length; i++) {
                 var item = data[i];
                 var id = item.idLinePembobotan;
+
                 if (!grouped[id]) {
                     grouped[id] = [];
                 }
@@ -23,7 +24,6 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                             break;
                         }
                     }
-
                     if (!found) {
                         grouped[id].push(JSON.parse(JSON.stringify(item)));
                     }
@@ -32,8 +32,34 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                 }
             }
 
+            // Hitung total per grup dan masukkan ke setiap item
+            for (var id in grouped) {
+                if (grouped.hasOwnProperty(id)) {
+                    var totalAmount = 0;
+                    var totalAsfProsent = 0;
+
+                    // Hitung totalAmountPembobotan dan totalAsfProsent
+                    for (var k = 0; k < grouped[id].length; k++) {
+                        if (grouped[id][k].isAfs === "F") {
+                            totalAmount += parseFloat(grouped[id][k].amountPembobotan || "0");
+                        } else if (grouped[id][k].isAfs === "T") {
+                            totalAsfProsent += parseFloat(grouped[id][k].asfProsent || "0");
+                        }
+                    }
+
+                    // Set kedua total ke setiap item
+                    for (var m = 0; m < grouped[id].length; m++) {
+                        grouped[id][m].totalAmountPembobotan = totalAmount;
+                        grouped[id][m].totalAsfProsent = totalAsfProsent;
+                    }
+                }
+            }
+
             return grouped;
         }
+
+
+
         function executeGlCredit(transactionRecord, project, taxTotal, sorecord){
             var linePembobotan = transactionRecord.getLineItemCount('recmachcustrecord_transaction_id');
             if(linePembobotan > 0){
@@ -62,12 +88,15 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                         var item_amount = transactionRecord.getLineItemValue('item','amount', i);
                         var itemInv = transactionRecord.getLineItemValue('item','item', i);
                         var lineIntem = transactionRecord.getLineItemValue('item','custcol_item_id_pembobotan', i);
-                        var lineIntem = transactionRecord.getLineItemValue('item','custcol_item_id_pembobotan', i);
+                        var prorateAsf = transactionRecord.getLineItemValue('item','custcol_alvaprorateasf', i);
+                        var qtyItem = transactionRecord.getLineItemValue('item','quantity', i);
                         if(parseFloat(item_amount) > 0){
                             allItemInv.push({
                                 itemInv : itemInv,
                                 item_amount : item_amount,
-                                lineIntem : lineIntem
+                                lineIntem : lineIntem,
+                                prorateAsf : prorateAsf,
+                                qtyItem : qtyItem
                             })
                             amountTotalLine += Number(amtDebit);
                             allLines.push({accId:accId,amtDebit:amtDebit,amtCredit:amtCredit, lineIntem : lineIntem});
@@ -243,11 +272,15 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                         var itemInv = transactionRecord.getLineItemValue('item','item', i);
                         var lineIntem = transactionRecord.getLineItemValue('item','custcol_item_id_pembobotan', i);
                         var lineIntem = transactionRecord.getLineItemValue('item','custcol_item_id_pembobotan', i);
+                        var prorateAsf = transactionRecord.getLineItemValue('item','custcol_alvaprorateasf', i);
+                        var qtyItem = transactionRecord.getLineItemValue('item','quantity', i);
                         if(parseFloat(item_amount) > 0){
                             allItemInv.push({
                                 itemInv : itemInv,
                                 item_amount : item_amount,
-                                lineIntem : lineIntem
+                                lineIntem : lineIntem,
+                                prorateAsf : prorateAsf,
+                                qtyItem : qtyItem
                             })
                             amountTotalLine += Number(amtCredit);
                             allLines.push({accId:accId,amtDebit:amtDebit,amtCredit:amtCredit, lineIntem : lineIntem});
@@ -315,6 +348,7 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                     nlapiLogExecution('DEBUG', 'alldataPembobotan', JSON.stringify(alldataPembobotan));
                     const groupingData = groupPembobotan(alldataPembobotan);
                     nlapiLogExecution('DEBUG', 'groupingData', JSON.stringify(groupingData));
+                    nlapiLogExecution('DEBUG', 'amountTotalLine', amountTotalLine);
                     var accIdInv 
                     if(amountTotalLine > 0){
                         var newLine = customLines.addNewLine();
@@ -363,22 +397,46 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                                     var amountAsfpembototan = line.amountAsfpembototan;
                                     var isAfs = line.isAfs;
                                     var asfProsent = line.asfProsent;
+                                    var totalAmountPembobotan = line.totalAmountPembobotan
                                     var departmentPembobotan = line.departmentPembobotan;
                                     var amountPembobotan = line.amountPembobotan;
                                     var incomeAccount = line.incomeAccount;
-
+                                    var totalAsfProsent = line.totalAsfProsent
+                                    var itemInvData = null;
+                                    for (var a = 0; a < allItemInv.length; a++) {
+                                        if (allItemInv[a].lineIntem === idLinePembobotan) {
+                                            itemInvData = allItemInv[a];
+                                            break;
+                                        }
+                                    }
+                                    var prorateAsf = itemInvData.prorateAsf
+                                    var item_amount = itemInvData.item_amount
+                                    var qtyItem = itemInvData.qtyItem
                                     // Contoh log
                                     nlapiLogExecution('DEBUG', 'Looping Line', 
                                         'LineID: ' + idLinePembobotan +
                                         ' | Dept: ' + departmentPembobotan +
                                         ' | Amount: ' + amountPembobotan +
                                         ' | ASF: ' + isAfs +
-                                        ' | Account: ' + incomeAccount
+                                        ' | Account: ' + incomeAccount +
+                                        ' | Prorate ASF: ' + prorateAsf +
+                                        ' | Item Amount: ' + item_amount +
+                                        ' | QTY Item: ' + qtyItem +
+                                        ' | totalAmountPembobotan :' + totalAmountPembobotan +
+                                        ' | asfProsent :' + asfProsent + 
+                                        ' | totalAsfProsent: ' + totalAsfProsent
                                     );
+                                    var amountToset = 0;
+                                    if(isAfs =='F'){
+                                        amountToset = ((Number(item_amount) - (Number(prorateAsf)* Number(qtyItem))) / (Number(totalAmountPembobotan)) * Number(amountPembobotan))
+                                    }else{
+                                        amountToset = ((Number(prorateAsf) * Number(qtyItem)) / (Number(totalAsfProsent)) * Number(asfProsent))
+                                    }
+                                    nlapiLogExecution("DEBUG", "Amount to set", "Amount to set: " + amountToset);
                                     var newLine = customLines.addNewLine();
                                     newLine.setAccountId(parseInt(incomeAccount));
                                     newLine.setMemo('Pembobotan -' + project);
-                                    newLine.setCreditAmount(parseFloat(amountPembobotan));
+                                    newLine.setCreditAmount(parseFloat(amountToset));
                                     if (departmentPembobotan && !isNaN(departmentPembobotan)) {
                                         newLine.setDepartmentId(parseInt(departmentPembobotan, 10));
                                     }
