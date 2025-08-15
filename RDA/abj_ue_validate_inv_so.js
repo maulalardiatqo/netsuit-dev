@@ -22,19 +22,31 @@ define(['N/search', 'N/error'], (search, error) => {
             if (recordType === 'salesorder'){
                 log.debug('Entered Condition')
                 const invoiceLineCount = invoice.getLineCount({ sublistId: 'item' });
-
                 const invoiceLineMap = {};
 
                 for (let i = 0; i < invoiceLineCount; i++) {
-                    const orderLine = invoice.getSublistValue({ sublistId: 'item', fieldId: 'orderline', line: i });
-                    log.debug('orderLine', orderLine)
-                    if (!orderLine) {
+                    const itemId = invoice.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'item',
+                        line: i
+                    });
+                    const orderLine = invoice.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'orderline',
+                        line: i
+                    });
+
+                    log.debug('orderLine', orderLine);
+                    log.debug('itemId', itemId);
+
+                    // Skip validasi jika item id 38, 39, atau 11
+                    if (!orderLine && ![38, 39, 11].includes(parseInt(itemId, 10))) {
                         var message = 'Warning! You are not allowed to add a line that is not from the related Sales Order.';
                         throw message;
                     }
 
                     invoiceLineMap[orderLine] = {
-                        item: invoice.getSublistValue({ sublistId: 'item', fieldId: 'item', line: i }),
+                        item: itemId,
                         quantity: parseFloat(invoice.getSublistValue({ sublistId: 'item', fieldId: 'quantity', line: i }) || 0),
                         amount: parseFloat(invoice.getSublistValue({ sublistId: 'item', fieldId: 'amount', line: i }) || 0)
                     };
@@ -84,14 +96,16 @@ define(['N/search', 'N/error'], (search, error) => {
                     const invLine = invoiceLineMap[orderLine];
                     const soLine = soLineMap[orderLine];
 
+                    if (excludedItemIds.includes(parseInt(invLine.item, 10))) {
+                        log.debug('Skipping validation for excluded item ID', invLine.item);
+                        invoiceLineMap[soLine] = invLine;
+                        continue;
+                    }
+
+                    // Validasi hanya untuk item yang tidak termasuk excluded
                     if (!soLine) {
                         var message = 'SO line not found.';
                         throw message;
-                    }
-
-                    if (excludedItemIds.includes(parseInt(invLine.item))) {
-                        log.debug('Skipping validation for excluded item ID', invLine.item);
-                        continue;
                     }
 
                     if (parseInt(invLine.item) !== parseInt(soLine.item)) {

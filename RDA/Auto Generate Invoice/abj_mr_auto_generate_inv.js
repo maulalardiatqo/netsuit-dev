@@ -5,19 +5,9 @@
 define(['N/search', 'N/record', 'N/log'], (search, record, log) => {
 
     const SAVED_SEARCH_ID = 'customsearch1529';
-
     const getInputData = () => {
         try {
-            const searchObj = search.load({ id: SAVED_SEARCH_ID });
-            
-            const results = [];
-            let count = 0;
-            
-            searchObj.run().each(result => {
-                results.push(result);
-                count++;
-                return count < 5;
-            });
+            const results = search.load({ id: SAVED_SEARCH_ID });
 
             return results;
         } catch (e) {
@@ -28,20 +18,54 @@ define(['N/search', 'N/record', 'N/log'], (search, record, log) => {
 
     const map = (context) => {
         try {
+            function getValue(values, ...possibleKeys) {
+                for (let key of possibleKeys) {
+                    if (values[key] !== undefined && values[key] !== null && values[key] !== '') {
+                        const val = values[key];
+                        if (Array.isArray(val)) {
+                            return val[0]?.value || val[0]?.text || null;
+                        }
+                        if (typeof val === 'object' && val.value !== undefined) {
+                            return val.value;
+                        }
+                        return val;
+                    }
+                }
+                return null;
+            }
+
             const result = JSON.parse(context.value);
             const values = result.values;
-            log.debug('result', result)
-            const fulfillmentId = values.internalid?.[0]?.value || null;
-            const soId = values["appliedToTransaction.internalid"]?.[0]?.value || null;
-            const itemId = values["item.internalid"]?.[0]?.value || null;
-            const qty = Number(values.quantity || 0);
-            const location = values.location?.[0]?.value || null;
-            const lineIdentifier = values.custcol_rda_line_identifier?.[0]?.value || values.custcol_rda_line_identifier || null;
+            log.debug('result', result);
+            const fulfillmentId = getValue(values, 'internalid');
+            const soId = getValue(values, 'internalid.appliedToTransaction', 'appliedToTransaction.internalid');
+            const disc1 = getValue(values, 'custcol_rda_disc1_.appliedToTransaction', 'appliedToTransaction.custcol_rda_disc1_');
+            const disc2 = getValue(values, 'custcol_rda_disc2_.appliedToTransaction', 'appliedToTransaction.custcol_rda_disc2_');
+            const disc3 = getValue(values, 'custcol_rda_disc3_.appliedToTransaction', 'appliedToTransaction.custcol_rda_disc3_');
+            const disc4 = getValue(values, 'custcol_rda_disc4_.appliedToTransaction', 'appliedToTransaction.custcol_rda_disc4_');
+            const disc5 = getValue(values, 'custcol_rda_disc5_.appliedToTransaction', 'appliedToTransaction.custcol_rda_disc5_');
+            const disc6 = getValue(values, 'custcol_rda_disc6_.appliedToTransaction', 'appliedToTransaction.custcol_rda_disc6_');
+            const itemId = getValue(values, 'internalid.item', 'item.internalid');
+            const qty = Number(getValue(values, 'quantity') || 0);
+            const qty1 = Number(getValue(values, 'custcol_rda_quantity_1') || 0);
+            const qty2 = Number(getValue(values, 'custcol_rda_quantity_2') || 0);
+            const qty3 = Number(getValue(values, 'custcol_rda_quantity_3') || 0);
+            const location = getValue(values, 'location');
+            const lineIdentifier = getValue(values, 'custcol_rda_line_identifier');
 
             log.debug('fulfillmentId', fulfillmentId);
             log.debug('soId', soId);
             log.debug('itemId', itemId);
             log.debug('qty', qty);
+            log.debug('qty1', qty1);
+            log.debug('qty2', qty2);
+            log.debug('qty3', qty3);
+            log.debug('disc1', disc1);
+            log.debug('disc2', disc2);
+            log.debug('disc3', disc3);
+            log.debug('disc4', disc4);
+            log.debug('disc5', disc5);
+            log.debug('disc6', disc6);
             log.debug('location', location);
             log.debug('lineIdentifier', lineIdentifier);
 
@@ -51,7 +75,7 @@ define(['N/search', 'N/record', 'N/log'], (search, record, log) => {
             }
             context.write({
                 key: fulfillmentId,
-                value: { soId, itemId, qty, location, lineIdentifier }
+                value: { soId, itemId, qty, location, lineIdentifier, qty1, qty2, qty3, disc1, disc2, disc3, disc4, disc5, disc6 }
             });
 
         } catch (e) {
@@ -96,7 +120,6 @@ define(['N/search', 'N/record', 'N/log'], (search, record, log) => {
                     fieldId: 'amount',
                     line: i
                 });
-                log.debug('currentItem', currentItem)
                 log.debug('amount', amount)
                 const lineIdentifierInv = invoiceRec.getSublistValue({
                     sublistId: 'item',
@@ -110,8 +133,6 @@ define(['N/search', 'N/record', 'N/log'], (search, record, log) => {
                     String(ld.itemId) === String(currentItem) &&
                     String(ld.lineIdentifier) === String(lineIdentifierInv)
                 );
-
-                // const protectedItems = [38, 39, 11];
                 const protectedItems = [];
                 const isProtected = protectedItems.includes(Number(currentItem));
 
@@ -125,8 +146,181 @@ define(['N/search', 'N/record', 'N/log'], (search, record, log) => {
                     invoiceRec.setCurrentSublistValue({
                         sublistId: 'item',
                         fieldId: 'quantity',
-                        value: match.qty
+                        value: match.qty,
+                        ignoreMandatoryFields : true
                     });
+                    var cekAmount = invoiceRec.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'amount',
+                        line: i
+                    })
+                    invoiceRec.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_rda_quantity_1',
+                        value: match.qty1,
+                        ignoreMandatoryFields : true
+                    });
+                    invoiceRec.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_rda_quantity_2',
+                        value: match.qty2,
+                        ignoreMandatoryFields : true
+                    });
+                    invoiceRec.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_rda_quantity_3',
+                        value: match.qty3,
+                        ignoreMandatoryFields : true
+                    });
+                    invoiceRec.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_rda_disc1_',
+                        value: match.disc1,
+                        ignoreMandatoryFields : true
+                    });
+                    var cekDisc1 = match.disc1
+                    if(cekDisc1 && cekDisc1 != 0){
+                        var amountDisc1 = (cekDisc1 / 100) * cekAmount
+                        log.debug('amountDisc1', amountDisc1)
+                        var remainamt1 = cekAmount - amountDisc1
+                        invoiceRec.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_rda_remain_amt1',
+                            line: i,
+                            value: remainamt1
+                        });
+                        invoiceRec.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_rda_disc1_amount',
+                            value: amountDisc1,
+                            ignoreMandatoryFields : true
+                        });
+                        cekAmount = cekAmount - amountDisc1
+                    }
+                    invoiceRec.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_rda_disc2_',
+                        value: match.disc2,
+                        ignoreMandatoryFields : true
+                    });
+                    var cekDisc2 = match.disc2
+                    if(cekDisc2 && cekDisc2 != 0){
+                        var amountDisc2 = (cekDisc2 / 100) * cekAmount
+                        log.debug('amountDisc2', amountDisc2)
+                        var remainamt2 = cekAmount - amountDisc2
+                        invoiceRec.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_rda_remain_amt2',
+                            line: i,
+                            value: remainamt2
+                        });
+                        invoiceRec.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_rda_disc2_amount',
+                            value: amountDisc2,
+                            ignoreMandatoryFields : true
+                        });
+                        cekAmount = cekAmount - amountDisc2
+                    }
+                    invoiceRec.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_rda_disc3_',
+                        value: match.disc3,
+                        ignoreMandatoryFields : true
+                    });
+                    var cekDsic3 = match.disc3
+                    if(cekDsic3 && cekDsic3 != 0){
+                        var amountDisc3 = (cekDsic3 / 100) * cekAmount
+                        log.debug('amountDisc3', amountDisc3)
+                        var remainamt3 = cekAmount - amountDisc3
+                        invoiceRec.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_rda_remain_amt3',
+                            line: i,
+                            value: remainamt3
+                        });
+                        invoiceRec.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_rda_disc3_amount',
+                            value: amountDisc3,
+                            ignoreMandatoryFields : true
+                        });
+                        cekAmount = cekAmount - amountDisc3
+                    }
+                    invoiceRec.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_rda_disc4_',
+                        value: match.disc4,
+                        ignoreMandatoryFields : true
+                    });
+                    var cekDisc4 = match.disc4
+                    if(cekDisc4 && cekDisc4 != 0){
+                        var amountDisc4 = (cekDisc4 / 100) * cekAmount
+                        log.debug('amountDisc4', amountDisc4)
+                        var remainamt4 = cekAmount - amountDisc3
+                        invoiceRec.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_rda_remain_amt4',
+                            line: i,
+                            value: remainamt4
+                        });
+                        invoiceRec.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_rda_disc4_amount',
+                            value: amountDisc4,
+                            ignoreMandatoryFields : true
+                        });
+                        cekAmount = cekAmount - amountDisc4
+                    }
+                    invoiceRec.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_rda_disc5_',
+                        value: match.disc5,
+                        ignoreMandatoryFields : true
+                    });
+                    var cekDisc5 = match.disc5
+                    if(cekDisc5 && cekDisc5 != 0){
+                        var amountDisc5 = (cekDisc5 / 100) * cekAmount
+                        log.debug('amountDisc5', amountDisc5)
+                        var remainamt5 = cekAmount - amountDisc5
+                        invoiceRec.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_rda_remain_amt5',
+                            line: i,
+                            value: remainamt5
+                        });
+                        invoiceRec.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_rda_disc5_amount',
+                            value: amountDisc5,
+                            ignoreMandatoryFields : true
+                        });
+                        cekAmount = cekAmount - amountDisc5
+                    }
+                    invoiceRec.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_rda_disc6_',
+                        value: match.disc6,
+                        ignoreMandatoryFields : true
+                    });
+                    var cekDisc6 = match.disc6
+                    if(cekDisc6 && cekDisc6 != 0){
+                        var amountDisc6 = (cekDisc6 / 100) * cekAmount
+                        log.debug('amountDisc6', amountDisc6)
+                        var remainamt6 = cekAmount - amountDisc6
+                        invoiceRec.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_rda_remain_amt6',
+                            line: i,
+                            value: remainamt6
+                        });
+                        invoiceRec.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_rda_disc6_amount',
+                            value: amountDisc6,
+                            ignoreMandatoryFields : true
+                        });
+                    }
                     invoiceRec.commitLine({ sublistId: 'item' });
                 }
             }
