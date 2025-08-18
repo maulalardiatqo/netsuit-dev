@@ -4,7 +4,21 @@
  */
 define(['N/search', 'N/record', 'N/log'], (search, record, log) => {
 
-    const SAVED_SEARCH_ID = 'customsearch1529';
+    // SB : 
+    // const SAVED_SEARCH_ID = 'customsearch1529';
+
+    // Prod : 
+    const SAVED_SEARCH_ID = 'customsearch1658';
+
+    function parseToUTCDate(dateStr) {
+       try {
+        const [day, month, year] = dateStr.split('/').map(Number);
+        return new Date(year, month - 1, day);
+        } catch (e) {
+            log.error('Error parseToLocalDate', e);
+            return null;
+        }
+    }
     const getInputData = () => {
         try {
             const results = search.load({ id: SAVED_SEARCH_ID });
@@ -46,36 +60,24 @@ define(['N/search', 'N/record', 'N/log'], (search, record, log) => {
             const disc5 = getValue(values, 'custcol_rda_disc5_.appliedToTransaction', 'appliedToTransaction.custcol_rda_disc5_');
             const disc6 = getValue(values, 'custcol_rda_disc6_.appliedToTransaction', 'appliedToTransaction.custcol_rda_disc6_');
             const itemId = getValue(values, 'internalid.item', 'item.internalid');
+            const dateTrans = getValue(values, 'trandate');
             const qty = Number(getValue(values, 'quantity') || 0);
             const qty1 = Number(getValue(values, 'custcol_rda_quantity_1') || 0);
             const qty2 = Number(getValue(values, 'custcol_rda_quantity_2') || 0);
             const qty3 = Number(getValue(values, 'custcol_rda_quantity_3') || 0);
+            const trandate = getValue(values, 'trandate');
             const location = getValue(values, 'location');
             const lineIdentifier = getValue(values, 'custcol_rda_line_identifier');
 
-            log.debug('fulfillmentId', fulfillmentId);
-            log.debug('soId', soId);
-            log.debug('itemId', itemId);
-            log.debug('qty', qty);
-            log.debug('qty1', qty1);
-            log.debug('qty2', qty2);
-            log.debug('qty3', qty3);
-            log.debug('disc1', disc1);
-            log.debug('disc2', disc2);
-            log.debug('disc3', disc3);
-            log.debug('disc4', disc4);
-            log.debug('disc5', disc5);
-            log.debug('disc6', disc6);
-            log.debug('location', location);
-            log.debug('lineIdentifier', lineIdentifier);
+            log.debug('data search', {fulfillmentId : fulfillmentId, soId: soId, itemId : itemId, qty : qty, qty1 : qty1, qty2 : qty2, qty3 : qty3, disc1 : disc1, disc2 : disc2, disc3 : disc3, disc4 : disc4, disc5 :disc5, disc6 : disc6, location : location, lineIdentifier : lineIdentifier, trandate : trandate})
 
-            if (!fulfillmentId || !soId || !itemId || !qty || !location || !lineIdentifier) {
+            if (!fulfillmentId || !soId || !itemId || !qty || !location || !lineIdentifier || !trandate) {
                 log.error('Data tidak lengkap', result);
                 return;
             }
             context.write({
                 key: fulfillmentId,
-                value: { soId, itemId, qty, location, lineIdentifier, qty1, qty2, qty3, disc1, disc2, disc3, disc4, disc5, disc6 }
+                value: { soId, itemId, qty, location, lineIdentifier, qty1, qty2, qty3, disc1, disc2, disc3, disc4, disc5, disc6, trandate }
             });
 
         } catch (e) {
@@ -88,7 +90,9 @@ define(['N/search', 'N/record', 'N/log'], (search, record, log) => {
         const soId = linesData[0]?.soId;
         const location = linesData[0]?.location
         const lineIdentifier = linesData[0]?.lineIdentifier
-        log.debug('location', location)
+        const trandate = linesData[0]?.trandate
+        const trandateConvert = parseToUTCDate(trandate)
+        log.debug('trandateConvert', trandateConvert)
 
         try {
             log.audit(`Proses Fulfillment ID: ${fulfillmentId}`, `SO ID: ${soId}, Total line: ${linesData.length}`);
@@ -104,8 +108,20 @@ define(['N/search', 'N/record', 'N/log'], (search, record, log) => {
                 isDynamic: true
             });
             invoiceRec.setValue({
+                fieldId : 'customform',
+                value : '205'
+            })
+            invoiceRec.setValue({
                 fieldId : 'location',
                 value : location
+            })
+            invoiceRec.setValue({
+                fieldId : 'trandate',
+                value : trandateConvert
+            })
+            invoiceRec.setValue({
+                fieldId : 'custbody_abj_rda_if_number_inv_trans',
+                value : fulfillmentId
             })
             const lineCount = invoiceRec.getLineCount({ sublistId: 'item' });
             log.debug('lineCount', lineCount);
