@@ -67,7 +67,7 @@ define(['N/search', 'N/record', 'N/log'], (search, record, log) => {
             const qty3 = Number(getValue(values, 'custcol_rda_quantity_3') || 0);
             const trandate = getValue(values, 'trandate');
             const location = getValue(values, 'location');
-            const lineIdentifier = getValue(values, 'custcol_rda_line_identifier');
+            const lineIdentifier =  getValue(values, 'line.appliedToTransaction', 'appliedToTransaction.line');
 
             log.debug('data search', {fulfillmentId : fulfillmentId, soId: soId, itemId : itemId, qty : qty, qty1 : qty1, qty2 : qty2, qty3 : qty3, disc1 : disc1, disc2 : disc2, disc3 : disc3, disc4 : disc4, disc5 :disc5, disc6 : disc6, location : location, lineIdentifier : lineIdentifier, trandate : trandate})
 
@@ -139,7 +139,7 @@ define(['N/search', 'N/record', 'N/log'], (search, record, log) => {
                 log.debug('amount', amount)
                 const lineIdentifierInv = invoiceRec.getSublistValue({
                     sublistId: 'item',
-                    fieldId: 'custcol_rda_line_identifier',
+                    fieldId: 'orderline',
                     line: i
                 });
 
