@@ -88,6 +88,7 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                         var item_amount = transactionRecord.getLineItemValue('item','amount', i);
                         var itemInv = transactionRecord.getLineItemValue('item','item', i);
                         var lineIntem = transactionRecord.getLineItemValue('item','custcol_item_id_pembobotan', i);
+                        var lineIntem = transactionRecord.getLineItemValue('item','custcol_item_id_pembobotan', i);
                         var prorateAsf = transactionRecord.getLineItemValue('item','custcol_alvaprorateasf', i);
                         var qtyItem = transactionRecord.getLineItemValue('item','quantity', i);
                         if(parseFloat(item_amount) > 0){
@@ -98,7 +99,7 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                                 prorateAsf : prorateAsf,
                                 qtyItem : qtyItem
                             })
-                            amountTotalLine += Number(amtDebit);
+                            amountTotalLine += Number(amtCredit);
                             allLines.push({accId:accId,amtDebit:amtDebit,amtCredit:amtCredit, lineIntem : lineIntem});
                         }
                     }
@@ -117,7 +118,7 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
 
                     var itemColumns = [
                         new nlobjSearchColumn('internalid'),
-                        new nlobjSearchColumn('incomeaccount') // ini ID field-nya di record item
+                        new nlobjSearchColumn('incomeaccount') 
                     ];
 
                     var itemIncomeMap = {};
@@ -168,13 +169,13 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                     if (amountTotalLine > 0) {
                         var newLine = customLines.addNewLine();
                         newLine.setAccountId(318);
-                        newLine.setDebitAmount(amountTotalLine); // <-- dibalik
+                        newLine.setDebitAmount(amountTotalLine); 
                         newLine.setMemo('Standard Jurnal : Jurnal balik kebutuhan pembobotan');
 
                         if (taxTotal && taxTotal > 0) {
                             var newLine = customLines.addNewLine();
                             newLine.setAccountId(210);
-                            newLine.setCreditAmount(taxTotal); // <-- dibalik
+                            newLine.setCreditAmount(taxTotal); 
                             newLine.setMemo('Standard Jurnal : Jurnal balik kebutuhan pembobotan');
                         }
 
@@ -187,20 +188,20 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                                 accIdInv = accId;
                                 var newLine = customLines.addNewLine();
                                 newLine.setAccountId(parseInt(accId));
-                                newLine.setCreditAmount(amtDebit); // <-- dibalik
+                                newLine.setCreditAmount(amtDebit); 
                                 newLine.setMemo('Standard Jurnal : Jurnal balik kebutuhan pembobotan');
                             }
                         });
 
                         var newLine = customLines.addNewLine();
                         newLine.setAccountId(318);
-                        newLine.setCreditAmount(amountTotalLine); // <-- dibalik
+                        newLine.setCreditAmount(amountTotalLine); 
                         newLine.setMemo('Standard Jurnal : Jurnal balik kebutuhan pembobotan');
 
                         if (taxTotal && taxTotal > 0) {
                             var newLine = customLines.addNewLine();
                             newLine.setAccountId(210);
-                            newLine.setDebitAmount(taxTotal); // <-- dibalik
+                            newLine.setDebitAmount(taxTotal); 
                             newLine.setMemo('Standard Jurnal : Jurnal balik kebutuhan pembobotan');
                         }
 
@@ -211,27 +212,51 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                                 for (var i = 0; i < lines.length; i++) {
                                     var line = lines[i];
 
-                                    var idLinePembobotan = line.idLinePembobotan;
+                                     var idLinePembobotan = line.idLinePembobotan;
                                     var amountAsfpembototan = line.amountAsfpembototan;
                                     var isAfs = line.isAfs;
                                     var asfProsent = line.asfProsent;
+                                    var totalAmountPembobotan = line.totalAmountPembobotan
                                     var departmentPembobotan = line.departmentPembobotan;
                                     var amountPembobotan = line.amountPembobotan;
                                     var incomeAccount = line.incomeAccount;
-
+                                    var totalAsfProsent = line.totalAsfProsent
+                                    var itemInvData = null;
+                                    for (var a = 0; a < allItemInv.length; a++) {
+                                        if (allItemInv[a].lineIntem === idLinePembobotan) {
+                                            itemInvData = allItemInv[a];
+                                            break;
+                                        }
+                                    }
+                                    var prorateAsf = itemInvData.prorateAsf
+                                    var item_amount = itemInvData.item_amount
+                                    var qtyItem = itemInvData.qtyItem
                                     // Contoh log
-                                    nlapiLogExecution('DEBUG', 'Looping Line',
+                                    nlapiLogExecution('DEBUG', 'Looping Line', 
                                         'LineID: ' + idLinePembobotan +
                                         ' | Dept: ' + departmentPembobotan +
                                         ' | Amount: ' + amountPembobotan +
                                         ' | ASF: ' + isAfs +
-                                        ' | Account: ' + incomeAccount
+                                        ' | Account: ' + incomeAccount +
+                                        ' | Prorate ASF: ' + prorateAsf +
+                                        ' | Item Amount: ' + item_amount +
+                                        ' | QTY Item: ' + qtyItem +
+                                        ' | totalAmountPembobotan :' + totalAmountPembobotan +
+                                        ' | asfProsent :' + asfProsent + 
+                                        ' | totalAsfProsent: ' + totalAsfProsent
                                     );
+                                    var amountToset = 0;
+                                    if(isAfs =='F'){
+                                        amountToset = ((Number(item_amount) - (Number(prorateAsf)* Number(qtyItem))) / (Number(totalAmountPembobotan)) * Number(amountPembobotan))
+                                    }else{
+                                        amountToset = ((Number(prorateAsf) * Number(qtyItem)) / (Number(totalAsfProsent)) * Number(asfProsent))
+                                    }
+                                    nlapiLogExecution("DEBUG", "Amount to set", "Amount to set: " + amountToset);
 
                                     var newLine = customLines.addNewLine();
                                     newLine.setAccountId(parseInt(incomeAccount));
                                     newLine.setMemo('Pembobotan -' + project);
-                                    newLine.setDebitAmount(parseFloat(amountPembobotan)); // <-- dibalik
+                                    newLine.setDebitAmount(parseFloat(amountToset)); 
                                     if (departmentPembobotan && !isNaN(departmentPembobotan)) {
                                         newLine.setDepartmentId(parseInt(departmentPembobotan, 10));
                                     }
