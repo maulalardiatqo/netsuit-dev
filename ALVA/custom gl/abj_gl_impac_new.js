@@ -99,7 +99,7 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                                 prorateAsf : prorateAsf,
                                 qtyItem : qtyItem
                             })
-                            amountTotalLine += Number(amtCredit);
+                            amountTotalLine += Number(amtDebit);
                             allLines.push({accId:accId,amtDebit:amtDebit,amtCredit:amtCredit, lineIntem : lineIntem});
                         }
                     }
@@ -165,6 +165,7 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                     nlapiLogExecution('DEBUG', 'alldataPembobotan', JSON.stringify(alldataPembobotan));
                     const groupingData = groupPembobotan(alldataPembobotan);
                     nlapiLogExecution('DEBUG', 'groupingData', JSON.stringify(groupingData));
+                    nlapiLogExecution('DEBUG', 'amountTotalLine', amountTotalLine);
                     var accIdInv 
                     if (amountTotalLine > 0) {
                         var newLine = customLines.addNewLine();
