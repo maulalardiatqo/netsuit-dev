@@ -51,6 +51,24 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
         const result = JSON.parse(context.value);
         const values = result.values;
 
+        let dppValue = Number(values.amount);
+        if (Number.isInteger(dppValue)) {
+            dppValue = dppValue.toString(); 
+        } else {
+            dppValue = dppValue.toFixed(2); 
+        }
+        let tanggalPemotongan = values["applyingTransaction.trandate"];
+        log.debug('tanggalPemotongan', tanggalPemotongan)
+        if (tanggalPemotongan) {
+            let parts = tanggalPemotongan.split('/');
+            if (parts.length === 3) {
+                let day = parts[0].padStart(2, '0');
+                let month = parts[1].padStart(2, '0');
+                let year = parts[2];
+                tanggalPemotongan = `${day}/${month}/${year}`;
+            }
+        }
+
         const rowData = {
             masaPajak: values.custbody_sos_masa_pajak,
             tahunPajak: values.custbody_sos_tahun_pajak,
@@ -58,7 +76,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             idTkuPenerima: values.custbody_sos_id_tku_penerima_penghasil,
             fasilitas: values.custbody_sos_fasilitas,
             kodeObj: values.custbody_sos_kode_obj_pajak,
-            dpp: values.amount,
+            dpp: dppValue,
             tarif: values.custbody_sos_tarif,
             jenisDokRef: values.custbody_sos_jenis_dok_ref,
             nomorDokRef: values.custbody_sos_no_sp2d,   
@@ -66,11 +84,12 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             idTkuPemotong: values.custbody_id_tku_pemotong,
             opsiPembayaran: values.custbody_sos_opsi_pembayaran,
             nomorSP2D: values.custbody_sos_no_sp2d,
-            tanggalPemotongan: values["applyingTransaction.trandate"]
+            tanggalPemotongan: tanggalPemotongan
         };
 
         context.write({ key: 'bpu_group', value: JSON.stringify(rowData) });
     }
+
 
     function reduce(context) {
         const jobAction = runtime.getCurrentScript().getParameter({ name: 'custscript_job_action' });
@@ -89,25 +108,25 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
         return value !== undefined && value !== null && value !== '' ? value : 'N/A';
     }
 
-    xmlRows += `
-        <Bpu>
-            <TaxPeriodMonth>${safe(data?.masaPajak?.[0]?.text)}</TaxPeriodMonth>
-            <TaxPeriodYear>${safe(data?.tahunPajak?.[0]?.text)}</TaxPeriodYear>
-            <CounterpartTin>${safe(data?.npwp)}</CounterpartTin>
-            <IDPlaceOfBusinessActivityOfIncomeRecipient>${safe(data?.idTkuPenerima)}</IDPlaceOfBusinessActivityOfIncomeRecipient>
-            <TaxCertificate>${safe(data?.fasilitas?.[0]?.text)}</TaxCertificate>
-            <TaxObjectCode>${safe(data?.kodeObj)}</TaxObjectCode>
-            <TaxBase>${safe(data?.dpp)}</TaxBase>
-            <Rate>${safe(data?.tarif)}</Rate>
-            <Document>${safe(data?.jenisDokRef?.[0]?.text)}</Document>
-            <DocumentNumber>${safe(data?.nomorDokRef)}</DocumentNumber>
-            <DocumentDate>${safe(data?.tanggalDok)}</DocumentDate>
-            <IDPlaceOfBusinessActivity>${safe(data?.idTkuPemotong)}</IDPlaceOfBusinessActivity>
-            <GovTreasurerOpt>${safe(data?.opsiPembayaran)}</GovTreasurerOpt>
-            <SP2DNumber>${safe(data?.nomorSP2D)}</SP2DNumber>
-            <WithholdingDate>${safe(data?.tanggalPemotongan)}</WithholdingDate>
-        </Bpu>`;
-});
+             xmlRows += `
+                    <Bpu>
+                        <TaxPeriodMonth>${safe(data?.masaPajak?.[0]?.text)}</TaxPeriodMonth>
+                        <TaxPeriodYear>${safe(data?.tahunPajak?.[0]?.text)}</TaxPeriodYear>
+                        <CounterpartTin>${safe(data?.npwp)}</CounterpartTin>
+                        <IDPlaceOfBusinessActivityOfIncomeRecipient>${safe(data?.idTkuPenerima)}</IDPlaceOfBusinessActivityOfIncomeRecipient>
+                        <TaxCertificate>${safe(data?.fasilitas?.[0]?.text)}</TaxCertificate>
+                        <TaxObjectCode>${safe(data?.kodeObj?.[0]?.value)}</TaxObjectCode>
+                        <TaxBase>${safe(data?.dpp)}</TaxBase>
+                        <Rate>${safe(data?.tarif)}</Rate>
+                        <Document>${safe(data?.jenisDokRef?.[0]?.text)}</Document>
+                        <DocumentNumber>${safe(data?.nomorDokRef)}</DocumentNumber>
+                        <DocumentDate>${safe(data?.tanggalDok)}</DocumentDate>
+                        <IDPlaceOfBusinessActivity>${safe(data?.idTkuPemotong)}</IDPlaceOfBusinessActivity>
+                        <GovTreasurerOpt>${safe(data?.opsiPembayaran?.[0]?.text)}</GovTreasurerOpt>
+                        <SP2DNumber>${safe(data?.nomorSP2D)}</SP2DNumber>
+                        <WithholdingDate>${safe(data?.tanggalPemotongan)}</WithholdingDate>
+                    </Bpu>`;
+            });
 
             const fullXML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <BpuBulk xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
