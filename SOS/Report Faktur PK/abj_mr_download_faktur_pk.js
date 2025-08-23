@@ -5,42 +5,62 @@
 
 define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (search, runtime, file, log, format) {
 
-
+    function convDate(date){
+        let parts = tanggalDok.split('/');
+        if (parts.length === 3) {
+            let day = parts[0].padStart(2, '0');
+            let month = parts[1].padStart(2, '0');
+            let year = parts[2];
+            date = `${day}/${month}/${year}`;
+        }
+        return date
+    }
+    function removeDecimal(curr){
+        if (!isNaN(curr)) {
+            let decimalPart = curr % 1;
+            if (decimalPart > 0.5) {
+                curr = Math.ceil(curr);
+            } else {
+                curr = Math.floor(curr);
+            }
+        }
+        return curr
+    }
     function getAllResults(s) {
-    const results = s.run();
-    let searchResults = [];
-    let searchid = 0;
-    let resultslice;
+        const results = s.run();
+        let searchResults = [];
+        let searchid = 0;
+        let resultslice;
 
-    do {
-        resultslice = results.getRange({ start: searchid, end: searchid + 1000 });
-        resultslice.forEach(function (result) {
-            // Ambil semua field dari search
-            const values = {};
-            const columns = result.columns;
-            columns.forEach(function (col) {
-                const fieldId = col.name;
-                const value = result.getValue(col);
-                const text = result.getText(col);
-                if (text && text !== value) {
-                    values[fieldId] = [{ value: value, text: text }];
-                } else {
-                    values[fieldId] = value;
-                }
+        do {
+            resultslice = results.getRange({ start: searchid, end: searchid + 1000 });
+            resultslice.forEach(function (result) {
+                // Ambil semua field dari search
+                const values = {};
+                const columns = result.columns;
+                columns.forEach(function (col) {
+                    const fieldId = col.name;
+                    const value = result.getValue(col);
+                    const text = result.getText(col);
+                    if (text && text !== value) {
+                        values[fieldId] = [{ value: value, text: text }];
+                    } else {
+                        values[fieldId] = value;
+                    }
+                });
+
+                searchResults.push({
+                    recordType: result.recordType || 'unknown',
+                    id: result.id,
+                    values: values
+                });
+
+                searchid++;
             });
+        } while (resultslice.length === 1000);
 
-            searchResults.push({
-                recordType: result.recordType || 'unknown',
-                id: result.id,
-                values: values
-            });
-
-            searchid++;
-        });
-    } while (resultslice.length === 1000);
-
-    return searchResults;
-}
+        return searchResults;
+    }
 
 
     function getInputData() {
@@ -113,7 +133,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
         if (jobAction === 'excel') {
                 const fakturRow = grouped.faktur ? [
                 grouped.faktur.id,
-                grouped.faktur.values.trandate || '',
+                formatDate(grouped.faktur.values.trandate) || '',
                 getText(grouped.faktur.values.custbody_sos_jenis_fp),
                 grouped.faktur.values.custbody_sos_kode_transaksi_trx || '',
                 getText(grouped.faktur.values.custbody_sos_ket_tamb),
@@ -136,7 +156,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             const v = d.values;
             let itemName = getText(v.item);
             if (itemName && itemName.includes(':')) {
-                itemName = itemName.split(':')[0].trim();
+                itemName = itemName.split(':')[0].trim(); // Ambil sebelum titik dua
             }
             return [
                 d.id,
@@ -144,15 +164,15 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 getText(v.custbody_sos_kode_barang_jasa),
                 itemName,
                 getText(v.custbody_sos_nama_satuan_ukur),
-                v.rate || '',
+                removeDecimal(v.rate) || '',
                 v.quantity || '',
-                v.discountamount || '',
-                v.amount || '',
-                v.custcol_sos_dpp_nilai_lain || '',
+                removeDecimal(v.discountamount) || '',
+                removeDecimal(v.amount) || '',
+                removeDecimal(v.custcol_sos_dpp_nilai_lain) || '',
                 (getText(v.taxcode)?.replace(/vat/gi, '').replace(/%/g, '').trim()) || '',
-                v.taxamount || '',
+                removeDecimal(v.taxamount) || '',
                 '0',
-                '0.00',
+                '0',
             ];
         });
 
@@ -205,15 +225,15 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 xmlParts.push(`<Code>${getText(v.custbody_sos_kode_barang_jasa)}</Code>`);
                 xmlParts.push(`<Name>${itemName}</Name>`);
                 xmlParts.push(`<Unit>${getText(v.custbody_sos_nama_satuan_ukur)}</Unit>`);
-                xmlParts.push(`<Price>${v.rate || '0'}</Price>`);
+                xmlParts.push(`<Price>${removeDecimal(v.rate) || '0'}</Price>`);
                 xmlParts.push(`<Qty>${v.quantity || '0'}</Qty>`);
-                xmlParts.push(`<TotalDiscount>${v.discountamount || '0'}</TotalDiscount>`);
-                xmlParts.push(`<TaxBase>${v.amount || '0'}</TaxBase>`);
-                xmlParts.push(`<OtherTaxBase>${v.custcol_sos_dpp_nilai_lain || '0'}</OtherTaxBase>`);
+                xmlParts.push(`<TotalDiscount>${removeDecimal(v.discountamount) || '0'}</TotalDiscount>`);
+                xmlParts.push(`<TaxBase>${removeDecimal(v.amount) || '0'}</TaxBase>`);
+                xmlParts.push(`<OtherTaxBase>${removeDecimal(v.custcol_sos_dpp_nilai_lain) || '0'}</OtherTaxBase>`);
                 xmlParts.push(`<VATRate>${(getText(v.taxcode)?.replace(/vat/gi, '').replace(/%/g, '').trim()) || ''}</VATRate>`);
-                xmlParts.push(`<VAT>${v.taxamount || '0'}</VAT>`);
+                xmlParts.push(`<VAT>${removeDecimal(v.taxamount) || '0'}</VAT>`);
                 xmlParts.push(`<STLGRate>0</STLGRate>`);
-                xmlParts.push(`<STLG>0.00</STLG>`);
+                xmlParts.push(`<STLG>0</STLG>`);
                 xmlParts.push(`</GoodService>`);
             });
             xmlParts.push(`</ListOfGoodService>`);
@@ -249,15 +269,16 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             let rowCounter = 1;
 
             allFakturRows.forEach(fakturRow => {
-                const fakturId = fakturRow[0]; 
-                fakturIdToRowNumber[fakturId] = rowCounter; 
-                fakturRow[0] = rowCounter; 
+                const fakturId = fakturRow[0]; // ambil id faktur
+                fakturIdToRowNumber[fakturId] = rowCounter; // mapping ke nomor urut
+                fakturRow[0] = rowCounter; // replace fakturRow[0] dengan nomor urut
                 rowCounter++;
             });
 
+            // Replace detailRows baris ke-0 nya sesuai mapping faktur row number
             allDetailRows.forEach(detailRow => {
-                const fakturId = detailRow[0]; 
-                detailRow[0] = fakturIdToRowNumber[fakturId]; 
+                const fakturId = detailRow[0]; // ambil id faktur
+                detailRow[0] = fakturIdToRowNumber[fakturId]; // ganti dengan nomor urut
             });
 
             const content = createExcelXml(allFakturRows, allDetailRows, npwp);
@@ -306,7 +327,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
     function formatDate(dateStr) {
         if (!dateStr || typeof dateStr !== 'string') return '';
         const [day, month, year] = dateStr.split('/');
-        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
     }
     function escapeXml(str) {
         if (str === null || str === undefined) return '';
