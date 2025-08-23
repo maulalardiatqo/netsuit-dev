@@ -52,13 +52,19 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
         const values = result.values;
 
         let dppValue = Number(values.amount);
-        if (Number.isInteger(dppValue)) {
-            dppValue = dppValue.toString(); 
-        } else {
-            dppValue = dppValue.toFixed(2); 
+        if (!isNaN(dppValue)) {
+            let decimalPart = dppValue % 1; // ambil sisa desimal
+            if (decimalPart > 0.5) {
+                dppValue = Math.ceil(dppValue);
+            } else {
+                dppValue = Math.floor(dppValue);
+            }
         }
+
+        // Format tanggal pemotongan
         let tanggalPemotongan = values["applyingTransaction.trandate"];
-        log.debug('tanggalPemotongan', tanggalPemotongan)
+        log.debug('tanggalPemotongan sebelum format', tanggalPemotongan);
+
         if (tanggalPemotongan) {
             let parts = tanggalPemotongan.split('/');
             if (parts.length === 3) {
@@ -68,7 +74,16 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 tanggalPemotongan = `${day}/${month}/${year}`;
             }
         }
-
+        let tanggalDok = values.trandate
+         if (tanggalDok) {
+            let parts = tanggalDok.split('/');
+            if (parts.length === 3) {
+                let day = parts[0].padStart(2, '0');
+                let month = parts[1].padStart(2, '0');
+                let year = parts[2];
+                tanggalDok = `${day}/${month}/${year}`;
+            }
+        }
         const rowData = {
             masaPajak: values.custbody_sos_masa_pajak,
             tahunPajak: values.custbody_sos_tahun_pajak,
@@ -80,7 +95,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             tarif: values.custbody_sos_tarif,
             jenisDokRef: values.custbody_sos_jenis_dok_ref,
             nomorDokRef: values.custbody_sos_no_sp2d,   
-            tanggalDok: values.trandate,
+            tanggalDok: tanggalDok,
             idTkuPemotong: values.custbody_id_tku_pemotong,
             opsiPembayaran: values.custbody_sos_opsi_pembayaran,
             nomorSP2D: values.custbody_sos_no_sp2d,

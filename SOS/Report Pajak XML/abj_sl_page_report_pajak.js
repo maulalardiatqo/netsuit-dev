@@ -64,11 +64,11 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 label: 'Export To EXCEL',
                 functionName: 'submitWithLoadingExcel'
             });
-            form.addButton({
-                id: 'custpage_custom_submit_sxd',
-                label: 'Download SXD File',
-                functionName: 'submitWithLoadingSxd'
-            });
+            // form.addButton({
+            //     id: 'custpage_custom_submit_sxd',
+            //     label: 'Download SXD File',
+            //     functionName: 'submitWithLoadingSxd'
+            // });
 
             form.clientScriptModulePath = "SuiteScripts/abj_cs_report_pajak.js";
             context.response.writePage(form);
