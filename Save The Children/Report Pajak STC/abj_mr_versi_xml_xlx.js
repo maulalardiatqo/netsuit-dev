@@ -57,39 +57,60 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
         log.debug('tanggalPemotongan sebelum format', tanggalPemotongan);
 
         if (tanggalPemotongan) {
-            let parts = tanggalPemotongan.split('/');
+            let parts = tanggalPemotongan.split('-');
             if (parts.length === 3) {
                 let day = parts[0].padStart(2, '0');
-                let month = parts[1].padStart(2, '0');
+                let monthStr = parts[1];
                 let year = parts[2];
+                let monthMap = {
+                    Jan: '01', Feb: '02', Mar: '03', Apr: '04',
+                    May: '05', Jun: '06', Jul: '07', Aug: '08',
+                    Sep: '09', Oct: '10', Nov: '11', Dec: '12'
+                };
+
+                let month = monthMap[monthStr] || '00';
+
                 tanggalPemotongan = `${day}/${month}/${year}`;
             }
         }
-        let tanggalDok = values.trandate
-         if (tanggalDok) {
-            let parts = tanggalDok.split('/');
+        let tanggalDok = values.trandate;
+        log.debug('tanggalDok awal', tanggalDok);
+
+        if (tanggalDok) {
+            let parts = tanggalDok.split('-');
             if (parts.length === 3) {
                 let day = parts[0].padStart(2, '0');
-                let month = parts[1].padStart(2, '0');
+                let monthStr = parts[1];
                 let year = parts[2];
+                let monthMap = {
+                    Jan: '01', Feb: '02', Mar: '03', Apr: '04',
+                    May: '05', Jun: '06', Jul: '07', Aug: '08',
+                    Sep: '09', Oct: '10', Nov: '11', Dec: '12'
+                };
+
+                let month = monthMap[monthStr] || '00';
+
                 tanggalDok = `${day}/${month}/${year}`;
             }
         }
+
+        log.debug('tanggalDok hasil', tanggalDok);
+
         const rowData = {
-            masaPajak: values.custbody_sos_masa_pajak,
-            tahunPajak: values.custbody_sos_tahun_pajak,
-            npwp: values.custbody_sos_npwp_vendor,
-            idTkuPenerima: values.custbody_sos_id_tku_penerima_penghasil,
-            fasilitas: values.custbody_sos_fasilitas,
-            kodeObj: values.custbody_sos_kode_obj_pajak,
+            masaPajak: values.custbody_stc_masa_pajak,
+            tahunPajak: values.custbody_stc_tahun_pajak,
+            npwp: values.custbody_stc_npwp_vendor,
+            idTkuPenerima: values.custbody_stc_id_tku_penerima_penghasil,
+            fasilitas: values.custbody_stc_fasilitas,
+            kodeObj: values.custbody_stc_kode_obj_pajak,
             dpp: dppValue,
-            tarif: values.custbody_sos_tarif,
-            jenisDokRef: values.custbody_sos_jenis_dok_ref,
-            nomorDokRef: values.custbody_sos_no_sp2d,   
+            tarif: values.custbody_stc_tarif,
+            jenisDokRef: values.custbody_stc_jenis_dok_ref,
+            nomorDokRef: values.custbody_stc_no_sp2d,   
             tanggalDok: tanggalDok,
             idTkuPemotong: values.custbody_id_tku_pemotong,
-            opsiPembayaran: values.custbody_sos_opsi_pembayaran,
-            nomorSP2D: values.custbody_sos_no_sp2d,
+            opsiPembayaran: values.custbody_stc_opsi_pembayaran,
+            nomorSP2D: values.custbody_stc_no_sp2d,
             tanggalPemotongan: tanggalPemotongan
         };
 
