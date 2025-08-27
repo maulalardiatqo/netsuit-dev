@@ -16,7 +16,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         .replace(/"/g, "&quot;")
                         .replace(/'/g, "&apos;");
         }
-
+        function formatNumber(num) {
+            if (isNaN(num)) return "0.00";
+            return Number(num).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
         function onRequest(context) {
             try{
                 var recid = context.request.parameters.id;
@@ -48,9 +54,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     join: "CUSTBODY_STC_ATTENTION",
                 })
                 var tranId = headerRec.getValue({name : "tranid"})
-                var sof = headerRec.getValue({ name : "cseg_stc_sof"});
+                var sof = headerRec.getText({ name : "cseg_stc_sof"});
                 var tranDate = headerRec.getValue({ name : "trandate"});
                 var coaId = headerRec.getValue({name : "custbodystc_bank_account"});
+                var terms = headerRec.getText({ name : "terms"})
                 log.debug('coaId', coaId)
                 var bankName = ""
                 var bankAddress = ""
@@ -73,6 +80,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var empId = headerRec.getValue({ name : "createdby"});
                 var empName = ""
                 var empSignature = ""
+                var empTitle = ""
                 var fileTTD;
                 var urlTTD = '';
                 if(empId){
@@ -91,6 +99,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         //get url
                         urlTTD = fileTTD.url.replace(/&/g, "&amp;");
                     }
+                    empTitle = recEmp.getValue('title')
                 }
                 log.debug('urlTTD', urlTTD)
                 // comp information
@@ -98,6 +107,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     type: config.Type.COMPANY_INFORMATION
                 });
                 var logo = companyInfo.getValue('pagelogo');
+                var addresComp = companyInfo.getValue('mainaddress_text')
                 var filelogo;
                 var urlLogo = '';
                 if (logo) {
@@ -131,7 +141,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var res = results[i];
                         var descItem = res.getValue({ name: 'memo' });
                         var currency = res.getText({ name: 'currency' });
-                        var amount = res.getValue({ name: 'grossamount' });
+                        var amount = res.getValue({ 
+                            name: "formulanumeric",
+                            formula: "{grossamount}+{taxamount}",
+                        });
 
                         dataLine.push({
                             descItem: descItem,
@@ -148,7 +161,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var xml = "";
                 var header = "";
                 var body = "";
-                var headerHeight = '0%';
+                var headerHeight = '33%';
                 var style = "";
                 var footer = "";
                 var pdfFile = null;
@@ -177,13 +190,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
                 header += "<tbody>";
                 header += "<tr>"
-                header += "<td style='width:50%'></td>"
-                header += "<td style='width:50%'></td>"
+                header += "<td style='width:45%'></td>"
+                header += "<td style='width:10%'></td>"
+                header += "<td style='width:45%'></td>"
                 header += "</tr>"
                 header += "<tr>"
                 header += "<td></td>"
                 if (urlLogo) {
                     header += "<td><img style='width:60px; height:50px; object-fit:cover;' src= '" + urlLogo + "' ></img> </td>";
+                    header += "<td style='vertical-align:middle;'><span style='font-size:18px; font-weight:bold;'>Save The Children</span><br/><span style='font-weight:bold;'>Indonesia</span></td>"
                 }
                 header += "</tr>"
                 
@@ -194,17 +209,69 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
                 header += "<tbody>";
                 header += "<tr>"
-                header += "<td style='width:50%'></td>"
+                header += "<td style='width:15%'></td>"
+                header += "<td style='width:5%'></td>"
+                header += "<td style='width:27%'></td>"
+                header += "<td style='width:3%'></td>"
                 header += "<td style='width:50%'></td>"
                 header += "</tr>"
 
                 header += "<tr>"
-                header += "<td style='font-size:18px; font-weight:bold; align:center' colspan='2'>REQUEST FOR FUNDS</td>"
+                header += "<td style='font-size:18px; font-weight:bold; align:center' colspan='5'>REQUEST FOR FUNDS</td>"
                 header += "</tr>"
 
-                header += "<tr>"
-                header += "<td style='font-size:18px; font-weight:bold; align:center' colspan='2'>REQUEST FOR FUNDS</td>"
+                header += "<tr style='height:60px;'>"
+                header += "<td style='font-weight:bold; border: 1px solid black; align:center; vertical-align:middle;' rowspan='3'>Attention To :</td>"
+                header += "<td style='font-weight:bold; border-top: 1px solid black; border-right: 1px solid black;' colspan='3'>"+escapeXmlSymbols(donorName)+"</td>"
+                header += "<td></td>"
                 header += "</tr>"
+
+                header += "<tr style='height:60px;'>"
+                header += "<td style='border-right: 1px solid black;' colspan='3'>"+escapeXmlSymbols(donorAddres)+"</td>"
+                header += "<td></td>"
+                header += "</tr>"
+
+                header += "<tr style='height:60px;'>"
+                header += "<td style=' border-bottom: 1px solid black;'>Attn :</td>"
+                header += "<td style='border-right: 1px solid black; border-bottom: 1px solid black; font-weight:bold;' colspan='2'><span>"+escapeXmlSymbols(dContactName)+"</span><br/><span>"+escapeXmlSymbols(dContactTitle)+"</span></td>"
+                header += "<td></td>"
+                header += "</tr>"
+
+                header += "</tbody>";
+                header += "</table>";
+
+                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
+                header += "<tbody>";
+                header += "<tr>"
+                header += "<td style='width:35%'></td>"
+                header += "<td style='width:15%'></td>"
+                header += "<td style='width:50%'></td>"
+                header += "</tr>"
+
+                header += "<tr style=''>"
+                header += "<td></td>"
+                header += "<td style='font-weight:bold;'>RFF DETAILS</td>"
+                header += "<td style='border: 1px solid black; align:center; font-weight:bold;'>"+escapeXmlSymbols(tranId)+"</td>"
+                header += "</tr>"
+                header += "<tr style='height:5px;'>"
+                header += "</tr>"
+
+                header += "<tr style=''>"
+                header += "<td></td>"
+                header += "<td style='font-weight:bold;'>SOF</td>"
+                header += "<td style='border: 1px solid black; align:center; font-weight:bold;'>"+escapeXmlSymbols(sof)+"</td>"
+                header += "</tr>"
+                header += "<tr style='height:5px;'>"
+                header += "</tr>"
+
+                header += "<tr style=''>"
+                header += "<td></td>"
+                header += "<td style='font-weight:bold;'>RFF DATE</td>"
+                header += "<td style='border: 1px solid black; align:center; font-weight:bold;'>"+escapeXmlSymbols(tranDate)+"</td>"
+                header += "</tr>"
+                header += "<tr style='height:5px;'>"
+                header += "</tr>"
+                
                 header += "</tbody>";
                 header += "</table>";
                 
@@ -214,28 +281,141 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tbody>";
 
                 body += "<tr>"
-                body += "<td style='width:14%;'></td>"
-                body += "<td style='width:14%;'></td>"
-                body += "<td style='width:6%;'></td>"
-                body += "<td style='width:6%;'></td>"
-                body += "<td style='width:9%;'></td>"
-                body += "<td style='width:8%;'></td>"
-                body += "<td style='width:8%;'></td>"
-                body += "<td style='width:3%'></td>"
-                body += "<td style='width:6%;'></td>"
-                body += "<td style='width:6%;'></td>"
-                body += "<td style='width:6%;'></td>"
-                body += "<td style='width:13%;'></td>"
+                body += "<td style='width:40%;'></td>"
+                body += "<td style='width:10%;'></td>"
+                body += "<td style='width:20%;'></td>"
+                body += "<td style='width:30%;'></td>"
                 body += "</tr>"
 
+                body += "<tr>"
+                body += "<td style='font-weight:bold; align:center; border: 1px solid black;' colspan='2'>Description</td>"
+                body += "<td style='font-weight:bold; align:center; border: 1px solid black; border-left:none' colspan='2'>Amount due</td>"
+                body += "</tr>"
+
+                var totalAmount = 0
+                var curr = ""
+                if(dataLine.length > 0){
+                    dataLine.forEach(function(line){
+                        var descItem = line.descItem
+                        var currency = line.currency
+                        curr = currency
+                        var amount = line.amount
+                        totalAmount = totalAmount + Number(amount)
+                        body += "<tr>"
+                        body += "<td style='border: 1px solid black; border-top:none;' colspan='2'>"+escapeXmlSymbols(descItem)+"</td>"
+                        body += "<td style='border: 1px solid black; border-top:none; border-right:none; border-left:none;'>"+escapeXmlSymbols(currency)+"</td>"
+                        body += "<td style='align:right; border: 1px solid black; border-top:none; border-left:none'>"+formatNumber(amount)+"</td>"
+                        body += "</tr>"
+                    });
+                }
+                body += "<tr style='height:5px;'>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td></td>"
+                body += "<td style='font-weight:bold;'>Total</td>"
+                body += "<td style=' font-weight:bold; border: 1px solid black; border-right:none;'>"+escapeXmlSymbols(curr)+"</td>"
+                body += "<td style='font-weight:bold; align:right; border: 1px solid black; border-left:none'>"+formatNumber(totalAmount)+"</td>"
+                body += "</tr>"
+
+                body += "<tr style='height:10px;'>"
+                body += "</tr>"
+
+                body += "</tbody>";
+                body += "</table>";
+
+                body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+                body += "<tbody>";
+
+                body += "<tr>"
+                body += "<td style='width:15%;'></td>"
+                body += "<td style='width:50%;'></td>"
+                body += "<td style='width:35%;'></td>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td style='font-size:9px; font-weight:bold;' colspan='3'>Please make the payment, quoting the request for funds reference number, as follows:</td>"
+                body += "</tr>"
+
+                body += "<tr style='height:10px;'>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td style='font-size:9px; font-weight:bold;' colspan='3'>Direct into our bank account:</td>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td style='font-size:9px; font-weight:bold; border: 1px solid black;'> Bank name </td>"
+                body += "<td style='font-size:9px; border: 1px solid black; border-left:none;' colspan='2'>"+escapeXmlSymbols(bankName)+"</td>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td style='font-size:9px; font-weight:bold; border: 1px solid black; border-top:none;'> Bank Address </td>"
+                body += "<td style='font-size:9px; border: 1px solid black; border-left:none; border-top:none;' colspan='2'>"+escapeXmlSymbols(bankAddress)+"</td>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td style='font-size:9px; font-weight:bold; border: 1px solid black; border-top:none;'> Account name </td>"
+                body += "<td style='font-size:9px; border: 1px solid black; border-left:none; border-top:none;' colspan='2'>"+escapeXmlSymbols(accountName)+"</td>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td style='font-size:9px; font-weight:bold; border: 1px solid black; border-top:none;'> Account number </td>"
+                body += "<td style='font-size:9px; border: 1px solid black; border-left:none; border-top:none;' colspan='2'>"+escapeXmlSymbols(accountNumber)+"</td>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td style='font-size:9px; font-weight:bold; border: 1px solid black; border-top:none;'> Swift Code </td>"
+                body += "<td style='font-size:9px; border: 1px solid black; border-left:none; border-top:none;' colspan='2'>"+escapeXmlSymbols(swiftCode)+"</td>"
+                body += "</tr>"
+
+                body += "<tr style='height:10px;'>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td style='font-size:9px; font-weight:bold; border: 1px solid black;'> Payment terms: </td>"
+                body += "<td style='font-size:9px; border: 1px solid black; border-left:none;' colspan='2'>"+escapeXmlSymbols(terms)+"</td>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td colspan='2'></td>"
+                body += "<td style='font-weight:bold;'> Yayasan Save The Children Indonesia, </td>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td colspan='2'></td>"
+                log.debug('urlTTD', urlTTD);
+                if (urlTTD) {
+                    body += "<td style='align:center;'><img style='height:80px; width:80px; object-fit:cover;' src='" + urlTTD + "' /></td>";
+                }else{
+                    body += "<td></td>"
+                }
+                body += "<td style='font-weight:bold;'></td>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td colspan='2'></td>"
+                body += "<td style='align:center; border-bottom:1px solid black'>"+escapeXmlSymbols(empName)+"</td>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td colspan='2'></td>"
+                body += "<td style='align:center;'>"+escapeXmlSymbols(empTitle)+"</td>"
+                body += "</tr>"
+
+                
                 
                 body += "</tbody>";
                 body += "</table>";
 
+                
+
                 // footer
                 footer += "<table class='tg' style='table-layout: fixed; width: 100%; font-size:10px'>";
                 footer += "<tbody>";
-              
+                footer += "<tr>"
+                footer += "<td>"+escapeXmlSymbols(addresComp)+"</td>"
+                footer += "</tr>"
                 footer += "</tbody>";
                 footer += "</table>";
                 var xml = '<?xml version="1.0"?>\n<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">';
@@ -249,7 +429,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "</macrolist>";
                 xml += "</head>";
 
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "'>";
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' margin-left='2cm' margin-right='2cm'>";
                 xml += body;
                 xml += footer;
 
