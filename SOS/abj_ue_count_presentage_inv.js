@@ -74,9 +74,16 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                         percentage : percentage, amountAfterDisc : amountAfterDisc
                     })
                     if(percentage){
+                        var taxRate = rec.getCurrentSublistValue({
+                            sublistId : "item",
+                            fieldId : "taxrate1"
+                        });
+                        log.debug('taxRate', taxRate)
                         const chargeAmount = (percentage * amountAfterDisc) / 100;
                         const amountAfterCharge = amountAfterDisc - chargeAmount;
+                        const amountAfterChargeExtax = (Number(amountAfterCharge) / (1  + (taxRate / 100)))
                         log.debug('chargeAmount', chargeAmount)
+                        log.debug('amountAfterChargeExtax', amountAfterChargeExtax)
                         totalChargeAmount += chargeAmount
                         // Set field hasil kalkulasi
                         rec.setCurrentSublistValue({
@@ -90,6 +97,13 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                             fieldId: 'custcol_sos_amount_after_charge',
                             value: amountAfterCharge
                         });
+                        if(amountAfterChargeExtax){
+                            rec.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_sos_amount_af_char_ex_tax',
+                                value: amountAfterChargeExtax
+                            });
+                        }
                         var taxRate = rec.getCurrentSublistValue({
                             sublistId : 'item',
                             fieldId : 'taxrate1',

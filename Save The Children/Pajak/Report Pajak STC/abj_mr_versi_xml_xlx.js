@@ -3,7 +3,7 @@
  * @NScriptType MapReduceScript
  */
 
-define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (search, runtime, file, log, format) {
+define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format', 'N/config'], function (search, runtime, file, log, format, config) {
 
     function getInputData() {
         const script = runtime.getCurrentScript();
@@ -12,7 +12,10 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
         const npwp = script.getParameter({ name: 'custscript_npwp' });
         const jobAction = script.getParameter({ name : 'custscript_job_action'})
         log.debug('PARAMETERS', { dateFrom, dateTo, npwp });
-
+        var companyInfo = config.load({
+            type: config.Type.COMPANY_INFORMATION
+        });
+        var tkuPemotong = companyInfo.getValue('custrecord_sos_id_tku_penjual');
         const searchLoad = search.load({ id: 'customsearch_stc_wht_' });
 
         if (dateFrom && dateTo) {
@@ -41,10 +44,14 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
     function map(context) {
         const result = JSON.parse(context.value);
         const values = result.values;
-
+        var companyInfo = config.load({
+            type: config.Type.COMPANY_INFORMATION
+        });
+        var tkuPemotong = companyInfo.getValue('custrecord_sos_id_tku_penjual');
+        log.debug('tkuPemotong', tkuPemotong)
         let dppValue = Number(values.amount);
         if (!isNaN(dppValue)) {
-            let decimalPart = dppValue % 1; // ambil sisa desimal
+            let decimalPart = dppValue % 1;
             if (decimalPart > 0.5) {
                 dppValue = Math.ceil(dppValue);
             } else {
@@ -52,7 +59,6 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             }
         }
 
-        // Format tanggal pemotongan
         let tanggalPemotongan = values["applyingTransaction.trandate"];
         log.debug('tanggalPemotongan sebelum format', tanggalPemotongan);
 
@@ -108,10 +114,10 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             jenisDokRef: values.custbody_stc_jenis_dok_ref,
             nomorDokRef: values.custbody_stc_no_sp2d,   
             tanggalDok: tanggalDok,
-            idTkuPemotong: values.custbody_id_tku_pemotong,
+            idTkuPemotong: tkuPemotong,
             opsiPembayaran: values.custbody_stc_opsi_pembayaran,
             nomorSP2D: values.custbody_stc_no_sp2d,
-            tanggalPemotongan: tanggalPemotongan
+            tanggalPemotongan: tanggalDok
         };
 
         context.write({ key: 'bpu_group', value: JSON.stringify(rowData) });

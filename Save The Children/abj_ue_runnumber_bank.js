@@ -29,8 +29,8 @@ define(["N/record", "N/search"], function(
                     var endDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 7, 0, 0));
 
                     return {
-                        startDate: startDate, // Date object
-                        endDate: endDate      // Date object
+                        startDate: startDate, 
+                        endDate: endDate      
                     };
                 }
 
@@ -42,7 +42,7 @@ define(["N/record", "N/search"], function(
                     var year = date.getUTCFullYear().toString().slice(-2);
                     var month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
 
-                    return year + month; // contoh "2508"
+                    return year + month; 
                 }
                 var rec = context.newRecord;
     
@@ -51,174 +51,183 @@ define(["N/record", "N/search"], function(
                     id: rec.id,
                     isDynamic: true,
                 });
-                var TransType = recordLoad.getValue("type");
+                var TransType = recordLoad.getValue("ntype");
                 log.debug('transType', TransType)
-                var costCenter = recordLoad.getValue("department");
-                log.debug('costCenter', costCenter)
-                var codeCostCenter
-                var customrecord_stc_mapping_cost_centerSearchObj = search.create({
-                    type: "customrecord_stc_mapping_cost_center",
-                    filters:
-                    [
-                        ["custrecord_stc_cost_center","anyof",costCenter]
-                    ],
-                    columns:
-                    [
-                        search.createColumn({name: "name", label: "Name"}),
-                        search.createColumn({name: "custrecord_stc_cost_center", label: "Cost Center"})
-                    ]
-                });
-                var searchResultCount = customrecord_stc_mapping_cost_centerSearchObj.runPaged().count;
-                log.debug("customrecord_stc_mapping_cost_centerSearchObj result count",searchResultCount);
-                customrecord_stc_mapping_cost_centerSearchObj.run().each(function(result){
-                    codeCostCenter = result.getValue({
-                        name: "name"
-                    })
-                    return true;
-                });
-                var bankOut = ["vendpymt", "check", "custrfnd"]
-                var bankIn = ["custpymt", "custdep", "deposit"]
-                var category
-
-                var isBankOut = bankOut.includes(TransType);
-                var isBankIn = bankIn.includes(TransType);
-                var firstCode
-                if (isBankOut) {
-                    category = "Bank Out"
-                    firstCode = "CDV"
-                } else if (isBankIn) {
-                    category = "Bank In"
-                    firstCode = "CRV"
-                } else {
-                    log.debug("Kategori", "Lainnya");
-                }
-                log.debug('category', category)
-                log.debug('codeCostCenter', codeCostCenter)
-                var trandDate = recordLoad.getValue("trandate");
-                log.debug('trandDate', trandDate)
-                var { startDate, endDate } = getMonthRange(trandDate);
-                log.debug("startDate", startDate);
-                log.debug("endDate", endDate); 
-                var formatedDate = getYearMonthCode(trandDate);
-                log.debug('formatedDate', formatedDate)
-                var startDateFormated = formatDateToDDMMYYYY(startDate)
-                var endDateFormated = formatDateToDDMMYYYY(endDate)
-
-                // saved search
-                var lastNumber
-                var idCustRec
-                var customrecord_bank_numberingSearchObj = search.create({
-                    type: "customrecord_bank_numbering",
-                    filters:
-                    [
-                        ["custrecord_type_bank","is",category], 
-                        "AND", 
-                        ["custrecord_start_date","on",startDateFormated], 
-                        "AND", 
-                        ["custrecord_end_date","on",endDateFormated]
-                    ],
-                    columns:
-                    [
-                        search.createColumn({name: "name", label: "Name"}),
-                        search.createColumn({name: "scriptid", label: "Script ID"}),
-                        search.createColumn({name: "custrecord_last_runnumber", label: "Last Running Number"}),
-                        search.createColumn({name: "custrecord_start_date", label: "Start Date"}),
-                        search.createColumn({name: "custrecord_end_date", label: "End Date"}),
-                        search.createColumn({name: "custrecord_type_bank", label: "Type Bank"}),
-                        search.createColumn({name: "internalid", label: "Internal ID"}),
-                        search.createColumn({name: "custrecord_last_number", label: "Last Number"})
-                    ]
-                });
-                var searchResultCount = customrecord_bank_numberingSearchObj.runPaged().count;
-                log.debug("customrecord_bank_numberingSearchObj result count",searchResultCount);
-                customrecord_bank_numberingSearchObj.run().each(function(dataRes){
-                    idCustRec = dataRes.getValue({
-                        name: "internalid"
-                    })
-                    lastNumber = dataRes.getValue({
-                        name: "custrecord_last_number"
-                    })
-                    return true;
-                });
-                if(codeCostCenter){
-                    log.debug('adaCodeCostCenter')
-                }else{
-                    codeCostCenter = ""
-                }
-                var firstFormat = firstCode + codeCostCenter + formatedDate
-                var formatNumbering
-                log.debug('firstFormat', firstFormat)
-                if(searchResultCount > 0){
-                    let newLastNumber = String(Number(lastNumber) + 1).padStart(lastNumber.length, '0');
-                    formatNumbering = firstFormat + "-" + newLastNumber
-                    log.debug('formatNumbering update', formatNumbering)
-                    var recCust = record.load({
-                        type : "customrecord_bank_numbering",
-                        id : idCustRec
-                    })
-                    recCust.setValue({
-                        fieldId :"custrecord_last_runnumber",
-                        value : formatNumbering,
-                        ignoreFieldChange: true,
-                    })
-                    recCust.setValue({
-                        fieldId :"custrecord_last_number",
-                        value : newLastNumber,
-                        ignoreFieldChange: true,
+                if(TransType){
+                    var searchSetup = search.load({
+                        id : "customsearch_setup_bank"
                     });
-                    var saverecCust = recCust.save({
-                        enableSourcing: false,
-                        ignoreMandatoryFields: true,
-                    })
-                    log.debug('saverecCust', saverecCust)
+                    searchSetup.filters.push(search.createFilter({name: "custrecord_transaction_type", operator: search.Operator.ANYOF, values: TransType}));
+                    var searchSetupSet = searchSetup.run();
+                    var result = searchSetupSet.getRange(0, 1);
+                    log.debug('result', result.length)
+                    if(result.length > 0){
+                        var searchRec = result[0];
+                        var category = searchRec.getValue({
+                            name: "custrecord_category_bank"
+                        })
+                        var firstCode = searchRec.getValue({
+                            name: "custrecord_prefix_code"
+                        })
+                        var digit = searchRec.getValue({
+                            name: "custrecord_jumlah_digit"
+                        })
+                        log.debug('data setup', {category : category, firstCode : firstCode, digit : digit})
+                        var costCenter = recordLoad.getValue("department");
+                        log.debug('costCenter', costCenter)
+                        var codeCostCenter
+                        var customrecord_stc_mapping_cost_centerSearchObj = search.create({
+                            type: "customrecord_stc_mapping_cost_center",
+                            filters:
+                            [
+                                ["custrecord_stc_cost_center","anyof",costCenter]
+                            ],
+                            columns:
+                            [
+                                search.createColumn({name: "name", label: "Name"}),
+                                search.createColumn({name: "custrecord_stc_cost_center", label: "Cost Center"})
+                            ]
+                        });
+                        var searchResultCount = customrecord_stc_mapping_cost_centerSearchObj.runPaged().count;
+                        log.debug("customrecord_stc_mapping_cost_centerSearchObj result count",searchResultCount);
+                        customrecord_stc_mapping_cost_centerSearchObj.run().each(function(result){
+                            codeCostCenter = result.getValue({
+                                name: "name"
+                            })
+                            return true;
+                        });
+                        log.debug('category', category)
+                        log.debug('codeCostCenter', codeCostCenter)
+                        var trandDate = recordLoad.getValue("trandate");
+                        log.debug('trandDate', trandDate)
+                        var { startDate, endDate } = getMonthRange(trandDate);
+                        log.debug("startDate", startDate);
+                        log.debug("endDate", endDate); 
+                        var formatedDate = getYearMonthCode(trandDate);
+                        log.debug('formatedDate', formatedDate)
+                        var startDateFormated = formatDateToDDMMYYYY(startDate)
+                        var endDateFormated = formatDateToDDMMYYYY(endDate)
 
-                }else{
-                    formatNumbering = firstFormat + "-" + "001"
-                    var createRec = record.create({
-                        type : "customrecord_bank_numbering"
-                    })
-                    createRec.setValue({
-                        fieldId :"custrecord_type_bank",
-                        value : category,
-                        ignoreFieldChange: true,
-                    })
-                    createRec.setValue({
-                        fieldId :"custrecord_start_date",
-                        value : startDate,
-                        ignoreFieldChange: true,
-                    })
-                    createRec.setValue({
-                        fieldId :"custrecord_end_date",
-                        value : endDate,
-                        ignoreFieldChange: true,
-                    })
-                    createRec.setValue({
-                        fieldId :"custrecord_last_runnumber",
-                        value : formatNumbering,
-                        ignoreFieldChange: true,
-                    })
-                    createRec.setValue({
-                        fieldId :"custrecord_last_number",
-                        value : "001",
-                        ignoreFieldChange: true,
-                    })
-                    var savecreateRec = createRec.save({
-                        enableSourcing: false,
-                        ignoreMandatoryFields: true,
-                    });
-                    log.debug('savecreateRec', savecreateRec)
+                        // saved search
+                        var lastNumber
+                        var idCustRec
+                        var customrecord_bank_numberingSearchObj = search.create({
+                            type: "customrecord_bank_numbering",
+                            filters:
+                            [
+                                ["custrecord_type_bank","anyof",category], 
+                                "AND", 
+                                ["custrecord_start_date","on",startDateFormated], 
+                                "AND", 
+                                ["custrecord_end_date","on",endDateFormated]
+                            ],
+                            columns:
+                            [
+                                search.createColumn({name: "name", label: "Name"}),
+                                search.createColumn({name: "scriptid", label: "Script ID"}),
+                                search.createColumn({name: "custrecord_last_runnumber", label: "Last Running Number"}),
+                                search.createColumn({name: "custrecord_start_date", label: "Start Date"}),
+                                search.createColumn({name: "custrecord_end_date", label: "End Date"}),
+                                search.createColumn({name: "custrecord_type_bank", label: "Type Bank"}),
+                                search.createColumn({name: "internalid", label: "Internal ID"}),
+                                search.createColumn({name: "custrecord_last_number", label: "Last Number"})
+                            ]
+                        });
+                        var searchResultCount = customrecord_bank_numberingSearchObj.runPaged().count;
+                        log.debug("customrecord_bank_numberingSearchObj result count",searchResultCount);
+                        customrecord_bank_numberingSearchObj.run().each(function(dataRes){
+                            idCustRec = dataRes.getValue({
+                                name: "internalid"
+                            })
+                            lastNumber = dataRes.getValue({
+                                name: "custrecord_last_number"
+                            })
+                            return true;
+                        });
+                        if(codeCostCenter){
+                            log.debug('adaCodeCostCenter')
+                        }else{
+                            codeCostCenter = ""
+                        }
+                        var firstFormat = firstCode + codeCostCenter + formatedDate
+                        var formatNumbering
+                        log.debug('firstFormat', firstFormat)
+                        log.debug('digit', digit)
+                        if(searchResultCount > 0){
+                            let newLastNumber = String(Number(lastNumber) + 1).padStart(digit, '0'); 
+                            formatNumbering = firstFormat + "-" + newLastNumber
+                            log.debug('formatNumbering update', formatNumbering)
+                            var recCust = record.load({
+                                type : "customrecord_bank_numbering",
+                                id : idCustRec
+                            })
+                            recCust.setValue({
+                                fieldId :"custrecord_last_runnumber",
+                                value : formatNumbering,
+                                ignoreFieldChange: true,
+                            })
+                            recCust.setValue({
+                                fieldId :"custrecord_last_number",
+                                value : newLastNumber,
+                                ignoreFieldChange: true,
+                            });
+                            var saverecCust = recCust.save({
+                                enableSourcing: false,
+                                ignoreMandatoryFields: true,
+                            })
+                            log.debug('saverecCust', saverecCust)
+
+                        }else{
+                            let firstNumber = String(1).padStart(digit, '0');  
+                            formatNumbering = firstFormat + "-" + firstNumber;
+                            var createRec = record.create({
+                                type : "customrecord_bank_numbering"
+                            })
+                            createRec.setValue({
+                                fieldId :"custrecord_type_bank",
+                                value : category,
+                                ignoreFieldChange: true,
+                            })
+                            createRec.setValue({
+                                fieldId :"custrecord_start_date",
+                                value : startDate,
+                                ignoreFieldChange: true,
+                            })
+                            createRec.setValue({
+                                fieldId :"custrecord_end_date",
+                                value : endDate,
+                                ignoreFieldChange: true,
+                            })
+                            createRec.setValue({
+                                fieldId :"custrecord_last_runnumber",
+                                value : formatNumbering,
+                                ignoreFieldChange: true,
+                            })
+                            createRec.setValue({
+                                fieldId :"custrecord_last_number",
+                                value : firstNumber,
+                                ignoreFieldChange: true,
+                            })
+                            var savecreateRec = createRec.save({
+                                enableSourcing: false,
+                                ignoreMandatoryFields: true,
+                            });
+                            log.debug('savecreateRec', savecreateRec)
+                        }
+                        log.debug('formatNumbering', formatNumbering)
+                        recordLoad.setValue({
+                            fieldId : "tranid",
+                            value : formatNumbering,
+                            ignoreFieldChange: true,
+                        })
+                        var saveRec = recordLoad.save({
+                            enableSourcing: false,
+                            ignoreMandatoryFields: true,
+                        });
+                        log.debug('saveRec', saveRec)
+                    }
                 }
-                log.debug('formatNumbering', formatNumbering)
-                recordLoad.setValue({
-                    fieldId : "tranid",
-                    value : formatNumbering,
-                    ignoreFieldChange: true,
-                })
-                var saveRec = recordLoad.save({
-                    enableSourcing: false,
-                    ignoreMandatoryFields: true,
-                });
-                log.debug('saveRec', saveRec)
+               
             }
         }catch(e){
             log.debug('error', e)

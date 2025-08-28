@@ -107,7 +107,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     type: config.Type.COMPANY_INFORMATION
                 });
                 var logo = companyInfo.getValue('pagelogo');
+                var compName = companyInfo.getValue('companyname')
+                var website = companyInfo.getValue('url')
+                var fax = companyInfo.getValue('fax')
                 var addresComp = companyInfo.getValue('mainaddress_text')
+                let mainAddressSubrec = companyInfo.getSubrecord({
+                    fieldId: 'mainaddress'
+                });
+                var phonNumb = mainAddressSubrec.getValue('addrphone')
+                var addr2 = mainAddressSubrec.getValue('addr2')
                 var filelogo;
                 var urlLogo = '';
                 if (logo) {
@@ -411,10 +419,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 
 
                 // footer
-                footer += "<table class='tg' style='table-layout: fixed; width: 100%; font-size:10px'>";
+                footer += "<table class='tg' style='table-layout: fixed; width: 100%; font-size:8px'>";
                 footer += "<tbody>";
                 footer += "<tr>"
-                footer += "<td>"+escapeXmlSymbols(addresComp)+"</td>"
+                footer += "<td>"+escapeXmlSymbols(compName)+" "+escapeXmlSymbols(addresComp)+" Ph :" +escapeXmlSymbols(phonNumb) + " " +" Fax :" +escapeXmlSymbols(fax) + " -" + escapeXmlSymbols(website)+ "- "+addr2+"</td>"
                 footer += "</tr>"
                 footer += "</tbody>";
                 footer += "</table>";
