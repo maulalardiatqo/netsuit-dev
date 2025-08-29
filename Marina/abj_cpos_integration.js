@@ -730,15 +730,8 @@ define(["N/search", "N/record", "N/file", "N/https", "N/runtime", "N/format"], /
                 log.debug('result', result)
 
                 if (result && result.length > 0) {
-                    var recCreate = record.create({
-                        type : "cashrefund",
-                        isDynamic : true
-                    });
-                    var entity = data.entity.internalId
-                    var billAddresId = data.billAddressList.internalId
                     var locationID = data.location.internalId;
-                    var subsidiaryID = data.subsidiary.internalId;
-                    var transDate = convertToDate(data.transDate);
+                    log.debug('locationID', locationID)
                     var items = data.items;
 
                     log.debug('items', items);
