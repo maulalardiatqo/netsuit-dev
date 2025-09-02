@@ -1,57 +1,73 @@
-{
-    "transactionType" : "cashsale",
-    "data" : {
-        "cashSaleInternalId" : "536",
-        "entity" : {
-            "internalId" : "12",
-            "name" : "1 ABJ Testing"
-        },
-        "tranDate" : "01/09/2025",
-        "currency": {
-            "internalId": "1",
-            "name": "IDR"
-        },
-        "memo" : "Testing Integration",
-        "class" : {
-            "internalId" : "1",
-            "name" : "Tematik"
-        },
-        "department" : {
-            "internalId" : "2",
-            "name" : "Bandung"
-        },
-        "location" : {
-            "internalId" : "1",
-            "name" : "Bandung"
-        },
-        "sof" : {
-            "internalId" : "1",
-            "name" : "SOF1"
-        },
-        "items" : [{
-            "item" : {
-                "internalId" : "15",
-                "name" : "OPR-0006"
-            },
-            "quantity" : "1",
-            "amunt" : "10000",
-            "itemDescription" : "Test Description",
-            "class" : {
-                "internalId" : "1",
-                "name" : "Tematik"
-            },
-            "department" : {
-                "internalId" : "2",
-                "name" : "Bandung"
-            },
-            "location" : {
-                "internalId" : "1",
-                "name" : "Bandung"
-            },
-            "sof" : {
-                "internalId" : "1",
-                "name" : "SOF1"
+{ 
+    "transactionType" : "cashsale", 
+    "data" : { 
+        "entity" : { 
+            "internalId" : "20", 
+            "name" : "3 Individual Donor" 
+        }, 
+        "tranDate" : "01/09/2025", 
+        "currency": { 
+            "internalId": "1", 
+            "name": "IDR" 
+        }, 
+        "memo" : "Testing Integration", 
+        "class" : { 
+            "internalId" : "1", 
+            "name" : "Tematik" 
+        }, 
+        "department" : { 
+            "internalId" : "2", 
+            "name" : "Bandung" 
+        }, 
+        "sof" : { 
+            "internalId" : "1", 
+            "name" : "SOF1" 
+        }, 
+        "items" : [
+            { 
+                "item" : { 
+                    "internalId" : "15", 
+                    "name" : "OPR-0006" 
+                }, 
+                "quantity" : "1", 
+                "amount" : "10000", 
+                "itemDescription" : "Test Description", 
+                "class" : { 
+                    "internalId" : "1", 
+                    "name" : "Tematik" 
+                }, 
+                "department" : { 
+                    "internalId" : "2", 
+                    "name" : "Bandung" 
+                },  
+                "sof" : { 
+                    "internalId" : "1", 
+                    "name" : "SOF1" 
+                } 
             }
-        }]
-    }
-}
+        ],
+        "payments" : [
+            {
+                "item" : {
+                    "internalId" : "21", 
+                    "name" : "Item Payment BCA" 
+                },
+                "amount" : "-10000",
+                "class" : { 
+                    "internalId" : "1", 
+                    "name" : "Tematik" 
+                }, 
+                "department" : { 
+                    "internalId" : "2", 
+                    "name" : "Bandung" 
+                },
+                "sof" : { 
+                    "internalId" : "1", 
+                    "name" : "SOF1" 
+                }  
+            }
+        ]
+            
+        
+    } 
+} 

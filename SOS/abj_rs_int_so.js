@@ -89,6 +89,16 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
       log.debug('cekTransType', cekTransType)
       let firstLineClass = null;
       // set line
+      const invalidLine = data.order_items.find((line, index) => {
+        return !line.rate || Number(line.rate) === 0;
+      });
+
+      if (invalidLine) {
+        return {
+          status: false,
+          message: `Rate kosong/null/0 pada item: ${invalidLine.item.internal_id}`
+        };
+      }
       data.order_items.forEach((line, index) => {
         so.selectNewLine({ sublistId: 'item' });
 
@@ -163,8 +173,6 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           fieldId: 'quantity',
           value: line.quantity
         });
-       
-
         so.setCurrentSublistValue({
           sublistId: 'item',
           fieldId: 'price',
@@ -192,6 +200,24 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
               value: line.tax_code.internal_id
             });
         }
+        
+        var amtLine = so.getCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'amount'
+        });
+        log.debug('amtLine', amtLine);
+        // var rateSet = Number(amtLine) / Number(line.quantity);
+        var rateSet = line.rate
+        log.debug('rateSet', rateSet);
+        if (!rateSet || Number(rateSet) === 0) {
+          throw new Error(`Rate kosong/null/0 pada line ke-${index + 1}, item: ${line.item.internal_id}`);
+        }
+        so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'custcol_sos_custom_rate',
+          value: rateSet,
+          ignoreFieldChange : true
+        });
         so.setCurrentSublistValue({
           sublistId : 'item',
           fieldId : 'grossamt',
@@ -199,19 +225,6 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
         })
         var amtAftDisc = Number(grossAmt) - Number(line.discount_line);
         log.debug('amtAftDisc', amtAftDisc);
-        var amtLine = so.getCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'amount'
-        });
-        log.debug('amtLine', amtLine);
-        var rateSet = Number(amtLine) / Number(line.quantity);
-        log.debug('rateSet', rateSet);
-        so.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'rate',
-          value: rateSet,
-          ignoreFieldChange : true
-        });
         so.setCurrentSublistValue({
           sublistId : 'item',
           fieldId : 'custcol_sos_disc_amount',
