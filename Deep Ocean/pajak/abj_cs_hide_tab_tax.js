@@ -2,12 +2,14 @@
  *@NApiVersion 2.1
  *@NScriptType ClientScript
  */
-define(['N/currentRecord', 'N/ui/dialog'], (currentRecord, dialog) => {
+define(['N/currentRecord', 'N/ui/dialog', 'N/log'], (currentRecord, dialog, log) => {
 
     const pageInit = (context) => {
         console.log('pageInit call');
+        alert('Page Init Call')
         const currentRec = currentRecord.get();
         const customLink = document.getElementById('custom1701lnk');
+        log.debug('customLink', customLink);
         console.log('customLink', customLink);
 
         if (customLink) {
@@ -32,7 +34,7 @@ define(['N/currentRecord', 'N/ui/dialog'], (currentRecord, dialog) => {
                 fieldId: 'custcol_4601_witaxapplies',
                 line: i
             });
-            console.log(`${sublistId} line ${i} value:`, value);
+            log.debug(`${sublistId} line ${i} value:`, value);
             if (value === true || value === 'T') {
                 result = true;
                 break;
@@ -47,7 +49,7 @@ define(['N/currentRecord', 'N/ui/dialog'], (currentRecord, dialog) => {
             sublistId: sublistId,
             fieldId: 'custcol_4601_witaxapplies'
         });
-        console.log(`CekValue ${sublistId}:`, value);
+        log.debug(`CekValue ${sublistId}:`, value);
 
         const customLink = document.getElementById('custom1701lnk');
         if (customLink) {
@@ -60,13 +62,15 @@ define(['N/currentRecord', 'N/ui/dialog'], (currentRecord, dialog) => {
             (context.sublistId === 'item' || context.sublistId === 'expense') &&
             context.fieldId === 'custcol_4601_witaxapplies'
         ) {
+            console.log('call function')
+            alert('Call Function')
             checkAnyTrue(context.sublistId);
         }
     };
     const saveRecord = (context) => {
         const currentRec = currentRecord.get();
         const isAnyTrue = checkAnyTrueLine('item') || checkAnyTrueLine('expense');
-        console.log('isAnyTrue', isAnyTrue);
+        log.debug('isAnyTrue', isAnyTrue);
         
         if (isAnyTrue) {
             var requiredFields = [

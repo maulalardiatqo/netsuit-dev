@@ -145,7 +145,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 grouped.faktur.values.custbody_bs_npwp_nik_pembeli || '',
                 getText(grouped.faktur.values.custbody_bs_jenis_id_buyer),
                 getText(grouped.faktur.values.custbody_bs_negara_pembeli),
-                grouped.faktur.values.custbody_bs_no_dok_pembeli || '',
+                getText(grouped.faktur.values.custbody_bs_no_dok_pembeli) || '',
                 grouped.faktur.values.custbody_bs_nama_pembeli || '',
                 grouped.faktur.values.custbody_bs_alamat_pembeli || '',
                 grouped.faktur.values.custbody_bs_email_pembeli || '',
@@ -205,7 +205,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             xmlParts.push(`<BuyerTin>${header.custbody_bs_npwp_nik_pembeli || ''}</BuyerTin>`);
             xmlParts.push(`<BuyerDocument>${getText(header.custbody_bs_jenis_id_buyer)}</BuyerDocument>`);
             xmlParts.push(`<BuyerCountry>${getText(header.custbody_bs_negara_pembeli)}</BuyerCountry>`);
-            xmlParts.push(`<BuyerDocumentNumber>${header.custbody_bs_no_dok_pembeli || ''}</BuyerDocumentNumber>`);
+            xmlParts.push(`<BuyerDocumentNumber>${getText(header.custbody_bs_no_dok_pembeli) || ''}</BuyerDocumentNumber>`);
             xmlParts.push(`<BuyerName>${header.custbody_bs_nama_pembeli || ''}</BuyerName>`);
             xmlParts.push(`<BuyerAdress>${header.custbody_bs_alamat_pembeli || ''}</BuyerAdress>`);
             xmlParts.push(`<BuyerEmail>${header.custbody_bs_email_pembeli || ''}</BuyerEmail>`);
