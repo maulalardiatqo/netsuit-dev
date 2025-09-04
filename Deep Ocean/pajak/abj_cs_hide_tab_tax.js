@@ -1,75 +1,80 @@
 /**
- *@NApiVersion 2.1
- *@NScriptType ClientScript
+ * @NApiVersion 2.x
+ * @NScriptType clientscript
  */
-define(['N/currentRecord', 'N/ui/dialog', 'N/log'], (currentRecord, dialog, log) => {
+define(['N/currentRecord', 'N/ui/dialog', 'N/log'], function(currentRecord, dialog, log) {
+    
+    function pageInit(context){
+        try{
+            console.log('pageInit call');
+            var currentRec = currentRecord.get();
+            var customLink = document.getElementById('custom1701lnk');
+            log.debug('customLink', customLink);
+            console.log('customLink', customLink);
 
-    const pageInit = (context) => {
-        console.log('pageInit call');
-        alert('Page Init Call')
-        const currentRec = currentRecord.get();
-        const customLink = document.getElementById('custom1701lnk');
-        log.debug('customLink', customLink);
-        console.log('customLink', customLink);
+            if (customLink) {
+                customLink.style.display = 'none';
+            }
 
-        if (customLink) {
-            customLink.style.display = 'none';
+            var isAnyTrue = checkAnyTrueLine('item') || checkAnyTrueLine('expense');
+
+            if (customLink) {
+                customLink.style.display = isAnyTrue ? 'block' : 'none';
+            }
+        }catch (error) {
+            log.error('Error in PageInit', error);
         }
+        
+    }
 
-        const isAnyTrue = checkAnyTrueLine('item') || checkAnyTrueLine('expense');
+    function checkAnyTrueLine(sublistId){
+        var currentRec = currentRecord.get();
+        var lineCount = currentRec.getLineCount({ sublistId: sublistId });
+        var result = false;
 
-        if (customLink) {
-            customLink.style.display = isAnyTrue ? 'block' : 'none';
-        }
-    };
-
-    const checkAnyTrueLine = (sublistId) => {
-        const currentRec = currentRecord.get();
-        const lineCount = currentRec.getLineCount({ sublistId: sublistId });
-        let result = false;
-
-        for (let i = 0; i < lineCount; i++) {
-            const value = currentRec.getSublistValue({
+        for (var i = 0; i < lineCount; i++) {
+            var value = currentRec.getSublistValue({
                 sublistId: sublistId,
                 fieldId: 'custcol_4601_witaxapplies',
                 line: i
             });
-            log.debug(`${sublistId} line ${i} value:`, value);
+            log.debug(sublistId + ' line ' + i + ' value:', value);
             if (value === true || value === 'T') {
                 result = true;
                 break;
             }
         }
         return result;
-    };
+    }
 
-    const checkAnyTrue = (sublistId) => {
-        const currentRec = currentRecord.get();
-        const value = currentRec.getCurrentSublistValue({
+    function checkAnyTrue(sublistId){
+        var currentRec = currentRecord.get();
+        var value = currentRec.getCurrentSublistValue({
             sublistId: sublistId,
             fieldId: 'custcol_4601_witaxapplies'
         });
-        log.debug(`CekValue ${sublistId}:`, value);
+        log.debug('CekValue ' + sublistId + ':', value);
 
-        const customLink = document.getElementById('custom1701lnk');
+        var customLink = document.getElementById('custom1701lnk');
         if (customLink) {
             customLink.style.display = (value === true || value === 'T') ? 'block' : 'none';
         }
-    };
+    }
 
-    const fieldChanged = (context) => {
+    function fieldChanged(context){
         if (
             (context.sublistId === 'item' || context.sublistId === 'expense') &&
             context.fieldId === 'custcol_4601_witaxapplies'
         ) {
-            console.log('call function')
-            alert('Call Function')
+            console.log('call function');
+            alert('Call Function');
             checkAnyTrue(context.sublistId);
         }
-    };
-    const saveRecord = (context) => {
-        const currentRec = currentRecord.get();
-        const isAnyTrue = checkAnyTrueLine('item') || checkAnyTrueLine('expense');
+    }
+
+    function saveRecord(context){
+        var currentRec = currentRecord.get();
+        var isAnyTrue = checkAnyTrueLine('item') || checkAnyTrueLine('expense');
         log.debug('isAnyTrue', isAnyTrue);
         
         if (isAnyTrue) {
@@ -105,13 +110,12 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log'], (currentRecord, dialog, log)
         } else {
             return true;
         }
-    };
-
+    }
 
     return {
-        pageInit,
-        fieldChanged,
-        saveRecord
+        pageInit: pageInit,
+        fieldChanged: fieldChanged,
+        saveRecord: saveRecord
     };
 
 });
