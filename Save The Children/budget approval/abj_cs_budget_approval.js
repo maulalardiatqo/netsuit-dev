@@ -34,11 +34,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
             }
             return null;
         }
-
-        // 1️⃣ coba dulu dengan Account (kalau ada)
         var approval = runSearch(true);
-
-        // 2️⃣ kalau null → ulangi tanpa Account
         if (!approval) {
             approval = runSearch(false);
         }
@@ -122,7 +118,15 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
                     fieldId : "custcol_stc_approval_status_line",
                     value : "1"
                 })
+            }else{
+                currentRec.setCurrentSublistValue({
+                    sublistId : "item",
+                    fieldId : "custcol_stc_approval_status_line",
+                    value : "1"
+                })
             }
+        }else{
+            return true
         }
         
         return true

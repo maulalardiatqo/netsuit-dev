@@ -32,15 +32,6 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             }));
         }
 
-        // Jika npwp diaktifkan
-        // if (npwp) {
-        //     searchLoad.filters.push(search.createFilter({
-        //         name: "custbody_sos_npwp_vendor",
-        //         operator: search.Operator.IS,
-        //         values: npwp
-        //     }));
-        // }
-
         const resultSet = searchLoad.run().getRange({ start: 0, end: 1000 });
         log.debug('Jumlah hasil getRange', resultSet.length);
 
@@ -51,9 +42,10 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
         const result = JSON.parse(context.value);
         const values = result.values;
 
-        let dppValue = Number(values.amount);
+        let dppValue = Number(values.fxamount);
+        log.debug('dppValue', dppValue)
         if (!isNaN(dppValue)) {
-            let decimalPart = dppValue % 1; // ambil sisa desimal
+            let decimalPart = dppValue % 1;
             if (decimalPart > 0.5) {
                 dppValue = Math.ceil(dppValue);
             } else {
@@ -62,7 +54,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
         }
 
         // Format tanggal pemotongan
-        let tanggalPemotongan = values["applyingTransaction.trandate"];
+        let tanggalPemotongan = values.trandate;
         log.debug('tanggalPemotongan sebelum format', tanggalPemotongan);
 
         if (tanggalPemotongan) {
@@ -75,7 +67,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             }
         }
         let tanggalDok = values.trandate
-         if (tanggalDok) {
+        if (tanggalDok) {
             let parts = tanggalDok.split('/');
             if (parts.length === 3) {
                 let day = parts[0].padStart(2, '0');

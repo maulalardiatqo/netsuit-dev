@@ -10,39 +10,190 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
     serverWidget,
     runtime
     ) {
-    function beforeLoad(context){
-        try{
-            const currentUser = runtime.getCurrentUser();
-            const employeeId = currentUser.id;       // Internal ID employee
-            const employeeName = currentUser.name;   // Nama user
-
-            log.debug('Employee Info', {
-                id: employeeId,
-                name: employeeName
-            });
-            var cekLineItem 
-            const form = context.form;
-            form.clientScriptModulePath = 'SuiteScripts/abj_cs_hide_button.js';
-        }catch(e){
-            log.debug('error', e);
-            
-        }
-    }
-    function afterSubmit(context) {
+  function beforeLoad(context) {
         try {
-            if (context.type == context.UserEventType.EDIT) {
-                log.debug('masuk eksekusi')
-                var rec = context.newRecord;
-    
-                var recordLoad = record.load({
-                    type: rec.type,
-                    id: rec.id,
-                    isDynamic: true,
+            const currentUser = runtime.getCurrentUser();
+            const employeeId = currentUser.id;
+
+            const rec = context.newRecord;
+            let allowButton = false;
+
+            // === Cek sublist Item ===
+            const itemCount = rec.getLineCount({ sublistId: 'item' });
+            for (let i = 0; i < itemCount; i++) {
+                const approver = rec.getSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'custcol_stc_approver_linetrx',
+                    line: i
+                });
+                const approvalStatus = rec.getSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'custcol_stc_approval_status_line',
+                    line: i
                 });
 
+                if (Number(approver) === Number(employeeId) &&
+                    Number(approvalStatus) === 1) {
+                    allowButton = true;
+                    break;
+                }
             }
-        }catch(e){
-            log.debug('error', e)
+            if (!allowButton) {
+                const expCount = rec.getLineCount({ sublistId: 'expense' });
+                for (let j = 0; j < expCount; j++) {
+                    const approver = rec.getSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'custcol_stc_approver_linetrx',
+                        line: j
+                    });
+                    const approvalStatus = rec.getSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'custcol_stc_approval_status_line',
+                        line: j
+                    });
+
+                    if (Number(approver) === Number(employeeId) &&
+                        Number(approvalStatus) === 1) {
+                        allowButton = true;
+                        break;
+                    }
+                }
+            }
+            if (!allowButton) {
+                context.form.clientScriptModulePath = 'SuiteScripts/abj_cs_hide_button.js';
+                log.debug('Client Script Loaded', 'Button will be hidden');
+            } else {
+                log.debug('Client Script Not Loaded', 'User is approver and status=1, button allowed');
+            }
+
+        } catch (e) {
+            log.error('Error in beforeLoad', e);
+        }
+    }
+
+    const toInt = (v) => {
+        const n = parseInt(v, 10);
+        return isNaN(n) ? 0 : n;
+    };
+
+    function afterSubmit(context) {
+        try {
+            if (context.type !== context.UserEventType.EDIT) return;
+
+            const currentUser = runtime.getCurrentUser();
+            const employeeId = toInt(currentUser.id);
+
+            const rec    = context.newRecord;
+            const recOld = context.oldRecord;
+
+            const valueBefore = recOld.getValue('custbody_stc_approval_by');
+            const cekTrigger  = rec.getValue('custbody_stc_approval_by');
+
+            const oldVal = toInt(valueBefore);
+            const newVal = toInt(cekTrigger);
+
+            const oldApprovalStatus = toInt(recOld.getValue('approvalstatus'));
+            const newApprovalStatus = toInt(rec.getValue('approvalstatus'));
+
+            log.debug('before/after', { 
+                oldVal, newVal, 
+                employeeId, 
+                oldApprovalStatus, newApprovalStatus 
+            });
+
+            const recLoad = record.load({
+                type: rec.type,
+                id: rec.id,
+                isDynamic: false
+            });
+
+            /**
+             * Helper untuk update semua line milik user ke status tertentu
+             */
+            const updateLinesForUser = (sublistId, statusValue) => {
+                const count = recLoad.getLineCount({ sublistId });
+                for (let i = 0; i < count; i++) {
+                    const approver = toInt(recLoad.getSublistValue({
+                        sublistId, fieldId: 'custcol_stc_approver_linetrx', line: i
+                    }));
+                    if (approver === employeeId) {
+                        recLoad.setSublistValue({
+                            sublistId,
+                            fieldId: 'custcol_stc_approval_status_line',
+                            line: i,
+                            value: statusValue
+                        });
+                        log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
+                    }
+                }
+            };
+
+            /**
+             * Jika header approvalstatus berubah jadi 3 (Reject)
+             * maka update semua line milik employeeId ke 3
+             */
+            if (oldApprovalStatus !== 3 && newApprovalStatus === 3) {
+                log.debug('Reject', 'Approval status berubah jadi 3 (Reject), update line');
+                updateLinesForUser('item', 3);
+                updateLinesForUser('expense', 3);
+
+                recLoad.save({ enableSourcing: false, ignoreMandatoryFields: true });
+                log.debug('Selesai Reject', 'Line milik user diset ke 3');
+                return;
+            }
+
+            /**
+             * Jika custbody_stc_approval_by berubah → logic approve
+             */
+            if (newVal !== oldVal && employeeId === newVal) {
+                log.debug('Masuk eksekusi approve');
+
+                // ---- Update line milik current user ke status 2 ----
+                updateLinesForUser('item', 2);
+                updateLinesForUser('expense', 2);
+
+                // ---- Cek apakah semua line sudah approved ----
+                const isAllApproved = () => {
+                    let approverLines = 0;
+                    let notApproved   = 0;
+
+                    const scan = (sublistId) => {
+                        const count = recLoad.getLineCount({ sublistId });
+                        for (let i = 0; i < count; i++) {
+                            const approver = toInt(recLoad.getSublistValue({
+                                sublistId, fieldId: 'custcol_stc_approver_linetrx', line: i
+                            }));
+                            if (approver > 0) {
+                                approverLines++;
+                                const statusLineNow = toInt(recLoad.getSublistValue({
+                                    sublistId, fieldId: 'custcol_stc_approval_status_line', line: i
+                                }));
+                                if (statusLineNow !== 2) notApproved++;
+                            }
+                        }
+                    };
+
+                    scan('item');
+                    scan('expense');
+
+                    log.debug('Approval scan result', { approverLines, notApproved });
+                    if (approverLines === 0) return false;
+                    return notApproved === 0;
+                };
+
+                if (isAllApproved()) {
+                    recLoad.setValue({ fieldId: 'approvalstatus', value: 2 });
+                    log.debug('Header', 'Semua line approved -> approvalstatus = 2');
+                } else {
+                    log.debug('Header', 'Masih ada line belum approved');
+                }
+
+                recLoad.save({ enableSourcing: false, ignoreMandatoryFields: true });
+                log.debug('Selesai Approve', 'Record tersimpan');
+            }
+
+        } catch (e) {
+            log.error('Error in afterSubmit', e);
         }
     }
     return{

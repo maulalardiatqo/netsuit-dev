@@ -8,8 +8,12 @@ define([], () => {
         if (btn) {
             btn.style.display = 'none';
         }
+        // const btnReject = document.getElementById('tr_custpageworkflow253');
+        // if(btnReject){
+        //     btnReject.style.display = 'none';
+        // }
     const pageInit = () => {
-        
+
     };
     return { pageInit };
 });

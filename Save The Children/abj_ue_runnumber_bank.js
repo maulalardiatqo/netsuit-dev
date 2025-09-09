@@ -10,7 +10,9 @@ define(["N/record", "N/search"], function(
     ) {
     function afterSubmit(context) {
         try {
+            log.debug('context.type', context.type)
             if (context.type == context.UserEventType.CREATE) {
+                log.debug('triggerred')
                 function formatDateToDDMMYYYY(dateStr) {
                     var date = new Date(dateStr);
 
