@@ -18,6 +18,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
             }
 
             filters.push("AND", ["custrecord_stc_max_limit_amnt", "greaterthanorequalto", paramAmount]);
+            filters.push("AND", ["isinactive", "is", "F"]);
 
             var searchObj = search.create({
                 type: "customrecord_stc_apprv_matrix_bdgt_holdr",
@@ -42,19 +43,22 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
         return approval;
     }
 
-    function validateLine(context){
-        var currentRec = currentRecord.get();
+    function validateLine(context) {
+    var currentRec = currentRecord.get();
+
+    // ==== KONDISI SUBLIST ITEM ====
+    if (context.sublistId === 'item') {
         var itemId = currentRec.getCurrentSublistValue({
             sublistId: 'item',
             fieldId: 'item'
         }) || 0;
         console.log('itemId', itemId)
+
+        var account;
         if (itemId) {
             var itemSearchObj = search.create({
                 type: "item",
-                filters: [
-                    ["internalid", "anyof", itemId]
-                ],
+                filters: [["internalid", "anyof", itemId]],
                 columns: [
                     search.createColumn({ name: "itemid", label: "Name" }),
                     search.createColumn({ name: "displayname", label: "Display Name" }),
@@ -67,70 +71,93 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
             var results = itemSearchObj.run().getRange({ start: 0, end: 1000 });
 
             console.log("itemSearchObj result count", results.length);
-            var account
+
             results.forEach(function (result) {
-                var itemName = result.getValue({ name: "itemid" });
-                var displayName = result.getValue({ name: "displayname" });
                 var type = result.getValue({ name: "type" });
-                var basePrice = result.getValue({ name: "baseprice" });
                 var assetAccount = result.getValue({ name: "assetaccount" });
                 var expenseAccount = result.getValue({ name: "expenseaccount" });
 
-                console.log("Item Info", {
-                    itemName: itemName,
-                    displayName: displayName,
-                    type: type,
-                    basePrice: basePrice,
-                    assetAccount: assetAccount,
-                    expenseAccount: expenseAccount
-                });
-                if(type == 'InvtPart'){
-                    account = assetAccount
-                }else{
-                    account = expenseAccount
+                if (type == 'InvtPart') {
+                    account = assetAccount;
+                } else {
+                    account = expenseAccount;
                 }
             });
-
         }
+
         var sofId = currentRec.getCurrentSublistValue({
-            sublistId : "item",
-            fieldId : "cseg_stc_sof"
+            sublistId: "item",
+            fieldId: "cseg_stc_sof"
         });
         var grossamt = currentRec.getCurrentSublistValue({
-            sublistId : "item",
-            fieldId : "grossamt"
+            sublistId: "item",
+            fieldId: "grossamt"
         });
-        console.log('parameterSearch', {itemId : itemId, account : account, sofId : sofId, grossamt : grossamt})
+
+        console.log('parameterSearch', { itemId: itemId, account: account, sofId: sofId, grossamt: grossamt })
         console.log('cekCurrentMode', currentMode)
-        if(sofId){
+
+        if (sofId) {
             var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
             console.log('cekEmp', cekEmp)
-            if(cekEmp){
+            if (cekEmp) {
                 currentRec.setCurrentSublistValue({
-                    sublistId : "item",
-                    fieldId : "custcol_stc_approver_linetrx",
-                    value : cekEmp
+                    sublistId: "item",
+                    fieldId: "custcol_stc_approver_linetrx",
+                    value: cekEmp
                 })
             }
-            if(currentMode == "create"){
-                currentRec.setCurrentSublistValue({
-                    sublistId : "item",
-                    fieldId : "custcol_stc_approval_status_line",
-                    value : "1"
-                })
-            }else{
-                currentRec.setCurrentSublistValue({
-                    sublistId : "item",
-                    fieldId : "custcol_stc_approval_status_line",
-                    value : "1"
-                })
-            }
-        }else{
+            currentRec.setCurrentSublistValue({
+                sublistId: "item",
+                fieldId: "custcol_stc_approval_status_line",
+                value: "1"
+            })
+        } else {
             return true
         }
-        
-        return true
     }
+
+    // ==== KONDISI SUBLIST EXPENSE ====
+    if (context.sublistId === 'expense') {
+        var account = currentRec.getCurrentSublistValue({
+            sublistId: 'expense',
+            fieldId: 'account'
+        });
+        var sofId = currentRec.getCurrentSublistValue({
+            sublistId: "expense",
+            fieldId: "cseg_stc_sof"
+        });
+        var grossamt = currentRec.getCurrentSublistValue({
+            sublistId: "expense",
+            fieldId: "grossamt"
+        });
+
+        console.log('parameterSearch (expense)', { account: account, sofId: sofId, grossamt: grossamt })
+        console.log('cekCurrentMode', currentMode)
+
+        if (sofId) {
+            var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+            console.log('cekEmp (expense)', cekEmp)
+            if (cekEmp) {
+                currentRec.setCurrentSublistValue({
+                    sublistId: "expense",
+                    fieldId: "custcol_stc_approver_linetrx",
+                    value: cekEmp
+                })
+            }
+            currentRec.setCurrentSublistValue({
+                sublistId: "expense",
+                fieldId: "custcol_stc_approval_status_line",
+                value: "1"
+            })
+        } else {
+            return true
+        }
+    }
+
+    return true;
+}
+
     return{
         validateLine : validateLine,
         pageInit : pageInit

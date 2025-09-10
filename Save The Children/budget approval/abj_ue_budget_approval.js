@@ -51,7 +51,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         fieldId: 'custcol_stc_approval_status_line',
                         line: j
                     });
-
+                    log.debug('approvalStatus', approvalStatus)
                     if (Number(approver) === Number(employeeId) &&
                         Number(approvalStatus) === 1) {
                         allowButton = true;
@@ -59,6 +59,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                     }
                 }
             }
+            log.debug('allowButton', allowButton)
             if (!allowButton) {
                 context.form.clientScriptModulePath = 'SuiteScripts/abj_cs_hide_button.js';
                 log.debug('Client Script Loaded', 'Button will be hidden');
