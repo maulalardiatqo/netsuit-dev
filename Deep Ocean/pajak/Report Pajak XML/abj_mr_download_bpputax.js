@@ -102,7 +102,8 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
         const jobAction = runtime.getCurrentScript().getParameter({ name: 'custscript_job_action' });
         const idRecord = runtime.getCurrentScript().getParameter({ name: 'custscript_id_cust_rec' });
         const npwpPemotong = runtime.getCurrentScript().getParameter({ name: 'custscript_npwp' });
-
+        const folderId = runtime.getCurrentScript().getParameter({ name : "custscript_folder_id"})
+        log.debug('folderId', folderId)
         log.debug('reduce Stage - jobAction', jobAction);
 
         if (jobAction === 'xml') {
@@ -146,7 +147,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 fileType: file.Type.XMLDOC,
                 contents: fullXML,
                 encoding: file.Encoding.UTF8,
-                folder: 2179847
+                folder: folderId
             });
 
             const fileId = xmlFile.save();
@@ -248,7 +249,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 fileType: file.Type.PLAINTEXT,
                 contents: xmlStr,
                 encoding: file.Encoding.UTF8,
-                folder: 2179847
+                folder: folderId
             });
 
             const fileId = excelFile.save();

@@ -11,7 +11,7 @@ define(["N/record", "N/search"], function(
     function afterSubmit(context) {
         try {
             log.debug('context.type', context.type)
-            if (context.type == context.UserEventType.CREATE) {
+            if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.PAYBILLS || context.type == context.UserEventType.EDIT) {
                 log.debug('triggerred')
                 function formatDateToDDMMYYYY(dateStr) {
                     var date = new Date(dateStr);
@@ -78,6 +78,7 @@ define(["N/record", "N/search"], function(
                         var costCenter = recordLoad.getValue("department");
                         log.debug('costCenter', costCenter)
                         var codeCostCenter
+                        var idCost
                         var customrecord_stc_mapping_cost_centerSearchObj = search.create({
                             type: "customrecord_stc_mapping_cost_center",
                             filters:
@@ -87,12 +88,17 @@ define(["N/record", "N/search"], function(
                             columns:
                             [
                                 search.createColumn({name: "name", label: "Name"}),
-                                search.createColumn({name: "custrecord_stc_cost_center", label: "Cost Center"})
+                                search.createColumn({name: "custrecord_stc_cost_center", label: "Cost Center"}),
+                                search.createColumn({name: "internalid", label: "Internal ID"})
+   
                             ]
                         });
-                        var searchResultCount = customrecord_stc_mapping_cost_centerSearchObj.runPaged().count;
-                        log.debug("customrecord_stc_mapping_cost_centerSearchObj result count",searchResultCount);
+                        var searchResultCountCost = customrecord_stc_mapping_cost_centerSearchObj.runPaged().count;
+                        log.debug("customrecord_stc_mapping_cost_centerSearchObj result count",searchResultCountCost);
                         customrecord_stc_mapping_cost_centerSearchObj.run().each(function(result){
+                            idCost = result.getValue({
+                                name: "internalid"
+                            })
                             codeCostCenter = result.getValue({
                                 name: "name"
                             })
@@ -121,7 +127,9 @@ define(["N/record", "N/search"], function(
                                 "AND", 
                                 ["custrecord_start_date","on",startDateFormated], 
                                 "AND", 
-                                ["custrecord_end_date","on",endDateFormated]
+                                ["custrecord_end_date","on",endDateFormated],
+                                "AND",
+                                ["custrecord_kode_bank","anyof",idCost]
                             ],
                             columns:
                             [
@@ -208,6 +216,11 @@ define(["N/record", "N/search"], function(
                             createRec.setValue({
                                 fieldId :"custrecord_last_number",
                                 value : firstNumber,
+                                ignoreFieldChange: true,
+                            })
+                            createRec.setValue({
+                                fieldId :"custrecord_kode_bank",
+                                value : idCost,
                                 ignoreFieldChange: true,
                             })
                             var savecreateRec = createRec.save({

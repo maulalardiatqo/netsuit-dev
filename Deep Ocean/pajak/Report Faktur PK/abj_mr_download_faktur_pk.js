@@ -156,21 +156,27 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             const v = d.values;
             let itemName = getText(v.item);
             if (itemName && itemName.includes(':')) {
-                itemName = itemName.split(':')[0].trim(); // Ambil sebelum titik dua
+                itemName = itemName.split(':')[0].trim();
             }
+            var fxamt = v.fxamount
+            var amt = v.amount
+            var txamt = v.taxamount
+            log.debug('data tax', {fxamt : fxamt, amt : amt, txamt : txamt})
+            var amtTax = (Number(fxamt)/Number(amt)) * (Number(txamt))
+            log.debug('amtTax', amtTax)
             return [
                 d.id,
                 getText(v.custbody_bs_barang_jasa),
                 getText(v.custbody_bs_kode_barang_jasa),
                 itemName,
                 getText(v.custbody_bs_nama_satuan_ukur),
-                removeDecimal(v.rate) || '',
+                removeDecimal(Number((v.fxamount))/Number(v.quantity)) || '',
                 v.quantity || '',
-                removeDecimal(v.discountamount) || '',
-                removeDecimal(v.amount) || '',
+                removeDecimal((Number(v.fxamount)/Number(v.amount))*(Number(v.discountamount))) || '',
+                removeDecimal((Number(v.fxamount)/Number(v.amount))*(Number(v.amount))) || '',
                 removeDecimal(v.custcol_bs_dpp_nilai_lain) || '',
                 (getText(v.taxcode)?.replace(/vat/gi, '').replace(/%/g, '').trim()) || '',
-                removeDecimal(v.taxamount) || '',
+                removeDecimal(v.formulacurrency) || '',
                 '0',
                 '0',
             ];
@@ -225,13 +231,13 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 xmlParts.push(`<Code>${getText(v.custbody_bs_kode_barang_jasa)}</Code>`);
                 xmlParts.push(`<Name>${itemName}</Name>`);
                 xmlParts.push(`<Unit>${getText(v.custbody_bs_nama_satuan_ukur)}</Unit>`);
-                xmlParts.push(`<Price>${removeDecimal(v.rate) || '0'}</Price>`);
+                xmlParts.push(`<Price>${removeDecimal(Number((v.fxamount))/Number(v.quantity)) || '0'}</Price>`);
                 xmlParts.push(`<Qty>${v.quantity || '0'}</Qty>`);
-                xmlParts.push(`<TotalDiscount>${removeDecimal(v.discountamount) || '0'}</TotalDiscount>`);
-                xmlParts.push(`<TaxBase>${removeDecimal(v.amount) || '0'}</TaxBase>`);
+                xmlParts.push(`<TotalDiscount>${removeDecimal((Number(v.fxamount)/Number(v.amount))*(Number(v.discountamount))) || '0'}</TotalDiscount>`);
+                xmlParts.push(`<TaxBase>${removeDecimal((Number(v.fxamount)/Number(v.amount))*(Number(v.amount))) || '0'}</TaxBase>`);
                 xmlParts.push(`<OtherTaxBase>${removeDecimal(v.custcol_bs_dpp_nilai_lain) || '0'}</OtherTaxBase>`);
                 xmlParts.push(`<VATRate>${(getText(v.taxcode)?.replace(/vat/gi, '').replace(/%/g, '').trim()) || ''}</VATRate>`);
-                xmlParts.push(`<VAT>${removeDecimal(v.taxamount) || '0'}</VAT>`);
+                xmlParts.push(`<VAT>${removeDecimal((Number(v.fxamount)/Number(v.amount))*(Number(v.taxamount))) || '0'}</VAT>`);
                 xmlParts.push(`<STLGRate>0</STLGRate>`);
                 xmlParts.push(`<STLG>0</STLG>`);
                 xmlParts.push(`</GoodService>`);
@@ -250,6 +256,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
         const jobAction = runtime.getCurrentScript().getParameter({ name: 'custscript_job_action_pk' });
         const npwp = runtime.getCurrentScript().getParameter({ name: 'custscript_npwp_pk' });
         const idCustRec = runtime.getCurrentScript().getParameter({ name: 'custscript_id_cust_rec_pk' });
+        const folderId = runtime.getCurrentScript().getParameter({ name : "custscript_folder_id_pk"})
 
         const allFakturRows = [];
         const allDetailRows = [];
@@ -286,7 +293,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 name: `Faktur PK_${idCustRec}.xls`,
                 fileType: file.Type.PLAINTEXT,
                 contents: content,
-                folder: 2179846
+                folder: folderId
             });
             const fileId = excelFile.save();
             log.audit('Excel File Saved', `File ID: ${fileId}`);
@@ -311,7 +318,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 name: `Faktur PK_${idCustRec}.xml`,
                 fileType: file.Type.XMLDOC,
                 contents: finalXml.join('\n'),
-                folder: 2179846
+                folder: folderId
             });
 
             const fileId = xmlFile.save();
