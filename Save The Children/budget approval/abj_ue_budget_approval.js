@@ -62,11 +62,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 }
                 log.debug('allowButton', allowButton)
                 if (!allowButton) {
-                    var cekApproval = rec.getValue('approvalstatus');
-                    log.debug('cekApproval')
                     
-                        context.form.clientScriptModulePath = 'SuiteScripts/abj_cs_hide_button.js';
-                        log.debug('Client Script Loaded', 'Button will be hidden');
+                    context.form.clientScriptModulePath = 'SuiteScripts/abj_cs_hide_button.js';
+                    log.debug('Client Script Loaded', 'Button will be hidden');
 
                     
                 } else {

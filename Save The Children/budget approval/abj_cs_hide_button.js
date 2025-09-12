@@ -13,9 +13,6 @@ define([], () => {
             btnSec.style.display = 'none';
         }
         
-
-        
-
         const btnReject = document.getElementById('tr_custpageworkflow253');
         if(btnReject){
             btnReject.style.display = 'none';
@@ -25,14 +22,30 @@ define([], () => {
         if(btnRejectSec){
             // btnRejectSec.style.display = 'none';
         }
-        const btnRejectBill = document.getElementById('tr_custpageworkflow286');
-        if(btnRejectBill){
-            btnRejectBill.style.display = 'none';
-        }
+        // const btnRejectBill = document.getElementById('tr_custpageworkflow286');
+        // if(btnRejectBill){
+        //     btnRejectBill.style.display = 'none';
+        // }
+        // const btnRejectBill2 = document.getElementById('tr_custpageworkflow291');
+        // if(btnRejectBill2){
+        //     btnRejectBill2.style.display = 'none';
+        // }
         const btnApprovBill = document.getElementById('tr_custpageworkflow299');
         if(btnApprovBill){
             btnApprovBill.style.display = 'none';
         }
+        const btnApprovBillSec = document.getElementById('tr_secondarycustpageworkflow299');
+        if(btnApprovBillSec){
+            btnApprovBillSec.style.display = 'none';
+        }
+        // const btnRejectBillSec = document.getElementById('tr_secondarycustpageworkflow286');
+        // if(btnRejectBillSec){
+        //     btnRejectBillSec.style.display = 'none';
+        // }
+        //  const btnRejectBillSec2 = document.getElementById('tr_secondarycustpageworkflow291');
+        // if(btnRejectBillSec2){
+        //     btnRejectBillSec2.style.display = 'none';
+        // }
     const pageInit = () => {
 
     };
