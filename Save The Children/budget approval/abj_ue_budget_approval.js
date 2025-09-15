@@ -85,151 +85,237 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
 
     function afterSubmit(context) {
         try {
-            if (context.type !== context.UserEventType.EDIT) return;
+            if (context.type === context.UserEventType.EDIT){
+                const currentUser = runtime.getCurrentUser();
+                const employeeId = toInt(currentUser.id);
 
-            const currentUser = runtime.getCurrentUser();
-            const employeeId = toInt(currentUser.id);
+                const rec    = context.newRecord;
+                const recOld = context.oldRecord;
 
-            const rec    = context.newRecord;
-            const recOld = context.oldRecord;
+                const valueBefore = recOld.getValue('custbody_stc_approval_by');
+                const cekTrigger  = rec.getValue('custbody_stc_approval_by');
 
-            const valueBefore = recOld.getValue('custbody_stc_approval_by');
-            const cekTrigger  = rec.getValue('custbody_stc_approval_by');
+                const oldVal = toInt(valueBefore);
+                const newVal = toInt(cekTrigger);
 
-            const oldVal = toInt(valueBefore);
-            const newVal = toInt(cekTrigger);
+                const oldApprovalStatus = toInt(recOld.getValue('approvalstatus'));
+                const newApprovalStatus = toInt(rec.getValue('approvalstatus'));
 
-            const oldApprovalStatus = toInt(recOld.getValue('approvalstatus'));
-            const newApprovalStatus = toInt(rec.getValue('approvalstatus'));
+                log.debug('before/after', { 
+                    oldVal, newVal, 
+                    employeeId, 
+                    oldApprovalStatus, newApprovalStatus 
+                });
 
-            log.debug('before/after', { 
-                oldVal, newVal, 
-                employeeId, 
-                oldApprovalStatus, newApprovalStatus 
-            });
+                const recLoad = record.load({
+                    type: rec.type,
+                    id: rec.id,
+                    isDynamic: false
+                });
 
-            const recLoad = record.load({
-                type: rec.type,
-                id: rec.id,
-                isDynamic: false
-            });
-
-            const updateLinesForUser = (sublistId, statusValue) => {
-                const count = recLoad.getLineCount({ sublistId });
-                for (let i = 0; i < count; i++) {
-                    const approver = toInt(recLoad.getSublistValue({
-                        sublistId, fieldId: 'custcol_stc_approver_linetrx', line: i
-                    }));
-                    if (approver === employeeId) {
-                        recLoad.setSublistValue({
-                            sublistId,
-                            fieldId: 'custcol_stc_approval_status_line',
-                            line: i,
-                            value: statusValue
-                        });
-                        log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
-                    }
-                }
-            };
-
-            /**
-             * Jika header approvalstatus berubah jadi 3 (Reject)
-             * maka update semua line milik employeeId ke 3
-             */
-            if (oldApprovalStatus !== 3 && newApprovalStatus === 3) {
-                log.debug('Reject', 'Approval status berubah jadi 3 (Reject), update line');
-                updateLinesForUser('item', 3);
-                updateLinesForUser('expense', 3);
-
-                recLoad.save({ enableSourcing: false, ignoreMandatoryFields: true });
-                log.debug('Selesai Reject', 'Line milik user diset ke 3');
-                return;
-            }
-
-            /**
-             * Jika custbody_stc_approval_by berubah → logic approve
-             */
-            if (newVal !== oldVal && employeeId === newVal) {
-                log.debug('Masuk eksekusi approve');
-
-                // ---- Update line milik current user ke status 2 ----
-                updateLinesForUser('item', 2);
-                updateLinesForUser('expense', 2);
-
-                // ---- Cek apakah semua line sudah approved ----
-                const isAllApproved = () => {
-                    let approverLines = 0;
-                    let notApproved   = 0;
-
-                    const scan = (sublistId) => {
-                        const count = recLoad.getLineCount({ sublistId });
-                        for (let i = 0; i < count; i++) {
-                            const approver = toInt(recLoad.getSublistValue({
-                                sublistId, fieldId: 'custcol_stc_approver_linetrx', line: i
-                            }));
-                            if (approver > 0) {
-                                approverLines++;
-                                const statusLineNow = toInt(recLoad.getSublistValue({
-                                    sublistId, fieldId: 'custcol_stc_approval_status_line', line: i
-                                }));
-                                if (statusLineNow !== 2) notApproved++;
-                            }
-                        }
-                    };
-
-                    scan('item');
-                    scan('expense');
-
-                    log.debug('Approval scan result', { approverLines, notApproved });
-                    if (approverLines === 0) return false;
-                    return notApproved === 0;
-                };
-
-                if (isAllApproved()) {
-                    recLoad.setValue({ fieldId: 'custbody_stc_approval_budget_holder', value: true });
-                    log.debug('Header', 'Semua line approved -> approvalstatus = 2');
-                } else {
-                    log.debug('Header', 'Masih ada line belum approved');
-                }
-
-                recLoad.save({ enableSourcing: false, ignoreMandatoryFields: true });
-                log.debug('Selesai Approve', 'Record tersimpan');
-            }
-            if (oldApprovalStatus === 3 && newApprovalStatus === 1) {
-                log.debug('Reset', 'Approval status berubah dari 3 ke 1, reset semua line jadi 1');
-                recLoad.setValue({
-                        fieldId : 'custbody_stc_last_approve_at',
-                        value : '',
-                        ignoreMandatoryFields : true
-                    })
-                    
-                    recLoad.setValue({
-                        fieldId : 'custbody_stc_approval_budget_holder',
-                        value : false,
-                        ignoreMandatoryFields : true
-                    })
-                const resetLines = (sublistId, statusValue) => {
+                const updateLinesForUser = (sublistId, statusValue) => {
                     const count = recLoad.getLineCount({ sublistId });
                     for (let i = 0; i < count; i++) {
-                        recLoad.setSublistValue({
-                            sublistId,
-                            fieldId: 'custcol_stc_approval_status_line',
-                            line: i,
-                            value: statusValue
-                        });
-                        
-                        log.debug(`Reset ${sublistId}`, `Line ${i} diset ke ${statusValue}`);
+                        const approver = toInt(recLoad.getSublistValue({
+                            sublistId, fieldId: 'custcol_stc_approver_linetrx', line: i
+                        }));
+                        if (approver === employeeId) {
+                            recLoad.setSublistValue({
+                                sublistId,
+                                fieldId: 'custcol_stc_approval_status_line',
+                                line: i,
+                                value: statusValue
+                            });
+                            log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
+                        }
                     }
-                    
                 };
 
-                resetLines('item', 1);
-                resetLines('expense', 1);
+                /**
+                 * Jika header approvalstatus berubah jadi 3 (Reject)
+                 * maka update semua line milik employeeId ke 3
+                 */
+                if (oldApprovalStatus !== 3 && newApprovalStatus === 3) {
+                    log.debug('Reject', 'Approval status berubah jadi 3 (Reject), update line');
+                    updateLinesForUser('item', 3);
+                    updateLinesForUser('expense', 3);
 
-                recLoad.save({ enableSourcing: false, ignoreMandatoryFields: true });
-                log.debug('Selesai Reset', 'Semua line approval status diset ke 1');
-                return;
+                    recLoad.save({ enableSourcing: false, ignoreMandatoryFields: true });
+                    log.debug('Selesai Reject', 'Line milik user diset ke 3');
+                    return;
+                }
+
+                /**
+                 * Jika custbody_stc_approval_by berubah → logic approve
+                 */
+                if (newVal !== oldVal && employeeId === newVal) {
+                    log.debug('Masuk eksekusi approve');
+
+                    // ---- Update line milik current user ke status 2 ----
+                    updateLinesForUser('item', 2);
+                    updateLinesForUser('expense', 2);
+
+                    // ---- Cek apakah semua line sudah approved ----
+                    const isAllApproved = () => {
+                        let approverLines = 0;
+                        let notApproved   = 0;
+
+                        const scan = (sublistId) => {
+                            const count = recLoad.getLineCount({ sublistId });
+                            for (let i = 0; i < count; i++) {
+                                const approver = toInt(recLoad.getSublistValue({
+                                    sublistId, fieldId: 'custcol_stc_approver_linetrx', line: i
+                                }));
+                                if (approver > 0) {
+                                    approverLines++;
+                                    const statusLineNow = toInt(recLoad.getSublistValue({
+                                        sublistId, fieldId: 'custcol_stc_approval_status_line', line: i
+                                    }));
+                                    if (statusLineNow !== 2) notApproved++;
+                                }
+                            }
+                        };
+
+                        scan('item');
+                        scan('expense');
+
+                        log.debug('Approval scan result', { approverLines, notApproved });
+                        if (approverLines === 0) return false;
+                        return notApproved === 0;
+                    };
+
+                    if (isAllApproved()) {
+                        recLoad.setValue({ fieldId: 'custbody_stc_approval_budget_holder', value: true });
+                        log.debug('Header', 'Semua line approved -> approvalstatus = 2');
+                    } else {
+                        log.debug('Header', 'Masih ada line belum approved');
+                    }
+
+                    recLoad.save({ enableSourcing: false, ignoreMandatoryFields: true });
+                    log.debug('Selesai Approve', 'Record tersimpan');
+                }
+                if (oldApprovalStatus === 3 && newApprovalStatus === 1) {
+                    log.debug('Reset', 'Approval status berubah dari 3 ke 1, reset semua line jadi 1');
+                    recLoad.setValue({
+                            fieldId : 'custbody_stc_last_approve_at',
+                            value : '',
+                            ignoreMandatoryFields : true
+                        })
+                        
+                        recLoad.setValue({
+                            fieldId : 'custbody_stc_approval_budget_holder',
+                            value : false,
+                            ignoreMandatoryFields : true
+                        })
+                    const resetLines = (sublistId, statusValue) => {
+                        const count = recLoad.getLineCount({ sublistId });
+                        for (let i = 0; i < count; i++) {
+                            recLoad.setSublistValue({
+                                sublistId,
+                                fieldId: 'custcol_stc_approval_status_line',
+                                line: i,
+                                value: statusValue
+                            });
+                            
+                            log.debug(`Reset ${sublistId}`, `Line ${i} diset ke ${statusValue}`);
+                        }
+                        
+                    };
+
+                    resetLines('item', 1);
+                    resetLines('expense', 1);
+
+                    recLoad.save({ enableSourcing: false, ignoreMandatoryFields: true });
+                    log.debug('Selesai Reset', 'Semua line approval status diset ke 1');
+                    return;
+                }
             }
+            if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.COPY) {
+                const newRec = record.load({
+                    type: context.newRecord.type,
+                    id: context.newRecord.id,
+                    isDynamic: true
+                });
+
+                // ==== LOOP SUBLIST ITEM ====
+                const lineCountItem = newRec.getLineCount({ sublistId: 'item' });
+                for (let i = 0; i < lineCountItem; i++) {
+                    let itemId = newRec.getSublistValue({ sublistId: 'item', fieldId: 'item', line: i });
+                    let sofId = newRec.getSublistValue({ sublistId: 'item', fieldId: 'cseg_stc_sof', line: i });
+                    let grossamt = newRec.getSublistValue({ sublistId: 'item', fieldId: 'grossamt', line: i });
+
+                    let account;
+                    if (itemId) {
+                        let itemSearchObj = search.create({
+                            type: "item",
+                            filters: [["internalid", "anyof", itemId]],
+                            columns: [
+                                search.createColumn({ name: "type" }),
+                                search.createColumn({ name: "assetaccount" }),
+                                search.createColumn({ name: "expenseaccount" })
+                            ]
+                        });
+                        let results = itemSearchObj.run().getRange({ start: 0, end: 1 });
+                        if (results.length > 0) {
+                            let type = results[0].getValue({ name: "type" });
+                            let assetAccount = results[0].getValue({ name: "assetaccount" });
+                            let expenseAccount = results[0].getValue({ name: "expenseaccount" });
+
+                            account = (type === 'InvtPart') ? assetAccount : expenseAccount;
+                        }
+                    }
+
+                    if (sofId) {
+                        let cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+                        if (cekEmp) {
+                            newRec.setSublistValue({
+                                sublistId: "item",
+                                fieldId: "custcol_stc_approver_linetrx",
+                                line: i,
+                                value: cekEmp
+                            });
+                        }
+                        newRec.setSublistValue({
+                            sublistId: "item",
+                            fieldId: "custcol_stc_approval_status_line",
+                            line: i,
+                            value: "1"
+                        });
+                    }
+                }
+
+                // ==== LOOP SUBLIST EXPENSE ====
+                const lineCountExp = newRec.getLineCount({ sublistId: 'expense' });
+                for (let i = 0; i < lineCountExp; i++) {
+                    let account = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'account', line: i });
+                    let sofId = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'cseg_stc_sof', line: i });
+                    let grossamt = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'grossamt', line: i });
+
+                    if (sofId) {
+                        let cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+                        if (cekEmp) {
+                            newRec.setSublistValue({
+                                sublistId: "expense",
+                                fieldId: "custcol_stc_approver_linetrx",
+                                line: i,
+                                value: cekEmp
+                            });
+                        }
+                        newRec.setSublistValue({
+                            sublistId: "expense",
+                            fieldId: "custcol_stc_approval_status_line",
+                            line: i,
+                            value: "1"
+                        });
+                    }
+                }
+
+                // simpan perubahan
+                newRec.save({ ignoreMandatoryFields: true });
+            }
+
+
+           
         } catch (e) {
             log.error('Error in afterSubmit', e);
         }
