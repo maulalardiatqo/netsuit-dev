@@ -77,35 +77,34 @@ define(["N/record", "N/search"], function(
                         log.debug('data setup', {category : category, firstCode : firstCode, digit : digit})
                         var costCenter = recordLoad.getValue("department");
                         log.debug('costCenter', costCenter)
-                        var codeCostCenter
-                        var idCost
-                        var customrecord_stc_mapping_cost_centerSearchObj = search.create({
-                            type: "customrecord_stc_mapping_cost_center",
-                            filters:
-                            [
-                                ["custrecord_stc_cost_center","anyof",costCenter]
-                            ],
-                            columns:
-                            [
-                                search.createColumn({name: "name", label: "Name"}),
-                                search.createColumn({name: "custrecord_stc_cost_center", label: "Cost Center"}),
-                                search.createColumn({name: "internalid", label: "Internal ID"})
-   
-                            ]
-                        });
-                        var searchResultCountCost = customrecord_stc_mapping_cost_centerSearchObj.runPaged().count;
-                        log.debug("customrecord_stc_mapping_cost_centerSearchObj result count",searchResultCountCost);
-                        customrecord_stc_mapping_cost_centerSearchObj.run().each(function(result){
-                            idCost = result.getValue({
-                                name: "internalid"
-                            })
-                            codeCostCenter = result.getValue({
-                                name: "name"
-                            })
-                            return true;
-                        });
-                        log.debug('category', category)
+                        var codeCostCenter = recordLoad.getText('custbody_stc_prefix_numbering')
                         log.debug('codeCostCenter', codeCostCenter)
+                        var idCost = recordLoad.getValue('custbody_stc_prefix_numbering')
+                        log.debug('idCost', idCost)
+                        // var customrecord_stc_mapping_cost_centerSearchObj = search.create({
+                        //     type: "customrecord_stc_mapping_cost_center",
+                        //     filters:
+                        //     [
+                        //         ["custrecord_stc_cost_center","anyof",costCenter]
+                        //     ],
+                        //     columns:
+                        //     [
+                        //         search.createColumn({name: "name", label: "Name"}),
+                        //         search.createColumn({name: "custrecord_stc_cost_center", label: "Cost Center"}),
+                        //         search.createColumn({name: "internalid", label: "Internal ID"})
+   
+                        //     ]
+                        // });
+                        // var searchResultCountCost = customrecord_stc_mapping_cost_centerSearchObj.runPaged().count;
+                        // log.debug("customrecord_stc_mapping_cost_centerSearchObj result count",searchResultCountCost);
+                        // customrecord_stc_mapping_cost_centerSearchObj.run().each(function(result){
+                        //     idCost = result.getValue({
+                        //         name: "internalid"
+                        //     })
+                        //     return true;
+                        // });
+                        // log.debug('category', category)
+                        // log.debug('codeCostCenter', codeCostCenter)
                         var trandDate = recordLoad.getValue("trandate");
                         log.debug('trandDate', trandDate)
                         var { startDate, endDate } = getMonthRange(trandDate);
