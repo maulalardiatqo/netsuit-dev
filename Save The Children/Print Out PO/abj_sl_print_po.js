@@ -113,7 +113,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var xml = "";
                     var header = "";
                     var body = "";
-                    var headerHeight = '37%';
+                    var headerHeight = '38%';
                     var style = "";
                     var footer = "";
                     var pdfFile = null;
@@ -246,9 +246,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(shippingAddr)+"</td>"
                     header += "</tr>"
 
-                    header += "<tr style='height:6px;'>"
-                    header += "</tr>"
-
                     header += "</tbody>";
                     header += "</table>";
 
@@ -312,16 +309,263 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "</tr>"
 
                     // line
+                    var currnecy = recordLoad.getText("currency")
                     var dataLineCount = recordLoad.getLineCount({
                         sublistId: "item",
                     });
-                    if(dataLineCount > 0){
+                    var allDataItem = []
+                    var totalWHT = 0;
+                    var totalDelivCharge = 0
+                    var totalOtherCharge = 0
+                    var subTotal = 0
+                    if (dataLineCount > 0) {
                         for (var i = 0; i < dataLineCount; i++) {
-                        
+                            var projectCode = recordLoad.getSublistText({
+                                sublistId: "item",
+                                fieldId: "class",
+                                line: i
+                            });
+                            var sofCode = recordLoad.getSublistText({
+                                sublistId: "item",
+                                fieldId: "cseg_stc_sof",
+                                line: i
+                            });
+                            var lineNumb = i + 1
+                            var itemName = recordLoad.getSublistText({
+                                sublistId: "item",
+                                fieldId: "item",
+                                line: i
+                            });
+                            var itemId = recordLoad.getSublistValue({
+                                sublistId: "item",
+                                fieldId: "item",
+                                line: i
+                            });
+                            var desc = recordLoad.getSublistValue({
+                                sublistId: "item",
+                                fieldId: "description",
+                                line: i
+                            });
+                            var qty = recordLoad.getSublistValue({
+                                sublistId: "item",
+                                fieldId: "quantity",
+                                line: i
+                            });
+                            var rate = recordLoad.getSublistValue({
+                                sublistId: "item",
+                                fieldId: "rate",
+                                line: i
+                            });
+                            var grossamt = recordLoad.getSublistValue({
+                                sublistId: "item",
+                                fieldId: "grossamt",
+                                line: i
+                            });
+
+                            var totalPrice = Number(qty) * Number(rate);
+                            if (itemName && itemName.includes("WHT")) {
+                                totalWHT += Number(grossamt) || 0;
+                            }else{
+                                var itemLookup = search.lookupFields({
+                                    type: 'item',
+                                    id: itemId,
+                                    columns: ['type']
+                                });
+
+                                var itemType = itemLookup.type[0] ? itemLookup.type[0].value : '';
+                                log.debug('itemType', itemType)
+                                if(itemType != 'OthCharge'){
+                                    subTotal += Number(totalPrice)
+                                    allDataItem.push({
+                                        projectCode : projectCode,
+                                        sofCode : sofCode,
+                                        lineNumb : lineNumb,
+                                        itemName : itemName,
+                                        desc : desc,
+                                        qty : qty,
+                                        currnecy : currnecy,
+                                        rate : rate,
+                                        totalPrice : totalPrice
+                                    })
+                                }else{
+                                    var itemSearchObj = search.create({
+                                    type: "item",
+                                    filters:
+                                    [
+                                        ["internalid","anyof",itemId]
+                                    ],
+                                    columns:
+                                    [
+                                        search.createColumn({name: "custitem_stc_delivery_charge", label: "STC - Delivery Charge"}),
+                                        search.createColumn({name: "custitem_stc_other_charges", label: "STC - Other Charges"}),
+                                        search.createColumn({name: "type", label: "Type"})
+                                    ]
+                                    });
+                                    var searchResultCount = itemSearchObj.runPaged().count;
+                                    log.debug("itemSearchObj result count",searchResultCount);
+                                    itemSearchObj.run().each(function(result){
+                                        var isDelCharge = result.getValue({
+                                            name : 'custitem_stc_delivery_charge'
+                                        })
+                                        var isOtherCharge = result.getValue({
+                                            name : 'custitem_stc_other_charges'
+                                        })
+                                        if(isDelCharge){
+                                            totalDelivCharge += Number(grossamt)
+                                        }
+                                        if(isOtherCharge){
+                                            totalOtherCharge += Number(grossamt)
+                                        }
+                                    return true;
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    if(allDataItem.length > 0){
+                        allDataItem.forEach(function (line) {
+                            body += "<tr>"
+                            body += "<td style='border-top: none;  border:1px solid black;'>" + escapeXmlSymbols(line.projectCode) + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + escapeXmlSymbols(line.sofCode) + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'></td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + line.lineNumb + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + escapeXmlSymbols(line.itemName) + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + escapeXmlSymbols(line.desc) + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'></td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + line.qty + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + currnecy + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + line.rate + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + line.totalPrice + "</td>"
+                            body += "</tr>"
+                        })
+                    }
+                    
+                    var dataExpenseCount = recordLoad.getLineCount({
+                        sublistId : "expense"
+                    })
+                    log.debug('dataExpenseCount', dataExpenseCount)
+                    var allDataExp = []
+                    if (dataExpenseCount > 0) {
+                        for (var i = 0; i < dataExpenseCount; i++) {
+                            var projectCodeExp = recordLoad.getSublistText({
+                                sublistId: "expense",
+                                fieldId: "class",
+                                line: i
+                            });
+                            var sofCodeExp = recordLoad.getSublistText({
+                                sublistId: "expense",
+                                fieldId: "cseg_stc_sof",
+                                line: i
+                            });
+                            var lineNumbExp = i + 1
+                            var itemNameExp = recordLoad.getSublistText({
+                                sublistId: "expense",
+                                fieldId: "account",
+                                line: i
+                            });
+                            var descExp = recordLoad.getSublistValue({
+                                sublistId: "expense",
+                                fieldId: "memo",
+                                line: i
+                            });
+                            var qtyExp = 1
+                            var rateExp = recordLoad.getSublistValue({
+                                sublistId: "expense",
+                                fieldId: "amount",
+                                line: i
+                            });
+
+                            var totalPriceExp = Number(qtyExp) * Number(rateExp);
+                            subTotal += totalPriceExp
+                            allDataExp.push({
+                                projectCodeExp : projectCodeExp,
+                                sofCodeExp : sofCodeExp,
+                                lineNumbExp : lineNumbExp,
+                                itemNameExp : itemNameExp,
+                                descExp : descExp,
+                                qtyExp : qtyExp,
+                                rateExp : rateExp,
+                                totalPriceExp : totalPriceExp
+                            })
                         }
                     }
                     
+                    if(allDataExp.length > 0){
+                        allDataExp.forEach(function (lineExp) {
+                            body += "<tr>"
+                            body += "<td style='border-top: none;  border:1px solid black;'>" + escapeXmlSymbols(lineExp.projectCodeExp) + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + escapeXmlSymbols(lineExp.sofCodeExp) + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'></td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + lineExp.lineNumbExp + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + escapeXmlSymbols(lineExp.itemNameExp) + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + escapeXmlSymbols(lineExp.descExp) + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'></td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + lineExp.qtyExp + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + currnecy + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + lineExp.rateExp + "</td>"
+                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + lineExp.totalPriceExp + "</td>"
+                            body += "</tr>"
+                        })
+                    }
+                    body += "<tr>"
+                    body += "<td style='align:right; font-weight:bold;' colspan='9'>Subtotal</td>"
+                    body += "<td></td>"
+                    body += "<td style='border:1px solid black; border-top:none;'>"+subTotal+"</td>"
+                    body += "</tr>"
 
+                    body += "<tr>"
+                    body += "<td style='align:right; font-weight:bold;' colspan='9'>WHT</td>"
+                    body += "<td></td>"
+                    body += "<td style='border:1px solid black; border-top:none;'>"+totalWHT+"</td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='align:right; font-weight:bold;' colspan='9'>Delivery charge</td>"
+                    body += "<td></td>"
+                    body += "<td style='border:1px solid black; border-top:none;'>"+totalDelivCharge+"</td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='align:right; font-weight:bold;' colspan='9'>Other charges</td>"
+                    body += "<td></td>"
+                    body += "<td style='border:1px solid black; border-top:none;'>"+totalOtherCharge+"</td>"
+                    body += "</tr>"
+                    var total = Number(subTotal) - Number(totalWHT) + Number(totalDelivCharge) + Number(totalOtherCharge)
+
+                    body += "<tr>"
+                    body += "<td style='align:right; font-weight:bold;font-size:12px;' colspan='9'>Total</td>"
+                    body += "<td></td>"
+                    body += "<td style='border:1px solid black; border-top:none;'>"+total+"</td>"
+                    body += "</tr>"
+                    body += "</tbody>"
+                    body += "</table>"
+
+
+                    body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+                    body += "<tbody>";
+
+                    body += "<tr>"
+                    body += "<td style='width:32%'></td>"
+                    body += "<td style='width:23%'></td>"
+                    body += "<td style='width:15%'></td>"
+                    body += "<td style='width:25%'></td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='font-weight:bold; align:center' colspan='4'>The Purchase Order number must be quoted on all correspondence and documents including delivery note and invoice </td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='background-color:red; color: white; font-weight:bold; border:1px solid black;' colspan='2'>Prepared by: Procurement</td>"
+                    body += "<td style='background-color:red; color: white; font-weight:bold; border:1px solid black; border-left:none;' colspan='2'>Authorised by Budget Holder (authorised under SoD):</td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; border:1px solid black; border-top:none;' colspan='2'>Confirms accuracy of contract/PO and procedural compliance to SCI policies</td>"
+                    body += "<td style='background-color:#D5D6D6FF; border:1px solid black; border-left:none; border-top:none;' colspan='2'>Financial authorisation/ verification of budget (commitment to spend)</td>"
+                    body += "</tr>"
+
+                    
                     body += "</tbody>"
                     body += "</table>"
 
