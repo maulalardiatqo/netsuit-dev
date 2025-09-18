@@ -113,7 +113,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var xml = "";
                     var header = "";
                     var body = "";
-                    var headerHeight = '38%';
+                    var headerHeight = '0%';
                     var style = "";
                     var footer = "";
                     var pdfFile = null;
@@ -139,32 +139,32 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     style += "</style>";
                     
                     // header
-                    header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
-                    header += "<tbody>";
-                    header += "<tr>"
-                    header += "<td style='width:50%'></td>"
-                    header += "<td style='width:50%'></td>"
-                    header += "</tr>"
-                    header += "<tr style='background-color:red;'>"
-                    header += "<td style='align:left; color: white; font-weight:bold; font-size:20px;'>SAVE THE CHILDREN</td>"
-                    header += "<td style='align:right; color: white; font-weight:bold; font-size:20px;'>PURCHASE ORDER</td>"
-                    header += "</tr>"
+                    body += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
+                    body += "<thead>";
+                    body += "<tr>"
+                    body += "<td style='width:50%'></td>"
+                    body += "<td style='width:50%'></td>"
+                    body += "</tr>"
+                    body += "<tr style='background-color:red;'>"
+                    body += "<td style='align:left; color: white; font-weight:bold; font-size:20px;'>SAVE THE CHILDREN</td>"
+                    body += "<td style='align:right; color: white; font-weight:bold; font-size:20px;'>PURCHASE ORDER</td>"
+                    body += "</tr>"
                     
-                    header += "<tr>"
-                    header += "<td style='align:center; font-size:7; font-weight:bold;' colspan='2'><p style='text-align:center;'>This Purchase Order is issued subject to the terms and conditions and the policies contained in the contract or framework agreement governing the Goods and/or Services (as applicable), between the Customer and the Supplier. In the absence of such contract or framework agreement, this Purchase Order is issued subject to the terms and conditions overleaf and the policies contained at </p><p style='color:#1385B9FF; padding-top:0px; margin-top:0px;'>https://www.savethechildren.net/sites/www.savethechildren.net/files/Supplier Sustainability Policy.pdf</p></td>"
-                    header += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='align:center; font-size:7; font-weight:bold;' colspan='2'><p style='text-align:center;'>This Purchase Order is issued subject to the terms and conditions and the policies contained in the contract or framework agreement governing the Goods and/or Services (as applicable), between the Customer and the Supplier. In the absence of such contract or framework agreement, this Purchase Order is issued subject to the terms and conditions overleaf and the policies contained at </p><p style='color:#1385B9FF; padding-top:0px; margin-top:0px;'>https://www.savethechildren.net/sites/www.savethechildren.net/files/Supplier Sustainability Policy.pdf</p></td>"
+                    body += "</tr>"
                     
-                    header += "</tbody>";
-                    header += "</table>";
+                    body += "</thead>";
+                    body += "</table>";
 
-                    header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
-                    header += "<tbody>";
-                    header += "<tr>"
-                    header += "<td style='width:32%'></td>"
-                    header += "<td style='width:23%'></td>"
-                    header += "<td style='width:15%'></td>"
-                    header += "<td style='width:25%'></td>"
-                    header += "</tr>"
+                    body += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
+                    body += "<thead>";
+                    body += "<tr>"
+                    body += "<td style='width:32%'></td>"
+                    body += "<td style='width:23%'></td>"
+                    body += "<td style='width:15%'></td>"
+                    body += "<td style='width:25%'></td>"
+                    body += "</tr>"
                     log.debug('trandate', trandate)
                     let dateObj = new Date(trandate);
 
@@ -175,106 +175,106 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     // Format dd/mm/yyyy
                     let formattedDate = `${day}/${month}/${year}`;
-                    header += "<tr>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black;'>Date:</td>"
-                    header += "<td style='border:1px solid black; border-left:none; border-right:none;'>"+formattedDate+"</td>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; align:center; vertical-align:middle;' rowspan='2'>PO No:</td>"
-                    header += "<td style='border:1px solid black; border-left:none; align:center; vertical-align:middle;' rowspan='2'>"+escapeXmlSymbols(trandId)+"</td>"
-                    header += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black;'>Date:</td>"
+                    body += "<td style='border:1px solid black; border-left:none; border-right:none;'>"+formattedDate+"</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; align:center; vertical-align:middle;' rowspan='2'>PO No:</td>"
+                    body += "<td style='border:1px solid black; border-left:none; align:center; vertical-align:middle;' rowspan='2'>"+escapeXmlSymbols(trandId)+"</td>"
+                    body += "</tr>"
 
-                    header += "<tr>"
-                    header += "<td style='background-color:#D5D6D6FF; border:1px solid black; border-top:none;'><p style='font-weight:bold;'>Reference to framework agreement/contract:</p><p style='font-size:7px; margin:0px;; padding:0px;'>(if relevant)</p></td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none; border-right:none;'></td>"
-                    header += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; border:1px solid black; border-top:none;'><p style='font-weight:bold;'>Reference to framework agreement/contract:</p><p style='font-size:7px; margin:0px;; padding:0px;'>(if relevant)</p></td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none; border-right:none;'></td>"
+                    body += "</tr>"
 
-                    header += "<tr style='height:10px;'>"
-                    header += "</tr>"
+                    body += "<tr style='height:10px;'>"
+                    body += "</tr>"
 
-                    header += "<tr>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black;' colspan='2'>SUPPLIER</td>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;' colspan='2'>DELIVERY / COLLECTION ADDRESS</td>"
-                    header += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black;' colspan='2'>SUPPLIER</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;' colspan='2'>DELIVERY / COLLECTION ADDRESS</td>"
+                    body += "</tr>"
 
-                    header += "<tr>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Company name: </td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendName)+"</td>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Contact Name:</td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(delContactName)+"</td>"
-                    header += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Company name: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendName)+"</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Contact Name:</td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(delContactName)+"</td>"
+                    body += "</tr>"
 
-                    header += "<tr>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Contact Name: </td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(contactName)+"</td>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Mobile Phone:</td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(delPhone)+"</td>"
-                    header += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Contact Name: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(contactName)+"</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Mobile Phone:</td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(delPhone)+"</td>"
+                    body += "</tr>"
 
-                    header += "<tr>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>E-mail: </td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendEmail)+"</td>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none; vertical-align:middle;' rowspan='2'>Addres</td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none; vertical-align:middle;' rowspan='2'>"+escapeXmlSymbols(delAddr)+"</td>"
-                    header += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>E-mail: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendEmail)+"</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none; vertical-align:middle;' rowspan='2'>Addres</td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none; vertical-align:middle;' rowspan='2'>"+escapeXmlSymbols(delAddr)+"</td>"
+                    body += "</tr>"
 
-                    header += "<tr>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Phone: </td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendPhone)+"</td>"
-                    header += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Phone: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendPhone)+"</td>"
+                    body += "</tr>"
 
-                     header += "<tr>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Fax: </td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendFax)+"</td>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;' colspan='2'>SAVE THE CHILDREN INVOICING ADDRESS</td>"
-                    header += "</tr>"
+                     body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Fax: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendFax)+"</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;' colspan='2'>SAVE THE CHILDREN INVOICING ADDRESS</td>"
+                    body += "</tr>"
 
-                    header += "<tr>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Mobile: </td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendAltPhone)+"</td>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Contact Name:</td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(attention)+"</td>"
-                    header += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Mobile: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendAltPhone)+"</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Contact Name:</td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(attention)+"</td>"
+                    body += "</tr>"
 
-                    header += "<tr>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;' rowspan='2'>Addres: </td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none;' rowspan='2'>"+escapeXmlSymbols(vendAddr)+"</td>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Phone:</td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(shippingPhone)+"</td>"
-                    header += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;' rowspan='2'>Addres: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;' rowspan='2'>"+escapeXmlSymbols(vendAddr)+"</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Phone:</td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(shippingPhone)+"</td>"
+                    body += "</tr>"
 
-                    header += "<tr>"
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Addres:</td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(shippingAddr)+"</td>"
-                    header += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Addres:</td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(shippingAddr)+"</td>"
+                    body += "</tr>"
 
-                    header += "</tbody>";
-                    header += "</table>";
+                    body += "</thead>";
+                    body += "</table>";
 
-                    header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
-                    header += "<tbody>";
-                    header += "<tr>"
-                    header += "<td style='width:15%'></td>"
-                    header += "<td style='width:10%'></td>"
-                    header += "<td style='width:15%'></td>"
-                    header += "<td style='width:10%'></td>"
-                    header += "<td style='width:15%'></td>"
-                    header += "<td style='width:10%'></td>"
-                    header += "<td style='width:15%'></td>"
-                    header += "<td style='width:10%'></td>"
-                    header += "</tr>"
+                    body += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
+                    body += "<thead>";
+                    body += "<tr>"
+                    body += "<td style='width:15%'></td>"
+                    body += "<td style='width:10%'></td>"
+                    body += "<td style='width:15%'></td>"
+                    body += "<td style='width:10%'></td>"
+                    body += "<td style='width:15%'></td>"
+                    body += "<td style='width:10%'></td>"
+                    body += "<td style='width:15%'></td>"
+                    body += "<td style='width:10%'></td>"
+                    body += "</tr>"
 
-                    header += "<tr>";
-                    header += "<td style='background-color:#D5D6D6FF;  border:1px solid black;'><p style='font-weight:bold; border-left:none;'>Delivery method / Incoterms:</p><p style='font-size:7px; padding:0px; margin:0px;'>(if applicable)</p></td>";
-                    header += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(delivMethod)+"</td>";
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Shipping</p> <p style='padding:0px; margin:0px;'>requirements:</p></td>";
-                    header += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(shippingRequirement)+"</td>";
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Required</p> <p style='padding:0px; margin:0px;'>delivery date:</p></td>";
-                    header += "<td style='border:1px solid black; border-left:none;'></td>";
-                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Payment terms:</p></td>";
-                    header += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(terms)+"</td>";
-                    header += "</tr>";
+                    body += "<tr>";
+                    body += "<td style='background-color:#D5D6D6FF;  border:1px solid black;'><p style='font-weight:bold; border-left:none;'>Delivery method / Incoterms:</p><p style='font-size:7px; padding:0px; margin:0px;'>(if applicable)</p></td>";
+                    body += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(delivMethod)+"</td>";
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Shipping</p> <p style='padding:0px; margin:0px;'>requirements:</p></td>";
+                    body += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(shippingRequirement)+"</td>";
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Required</p> <p style='padding:0px; margin:0px;'>delivery date:</p></td>";
+                    body += "<td style='border:1px solid black; border-left:none;'></td>";
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Payment terms:</p></td>";
+                    body += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(terms)+"</td>";
+                    body += "</tr>";
 
-                    header += "</tbody>";
-                    header += "</table>";
+                    body += "</thead>";
+                    body += "</table>";
 
                     // Body
                     body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
@@ -556,13 +556,69 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "</tr>"
 
                     body += "<tr>"
-                    body += "<td style='background-color:red; color: white; font-weight:bold; border:1px solid black;' colspan='2'>Prepared by: Procurement</td>"
-                    body += "<td style='background-color:red; color: white; font-weight:bold; border:1px solid black; border-left:none;' colspan='2'>Authorised by Budget Holder (authorised under SoD):</td>"
+                    body += "<td style='font-weight:bold; background-color:red; color: white; border:1px solid black;' colspan='2'>Prepared by: Procurement</td>"
+                    body += "<td style='font-weight:bold; background-color:red; color: white;  border:1px solid black; border-left:none;' colspan='2'>Authorised by Budget Holder (authorised under SoD):</td>"
                     body += "</tr>"
 
                     body += "<tr>"
                     body += "<td style='background-color:#D5D6D6FF; border:1px solid black; border-top:none;' colspan='2'>Confirms accuracy of contract/PO and procedural compliance to SCI policies</td>"
                     body += "<td style='background-color:#D5D6D6FF; border:1px solid black; border-left:none; border-top:none;' colspan='2'>Financial authorisation/ verification of budget (commitment to spend)</td>"
+                    body += "</tr>"
+                    
+                    var createdBy = recordLoad.getText("custbody_stc_create_by")
+                    var createdById = recordLoad.getValue("custbody_stc_create_by")
+                    var employeePhone = ""
+                    if(createdById){
+                        var empLookup = search.lookupFields({
+                            type: 'employee',
+                            id: createdById,
+                            columns: ['phone']
+                        });
+
+                        employeePhone = empLookup.phone || '';
+                    }
+                    log.debug('Employee Phone', employeePhone);
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Name: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(createdBy)+"</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;' rowspan='2'>Signature :</td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;' rowspan='2'></td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Phone: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(employeePhone)+"</td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Date: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(formattedDate)+"</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Date:</td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'></td>"
+                    body += "</tr>"
+
+                    body += "<tr style='height:5px;'>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; border:1px solid black;' colspan='2'>Supplier acceptance:</td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Name: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(formattedDate)+"</td>"
+                    body += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Phone: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(formattedDate)+"</td>"
+                    body += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Signature: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(formattedDate)+"</td>"
+                    body += "</tr>"
+                     body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Date: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(formattedDate)+"</td>"
                     body += "</tr>"
 
                     

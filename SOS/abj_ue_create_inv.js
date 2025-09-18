@@ -89,16 +89,99 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                     toType: record.Type.INVOICE,
                     isDynamic: true
                 });
-                log.debug('dateTrans', dateTrans)
+
                 invoiceRecord.setValue({ fieldId: 'customform', value: '132' });
                 invoiceRecord.setValue({ fieldId: 'custbody_sos_transaction_types', value: '2' });
                 invoiceRecord.setValue({ fieldId: 'approvalstatus', value: '2' });
                 invoiceRecord.setValue({ fieldId: 'trandate', value : dateTrans})
 
+                const invoiceLineCount = invoiceRecord.getLineCount({ sublistId: 'item' });
+                for (let i = invoiceLineCount - 1; i >= 0; i--) {
+                    invoiceRecord.selectLine({ sublistId: 'item', line: i });
+                    const itemId = invoiceRecord.getCurrentSublistValue({ sublistId: 'item', fieldId: 'item' });
+                    const itemType = invoiceRecord.getCurrentSublistValue({ sublistId: 'item', fieldId: 'itemtype'});
+                    log.debug('itemType', itemType)
+                    if(itemType == 'InvtPart'){
+                        if (!fulfilledItems[itemId]) {
+                        invoiceRecord.removeLine({ sublistId: 'item', line: i });
+                    } else {
+                        invoiceRecord.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'quantity',
+                            value: fulfilledItems[itemId]
+                        });
+                        if (discMap[itemId]) {
+                            invoiceRecord.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_sos_disc_amount',
+                                value: discMap[itemId]
+                            });
+                        }
+
+                        invoiceRecord.commitLine({ sublistId: 'item' });
+                    }
+                    }
+                    
+                }
+                log.debug('totalDiscAmount', totalDiscAmount);
+                log.debug('taxToSet', taxToSet)
+                if (totalDiscAmount !== 0 && taxToSet) {
+                    invoiceRecord.selectNewLine({ sublistId: 'item' });
+
+                    invoiceRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: '2061' }); 
+                    invoiceRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'price', value: -1 });
+                    invoiceRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'taxcode', value: taxToSet });
+                    invoiceRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'grossamt', value: totalDiscAmount });
+                    
+
+                    invoiceRecord.commitLine({ sublistId: 'item' });
+                }
+
                 const invoiceId = invoiceRecord.save({
                     enableSourcing: true,
                     ignoreMandatoryFields: false
                 });
+                if (invoiceId) {
+                var recInv = record.load({
+                    type: "invoice",
+                    id: invoiceId,
+                    isDynamic: false 
+                });
+
+                var cekLine = recInv.getLineCount({
+                    sublistId: "item"
+                });
+
+                if (cekLine > 0) {
+                    for (var i = cekLine - 1; i >= 0; i--) {
+                        var itemId = recInv.getSublistValue({
+                            sublistId: "item",
+                            fieldId: "item",
+                            line: i
+                        });
+                        var grossamt = recInv.getSublistValue({
+                            sublistId: "item",
+                            fieldId: "grossamt",
+                            line: i
+                        });
+                        log.debug('dataitem', {itemId : itemId, grossamt : grossamt})
+                        if (itemId == 2061 && grossamt != totalDiscAmount) {
+                            recInv.removeLine({
+                                sublistId: "item",
+                                line: i,
+                                ignoreRecalc: true
+                            });
+                            log.debug("Line Removed", "Line ke-" + i + " dengan itemId 2061 dihapus.");
+                        }
+                    }
+
+                    var updatedId = recInv.save({
+                        enableSourcing: false,
+                        ignoreMandatoryFields: true
+                    });
+                    log.debug("Invoice Updated", updatedId);
+                }
+            }
 
                 log.audit('Invoice Created', `Invoice ID ${invoiceId} created from Sales Order ${salesOrderId}, only for fulfilled items.`);
             }

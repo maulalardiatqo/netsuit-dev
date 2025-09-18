@@ -13,6 +13,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var sublistFieldName = context.fieldId;
         var sublistName = context.sublistId;
         if (sublistName == 'item'){
+            console.log('item change')
             if(sublistFieldName == 'custcol_abj_customer_line'){
                 var currentRecordObj = context.currentRecord;
                 var formId = currentRecordObj.getValue('customform');

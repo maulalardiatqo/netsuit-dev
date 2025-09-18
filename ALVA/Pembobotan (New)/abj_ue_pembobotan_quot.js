@@ -167,7 +167,7 @@ define(["N/record", "N/search"], function(
                                             fieldId: 'amount'
                                         })
                                         log.debug('cekAmount', cekAmount)
-                                         soRec.setCurrentSublistValue({
+                                        soRec.setCurrentSublistValue({
                                             sublistId: 'item',
                                             fieldId: 'rate',
                                             value: rateToset,

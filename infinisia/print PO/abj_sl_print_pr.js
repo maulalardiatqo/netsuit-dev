@@ -4,7 +4,7 @@
  */
 // This sample shows how to render search results into a PDF file.
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
-    function (render, search, record, log, file, http, config, format, email, runtime) {
+    function(render, search, record, log, file, http, config, format, email, runtime) {
         function removeDecimalFormat(number) {
             return number.toString().substring(0, number.toString().length - 3);
         }
@@ -12,253 +12,36 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             if (angka >= 0) {
                 var bulat = Math.floor(angka);
                 var desimal = angka - bulat;
-
+                
                 if (desimal >= 0.5) {
                     return Math.ceil(angka);
                 } else {
-                    return Math.floor(angka);
+                return Math.floor(angka);
                 }
             } else {
                 return Math.ceil(angka);
             }
         }
+
         function onRequest(context) {
             var recid = context.request.parameters.id;
-            log.debug('recid', recid)
             // load PO
-
-            var sTotal = 0;
-            var poSearch = search.create({
-                type: search.Type.PURCHASE_ORDER,
-                columns: [
-                    'internalid',
-                    'currency',
-                    'entity',
-                    'tranid',
-                    'trandate',
-                    'terms',
-                    'amount',
-                    'total',
-                    'duedate',
-                    'exchangerate',
-                    'custbody_abj_custom_jobnumber',
-                    'custcol_4601_witaxrate',
-                    'custcol_4601_witaxamount',
-                    'custcol_4601_witaxcode',
-                    'custcol_4601_witaxrate_exp',
-                    'custcol_4601_witaxamt_exp',
-                    'custcol_4601_witaxcode_exp',
-                    'item',
-                    'quantityuom',
-                    'unit',
-                    'memo',
-                    'taxamount',
-                    'custcol_pr_total_order',
-                    'custcol_abj_purchase_price_per_kg',
-                    search.createColumn({name: "rate", label: "Item Rate"}),
-                    search.createColumn({
-                        name: 'formulatext1',
-                        formula: "{vendor.internalid}",
-                        label: 'vendorid'
-                    }),
-                    search.createColumn({
-                        name: 'formulatext2',
-                        formula: "{item.internalid}",
-                        label: 'itemid'
-                    }),
-                    search.createColumn({
-                        name: 'formulatext3',
-                        formula: "{item.description}",
-                        label: 'itemdesc'
-                    }),
-                    search.createColumn({
-                        name: 'formulanumeric1',
-                        formula: "{amount} - nvl({taxtotal},0) - nvl({shippingamount},0)",
-                        label: 'subtotal'
-                    }),
-                    search.createColumn({
-                        name: 'formulanumeric5',
-                        formula: "{taxitem.rate}",
-                        label: 'taxrate'
-                    }),
-                    search.createColumn({
-                        name: "formulanumeric",
-                        formula: "{total}",
-                        label: "Formula (Numeric)"
-                     }),
-                    search.createColumn({
-                        name: "formulatext",
-                        formula: "{taxtotal}",
-                        label: "Formula (Text)"
-                     })
-                ],
-                filters: [
-                    ['mainline', 'is', 'any'],
-                    'AND',
-                    ['taxline', 'is', false],
-                    'AND',
-                    ['internalid', 'is', recid]
-                ]
-            })
-
-            var searchResultCount = poSearch.runPaged().count;
-            var searchResult = poSearch.run().getRange(0, searchResultCount)
-            var resultArray = []
-            searchResult.forEach(function (result) {
-                var internalid = result.getValue('internalid')
-                var currency = result.getValue('currency')
-                var tranid = result.getValue('tranid')
-                var trandate = result.getValue('trandate')
-                var duedate = result.getValue('duedate')
-                var terms = result.getValue('terms')
-                var total = result.getValue('total')
-                var jobnumber = result.getValue('custbody_abj_custom_jobnumber')
-                var entity = result.getText('entity')
-                var exchangerate = result.getValue('exchangerate')
-                var amountBef = result.getValue('amount')
-                var amount = Number(amountBef) / Number(exchangerate)
-                var quantity = result.getValue('quantityuom')
-                var unit = result.getValue('unit');
-                var totQTY = result.getValue('custcol_pr_total_order');
-                log.debug('totQTY', totQTY)
-                var taxTotal = result.getValue({
-                    name: "formulatext",
-                    formula: "{taxtotal}",
-                })
-                var totalVal = result.getValue({
-                    name: "formulanumeric",
-                    formula: "{total}",
-                })
-                var vendorId = result.getValue({
-                    name: 'formulatext1',
-                    label: 'vendorid'
-                })
-                var itemid = result.getValue({
-                    name: 'formulatext2',
-                    label: 'itemid'
-                })
-                var itemdesc = result.getValue({
-                    name: 'formulatext3',
-                    label: 'itemdesc'
-                })
-                var subtotal = result.getValue({
-                    name: 'formulanumeric1',
-                    label: 'subtotal'
-                })
-                var witaxrate = result.getValue('custcol_4601_witaxrate')
-                var witaxamount = result.getValue('custcol_4601_witaxamount')
-                var witaxcode = result.getValue('custcol_4601_witaxcode')
-                var taxrate = result.getValue({
-                    name: 'formulanumeric5',
-                    label: 'taxrate'
-                })
-                var witaxrateExp = result.getValue('custcol_4601_witaxrate_exp')
-                var witaxamountExp = result.getValue('custcol_4601_witaxamt_exp')
-                var witaxcodeExp = result.getValue('custcol_4601_witaxcode_exp')
-                var itemName = result.getValue('item')
-                var itemNameText = result.getText('item')
-                var memo = result.getValue('memo')
-                var taxamount = result.getValue('taxamount')
-                var rate = result.getValue('custcol_abj_purchase_price_per_kg');
-                log.debug('rate', rate)
-                sTotal += Number(amount)
-                resultArray.push({
-                    internalid: internalid,
-                    currency: currency,
-                    tranid: tranid,
-                    trandate: trandate,
-                    duedate: duedate,
-                    entity: entity,
-                    terms: terms,
-                    amount: amount,
-                    total: total,
-                    exchangerate: exchangerate,
-                    jobnumber: jobnumber,
-                    vendorId: vendorId,
-                    subtotal: subtotal,
-                    witaxrate: witaxrate,
-                    witaxamount: witaxamount,
-                    witaxcode: witaxcode,
-                    taxrate: taxrate,
-                    witaxrateExp,
-                    witaxamountExp,
-                    witaxcodeExp,
-                    itemName: itemName,
-                    itemNameText: itemNameText,
-                    itemid: itemid,
-                    quantity: quantity,
-                    unit: unit,
-                    itemdesc: itemdesc,
-                    memo: memo,
-                    taxamount: taxamount,
-                    rate : rate,
-                    totQTY : totQTY,
-                    taxTotal : taxTotal,
-                    totalVal : totalVal
-                })
-                return true
-            })
-
-            log.debug('resultArray', resultArray)
-            log.debug('sTotal', sTotal)
-
-            var poRecord = resultArray
-            var poId = poRecord[0].internalid
-            // log.debug('poId', poId)
-            // search item landed cost
-            var allItemLanded = []
-            var customrecord_abj_add_landed_cost_poSearchObj = search.create({
-                type: "customrecord_abj_add_landed_cost_po",
-                filters:
-                [
-                    ["custrecord_abj_link_po","anyof",poId]
-                ],
-                columns:
-                [
-                    search.createColumn({name: "custrecord_abj_add_landed_cost_po", label: "Item Landed Cost"}),
-                    search.createColumn({name: "custrecord_abj_add_landed_cost_po_amt", label: "Amount"})
-                ]
+            var poSavedLoad = search.load({
+                id: "customsearch_pr_body_for_print_out",
             });
-            var searchResultCount = customrecord_abj_add_landed_cost_poSearchObj.runPaged().count;
-            customrecord_abj_add_landed_cost_poSearchObj.run().each(function(resultSearch){
-                var itemLanded = resultSearch.getText({
-                    name: "custrecord_abj_add_landed_cost_po"
-                });
-                var amountLanded = resultSearch.getValue({
-                    name: "custrecord_abj_add_landed_cost_po_amt"
-                });
-                if(amountLanded){
-                    amountLanded = pembulatan(amountLanded);
-                    amountLanded = format.format({
-                        value: amountLanded,
-                        type: format.Type.CURRENCY
-                    });
-                    amountLanded = removeDecimalFormat(amountLanded)
-                }
-                
-                allItemLanded.push({
-                    itemLanded : itemLanded,
-                    amountLanded : amountLanded
-                })
-                return true;
-            });
-            log.debug('allItemLanded', allItemLanded)
-            var currenc = poRecord[0].currency
-            if (currenc) {
-                var recCurrenc = record.load({
-                    type: 'currency',
-                    id: currenc,
-                    isDynamic: false
-                });
-                var tlcCurr = recCurrenc.getValue('symbol');
+            if(recid){
+                poSavedLoad.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
             }
+            var poSavedLoadSet = poSavedLoad.run();
+            var result = poSavedLoadSet.getRange(0, 1);
+            var poRecord = result[0];
 
-
-            // load subsidiarie
             var companyInfo = config.load({
                 type: config.Type.COMPANY_INFORMATION
             });
+            var compAddress = companyInfo.getValue('mainaddress_text');
             var legalName = companyInfo.getValue("legalname");
+
             var logo = companyInfo.getValue('formlogo');
             var filelogo;
             var urlLogo = '';
@@ -269,303 +52,102 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 //get url
                 urlLogo = filelogo.url.replace(/&/g, "&amp;");
             }
-            var addres = companyInfo.getValue("mainaddress_text")
-            var retEmailAddres = companyInfo.getValue('email')
-            var Npwp = companyInfo.getValue('employerid')
-            // var vendor_id = poRecord.getValue('entity');
-            var vendor_id = poRecord[0].vendorId
-            if (vendor_id) {
+
+            var vendor_id = poRecord.getValue({
+                name: "internalid",
+                join: "vendor",
+            });
+            if(vendor_id){
                 var vendorRecord = record.load({
                     type: record.Type.VENDOR,
                     id: vendor_id,
                     isDynamic: false,
                 });
                 var venName
+                var vendLeadTime
                 var isperson = vendorRecord.getValue('isperson');
-                if (isperson == 'T') {
+                if(isperson == 'T'){
                     var firstname = vendorRecord.getValue('firstname') || ''
                     var middleName = vendorRecord.getValue('middlename') || '';
-                    var lastname = vendorRecord.getValue('lastname') || ''
-                    venName = firstname + ' ' + middleName + ' ' + lastname;
-                } else {
+                    var lastname = vendorRecord.getValue('lastname')|| ''
+                    venName = firstname + ' '+ middleName+ ' ' + lastname;
+                }else{
                     var isChecklist = vendorRecord.getValue('isautogeneratedrepresentingentity');
 
-                    if (isChecklist === true) {
+                    if(isChecklist === true){
                         venName = vendorRecord.getValue('comments');
-                    } else {
+                    }else{
                         venName = vendorRecord.getValue('companyname');
                     }
-
+                    
                 }
                 var venAddres = vendorRecord.getValue('billaddr1');
-                if (venAddres === '') {
+                if(venAddres === ''){
                     venAddres = vendorRecord.getValue('defaultaddress');
                 }
-                if (venAddres) {
-                    if (venAddres.includes('&')) {
+                if(venAddres){
+                    if(venAddres.includes('&')){
                         venAddres = venAddres.replace(/&/g, ' dan ')
                     }
                 }
-                var taxRegNo = vendorRecord.getValue('vatregnumber');
-                var count = vendorRecord.getLineCount({
-                    sublistId: 'submachine'
-                });
+                vendLeadTime =  vendorRecord.getValue('custentity1');
 
             }
-
             // PO data
-            var tandId = poRecord[0].tranid
-            var taxTotal = poRecord[0].taxTotal
-            var totalVal = poRecord[0].totalVal
-            var POdate = poRecord[0].trandate
-            var terms = poRecord[0].terms
-            var poTotal = poRecord[0].total
-
-            var total = 0;
-            var duedate = poRecord[0].duedate
-
-            var jobNumber = poRecord[0].jobnumber
-            if (jobNumber.includes('\\')) {
-                jobNumber = jobNumber.replace(/\\/g, '<br/>')
-            }
-
-            var subTotal = poRecord[0].subtotal / poRecord[0].exchangerate || 0;
-            poTotal = poTotal / poRecord[0].exchangerate
-
-            var totalWhTaxamount = 0;
-            var totalWhTaxamountItem = 0;
-            var totalWhTaxamountExp = 0;
-            var whtaxammountItem = 0;
-            var whtaxammountExp = 0;
-            var whTaxCodetoPrint = ''
-
-
-
-            var countItem = poRecord.length
-            var taxRateList = [];
-
-
-            if (countItem > 0) {
-                var taxpphList = [];
-                for (var i = 1; i < countItem; i++) { 
-                    if (poRecord[i].itemName != '') { 
-
-                        var taxpph = poRecord[i].witaxrate
-
-                        var whtaxammountItem = poRecord[i].witaxamount
-                        var amount = poRecord[i].amount / poRecord[i].exchangerate
-
-                        var taxtRate = parseInt(poRecord[i].taxrate)
-
-                        if (taxtRate !== 0 && taxRateList.indexOf(taxtRate) === -1) {
-                            taxRateList.push(parseFloat(taxtRate));
-                        }
-                        var whTaxCodeI = poRecord[i].witaxcode
-
-                        if (whTaxCodeI) {
-                            var whRecI = record.load({
-                                type: 'customrecord_4601_witaxcode',
-                                id: whTaxCodeI,
-                                isDynamic: false,
-                            });
-                            whTaxCodetoPrint = whRecI.getValue('custrecord_4601_wtc_name');
-                            if (whTaxCodetoPrint.includes('Prepaid Tax') || whTaxCodetoPrint.includes('Tax Article')) {
-                                whTaxCodetoPrint = whTaxCodetoPrint.replace('Prepaid Tax', 'PPH').replace('Tax Article', 'PPH');
-                            }
-                        }
-                        var totalAmountPerline = amount;
-                        var tamount = whtaxammountItem
-                        whtaxammountItem = Math.abs(tamount);
-                        totalWhTaxamountItem += whtaxammountItem
-
-                        if (taxpph && taxpphList.indexOf(taxpph) === -1) {
-                            taxpphList.push(taxpph);
-                        }
-                    }
-                }
-            }
-            var countExpense = poRecord.length
-            if (countExpense > 0) { 
-                var taxpphList = [];
-                for (var i = 1; i < countExpense; i++) {
-                    if (poRecord[i].itemName == '') { //expense tidak ada itemName
-
-                        var taxpph = poRecord[i].witaxrateExp
-                        whtaxammountExp = poRecord[i].witaxamountExp
-                        
-                        var amountExp = poRecord[i].amount / poRecord[i].exchangerate
-                        var whTaxCode = poRecord[i].witaxcodeExp
-                        if (whTaxCode) {
-                            var whRec = record.load({
-                                type: 'customrecord_4601_witaxcode',
-                                id: whTaxCode,
-                                isDynamic: false,
-                            });
-                            whTaxCodetoPrint = whRec.getValue('custrecord_4601_wtc_name');
-                            if (whTaxCodetoPrint.includes('Prepaid Tax') || whTaxCodetoPrint.includes('Tax Article')) {
-                                whTaxCodetoPrint = whTaxCodetoPrint.replace('Prepaid Tax', 'PPH').replace('Tax Article', 'PPH');
-                            }
-                        }
-                        var taxtRate = parseInt(poRecord[i].taxrate)
-                        if (taxtRate != 0 && taxRateList.indexOf(taxtRate) === -1) {
-                            taxRateList.push(taxtRate);
-                        }
-                        // var qtyExp = poRecord.getSublistValue({
-                        //     sublistId: 'expense',
-                        //     fieldId: 'quantity',
-                        //     line: i
-                        // });
-                        var totalAmountPerlineExp = amountExp;
-                        // subTotal += totalAmountPerlineExp
-                        var tamountExp = whtaxammountExp
-                        whtaxammountExp = Math.abs(tamountExp);
-                        totalWhTaxamountExp += whtaxammountExp
-
-                        if (taxpph && taxpphList.indexOf(taxpph) === -1) {
-                            taxpphList.push(taxpph);
-                        }
-                    }
-                }
-            }
-            if (taxpphList.length > 0) {
-                var taxpphToPrint = taxpphList.join(' & ');
-            }
-
-            var whtaxToCount = whtaxammountItem + whtaxammountExp;
-            totalWhTaxamount = totalWhTaxamountItem + totalWhTaxamountExp;
-            var totalWHTaxToCount = totalWhTaxamount
-            if (totalWhTaxamount) {
-                totalWhTaxamount = format.format({
-                    value: totalWhTaxamount,
-                    type: format.Type.CURRENCY
+            var tandId = poRecord.getValue({
+                name: "tranid"
+            });
+            var POdate = poRecord.getValue({
+                name: "trandate"
+            });
+            var memo = poRecord.getValue({
+                name: "memo"
+            });
+            var busdev = poRecord.getValue({
+                name: "custbody_abj_sales_rep_fulfillment"
+            });
+            var noForm = poRecord.getValue({
+                name: "custbody_abj_no_form"
+            }) || ""
+            var busdevName = ""
+            if(busdev){
+                var empRec = record.load({
+                    type: "employee",
+                    id: busdev,
+                    isDynamic: false,
                 });
+                var altName = empRec.getValue('altname')
+                busdevName = altName
             }
-            var taxtotal = taxtRate / 100 * Number(subTotal);
-
-            total = Number(subTotal) + Number(taxtotal);
-            var totalToCount = total
-            if (poTotal) {
-                poTotal = parseFloat(poTotal);
-                poTotal = poTotal.toFixed(2);
-                poTotal = format.format({
-                    value: poTotal,
-                    type: format.Type.CURRENCY
-                });
-            }
-            if (subTotal) {
-                subTotal = format.format({
-                    value: subTotal,
-                    type: format.Type.CURRENCY
-                });
-            }
-
-            if (taxtotal) {
-                taxtotal = format.format({
-                    value: taxtotal,
-                    type: format.Type.CURRENCY
-                });
-            }
-            if (total) {
-                total = format.format({
-                    value: total,
-                    type: format.Type.CURRENCY
-                });
-            }
-            
-            // if (duedate) {
-            //     function sysDate() {
-            //         var date = duedate;
-            //         var tdate = date.getUTCDate();
-            //         var month = date.getUTCMonth() + 1; // jan = 0
-            //         var year = date.getUTCFullYear();
-
-            //         return tdate + '/' + month + '/' + year;
-            //     }
-            //     duedate = sysDate();
-            // }
-            // if (POdate) {
+            // if(POdate){
             //     POdate = format.format({
             //         value: POdate,
             //         type: format.Type.DATE
             //     });
             // }
-            var amountRecieved = Number(totalVal) - Number(totalWHTaxToCount);
-            if (amountRecieved) {
-                amountRecieved = format.format({
-                    value: amountRecieved,
-                    type: format.Type.CURRENCY
-                });
-            }
 
-            // var itemCount = poRecord.getLineCount({
-            //     sublistId: 'item'
-            // });
-            var itemCount = poRecord.length
-            var allDataCharge = []
-            if (itemCount > 0) {
-                var idItemOtherCharge = []
-                var otherchargeitemSearchObj = search.create({
-                    type: "serviceitem",
-                    filters:
-                    [
-                        ["type","anyof","Service"]
-                    ],
-                    columns:
-                        [
-                            search.createColumn({ name: "internalid", label: "Internal ID" })
-                        ]
-                });
-                var searchResultCount = otherchargeitemSearchObj.runPaged().count;
-                otherchargeitemSearchObj.run().each(function (result) {
-                    var itemOtherChacge = result.getValue({
-                        name: "internalid"
-                    })
-
-                    if (itemOtherChacge) {
-                        idItemOtherCharge.push(itemOtherChacge)
-                    }
-                    return true;
-                });
-
-                for (var index = 1; index < itemCount; index++) {
-                    if(poRecord[index].itemName != ''){//sublistId = item aja
-
-                        var itemId = poRecord[index].itemid
-                        var itemText = poRecord[index].itemName
-                        var itemNameText = poRecord[index].itemNameText
-                        var amount = poRecord[index].amount
-                        if (idItemOtherCharge.includes(itemId)) {
-                            log.debug('Skip itemId', itemId);
-                            allDataCharge.push({
-                                itemNameText: itemNameText,
-                                amount: amount
-                            })
-                        }
-                    } 
-                }
-            }
             var response = context.response;
             var xml = "";
             var header = "";
             var body = "";
-            var headerHeight = '1%';
+            var headerHeight = '0%';
             var style = "";
             var footer = "";
             var pdfFile = null;
 
-
+            
             style += "<style type='text/css'>";
             style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
-            style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
-            style += ".tg .tg-img-logo{width:280px; height:90px; object-vit:cover;}";
-            style += ".tg .tg-headerrow{align: right;font-size:12px;}";
-            style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
-            style += ".tg .tg-headerrow_Total{align: right;font-size:16px;word-break:break-all; font-weight: bold;}";
-            style += ".tg .tg-headerrow_left{align: left;font-size:12px;}";
-            style += ".tg .tg-head_body{align: left;font-size:12px;font-weight: bold; border-top: 3px solid black; border-bottom: 3px solid black;}";
-            style += ".tg .tg-b_body{align: left;font-size:12px; border-bottom: solid black 2px;}";
-            style += ".tg .tg-f_body{align: right;font-size:14px;border-bottom: solid black 2px;}";
-            style += ".tg .tg-foot{font-size:11px; color: #808080; position: absolute; bottom: 0;}";
+            style += ".tg .tg-headerlogo{align:center; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
+            style += ".tg .tg-img-logo{width:210px; height:60px; object-vit:cover;}";
+            style += ".tg .tg-headerrow{align: right;font-size:9px;}";
+            style += ".tg .tg-headerrow_legalName{align: right;font-size:10px;word-break:break-all; font-weight: bold;}";
+            style += ".tg .tg-headerrow_Total{align: right;font-size:10px;word-break:break-all; font-weight: bold;}";
+            style += ".tg .tg-headerrow_left{align: left;font-size:9px;}";
+            style += ".tg .tg-head_body{align: center;font-size:6px;font-weight: bold; border: 1px solid black;}";
+            style += ".tg .tg-b_body{align: left;font-size:6px; border: 1px solid black;}";
+            style += ".tg .tg-f_body{align: right;font-size:6px;border-bottom: solid black 2px;}";
+            style += ".tg .tg-foot{font-size:9px; color: #808080; position: absolute; bottom: 0;}";
             style += "</style>";
 
 
@@ -578,168 +160,179 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<tbody>";
             body += "<tr>";
             if (urlLogo) {
-                body += "<td class='tg-headerlogo' style='width:50%;vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+                body += "<td class='tg-headerlogo' style='width:100%;vertical-align:center; align:center;'><div style='display: flex; height:60px; width:210px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
             }
-            body += "<td>";
-
-            body += "<p class='tg-headerrow_legalName' style='margin-top: 10px; margin-bottom: 10px;'>" + legalName + "</p>";
-            body += "<p class='tg-headerrow' style='margin-top: 1px; margin-bottom: 1px;'>" + addres + "<br/>";
-            body += "" + retEmailAddres + "<br/>"
-            body += "NPWP : " + Npwp + "</p>";
-            body += "</td>";
-            body += "</tr>";
-            body += "<tr style='height:30px;'>";
             body += "</tr>";
             body += "<tr>";
-            body += "<td>";
-            body += "<p class='tg-headerrow_left'>" + venName + "<br/>"
-            body += "" + venAddres + "<br/></p>"
-            body += "</td>"
-            body += "<td>"
-            body += "<p class='tg-headerrow_legalName'> Purchase Order # : " + tandId + "<br/>"
-            body += "" + POdate + "</p>"
-            body += "<p class='tg-headerrow' style='font-size:11px'> Terms : " + terms + "<br/></p>"
-            body += "</td>"
-            body += "</tr>"
-            body += "<tr style='height:30px;'>";
+            body += "<td style='align:right; font-size:9px; font-weight: bold;'>No. Form : "+noForm+" </td>"
+            body += "</tr>";
+            body += "<tr>";
+            body += "<td style='align:center; font-size:9px;'>"+compAddress+" </td>"
+            body += "</tr>";
+            body += "<tr>";
+            body += "<td style='align:center; border-bottom:1px solid black; border-top:1px solid black'></td>"
+            body += "</tr>";
+            body += "<tr>";
+            body += "<td style='align:center; font-size:9px; font-weight: bold;'>PURCHASE REQUEST ("+venName+") </td>"
             body += "</tr>";
             body += "</tbody>";
             body += "</table>";
-            var poItemData = getPOItem(context, poRecord);
-            body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
+
+            body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:7px;\">";
             body += "<tbody>";
-            body += "<tr>" 
-            body += "<td class='tg-head_body' style='width:29%'> DESCRIPTION </td>"
-            body += "<td class='tg-head_body' style='width:11%'> PACK SIZE </td>"
-            body += "<td class='tg-head_body' style='width:8%'> QTY </td>"
-            body += "<td class='tg-head_body' style='width:12%'> TOTAL QTY </td>"
-            body += "<td class='tg-head_body' style='align:right; width:19%'> UNIT PRICE (" + tlcCurr + ") </td>"
-            body += "<td class='tg-head_body' style='align:right; width:22%'> AMOUNT (" + tlcCurr + ") </td>"
-            body += "</tr>"
-            body += poItemData.body
-            body += getPOExpense(context, poRecord);
-            body += "<tr>"
-            body += "<td class='tg-headerrow_left'></td>"
-            body += "<td class='tg-headerrow_left'></td>"
-            body += "<td class='tg-headerrow_left'></td>"
-            body += "<td class='tg-headerrow_left'></td>"
-            body += "<td class='tg-f_body'>SUBTOTAL</td>"
-            body += "<td class='tg-f_body'>" + format.format({
-                value: poItemData.subTotal,
-                type: format.Type.CURRENCY
-            }) + "</td>";
-            body += "</tr>"
-            if (taxRateList != '') {
-                body += "<tr>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-f_body'>VAT " + taxtRate + " %</td>"
-                body += "<td class='tg-f_body'>" + format.format({
-                    value: Math.abs(taxTotal),
-                    type: format.Type.CURRENCY
-                })  + "</td>"
-                body += "</tr>"
-            }
-            if (allItemLanded || allItemLanded.length > 0) {
-                allItemLanded.forEach(function (charge) {
-                    body += "<tr>";
-                    body += "<td class='tg-headerrow_left'></td>";
-                    body += "<td class='tg-headerrow_left'></td>";
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-headerrow_left'></td>"
-                    body += "<td class='tg-f_body'>" + charge.itemLanded + "</td>";
-                    body += "<td class='tg-f_body'>" + charge.amountLanded + "</td>";
-                    body += "</tr>";
-                });
-            }
-            body += "<tr>"
-            body += "<td class='tg-headerrow_left'></td>"
-            body += "<td class='tg-headerrow_left'></td>"
-            body += "<td class='tg-headerrow_left'></td>"
-            body += "<td class='tg-headerrow_left'></td>"
-            body += "<td class='tg-f_body'>TOTAL</td>"
-            body += "<td class='tg-f_body'>" + format.format({
-                value: totalVal,
-                type: format.Type.CURRENCY
-            }) + "</td>"
-            body += "</tr>"
+            body += "<tr>";
+            body += "<td style='width:17%'></td>"
+            body += "<td style='width:83%'></td>"
+            body += "</tr>";
 
+            body += "<tr>";
+            body += "<td style='font-weight: bold;'>PRINCIPALS</td>"
+            body += "<td style=''>: "+venName+"</td>"
+            body += "</tr>";
 
-            if (whTaxCodetoPrint) {
-                body += "<tr>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td class='tg-headerrow_left'></td>"
-                body += "<td style='align: right;font-size:12px;border-bottom: solid black 2px;'>" + whTaxCodetoPrint + "</td>"
-                body += "<td class='tg-f_body'>" + totalWhTaxamount + "</td>"
-                body += "</tr>"
-            }
+            body += "<tr>";
+            body += "<td style='font-weight: bold;'>TANGGAL</td>"
+            body += "<td style=''>: "+POdate+"</td>"
+            body += "</tr>";
 
-            body += "<tr>"
-            body += "<td class='tg-headerrow_left'></td>"
-            body += "<td class='tg-headerrow_left'></td>"
-            body += "<td class='tg-headerrow_left'></td>"
-            body += "<td class='tg-headerrow_left'></td>"
-            body += "<td style='align: right;font-size:14px;border-top: solid black 2px; font-weight: bold;'>BALANCE DUE</td>"
-            body += "<td style='align: right;font-size:15px;border-top: solid black 2px; font-weight: bold;'>" + amountRecieved + "</td>"
-            body += "</tr>"
-            body += "<tr style='height:30px;'></tr>"
-            body += "<tr>"
-            body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>" + jobNumber + "</td>"
-            body += "</tr>"
+            body += "<tr>";
+            body += "<td style='font-weight: bold;'>NO. PURCHASE REQUEST</td>"
+            body += "<td style=''>: "+tandId+"</td>"
+            body += "</tr>";
+
+            body += "<tr>";
+            body += "<td style='font-weight: bold;'>LEAD TIME</td>"
+            body += "<td style=''>: "+vendLeadTime+"</td>"
+            body += "</tr>";
+
+            body += "<tr>";
+            body += "<td style='font-weight: bold;'>REMARKS</td>"
+            body += "<td style=''>: "+memo+"</td>"
+            body += "</tr>";
+
             body += "</tbody>";
             body += "</table>";
 
             body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
+            body += "<tbody>";
+            
+            body += "<tr>";
+            body += "<td style='width:3%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:10%'></td>"
+            body += "<td style='width:8%'></td>"
+            body += "<td style='width:4%'></td>"
+            body += "<td style='width:4%'></td>"
+            body += "<td style='width:10%'></td>"
+            body += "<td style='width:4%'></td>"
+            body += "<td style='width:9%'></td>"
+            body += "<td style='width:7%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:6%'></td>"
+            body += "<td style='width:10%'></td>"
+            body += "</tr>";
+
+            body += "<tr>";
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> NO </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> INVENTORY ID </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> INVENTORY NAME </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> CURRENT STOCK </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> INCOMING STOCK </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> SALES </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> CUSTOMER </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> OS.PO </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> NO. PO </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> TANGGAL KIRIM </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; align:center; border-right:none;' colspan='2'> FORECAST  BUFFER STOCK </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; align:center; border-right:none;' colspan='2'> RATA RATA PENGIRIMAN </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> TOTAL ORDER </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; align:center' rowspan='2'> NOTE </td>"
+            body += "</tr>";
+
+            body += "<tr>";
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; border-right:none;'> BUSDEV </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; border-right:none;'> RUMUS <br/> PEHITUNGAN </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; border-right:none;'> BUSDEV </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; border-right:none;'> ACCOUNTING </td>"
+            body += "</tr>";
+            body += getPOItem(context, recid);
+            body += "</tbody>";
+            body += "</table>";
+
+            body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed;font-size:7px;\">";
+            body += "<tbody>";
             body += "<tr>"
-            body += "<td style='width:15%'></td>"
+            body += "<td style='width:5%'></td>"
             body += "<td style='width:1%'></td>"
-            body += "<td style='width:27%'></td>"
+            body += "<td style='width:17%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:17%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:5%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:17%'></td>"
+            body += "<td style='width:1%'></td>"
+            body += "<td style='width:5%'></td>"
             body += "<td style='width:1%'></td>"
             body += "<td style='width:16%'></td>"
             body += "<td style='width:1%'></td>"
-            body += "<td style='width:27%'></td>"
-            body += "<td style='width:1%'></td>"
-            body += "<td style='width:15%'></td>"
-            body += "</tr>"
+            body += "<td style='width:5%'></td>"
+            body += "</tr>";
 
             body += "<tr>"
             body += "<td style=''></td>"
             body += "<td style=''></td>"
-            body += "<td style='align:center'>Vendor/Principal</td>"
+            body += "<td style='align:center;'>DIBUAT OLEH,</td>"
             body += "<td style=''></td>"
             body += "<td style=''></td>"
             body += "<td style=''></td>"
-            body += "<td style='align:center'>Purchasing</td>"
+            body += "<td style='align:center;'>DIPERIKSA OLEH,</td>"
             body += "<td style=''></td>"
             body += "<td style=''></td>"
-            body += "</tr>"
+            body += "<td style=''></td>"
+            body += "<td style='align:center;'>DISETUJUI OLEH,</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "<td style='align:center;'>DIKETAHUI OLEH,</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''></td>"
+            body += "</tr>";
+            body += "<tr>"
+            body += "<td style='height:40px' colspan='20'></td>"
+            body += "</tr>";
 
             body += "<tr>"
-            body += "<td style='height:40px' colspan='9'></td>"
-            body += "</tr>"
+            body += "<td style=''></td>"
+            body += "<td style=''>(</td>"
+            body += "<td style='align:center;'>"+busdevName+"</td>"
+            body += "<td style=''>}</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''>(</td>"
+            body += "<td style='align:center;'>ACCOUNTING</td>"
+            body += "<td style=''>)</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''>(</td>"
+            body += "<td style='align:center;'>OPERATIONAL DIRECTOR</td>"
+            body += "<td style=''>)</td>"
+            body += "<td style=''></td>"
+            body += "<td style=''>(</td>"
+            body += "<td style='align:center;'>PRESIDENT DIRECTOR</td>"
+            body += "<td style=''>)</td>"
+            body += "<td style=''></td>"
+            body += "</tr>";
 
-            body += "<tr>"
-            body += "<td style=''></td>"
-            body += "<td style=''></td>"
-            body += "<td style='align:center; border-bottom:1px solid black;'></td>"
-            body += "<td style=''></td>"
-            body += "<td style=''></td>"
-            body += "<td style=''></td>"
-            body += "<td style='align:center;'>PT. Infinisia Sumber Semesta</td>"
-            body += "<td style=''></td>"
-            body += "<td style=''></td>"
-            body += "</tr>"
-
+            body += "</tbody>";
             body += "</table>";
 
             footer += "<table class='tg' style='table-layout: fixed;'>";
             footer += "<tbody>";
             footer += "<tr class='tg-foot'>";
-            footer += "<td style='align:left'>Purchase Order # " + tandId + "</td>"
             footer += "<td style='align:right'></td>"
             footer += "</tr>";
             footer += "</tbody>";
@@ -758,7 +351,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             xml += "</macro>";
             xml += "</macrolist>";
             xml += "</head>"
-            xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='3%'>";
+            xml += "<body font-size='8' style='font-family: Tahoma,sans-serif;height: 21cm; width: 29.7cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='3%'>";
             xml += body;
             xml += "\n</body>\n</pdf>";
 
@@ -766,137 +359,259 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             response.renderPdf({
                 xmlString: xml
             });
-        }
 
-        function getPOItem(context, poRecord) {
-            var itemCount = poRecord.length;
+        }
+        function generateTableHTML(itemId, dataItem, nomor) {
+            // Mengambil item pertama dari grup
+            var firstItem = dataItem.items[0];
+            var fieldLookUpSection = search.lookupFields({
+                type: "item",
+                id: itemId,
+                columns: ["itemid"],
+            });
+            var itemName = fieldLookUpSection.itemid;
+            var itemParts = itemName.split(' ', 2);
+            var itemCode = itemParts[0];
+            var itemDescription = itemName.substring(itemCode.length + 1);
+            log.debug('cek so before set', dataItem.noSO)
+            let html = `<tr>
+                <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;">${nomor}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;">${itemCode}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; vertical-align:center; align:center; border-right:none;">${itemDescription}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalOnHand}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalInComingStock}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.salesRepCode}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.customer}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalOsPO}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.noSO}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.tglKirim}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalForecase}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.leadTimeKirim}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.avgpengBusdev}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.avgpengAcc}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalQty}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black;">${dataItem.lastNotes}</td>
+            </tr>`;
+            
+            return html;
+        }
         
-            if (itemCount > 0) {
-                var body = "";
-                var items = {};
+        function generateSummaryRow(dataItem) {
+            return `<tr>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalOnHand}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalInComingStock}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalOsPO}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalForecase}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalQty}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;"></td>
+            </tr>`;
+        }
         
-                for (var index = 1; index < itemCount; index++) {
-                    if (poRecord[index].itemName != '') {
-        
-                        var itemId = poRecord[index].itemid;
-                        var unit = poRecord[index].unit;
-        
-                       
-                        var qty = poRecord[index].quantity;
-                        var totQTY = poRecord[index].totQTY
-                        log.debug('qty', qty)
-                        var description = poRecord[index].itemdesc;
-                        var amount = poRecord[index].amount
-                        var rate = poRecord[index].rate;
-    
-                        var itemKey = itemId + '_' + unit;
-    
-                        if (!items[itemKey]) {
-                            items[itemKey] = {
-                                description: description,
-                                unit: unit,
-                                qty: 0,
-                                amount: 0,
-                                rate: 0, 
-                                totQTY : 0
-                            };
-                        }
-    
-                        items[itemKey].qty = parseFloat((items[itemKey].qty + Number(qty)).toFixed(10));
-                        items[itemKey].totQTY += Number(totQTY);
-                        items[itemKey].amount += Number(amount);
-                        items[itemKey].rate = rate;
-                        
-                    }
-                }
-                var ssubTotal = 0
-                for (var itemKey in items) {
-                    var item = items[itemKey];
-        
-                    if (item.description.includes('\\')) {
-                        item.description = item.description.replace(/\\/g, '<br/>');
-                    }
-        
-                    var rateFormatted = format.format({
-                        value: item.rate, 
-                        type: format.Type.CURRENCY
-                    });
-                    ssubTotal += Number(item.amount)
-                    var amountFormatted = item.amount;
-                    amountFormatted = format.format({
-                        value: amountFormatted,
-                        type: format.Type.CURRENCY
-                    });
-        
-                    body += "<tr>";
-                    body += "<td class='tg-b_body'>" + item.description + "</td>";
-                    body += "<td class='tg-b_body'>" + item.unit + "</td>";
-                    body += "<td class='tg-b_body'>" + item.qty + "</td>";
-                    body += "<td class='tg-b_body'>" + item.totQTY + "</td>";
-                    body += "<td class='tg-b_body' style='align:right'>" + rateFormatted + "</td>";
-                    body += "<td class='tg-b_body' style='align:right;'>" + amountFormatted + "</td>";
-                    body += "</tr>";
-                }
-                log.debug('ssubTotal', ssubTotal)
-                return { body: body, subTotal: ssubTotal };
+        var dataItem = []
+        function getPOItem(context, recid){
+            var itemSearch =  search.load({
+                id: "customsearch_pr_line_for_printout",
+            });
+            if(recid){
+                itemSearch.filters.push(search.createFilter({name: "internalid", operator: search.Operator.IS, values: recid}));
             }
-        }
-        
-
-        function getPOExpense(context, poRecord) {
-            // var expCont = poRecord.getLineCount({
-            //     sublistId: 'expense'
-            // });
-            var expCont = poRecord.length
-            if (expCont > 0) {
+            var itemSearchSet = itemSearch.run();
+            var itemCount = itemSearchSet.getRange(0, 100);
+            if(itemCount.length > 0){
+                
                 var body = "";
-                for (var index = 1; index < expCont; index++) {
-                    if(poRecord[index].itemName == ''){ 
-
-                        var qty = 1; 
-                        var description = poRecord[index].memo
-                        if (description.includes('\\')) {
-                            description = description.replace(/\\/g, '<br/>');
-                        }
-                        var amount = poRecord[index].amount / poRecord[index].exchangerate
-                        if (amount) {
-                            var amountBef = amount
-    
-                            amount = amount
-                            amount = format.format({
-                                value: amount,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        var taxamt_exp = poRecord[index].taxamount
-                        if (taxamt_exp) {
-                            taxamt_exp = taxamt_exp
-                            taxamt_exp = format.format({
-                                value: taxamt_exp,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        var grosamt_exp = Number(amountBef) * Number(qty)
-                        if (grosamt_exp) {
-                            grosamt_exp = grosamt_exp
-                            grosamt_exp = format.format({
-                                value: grosamt_exp,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        body += "<tr>";
-                        body += "<td class='tg-b_body'>" + description + "</td>";
-                        body += "<td class='tg-b_body'>" + qty + "</td>";
-                        body += "<td class='tg-b_body' style='align:right'>" + amount + "</td>";
-                        body += "<td class='tg-b_body' style='align:right;'>" + grosamt_exp + "</td>";
-                        body += "</tr>";
+                for(var index = 0; index < itemCount.length; index++){
+                    var poRecord = itemCount[index];
+                    var itemId = poRecord.getValue({
+                        name: "custrecord_iss_pr_item",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    });
+                    var itemText = poRecord.getText({
+                        name: "custrecord_iss_pr_item",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    });
+                    var itemParts = itemText.split(' ', 2);
+                    var itemCode = itemParts[0]; 
+                    var itemDescription = itemText.substring(itemCode.length + 1); 
+                
+                    var onHand = parseFloat(poRecord.getValue({
+                        name: "custrecord_iss_pr_stock",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    })) || 0;
+                    var inComingStock = parseFloat(poRecord.getValue({
+                        name: "custrecord_iss_pr_incoming_stock",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    })) || 0;
+                    var salesRepCode = poRecord.getText({
+                        name: "custrecord_prsum_salesrep",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    });
+                    var customer = poRecord.getText({
+                        name: "custrecord_prsum_customer",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    });
+                    var customerId = poRecord.getValue({
+                        name: "custrecord_prsum_customer",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    });
+                    var osPO = parseFloat(poRecord.getValue({
+                        name: "custrecord_iss_os_po",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    })) || 0;
+                    var noSO = poRecord.getValue({
+                        name: "custrecord_prsum_po_customer",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    });
+                    var noSOId = poRecord.getValue({
+                        name: "custrecord_iss_no_po",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    });
+                    var tglKirim = poRecord.getValue({
+                        name: "custrecord_iss_tgl_kirim",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    });
+                    
+                    var forecase = parseFloat(poRecord.getValue({
+                        name: "custrecord_iss_forecast_buffer",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    })) || 0;
+                    var leadTimeKirim = poRecord.getValue({
+                        name: "custrecord_iss_lead_time",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    });
+                    var avgpengBusdev = poRecord.getValue({
+                        name: "custrecord_iss_avg_busdev",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    });
+                    var avgpengAcc = poRecord.getValue({
+                        name: "custrecord_iss_avg_accounting",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    });
+                    var qty = parseFloat(poRecord.getValue({
+                        name: "custrecord_iss_total_order",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    })) || 0;
+                    var notes = poRecord.getValue({
+                        name: "custrecord_iss_note",
+                        join: "CUSTRECORD_ISS_PR_PARENT",
+                    });
+                    
+                    dataItem.push({
+                        itemId : itemId,
+                        itemText : itemText,
+                        itemDescription : itemDescription,
+                        itemCode : itemCode,
+                        onHand : onHand,
+                        inComingStock : inComingStock,
+                        salesRepCode : salesRepCode,
+                        customer : customer,
+                        osPO : osPO,
+                        noSO : noSO,
+                        tglKirim : tglKirim,
+                        forecase : forecase,
+                        leadTimeKirim : leadTimeKirim,
+                        avgpengBusdev : avgpengBusdev,
+                        avgpengAcc : avgpengAcc,
+                        qty : qty,
+                        notes : notes,
+                        customerId : customerId
+                    });
+                }
+                
+                var dataItemLength = dataItem.length;
+                var groupedItems = {};
+                
+                dataItem.forEach((item) => {
+                    if (!groupedItems[item.itemId]) {
+                        groupedItems[item.itemId] = {
+                            totalOnHand: 0,
+                            totalInComingStock: 0,
+                            totalOsPO: 0,
+                            totalForecase: 0,
+                            totalQty: 0,
+                            lastNotes: '',
+                            customers: {}
+                        };
+                    }
+                    groupedItems[item.itemId].totalOnHand += item.onHand;
+                    groupedItems[item.itemId].totalInComingStock += item.inComingStock;
+                    groupedItems[item.itemId].totalOsPO += item.osPO;
+                    groupedItems[item.itemId].totalForecase += item.forecase;
+                    groupedItems[item.itemId].totalQty += item.qty;
+                    groupedItems[item.itemId].lastNotes = item.notes;
+                
+                    if (!groupedItems[item.itemId].customers[item.customerId]) {
+                        groupedItems[item.itemId].customers[item.customerId] = {
+                            items: [],
+                            totalOnHand: 0,
+                            totalInComingStock: 0,
+                            totalOsPO: 0,
+                            totalForecase: 0,
+                            totalQty: 0,
+                            lastNotes: '',
+                            noSO: []
+                        };
+                    }
+                
+                    const existingCustomerData = groupedItems[item.itemId].customers[item.customerId];
+                    
+                    let noSOArray = item.noSO ? item.noSO.split(',').map(n => n.trim()) : [];
+                    
+                    existingCustomerData.noSO = [...existingCustomerData.noSO, ...noSOArray];
+                    
+                    existingCustomerData.noSO = [...new Set(existingCustomerData.noSO)];
+                
+                    groupedItems[item.itemId].customers[item.customerId].totalOnHand += item.onHand;
+                    groupedItems[item.itemId].customers[item.customerId].totalInComingStock += item.inComingStock;
+                    groupedItems[item.itemId].customers[item.customerId].totalOsPO += item.osPO;
+                    groupedItems[item.itemId].customers[item.customerId].totalForecase += item.forecase;
+                    groupedItems[item.itemId].customers[item.customerId].totalQty += item.qty;
+                    groupedItems[item.itemId].customers[item.customerId].lastNotes = item.notes;
+                    
+                    groupedItems[item.itemId].customers[item.customerId].items = [item];
+                });
+                
+                for (let itemId in groupedItems) {
+                    for (let customerId in groupedItems[itemId].customers) {
+                        groupedItems[itemId].customers[customerId].noSO = groupedItems[itemId].customers[customerId].noSO.join(',<br/>');
+                        log.debug('cek po no group', groupedItems[itemId].customers[customerId].noSO)
                     }
                 }
+                
+                var nomor = 1;
+                for (const itemId in groupedItems) {
+                    if (groupedItems.hasOwnProperty(itemId)) {
+                        const groupData = groupedItems[itemId];
+                
+                        for (const customerId in groupData.customers) {
+                            if (groupData.customers.hasOwnProperty(customerId)) {
+                                const customerData = groupData.customers[customerId];
+                                body += generateTableHTML(itemId, customerData, nomor);
+                                nomor++;
+                            }
+                        }
+                        body += generateSummaryRow(groupData);
+                    }
+                }
+                
                 return body;
-            }
+                
 
+            }
+            
         }
-        return {
-            onRequest: onRequest,
-        };
-    });
+        
+    return {
+        onRequest: onRequest,
+    };
+});
