@@ -12,9 +12,7 @@ define(['N/log', 'N/record', 'N/search',"./abj_script_iseller_integration"], (lo
                 isDynamic: true,
             });
 
-            
-           
-            
+
             invAdjustment.setValue({
                 fieldId: 'customform',
                 value: 562, // Replace with the internal ID of your adjustment account

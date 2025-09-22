@@ -173,11 +173,6 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           fieldId: 'quantity',
           value: line.quantity
         });
-        so.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'price',
-          value: '-1'
-        });
         if (line.description) {
           so.setCurrentSublistValue({
             sublistId: 'item',
@@ -192,7 +187,6 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
             value: line.brand.internal_id
           });
         }
-        var grossAmt = line.gross_amount
         if (line.tax_code) {
             so.setCurrentSublistValue({
               sublistId: 'item',
@@ -200,41 +194,37 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
               value: line.tax_code.internal_id
             });
         }
-        
-        var amtLine = so.getCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'amount'
-        });
-        log.debug('amtLine', amtLine);
-        // var rateSet = Number(amtLine) / Number(line.quantity);
         var rateSet = line.rate
         log.debug('rateSet', rateSet);
         if (!rateSet || Number(rateSet) === 0) {
           throw new Error(`Rate kosong/null/0 pada line ke-${index + 1}, item: ${line.item.internal_id}`);
         }
-        so.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'custcol_sos_custom_rate',
-          value: rateSet,
-          ignoreFieldChange : true
-        });
-        so.setCurrentSublistValue({
-          sublistId : 'item',
-          fieldId : 'grossamt',
-          value : grossAmt
-        })
-        var amtAftDisc = Number(grossAmt) - Number(line.discount_line);
-        log.debug('amtAftDisc', amtAftDisc);
-        so.setCurrentSublistValue({
-          sublistId : 'item',
-          fieldId : 'custcol_sos_disc_amount',
-          value : line.discount_line
-        })
-        so.setCurrentSublistValue({
-          sublistId : 'item',
-          fieldId : 'custcol_sos_amount_after_disc',
-          value : amtAftDisc
-        })
+        if(rateSet){
+          so.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'custcol_sos_custom_rate',
+            value: rateSet,
+          });
+          so.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'rate',
+            value: rateSet,
+          });
+          var grossAmt = line.gross_amount
+          var amtAftDisc = Number(grossAmt) - Number(line.discount_line);
+          log.debug('amtAftDisc', amtAftDisc);
+          so.setCurrentSublistValue({
+            sublistId : 'item',
+            fieldId : 'custcol_sos_disc_amount',
+            value : line.discount_line
+          })
+          so.setCurrentSublistValue({
+            sublistId : 'item',
+            fieldId : 'custcol_sos_amount_after_disc',
+            value : amtAftDisc
+          })
+
+        }
         so.commitLine({ sublistId: 'item' });
       });
       if (firstLineClass) {
@@ -269,17 +259,19 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           fieldId: 'quantity',
           value: '1'
         });
+        
 
-        so.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'price',
-          value: '-1'
-        });
         var voucherMin = Number(data.voucher_amount) * -1;
         log.debug('voucherMin', voucherMin)
         so.setCurrentSublistValue({
+          sublistId: 'item',
+          fieldId: 'custcol_sos_custom_rate',
+          value: voucherMin
+        });
+        
+        so.setCurrentSublistValue({
           sublistId : 'item',
-          fieldId : 'grossamt',
+          fieldId : 'amount',
           value : voucherMin
         });
         so.commitLine({ sublistId: 'item' });
@@ -310,17 +302,16 @@ define(['N/record', 'N/log', 'N/error', 'N/format', './abj_utils_sos_integration
           fieldId: 'quantity',
           value: '1'
         });
-
-        so.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'price',
-          value: '-1'
-        });
         var pointMin = Number(data.point_amount) * -1;
         log.debug('pointMin', pointMin)
         so.setCurrentSublistValue({
           sublistId : 'item',
-          fieldId : 'grossamt',
+          fieldId : 'custcol_sos_custom_rate',
+          value : pointMin
+        });
+        so.setCurrentSublistValue({
+          sublistId : 'item',
+          fieldId : 'amount',
           value : pointMin
         });
         so.commitLine({ sublistId: 'item' });

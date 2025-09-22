@@ -53,6 +53,66 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     name: "title",
                     join: "CUSTBODY_STC_ATTENTION",
                 })
+                var donorId = headerRec.getValue({
+                    name: "internalid",
+                    join: "customerMain",
+                })
+                var donorContact = ""
+                var idContact = ""
+                if(donorId){
+                    var recCust = record.load({
+                        type : "customer",
+                        id : donorId
+                    });
+                    var cekLineDonor = recCust.getLineCount({
+                        sublistId : "contactroles"
+                    })
+                    if(cekLineDonor > 0){
+                        for(var i = 0; i < cekLineDonor; i++){
+                         idContact = recCust.getSublistValue({
+                                sublistId : "contactroles",
+                                fieldId : "contact",
+                                line : i
+                            })
+                            donorContact = recCust.getSublistValue({
+                                sublistId : "contactroles",
+                                fieldId : "contactname",
+                                line : i
+                            })
+                        }
+                    }
+                }
+                var addrContact = "";
+                if(idContact){
+                    var recContact = record.load({
+                        type : "contact",
+                        id : idContact
+                    });
+                    var lineAddr = recContact.getLineCount({
+                        sublistId : "addressbook"
+                    });
+                    log.debug('lineAddr', lineAddr)
+                    if(lineAddr > 0){
+                        for(var k = 0; k < lineAddr; k++){
+                            var book = recContact.getSublistValue({
+                                sublistId : "addressbook",
+                                fieldId : "addressbookaddress",
+                                line : k
+                            });
+                            log.debug('book', book)
+                             var adresee = recContact.getSublistValue({
+                                sublistId : "addressbook",
+                                fieldId : "addressee_initialvalue",
+                                line : k
+                            })
+                            log.debug('adresee', adresee)
+                            if(adresee){
+                                addrContact = adresee
+                            }
+                        }
+                    }
+                }
+                log.debug('donorContact', donorContact)
                 var tranId = headerRec.getValue({name : "tranid"})
                 var sof = headerRec.getText({ name : "cseg_stc_sof"});
                 var tranDate = headerRec.getValue({ name : "trandate"});
@@ -235,13 +295,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "</tr>"
 
                 header += "<tr style='height:60px;'>"
-                header += "<td style='border-right: 1px solid black;' colspan='3'>"+escapeXmlSymbols(donorAddres)+"</td>"
+                header += "<td style='border-right: 1px solid black;' colspan='3'>"+escapeXmlSymbols(addrContact)+"</td>"
                 header += "<td></td>"
                 header += "</tr>"
 
                 header += "<tr style='height:60px;'>"
                 header += "<td style=' border-bottom: 1px solid black;'>Attn :</td>"
-                header += "<td style='border-right: 1px solid black; border-bottom: 1px solid black; font-weight:bold;' colspan='2'><span>"+escapeXmlSymbols(dContactName)+"</span><br/><span>"+escapeXmlSymbols(dContactTitle)+"</span></td>"
+                header += "<td style='border-right: 1px solid black; border-bottom: 1px solid black; font-weight:bold;' colspan='2'><span>"+escapeXmlSymbols(donorContact)+"</span><br/><span>"+escapeXmlSymbols(dContactTitle)+"</span></td>"
                 header += "<td></td>"
                 header += "</tr>"
 

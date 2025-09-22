@@ -131,6 +131,7 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                     invoiceRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: '2061' }); 
                     invoiceRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'price', value: -1 });
                     invoiceRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'taxcode', value: taxToSet });
+                    invoiceRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'custcol_sos_custom_rate', value: totalDiscAmount });
                     invoiceRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'grossamt', value: totalDiscAmount });
                     
 
