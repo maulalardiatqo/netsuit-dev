@@ -805,6 +805,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                         })
                         return true;
                     });
+                    console.log('allDataToset', allDataToset)
                     if (allDataToset.length > 0) {
                         var alreadyExists = false;
                         var lineCount = records.getLineCount({

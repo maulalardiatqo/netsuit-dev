@@ -354,7 +354,7 @@ define(["N/search", "N/record", "N/file", "N/https", "N/runtime", "N/format"], /
             });
             dataRec.setValue({
                 fieldId: "memo",
-                value: 'test script bin',
+                value: memo,
                 ignoreFieldChange: false,
             });
             dataRec.setValue({

@@ -5,7 +5,23 @@
 // This sample shows how to render search results into a PDF file.
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
     function(render, search, record, log, file, http, config, format, email, runtime) {
-
+        function cutText(text, maxLength) {
+            if (text.length <= maxLength) {
+                return text;
+            }
+            return text.substring(0, maxLength).trim() + " ....";
+        }
+        function numberWithCommas(x) {
+            x = x.toString();
+            var pattern = /(-?\d+)(\d{3})/;
+            while (pattern.test(x)) x = x.replace(pattern, "$1,$2");
+            return x;
+        }
+        function getProjectCodeOnly(text) {
+            if (!text) return "";
+            var firstWord = text.trim().split(" ")[0];
+            return firstWord;
+        }
         function escapeXmlSymbols(input) {
             if (!input || typeof input !== "string") {
                 return input;
@@ -113,7 +129,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var xml = "";
                     var header = "";
                     var body = "";
-                    var headerHeight = '0%';
+                    var headerHeight = '38%';
                     var style = "";
                     var footer = "";
                     var pdfFile = null;
@@ -139,32 +155,32 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     style += "</style>";
                     
                     // header
-                    body += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
-                    body += "<thead>";
-                    body += "<tr>"
-                    body += "<td style='width:50%'></td>"
-                    body += "<td style='width:50%'></td>"
-                    body += "</tr>"
-                    body += "<tr style='background-color:red;'>"
-                    body += "<td style='align:left; color: white; font-weight:bold; font-size:20px;'>SAVE THE CHILDREN</td>"
-                    body += "<td style='align:right; color: white; font-weight:bold; font-size:20px;'>PURCHASE ORDER</td>"
-                    body += "</tr>"
+                    header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
+                    header += "<thead>";
+                    header += "<tr>"
+                    header += "<td style='width:50%'></td>"
+                    header += "<td style='width:50%'></td>"
+                    header += "</tr>"
+                    header += "<tr style='background-color:red;'>"
+                    header += "<td style='align:left; color: white; font-weight:bold; font-size:20px;'>SAVE THE CHILDREN</td>"
+                    header += "<td style='align:right; color: white; font-weight:bold; font-size:20px;'>PURCHASE ORDER</td>"
+                    header += "</tr>"
                     
-                    body += "<tr>"
-                    body += "<td style='align:center; font-size:7; font-weight:bold;' colspan='2'><p style='text-align:center;'>This Purchase Order is issued subject to the terms and conditions and the policies contained in the contract or framework agreement governing the Goods and/or Services (as applicable), between the Customer and the Supplier. In the absence of such contract or framework agreement, this Purchase Order is issued subject to the terms and conditions overleaf and the policies contained at </p><p style='color:#1385B9FF; padding-top:0px; margin-top:0px;'>https://www.savethechildren.net/sites/www.savethechildren.net/files/Supplier Sustainability Policy.pdf</p></td>"
-                    body += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='align:center; font-size:7; font-weight:bold;' colspan='2'><p style='text-align:center;'>This Purchase Order is issued subject to the terms and conditions and the policies contained in the contract or framework agreement governing the Goods and/or Services (as applicable), between the Customer and the Supplier. In the absence of such contract or framework agreement, this Purchase Order is issued subject to the terms and conditions overleaf and the policies contained at </p><p style='color:#1385B9FF; padding-top:0px; margin-top:0px;'>https://www.savethechildren.net/sites/www.savethechildren.net/files/Supplier Sustainability Policy.pdf</p></td>"
+                    header += "</tr>"
                     
-                    body += "</thead>";
-                    body += "</table>";
+                    header += "</thead>";
+                    header += "</table>";
 
-                    body += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
-                    body += "<thead>";
-                    body += "<tr>"
-                    body += "<td style='width:32%'></td>"
-                    body += "<td style='width:23%'></td>"
-                    body += "<td style='width:15%'></td>"
-                    body += "<td style='width:25%'></td>"
-                    body += "</tr>"
+                    header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
+                    header += "<thead>";
+                    header += "<tr>"
+                    header += "<td style='width:32%'></td>"
+                    header += "<td style='width:23%'></td>"
+                    header += "<td style='width:15%'></td>"
+                    header += "<td style='width:25%'></td>"
+                    header += "</tr>"
                     log.debug('trandate', trandate)
                     let dateObj = new Date(trandate);
 
@@ -175,119 +191,119 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     // Format dd/mm/yyyy
                     let formattedDate = `${day}/${month}/${year}`;
-                    body += "<tr>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black;'>Date:</td>"
-                    body += "<td style='border:1px solid black; border-left:none; border-right:none;'>"+formattedDate+"</td>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; align:center; vertical-align:middle;' rowspan='2'>PO No:</td>"
-                    body += "<td style='border:1px solid black; border-left:none; align:center; vertical-align:middle;' rowspan='2'>"+escapeXmlSymbols(trandId)+"</td>"
-                    body += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black;'>Date:</td>"
+                    header += "<td style='border:1px solid black; border-left:none; border-right:none;'>"+formattedDate+"</td>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; align:center; vertical-align:middle;' rowspan='2'>PO No:</td>"
+                    header += "<td style='border:1px solid black; border-left:none; align:center; vertical-align:middle;' rowspan='2'>"+escapeXmlSymbols(trandId)+"</td>"
+                    header += "</tr>"
 
-                    body += "<tr>"
-                    body += "<td style='background-color:#D5D6D6FF; border:1px solid black; border-top:none;'><p style='font-weight:bold;'>Reference to framework agreement/contract:</p><p style='font-size:7px; margin:0px;; padding:0px;'>(if relevant)</p></td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none; border-right:none;'></td>"
-                    body += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='background-color:#D5D6D6FF; border:1px solid black; border-top:none;'><p style='font-weight:bold;'>Reference to framework agreement/contract:</p><p style='font-size:7px; margin:0px;; padding:0px;'>(if relevant)</p></td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none; border-right:none;'></td>"
+                    header += "</tr>"
 
-                    body += "<tr style='height:10px;'>"
-                    body += "</tr>"
+                    header += "<tr style='height:10px;'>"
+                    header += "</tr>"
 
-                    body += "<tr>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black;' colspan='2'>SUPPLIER</td>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;' colspan='2'>DELIVERY / COLLECTION ADDRESS</td>"
-                    body += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black;' colspan='2'>SUPPLIER</td>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;' colspan='2'>DELIVERY / COLLECTION ADDRESS</td>"
+                    header += "</tr>"
 
-                    body += "<tr>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Company name: </td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendName)+"</td>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Contact Name:</td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(delContactName)+"</td>"
-                    body += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Company name: </td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendName)+"</td>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Contact Name:</td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(delContactName)+"</td>"
+                    header += "</tr>"
 
-                    body += "<tr>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Contact Name: </td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(contactName)+"</td>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Mobile Phone:</td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(delPhone)+"</td>"
-                    body += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Contact Name: </td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(contactName)+"</td>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Mobile Phone:</td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(delPhone)+"</td>"
+                    header += "</tr>"
 
-                    body += "<tr>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>E-mail: </td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendEmail)+"</td>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none; vertical-align:middle;' rowspan='2'>Addres</td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none; vertical-align:middle;' rowspan='2'>"+escapeXmlSymbols(delAddr)+"</td>"
-                    body += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>E-mail: </td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendEmail)+"</td>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none; vertical-align:middle;' rowspan='2'>Addres</td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none; vertical-align:middle;' rowspan='2'>"+escapeXmlSymbols(cutText(delAddr, 65))+"</td>"
+                    header += "</tr>"
 
-                    body += "<tr>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Phone: </td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendPhone)+"</td>"
-                    body += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Phone: </td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendPhone)+"</td>"
+                    header += "</tr>"
 
-                     body += "<tr>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Fax: </td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendFax)+"</td>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;' colspan='2'>SAVE THE CHILDREN INVOICING ADDRESS</td>"
-                    body += "</tr>"
+                     header += "<tr>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Fax: </td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendFax)+"</td>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;' colspan='2'>SAVE THE CHILDREN INVOICING ADDRESS</td>"
+                    header += "</tr>"
 
-                    body += "<tr>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Mobile: </td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendAltPhone)+"</td>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Contact Name:</td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(attention)+"</td>"
-                    body += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Mobile: </td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendAltPhone)+"</td>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Contact Name:</td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(attention)+"</td>"
+                    header += "</tr>"
 
-                    body += "<tr>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;' rowspan='2'>Addres: </td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;' rowspan='2'>"+escapeXmlSymbols(vendAddr)+"</td>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Phone:</td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(shippingPhone)+"</td>"
-                    body += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;' rowspan='2'>Addres: </td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none;' rowspan='2'>"+escapeXmlSymbols(cutText(vendAddr, 150))+"</td>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Phone:</td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(shippingPhone)+"</td>"
+                    header += "</tr>"
 
-                    body += "<tr>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Addres:</td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(shippingAddr)+"</td>"
-                    body += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>Addres:</td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(cutText(shippingAddr, 65))+"</td>"
+                    header += "</tr>"
 
-                    body += "</thead>";
-                    body += "</table>";
+                    header += "</thead>";
+                    header += "</table>";
 
-                    body += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
-                    body += "<thead>";
-                    body += "<tr>"
-                    body += "<td style='width:15%'></td>"
-                    body += "<td style='width:10%'></td>"
-                    body += "<td style='width:15%'></td>"
-                    body += "<td style='width:10%'></td>"
-                    body += "<td style='width:15%'></td>"
-                    body += "<td style='width:10%'></td>"
-                    body += "<td style='width:15%'></td>"
-                    body += "<td style='width:10%'></td>"
-                    body += "</tr>"
+                    header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
+                    header += "<thead>";
+                    header += "<tr>"
+                    header += "<td style='width:15%'></td>"
+                    header += "<td style='width:10%'></td>"
+                    header += "<td style='width:15%'></td>"
+                    header += "<td style='width:10%'></td>"
+                    header += "<td style='width:15%'></td>"
+                    header += "<td style='width:10%'></td>"
+                    header += "<td style='width:15%'></td>"
+                    header += "<td style='width:10%'></td>"
+                    header += "</tr>"
 
-                    body += "<tr>";
-                    body += "<td style='background-color:#D5D6D6FF;  border:1px solid black;'><p style='font-weight:bold; border-left:none;'>Delivery method / Incoterms:</p><p style='font-size:7px; padding:0px; margin:0px;'>(if applicable)</p></td>";
-                    body += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(delivMethod)+"</td>";
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Shipping</p> <p style='padding:0px; margin:0px;'>requirements:</p></td>";
-                    body += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(shippingRequirement)+"</td>";
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Required</p> <p style='padding:0px; margin:0px;'>delivery date:</p></td>";
-                    body += "<td style='border:1px solid black; border-left:none;'></td>";
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Payment terms:</p></td>";
-                    body += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(terms)+"</td>";
-                    body += "</tr>";
+                    header += "<tr>";
+                    header += "<td style='background-color:#D5D6D6FF;  border:1px solid black;'><p style='font-weight:bold; border-left:none;'>Delivery method / Incoterms:</p><p style='font-size:7px; padding:0px; margin:0px;'>(if applicable)</p></td>";
+                    header += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(delivMethod)+"</td>";
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Shipping</p> <p style='padding:0px; margin:0px;'>requirements:</p></td>";
+                    header += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(shippingRequirement)+"</td>";
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Required</p> <p style='padding:0px; margin:0px;'>delivery date:</p></td>";
+                    header += "<td style='border:1px solid black; border-left:none;'></td>";
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Payment terms:</p></td>";
+                    header += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(terms)+"</td>";
+                    header += "</tr>";
 
-                    body += "</thead>";
-                    body += "</table>";
+                    header += "</thead>";
+                    header += "</table>";
 
                     // Body
                     body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
                     body += "<tbody>";
 
                     body += "<tr>"
-                    body += "<td style='width:6%;'></td>"
-                    body += "<td style='width:6%;'></td>"
-                    body += "<td style='width:6%;'></td>"
+                    body += "<td style='width:7%;'></td>"
                     body += "<td style='width:8%;'></td>"
+                    body += "<td style='width:8%;'></td>"
+                    body += "<td style='width:5%;'></td>"
                     body += "<td style='width:10%;'></td>"
                     body += "<td style='width:22%;'></td>"
-                    body += "<td style='width:8%;'></td>"
+                    body += "<td style='width:6%;'></td>"
                     body += "<td style='width:7%;'></td>"
                     body += "<td style='width:7%;'></td>"
                     body += "<td style='width:10%;'></td>"
@@ -313,229 +329,200 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var dataLineCount = recordLoad.getLineCount({
                         sublistId: "item",
                     });
-                    var allDataItem = []
+                    var allData = [];
+                    var isAllAproved = true
                     var totalWHT = 0;
-                    var totalDelivCharge = 0
-                    var totalOtherCharge = 0
-                    var subTotal = 0
+                    var totalDelivCharge = 0;
+                    var totalOtherCharge = 0;
+                    var subTotal = 0;
+
+                    // ==================== ITEM ====================
                     if (dataLineCount > 0) {
                         for (var i = 0; i < dataLineCount; i++) {
-                            var projectCode = recordLoad.getSublistText({
-                                sublistId: "item",
-                                fieldId: "class",
-                                line: i
-                            });
-                            var sofCode = recordLoad.getSublistText({
-                                sublistId: "item",
-                                fieldId: "cseg_stc_sof",
-                                line: i
-                            });
-                            var lineNumb = i + 1
-                            var itemName = recordLoad.getSublistText({
-                                sublistId: "item",
-                                fieldId: "item",
-                                line: i
-                            });
-                            var itemId = recordLoad.getSublistValue({
-                                sublistId: "item",
-                                fieldId: "item",
-                                line: i
-                            });
-                            var desc = recordLoad.getSublistValue({
-                                sublistId: "item",
-                                fieldId: "description",
-                                line: i
-                            });
-                            var qty = recordLoad.getSublistValue({
-                                sublistId: "item",
-                                fieldId: "quantity",
-                                line: i
-                            });
-                            var rate = recordLoad.getSublistValue({
-                                sublistId: "item",
-                                fieldId: "rate",
-                                line: i
-                            });
-                            var grossamt = recordLoad.getSublistValue({
-                                sublistId: "item",
-                                fieldId: "grossamt",
-                                line: i
-                            });
+                            var projectCodeText = recordLoad.getSublistText({ sublistId: "item", fieldId: "class", line: i });
+                            var projectCode = getProjectCodeOnly(projectCodeText);
+                            var sofCodeText = recordLoad.getSublistText({ sublistId: "item", fieldId: "cseg_stc_sof", line: i });
+                            var sofCode = getProjectCodeOnly(sofCodeText);
+                            var lineNumb = i + 1;
+                            var itemNameText = recordLoad.getSublistText({ sublistId: "item", fieldId: "item", line: i });
+                            var itemName = getProjectCodeOnly(itemNameText);
+                            var itemId = recordLoad.getSublistValue({ sublistId: "item", fieldId: "item", line: i });
+                            var desc = recordLoad.getSublistValue({ sublistId: "item", fieldId: "description", line: i });
+                            var qty = recordLoad.getSublistValue({ sublistId: "item", fieldId: "quantity", line: i });
+                            var rate = recordLoad.getSublistValue({ sublistId: "item", fieldId: "rate", line: i });
+                            var grossamt = recordLoad.getSublistValue({ sublistId: "item", fieldId: "grossamt", line: i });
+                            var approvItem = recordLoad.getSublistValue({ sublistId: "item", fieldId: "custcol_stc_approval_status_line", line: i })
+                            if (approvItem && approvItem != 2) {
+                                isAllAproved = false;
+                            }
 
                             var totalPrice = Number(qty) * Number(rate);
+
                             if (itemName && itemName.includes("WHT")) {
                                 totalWHT += Number(grossamt) || 0;
-                            }else{
-                                var itemLookup = search.lookupFields({
-                                    type: 'item',
-                                    id: itemId,
-                                    columns: ['type']
-                                });
-
+                            } else {
+                                var itemLookup = search.lookupFields({ type: 'item', id: itemId, columns: ['type'] });
                                 var itemType = itemLookup.type[0] ? itemLookup.type[0].value : '';
-                                log.debug('itemType', itemType)
-                                if(itemType != 'OthCharge'){
-                                    subTotal += Number(totalPrice)
-                                    allDataItem.push({
-                                        projectCode : projectCode,
-                                        sofCode : sofCode,
-                                        lineNumb : lineNumb,
-                                        itemName : itemName,
-                                        desc : desc,
-                                        qty : qty,
-                                        currnecy : currnecy,
-                                        rate : rate,
-                                        totalPrice : totalPrice
-                                    })
-                                }else{
-                                    var itemSearchObj = search.create({
-                                    type: "item",
-                                    filters:
-                                    [
-                                        ["internalid","anyof",itemId]
-                                    ],
-                                    columns:
-                                    [
-                                        search.createColumn({name: "custitem_stc_delivery_charge", label: "STC - Delivery Charge"}),
-                                        search.createColumn({name: "custitem_stc_other_charges", label: "STC - Other Charges"}),
-                                        search.createColumn({name: "type", label: "Type"})
-                                    ]
+
+                                if (itemType != 'OthCharge') {
+                                    subTotal += Number(totalPrice);
+                                    allData.push({
+                                        projectCode: projectCode,
+                                        sofCode: sofCode,
+                                        lineNumb: lineNumb,
+                                        itemName: itemName,
+                                        desc: desc,
+                                        qty: qty,
+                                        rate: rate,
+                                        totalPrice: totalPrice
                                     });
-                                    var searchResultCount = itemSearchObj.runPaged().count;
-                                    log.debug("itemSearchObj result count",searchResultCount);
-                                    itemSearchObj.run().each(function(result){
-                                        var isDelCharge = result.getValue({
-                                            name : 'custitem_stc_delivery_charge'
-                                        })
-                                        var isOtherCharge = result.getValue({
-                                            name : 'custitem_stc_other_charges'
-                                        })
-                                        if(isDelCharge){
-                                            totalDelivCharge += Number(grossamt)
-                                        }
-                                        if(isOtherCharge){
-                                            totalOtherCharge += Number(grossamt)
-                                        }
-                                    return true;
+                                } else {
+                                    var itemSearchObj = search.create({
+                                        type: "item",
+                                        filters: [["internalid", "anyof", itemId]],
+                                        columns: [
+                                            search.createColumn({ name: "custitem_stc_delivery_charge" }),
+                                            search.createColumn({ name: "custitem_stc_other_charges" }),
+                                            search.createColumn({ name: "type" })
+                                        ]
+                                    });
+
+                                    itemSearchObj.run().each(function (result) {
+                                        var isDelCharge = result.getValue({ name: 'custitem_stc_delivery_charge' });
+                                        var isOtherCharge = result.getValue({ name: 'custitem_stc_other_charges' });
+                                        if (isDelCharge) totalDelivCharge += Number(grossamt);
+                                        if (isOtherCharge) totalOtherCharge += Number(grossamt);
+                                        return true;
                                     });
                                 }
                             }
                         }
                     }
-                    if(allDataItem.length > 0){
-                        allDataItem.forEach(function (line) {
-                            body += "<tr>"
-                            body += "<td style='border-top: none;  border:1px solid black;'>" + escapeXmlSymbols(line.projectCode) + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + escapeXmlSymbols(line.sofCode) + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'></td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + line.lineNumb + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + escapeXmlSymbols(line.itemName) + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + escapeXmlSymbols(line.desc) + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'></td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + line.qty + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + currnecy + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + line.rate + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + line.totalPrice + "</td>"
-                            body += "</tr>"
-                        })
-                    }
-                    
-                    var dataExpenseCount = recordLoad.getLineCount({
-                        sublistId : "expense"
-                    })
-                    log.debug('dataExpenseCount', dataExpenseCount)
-                    var allDataExp = []
-                    if (dataExpenseCount > 0) {
-                        for (var i = 0; i < dataExpenseCount; i++) {
-                            var projectCodeExp = recordLoad.getSublistText({
-                                sublistId: "expense",
-                                fieldId: "class",
-                                line: i
-                            });
-                            var sofCodeExp = recordLoad.getSublistText({
-                                sublistId: "expense",
-                                fieldId: "cseg_stc_sof",
-                                line: i
-                            });
-                            var lineNumbExp = i + 1
-                            var itemNameExp = recordLoad.getSublistText({
-                                sublistId: "expense",
-                                fieldId: "account",
-                                line: i
-                            });
-                            var descExp = recordLoad.getSublistValue({
-                                sublistId: "expense",
-                                fieldId: "memo",
-                                line: i
-                            });
-                            var qtyExp = 1
-                            var rateExp = recordLoad.getSublistValue({
-                                sublistId: "expense",
-                                fieldId: "amount",
-                                line: i
-                            });
 
+                    // ==================== EXPENSE ====================
+                    var dataExpenseCount = recordLoad.getLineCount({ sublistId: "expense" });
+                    if (dataExpenseCount > 0) {
+                        for (var j = 0; j < dataExpenseCount; j++) {
+                            var projectCodeExpText = recordLoad.getSublistText({ sublistId: "expense", fieldId: "class", line: j });
+                            var projectCodeExp = getProjectCodeOnly(projectCodeExpText);
+                            var sofCodeExpText = recordLoad.getSublistText({ sublistId: "expense", fieldId: "cseg_stc_sof", line: j });
+                            var sofCodeExp = getProjectCodeOnly(sofCodeExpText);
+                            var lineNumbExp = j + 1;
+                            var itemNameExpText = recordLoad.getSublistText({ sublistId: "expense", fieldId: "account", line: j });
+                            var itemNameExp = getProjectCodeOnly(itemNameExpText);
+                            var descExp = recordLoad.getSublistValue({ sublistId: "expense", fieldId: "memo", line: j });
+                            var qtyExp = 1;
+                            var rateExp = recordLoad.getSublistValue({ sublistId: "expense", fieldId: "amount", line: j });
+                            var approvalExp = recordLoad.getSublistValue({ sublistId: "expense", fieldId: "custcol_stc_approval_status_line", line: j });
+                            if (approvalExp && approvalExp != 2) {
+                                isAllAproved = false;
+                            }
                             var totalPriceExp = Number(qtyExp) * Number(rateExp);
-                            subTotal += totalPriceExp
-                            allDataExp.push({
-                                projectCodeExp : projectCodeExp,
-                                sofCodeExp : sofCodeExp,
-                                lineNumbExp : lineNumbExp,
-                                itemNameExp : itemNameExp,
-                                descExp : descExp,
-                                qtyExp : qtyExp,
-                                rateExp : rateExp,
-                                totalPriceExp : totalPriceExp
-                            })
+                            subTotal += totalPriceExp;
+
+                            allData.push({
+                                projectCode: projectCodeExp,
+                                sofCode: sofCodeExp,
+                                lineNumb: lineNumbExp,
+                                itemName: itemNameExp,
+                                desc: descExp,
+                                qty: qtyExp,
+                                rate: rateExp,
+                                totalPrice: totalPriceExp
+                            });
                         }
                     }
-                    
-                    if(allDataExp.length > 0){
-                        allDataExp.forEach(function (lineExp) {
-                            body += "<tr>"
-                            body += "<td style='border-top: none;  border:1px solid black;'>" + escapeXmlSymbols(lineExp.projectCodeExp) + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + escapeXmlSymbols(lineExp.sofCodeExp) + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'></td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + lineExp.lineNumbExp + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + escapeXmlSymbols(lineExp.itemNameExp) + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + escapeXmlSymbols(lineExp.descExp) + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'></td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + lineExp.qtyExp + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + currnecy + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + lineExp.rateExp + "</td>"
-                            body += "<td style='border-top: none;  border:1px solid black; border-left:none;'>" + lineExp.totalPriceExp + "</td>"
-                            body += "</tr>"
-                        })
+
+                    // ==================== CETAK SEKALI SAJA ====================
+                    if (allData.length > 0) {
+                        let counter = 0;
+
+                        allData.forEach(function (line, index) {
+                            if (counter % 5 === 0) {
+                                if (counter > 0) {
+                                    body += "</tbody></table>";
+                                    body += "<div style='page-break-before:always'></div>";
+                                    body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+                                    body += "<tbody>";
+
+                                    body += "<tr>"
+                                    body += "<td style='width:7%;'></td>"
+                                    body += "<td style='width:8%;'></td>"
+                                    body += "<td style='width:8%;'></td>"
+                                    body += "<td style='width:5%;'></td>"
+                                    body += "<td style='width:10%;'></td>"
+                                    body += "<td style='width:22%;'></td>"
+                                    body += "<td style='width:6%;'></td>"
+                                    body += "<td style='width:7%;'></td>"
+                                    body += "<td style='width:7%;'></td>"
+                                    body += "<td style='width:10%;'></td>"
+                                    body += "<td style='width:10%;'></td>"
+                                    body += "</tr>"
+
+                                    body += "<tr>"
+                                    body += "<td style='background-color:#D5D6D6FF;  border:1px solid black;'>Project code</td>"
+                                    body += "<td style='background-color:#D5D6D6FF;  border:1px solid black; border-left:none;'>SOF code</td>"
+                                    body += "<td style='background-color:#D5D6D6FF;  border:1px solid black; border-left:none;'>PR no.</td>"
+                                    body += "<td style='background-color:#D5D6D6FF;  border:1px solid black; border-left:none;'>Line Item No.</td>"
+                                    body += "<td style='background-color:#D5D6D6FF;  border:1px solid black; border-left:none;'>Product Code</td>"
+                                    body += "<td style='background-color:#D5D6D6FF;  border:1px solid black; border-left:none;'>Description of Goods/Services</td>"
+                                    body += "<td style='background-color:#D5D6D6FF;  border:1px solid black; border-left:none;'>Unit/Form</td>"
+                                    body += "<td style='background-color:#D5D6D6FF;  border:1px solid black; border-left:none;'>Quantity required</td>"
+                                    body += "<td style='background-color:#D5D6D6FF;  border:1px solid black; border-left:none;'>Currency</td>"
+                                    body += "<td style='background-color:#D5D6D6FF;  border:1px solid black; border-left:none;'>Unit Price</td>"
+                                    body += "<td style='background-color:#D5D6D6FF;  border:1px solid black; border-left:none;'>Total Price</td>"
+                                    body += "</tr>"
+                                }
+                            }
+
+                            body += "<tr style='height:32px;'>";
+                            body += "<td style='border:1px solid black;'>" + escapeXmlSymbols(line.projectCode || "") + "</td>";
+                            body += "<td style='border:1px solid black; border-left:none;'>" + escapeXmlSymbols(line.sofCode || "") + "</td>";
+                            body += "<td style='border:1px solid black; border-left:none;'></td>";
+                            body += "<td style='border:1px solid black; border-left:none;'>" + (line.lineNumb || "") + "</td>";
+                            body += "<td style='border:1px solid black; border-left:none;'>" + escapeXmlSymbols(line.itemName || "") + "</td>";
+                            body += "<td style='border:1px solid black; border-left:none;'>" + escapeXmlSymbols(cutText(line.desc || "", 55)) + "</td>";
+                            body += "<td style='border:1px solid black; border-left:none;'></td>";
+                            body += "<td style='border:1px solid black; border-left:none;'>" + (line.qty || "") + "</td>";
+                            body += "<td style='border:1px solid black; border-left:none;'>" + (currnecy || "") + "</td>";
+                            body += "<td style='border:1px solid black; border-left:none; align:right;'>" + numberWithCommas(line.rate || 0) + "</td>";
+                            body += "<td style='border:1px solid black; border-left:none; align:right;'>" + numberWithCommas(line.totalPrice || 0) + "</td>";
+                            body += "</tr>";
+
+                            counter++;
+                        });
                     }
+
+
                     body += "<tr>"
                     body += "<td style='align:right; font-weight:bold;' colspan='9'>Subtotal</td>"
                     body += "<td></td>"
-                    body += "<td style='border:1px solid black; border-top:none;'>"+subTotal+"</td>"
+                    body += "<td style='border:1px solid black; border-top:none; align:right;'>"+numberWithCommas(subTotal)+"</td>"
                     body += "</tr>"
 
                     body += "<tr>"
                     body += "<td style='align:right; font-weight:bold;' colspan='9'>WHT</td>"
                     body += "<td></td>"
-                    body += "<td style='border:1px solid black; border-top:none;'>"+totalWHT+"</td>"
+                    body += "<td style='border:1px solid black; border-top:none; align:right;'>"+numberWithCommas(totalWHT)+"</td>"
                     body += "</tr>"
 
                     body += "<tr>"
                     body += "<td style='align:right; font-weight:bold;' colspan='9'>Delivery charge</td>"
                     body += "<td></td>"
-                    body += "<td style='border:1px solid black; border-top:none;'>"+totalDelivCharge+"</td>"
+                    body += "<td style='border:1px solid black; border-top:none; align:right;'>"+numberWithCommas(totalDelivCharge)+"</td>"
                     body += "</tr>"
 
                     body += "<tr>"
                     body += "<td style='align:right; font-weight:bold;' colspan='9'>Other charges</td>"
                     body += "<td></td>"
-                    body += "<td style='border:1px solid black; border-top:none;'>"+totalOtherCharge+"</td>"
+                    body += "<td style='border:1px solid black; border-top:none; align:right;'>"+numberWithCommas(totalOtherCharge)+"</td>"
                     body += "</tr>"
                     var total = Number(subTotal) - Number(totalWHT) + Number(totalDelivCharge) + Number(totalOtherCharge)
 
                     body += "<tr>"
                     body += "<td style='align:right; font-weight:bold;font-size:12px;' colspan='9'>Total</td>"
                     body += "<td></td>"
-                    body += "<td style='border:1px solid black; border-top:none;'>"+total+"</td>"
+                    body += "<td style='border:1px solid black; border-top:none; align:right;'>"+numberWithCommas(total)+"</td>"
                     body += "</tr>"
                     body += "</tbody>"
                     body += "</table>"
@@ -578,11 +565,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         employeePhone = empLookup.phone || '';
                     }
                     log.debug('Employee Phone', employeePhone);
+                    var signatureApprove = '';
+                    if(isAllAproved){
+                        signatureApprove = "APPROVED BY SYSTEM"
+                    }
                     body += "<tr>"
                     body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Name: </td>"
                     body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(createdBy)+"</td>"
                     body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; border-top:none;' rowspan='2'>Signature :</td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;' rowspan='2'></td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;' rowspan='2'>"+signatureApprove+"</td>"
                     body += "</tr>"
 
                     body += "<tr>"
@@ -606,19 +597,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     body += "<tr>"
                     body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Name: </td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(formattedDate)+"</td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendName)+"</td>"
                     body += "</tr>"
                     body += "<tr>"
                     body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Phone: </td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(formattedDate)+"</td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(vendAltPhone)+"</td>"
+                    body += "</tr>"
+                    body += "<tr style='height:40px;'>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Signature: </td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'></td>"
                     body += "</tr>"
                     body += "<tr>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Signature: </td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(formattedDate)+"</td>"
-                    body += "</tr>"
-                     body += "<tr>"
                     body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none;'>Date: </td>"
-                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(formattedDate)+"</td>"
+                    body += "<td style='border:1px solid black; border-top:none; border-left:none;'></td>"
                     body += "</tr>"
 
                     

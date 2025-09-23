@@ -12,18 +12,19 @@ define(["N/record", "N/search"], function(
         try {
             if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT) {
                 var rec = context.newRecord;
-                var cekLinePembobotan = rec.getLineCount('recmachcustrecord_abj_ratecard_id');
+                var cekLinePembobotan = rec.getLineCount('recmachcustrecord_transaction_id');
+                log.debug('cekLinePembobotan', cekLinePembobotan)
                  if (cekLinePembobotan > 0) {
                     for (var i = 0; i < cekLinePembobotan; i++) {
                         var isAsf = rec.getSublistValue({
-                            sublistId: 'recmachcustrecord_abj_ratecard_id',
-                            fieldId: 'custrecord4',
+                            sublistId: 'recmachcustrecord_transaction_id',
+                            fieldId: 'custrecord_asf_pembobotan',
                             line: i
                         });
                         log.debug('isAsf', isAsf)
                         if (isAsf === true) {
                             var accountAsf = rec.getSublistValue({
-                                sublistId: 'recmachcustrecord_abj_ratecard_id',
+                                sublistId: 'recmachcustrecord_transaction_id',
                                 fieldId: 'custrecord_alva_accountratecard',
                                 line: i
                             });

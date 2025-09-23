@@ -23,7 +23,7 @@ define(["N/record", "N/search"], function(
                 var cekCustomform = soRec.getValue('customform');
                 var cekCreatedFrom = soRec.getValue('createdfrom');
                 log.debug('cekCustomform', cekCustomform);
-                if((typeRec === "salesorder" && cekCustomform == 157 && (cekCreatedFrom == "" || cekCreatedFrom == null)) ||
+                if((typeRec === "salesorder" && cekCustomform == 155 && (cekCreatedFrom == "" || cekCreatedFrom == null)) ||
                     (typeRec === "estimate" && cekCustomform == 156) || (typeRec == "creditmemo" && cekCreatedFrom)|| (typeRec == "returnauthorization" && (cekCreatedFrom == "" || cekCreatedFrom == null)) || (typeRec == "invoice" && (cekCreatedFrom == "" || cekCreatedFrom == null))){
                     var lineCOunt = soRec.getLineCount({
                         sublistId : "recmachcustrecord_transaction_id"
