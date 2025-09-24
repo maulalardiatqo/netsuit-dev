@@ -52,8 +52,30 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         vendName = recVend.getValue("companyname");
                     }
                     var location = recLoad.getText("location");
-                    var poNo = recLoad.getText("createdfrom");
+                    var memo = recLoad.getValue("memo")
+                    var poNo = recLoad.getValue("createdfrom");
+                    var poTranId = ""
+                    if(poNo){
+                        var lookup = search.lookupFields({
+                            type: search.Type.PURCHASE_ORDER,
+                            id: poNo,
+                            columns: ['tranid']
+                        });
 
+                        poTranId = lookup.tranid;
+                    }
+                    var createdById = recLoad.getValue('custbody_stc_create_by')
+                    var createdBy = recLoad.getText('custbody_stc_create_by')
+                    var jobTitle = ""
+                    if(createdById){
+                        var lookup = search.lookupFields({
+                            type: "employee",
+                            id: createdById,
+                            columns: ['title']
+                        });
+
+                        jobTitle = lookup.title;
+                    }
                     var response = context.response;
                     var xml = "";
                     var header = "";
@@ -100,8 +122,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
                     body += "<thead>";
                     body += "<tr>"
-                    body += "<td style='width:10%'></td>"
-                    body += "<td style='width:8%'></td>"
+                    body += "<td style='width:13%'></td>"
+                    body += "<td style='width:5%'></td>"
                     body += "<td style='width:30%'></td>"
                     body += "<td style='width:7%'></td>"
                     body += "<td style='width:10%'></td>"
@@ -131,8 +153,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
                     body += "<tbody>";
                     body += "<tr>"
-                    body += "<td style='width:10%'></td>"
-                    body += "<td style='width:8%'></td>"
+                    body += "<td style='width:13%'></td>"
+                    body += "<td style='width:5%'></td>"
                     body += "<td style='width:30%'></td>"
                     body += "<td style='width:7%'></td>"
                     body += "<td style='width:10%'></td>"
@@ -183,16 +205,80 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             });
 
                             body += "<tr>"
-                            body += "<td style='border:1px solid black; align:center;'>PO no.</td>"
+                            body += "<td style='border:1px solid black; align:center;'>"+poTranId+"</td>"
                             body += "<td style='border:1px solid black; border-left:none; align:center;'></td>"
-                            body += "<td style='border:1px solid black; border-left:none; align:center;'>Description of Goods / Services</td>"
-                            body += "<td style='border:1px solid black; border-left:none; align:center;'>Unit of Measure</td>"
-                            body += "<td style='border:1px solid black; border-left:none; align:center;'>Quantity Received</td>"
-                            body += "<td style='border:1px solid black; border-left:none; align:center;'>Goods / Services Delivered as per Requirement</td>"
-                            body += "<td style='border:1px solid black; border-left:none; align:center;'>Comments</td>"
+                            body += "<td style='border:1px solid black; border-left:none; align:center;'>"+escapeXmlSymbols(descItem)+"</td>"
+                            body += "<td style='border:1px solid black; border-left:none; align:center;'>"+units+"</td>"
+                            body += "<td style='border:1px solid black; border-left:none; align:center;'>"+qty+"</td>"
+                            body += "<td style='border:1px solid black; border-left:none; align:center;'>"+escapeXmlSymbols(goodServices)+"</td>"
+                            body += "<td style='border:1px solid black; border-left:none; align:center;'>"+escapeXmlSymbols(comments)+"</td>"
                             body += "</tr>"
                         }
                     }
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none; font-weight:bold;' colspan='7'>Remarks</td>"
+                    body += "</tr>"
+                    body += "<tr style='height:25px;'>"
+                    body += "<td style='font-weight:bold; border:1px solid black; border-top:none; font-weight:bold;' colspan='7'>"+memo+"</td>"
+                    body += "</tr>"
+                    body += "<tr style='height:5px;'>"
+                    body += "</tr>"
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; font-weight:bold; align:center' colspan='6'>All goods received / services completed to acceptable standard so can proceed with payment?</td>"
+                    body += "<td style='font-weight:bold; border:1px solid black;border-left:none;'></td>"
+                    body += "</tr>"
+                    body += "</tbody>";
+                    body += "</table>";
+
+                    body += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
+                    body += "<tbody>";
+                    body += "<tr>"
+                    body += "<td style='width:15%'></td>"
+                    body += "<td style='width:35%'></td>"
+                    body += "<td style='width:15%'></td>"
+                    body += "<td style='width:35%'></td>"
+                    body += "</tr>"
+
+                    body += "<tr style='background-color:red; height:30px;'>"
+                    body += "<td style='align:center; color: white; font-weight:bold; border: 1px solid black; vertical-align:midle;' colspan='2'>Supply Chain</td>"
+                    body += "<td style='align:center; color: white; font-weight:bold; border: 1px solid black; border-left:none; vertical-align:midle;' colspan='2'>Program / Requester</td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none; align:center'>Responsibility</td>"
+                    body += "<td style='background-color:#D5D6D6FF; border:1px solid black; border-left:none; border-top:none; align:center;'>Confirm receipt  of goods / services</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; black; border-left:none;  border-top:none;align:center'>Responsibility</td>"
+                    body += "<td style='background-color:#D5D6D6FF; border:1px solid black; black; border-left:none; border-top:none; align:center'>Verification of Quality</td>"
+                    body += "</tr>"
+
+                     body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none; align:center'>Name</td>"
+                    body += "<td style='border:1px solid black; border-left:none; border-top:none; align:center;'>"+createdBy+"</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; black; border-left:none;  border-top:none;align:center'>Name</td>"
+                    body += "<td style=' border:1px solid black; black; border-left:none; border-top:none; align:center'></td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none; align:center'>Position</td>"
+                    body += "<td style='border:1px solid black; border-left:none; border-top:none; align:center;'>"+jobTitle+"</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; black; border-left:none;  border-top:none;align:center'>Position</td>"
+                    body += "<td style=' border:1px solid black; black; border-left:none; border-top:none; align:center'></td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none; align:center'>Signature</td>"
+                    body += "<td style='border:1px solid black; border-left:none; border-top:none; align:center;'></td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; black; border-left:none;  border-top:none;align:center'>Signature</td>"
+                    body += "<td style=' border:1px solid black; black; border-left:none; border-top:none; align:center'></td>"
+                    body += "</tr>"
+
+                    body += "<tr>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-top:none; align:center'>Date</td>"
+                    body += "<td style='border:1px solid black; border-left:none; border-top:none; align:center;'>"+formattedDate+"</td>"
+                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; black; border-left:none;  border-top:none;align:center'>Date</td>"
+                    body += "<td style=' border:1px solid black; black; border-left:none; border-top:none; align:center'></td>"
+                    body += "</tr>"
+
                     body += "</tbody>";
                     body += "</table>";
 

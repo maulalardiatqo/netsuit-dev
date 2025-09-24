@@ -353,7 +353,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 var customForm = records.getValue('customform');
                 var createdFrom = records.getValue('createdfrom');
                 trigger = 'salesorder'
-                if(customForm == 157){
+                if(customForm == 156){
                     if(createdFrom){
                         loadPembobotanFromQuote(createdFrom, records, trigger)
                     }
@@ -420,7 +420,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 var createdFrom = records.getValue('createdfrom');
                 trigger = 'invoice'
                 console.log('customForm', customForm)
-                if(customForm == 158){
+                if(customForm == 157){
                     if(createdFrom){
                         loadPembobotanFromQuote(createdFrom, records, trigger)
                         setTimeout(function() {

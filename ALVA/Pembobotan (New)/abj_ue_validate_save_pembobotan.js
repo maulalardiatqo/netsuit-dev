@@ -25,7 +25,7 @@ define(["N/record", "N/search"], function(
                         if (isAsf === true) {
                             var accountAsf = rec.getSublistValue({
                                 sublistId: 'recmachcustrecord_transaction_id',
-                                fieldId: 'custrecord_alva_accountratecard',
+                                fieldId: 'custrecord_pembobotan_account_asf',
                                 line: i
                             });
                             log.debug('accountAsf', accountAsf)

@@ -23,8 +23,8 @@ define(["N/record", "N/search"], function(
                 var cekCustomform = soRec.getValue('customform');
                 var cekCreatedFrom = soRec.getValue('createdfrom');
                 log.debug('cekCustomform', cekCustomform);
-                if((typeRec === "salesorder" && cekCustomform == 155 && (cekCreatedFrom == "" || cekCreatedFrom == null)) ||
-                    (typeRec === "estimate" && cekCustomform == 156) || (typeRec == "creditmemo" && cekCreatedFrom)|| (typeRec == "returnauthorization" && (cekCreatedFrom == "" || cekCreatedFrom == null)) || (typeRec == "invoice" && (cekCreatedFrom == "" || cekCreatedFrom == null))){
+                if((typeRec === "salesorder" && cekCustomform == 156 && (cekCreatedFrom == "" || cekCreatedFrom == null)) ||
+                    (typeRec === "estimate" && cekCustomform == 155) || (typeRec == "creditmemo" && cekCreatedFrom)|| (typeRec == "returnauthorization" && (cekCreatedFrom == "" || cekCreatedFrom == null)) || (typeRec == "invoice" && (cekCreatedFrom == "" || cekCreatedFrom == null))){
                     var lineCOunt = soRec.getLineCount({
                         sublistId : "recmachcustrecord_transaction_id"
                     })
@@ -113,20 +113,20 @@ define(["N/record", "N/search"], function(
                                         log.debug('rate', rate)
                                         soRec.setCurrentSublistValue({
                                             sublistId: 'item',
-                                            fieldId: 'custcol_rate_pembobotan',
+                                            fieldId: 'custcol_alvaratepembobotan',
                                             value: rate
                                         });
                                         var amountPembobotan = Number(rate) * Number(qty);
                                         log.debug('amountPembobotan', amountPembobotan)
                                         soRec.setCurrentSublistValue({
                                             sublistId: 'item',
-                                            fieldId: 'custcol_amount_pembobotan',
+                                            fieldId: 'custcol_alvaamountpembobotan',
                                             value: amountPembobotan
                                         });
                                         log.debug('totalAmtAsf', totalAmtAsf)
                                         soRec.setCurrentSublistValue({
                                             sublistId: 'item',
-                                            fieldId: 'custcol_total_amount_asf',
+                                            fieldId: 'custcol_alvatotalamtasf',
                                             value: totalAmtAsf
                                         });
                                         var prorateASF = Number(totalAmtAsf) / Number(qty);
