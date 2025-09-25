@@ -19,9 +19,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
             return months[number - 1];
         }
-        function getBudget(periodText,  account, department, dateText){
-            log.debug('filter search budget', {periodText : periodText,  account: account, department: department, dateText: dateText})
-            console.log('filter search budget', {periodText : periodText,  account: account, department: department, dateText: dateText})
+        function getBudget(periodText, subsId, account, department, dateText){
+            log.debug('filter search budget', {periodText : periodText, subsId: subsId, account: account, department: department, dateText: dateText})
+            console.log('filter search budget', {periodText : periodText, subsId: subsId, account: account, department: department, dateText: dateText})
 
             var transactionSearchObj = search.create({
                 type: "transaction",
@@ -37,6 +37,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     //['formulatext: {custbody_bm_period_range}', 'contains', periodText],
                     ["formulatext: TO_CHAR({custcol_bm_start_date}, 'MM/YYYY')","contains",dateText],
                     "AND", 
+                    ["subsidiary","anyof",subsId], 
+                    "AND", 
                     ["account","anyof",account], 
                     "AND", 
                     ["department","anyof",department]
@@ -44,6 +46,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 columns:
                 [
                     search.createColumn({name: "custbody_bm_budget_name", label: "Budget Name"}),
+                    search.createColumn({name: "subsidiarynohierarchy", label: "Subsidiary (no hierarchy)"}),
                     search.createColumn({name: "departmentnohierarchy", label: "Department (no hierarchy)"}),
                     search.createColumn({name: "account", label: "Account"}),
                     search.createColumn({name: "amount", label: "Amount"}),
@@ -117,8 +120,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
             return allDataBudget
         }
-        function callSearch( account, department, estAmount, period, dateText){
-            log.debug('filterSearch consumed', { account : account, estAmount : estAmount, period : period, dateText: dateText})
+        function callSearch(subsId, account, department, estAmount, period, dateText){
+            log.debug('filterSearch consumed', {subsId : subsId, account : account, estAmount : estAmount, period : period, dateText: dateText})
             var purchaserequisitionSearchObj = search.create({
                 type: "transaction",
                 settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
@@ -129,6 +132,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     ["account","noneof","220"], 
                     "AND", 
                     ["accounttype","anyof","Expense","OthExpense","DeferExpense"], 
+                    "AND", 
+                    ["subsidiary","anyof",subsId], 
                     "AND", 
                     ["department","anyof",department], 
                     "AND", 
@@ -152,6 +157,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                       name: "account",
                       summary: "GROUP",
                       label: "Account"
+                   }),
+                   search.createColumn({
+                      name: "subsidiary",
+                      summary: "GROUP",
+                      label: "Subsidiary"
                    }),
                    search.createColumn({
                       name: "department",
@@ -190,10 +200,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var newAmount = Number(amtFromSearch) + Number(estAmount)
             return newAmount
         }
-        function setSblValue(currentRecordObj,  department, account, period, periodText, estAmount, additionalAmt, sblsId, dateText){
+        function setSblValue(currentRecordObj, subsId, department, account, period, periodText, estAmount, additionalAmt, sblsId, dateText){
             var newAmount = 0
-            if(account && department && estAmount && period && dateText){
-                newAmount = callSearch( account, department, estAmount, period, dateText)
+            if(subsId && account && department && estAmount && period && dateText){
+                newAmount = callSearch(subsId, account, department, estAmount, period, dateText)
             }
             
             log.debug('newAmount', newAmount)
@@ -207,8 +217,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 });
             }
             var dataBudget = []
-            if(periodText && account && department && dateText){
-                dataBudget = getBudget(periodText,  account, department, dateText)
+            if(periodText && subsId && account && department && dateText){
+                dataBudget = getBudget(periodText, subsId, account, department, dateText)
             }
             console.log('DATA BUDGET', dataBudget)
             log.debug('DATA BUDGET', dataBudget)
@@ -241,6 +251,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }else{
                 accountName = "custcol_bm_itemaccount"
             }
+            var subsId = currentRecordObj.getValue('subsidiary');
             var trandate = currentRecordObj.getValue('trandate');
             var month = String(trandate.getMonth() + 1); 
             var year = trandate.getFullYear();
@@ -249,7 +260,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var periodText = bulan + ' ' + year;
             var dateText = month + '/' + year;
             
-
+            if (subsId) {
                 var department = currentRecordObj.getCurrentSublistValue({  
                     sublistId: sblsId,
                     fieldId: "department",
@@ -272,7 +283,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: "estimatedrate",
                     });
                     estAmount = Number(estRate) * Number(qty);
-                    console.log('estAmount', estAmount);
+                    log.debug('estAmount', estAmount);
                 }
                 
                
@@ -320,9 +331,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             }
                         }
                     }
-                    setSblValue(currentRecordObj,  department, account, period, periodText, estAmount, additionalAmt, sblsId, dateText);
+                    setSblValue(currentRecordObj, subsId, department, account, period, periodText, estAmount, additionalAmt, sblsId, dateText);
                 }
-            
+            }
         }
         function fieldChanged(context){
             var currentRecordObj = context.currentRecord;
@@ -342,7 +353,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             if (sublistName == 'item'){
                 var sblsId = "item";
                 if (sublistFieldName == 'estimatedamount') {
-                    console.log('fieldChange')
+                    
                     actionSublist(currentRecordObj, sblsId)
                 }
                 
