@@ -80,7 +80,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var xml = "";
                     var header = "";
                     var body = "";
-                    var headerHeight = '0%';
+                    var headerHeight = '9%';
                     var style = "";
                     var footer = "";
                     var pdfFile = null;
@@ -106,49 +106,49 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     style += "</style>";
                     
                     // header
-                    body += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
-                    body += "<thead>";
-                    body += "<tr>"
-                    body += "<td style='width:30%'></td>"
-                    body += "<td style='width:70%'></td>"
-                    body += "</tr>"
-                    body += "<tr style='background-color:red;'>"
-                    body += "<td style='align:left; color: white; font-weight:bold; font-size:15px;'>SAVE THE CHILDREN</td>"
-                    body += "<td style='align:right; color: white; font-weight:bold; font-size:15px;'>GOODS RECEIVED / SERVICE COMPLETE NOTE</td>"
-                    body += "</tr>"
-                    body += "</thead>";
-                    body += "</table>";
+                    header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
+                    header += "<thead>";
+                    header += "<tr>"
+                    header += "<td style='width:30%'></td>"
+                    header += "<td style='width:70%'></td>"
+                    header += "</tr>"
+                    header += "<tr style='background-color:red;'>"
+                    header += "<td style='align:left; color: white; font-weight:bold; font-size:15px;'>SAVE THE CHILDREN</td>"
+                    header += "<td style='align:right; color: white; font-weight:bold; font-size:15px;'>GOODS RECEIVED / SERVICE COMPLETE NOTE</td>"
+                    header += "</tr>"
+                    header += "</thead>";
+                    header += "</table>";
 
-                    body += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
-                    body += "<thead>";
-                    body += "<tr>"
-                    body += "<td style='width:13%'></td>"
-                    body += "<td style='width:5%'></td>"
-                    body += "<td style='width:30%'></td>"
-                    body += "<td style='width:7%'></td>"
-                    body += "<td style='width:10%'></td>"
-                    body += "<td style='width:20%'></td>"
-                    body += "<td style='width:15%'></td>"
-                    body += "</tr>"
+                    header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
+                    header += "<thead>";
+                    header += "<tr>"
+                    header += "<td style='width:13%'></td>"
+                    header += "<td style='width:5%'></td>"
+                    header += "<td style='width:30%'></td>"
+                    header += "<td style='width:7%'></td>"
+                    header += "<td style='width:10%'></td>"
+                    header += "<td style='width:20%'></td>"
+                    header += "<td style='width:15%'></td>"
+                    header += "</tr>"
 
-                    body += "<tr>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; align:center; vertical-align:middle;' rowspan='2'>GRN / SCN </td>"
-                    body += "<td style='font-weight:bold; border:1px solid black; border-left:none; align:center; vertical-align:middle;' rowspan='2'>"+escapeXmlSymbols(grn)+"</td>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; align:center;'>GRN / SCN Number </td>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; align:center;' colspan='2'>Date goods received / services completed </td>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; align:center;'>Supplier / Donor Name</td>"
-                    body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; align:center;'>Receiving office / location</td>"
-                    body += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; align:center; vertical-align:middle;' rowspan='2'>GRN / SCN </td>"
+                    header += "<td style='font-weight:bold; border:1px solid black; border-left:none; align:center; vertical-align:middle;' rowspan='2'>"+escapeXmlSymbols(grn)+"</td>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; align:center;'>GRN / SCN Number </td>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; align:center;' colspan='2'>Date goods received / services completed </td>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; align:center;'>Supplier / Donor Name</td>"
+                    header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none; align:center;'>Receiving office / location</td>"
+                    header += "</tr>"
 
-                    body += "<tr>"
-                    body += "<td style='font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(grnNumber)+"</td>"
-                    body += "<td style='font-weight:bold; border:1px solid black; border-left:none; border-top:none;' colspan='2'>"+escapeXmlSymbols(formattedDate)+"</td>"
-                    body += "<td style='font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(vendName)+"</td>"
-                    body += "<td style='font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(location)+"</td>"
-                    body += "</tr>"
+                    header += "<tr>"
+                    header += "<td style='font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(grnNumber)+"</td>"
+                    header += "<td style='font-weight:bold; border:1px solid black; border-left:none; border-top:none;' colspan='2'>"+escapeXmlSymbols(formattedDate)+"</td>"
+                    header += "<td style='font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(vendName)+"</td>"
+                    header += "<td style='font-weight:bold; border:1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(location)+"</td>"
+                    header += "</tr>"
 
-                    body += "</thead>";
-                    body += "</table>";
+                    header += "</thead>";
+                    header += "</table>";
 
                     body += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
                     body += "<tbody>";

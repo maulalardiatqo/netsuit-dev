@@ -940,6 +940,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     line: line
                 });
                 console.log('fieldChaged', pembobotanChecked)
+                console.log('line', line)
                 if (pembobotanChecked) {
                     prosentField.isDisabled = false;
                     deptField.isDisabled = false;
