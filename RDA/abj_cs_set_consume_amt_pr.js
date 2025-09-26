@@ -25,7 +25,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
             var transactionSearchObj = search.create({
                 type: "transaction",
-                settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
                 filters:
                 [
                     ["type","anyof","Custom111"], 
