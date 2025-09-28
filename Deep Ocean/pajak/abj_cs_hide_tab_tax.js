@@ -9,8 +9,6 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log'], function(currentRecord, dial
             console.log('pageInit call');
             var currentRec = currentRecord.get();
             var customLink = document.getElementById('custom1701lnk');
-            log.debug('customLink', customLink);
-            console.log('customLink', customLink);
 
             if (customLink) {
                 customLink.style.display = 'none';
@@ -66,8 +64,6 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log'], function(currentRecord, dial
             (context.sublistId === 'item' || context.sublistId === 'expense') &&
             context.fieldId === 'custcol_4601_witaxapplies'
         ) {
-            console.log('call function');
-            alert('Call Function');
             checkAnyTrue(context.sublistId);
         }
     }
