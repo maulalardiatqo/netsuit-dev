@@ -1,5 +1,6 @@
 /**
  * @NApiVersion 2.1
+ * @NModuleScope Public
  * @NScriptType ClientScript
  */
 define(['N/error', 'N/ui/dialog', 'N/ui/message', 'N/url', 'N/record', 'N/currentRecord', 'N/log', 'N/search', 'N/runtime'],

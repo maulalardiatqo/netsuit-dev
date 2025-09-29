@@ -4,7 +4,7 @@
  */
 define(['N/search', 'N/file', 'N/runtime'], (search, file, runtime) => {
 
-    const FOLDER_IDS = [2179846, 2179847];
+    const FOLDER_IDS = [2344325, 2344326];
 
     const execute = (context) => {
         try {

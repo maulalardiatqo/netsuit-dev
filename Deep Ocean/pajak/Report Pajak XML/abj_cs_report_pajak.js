@@ -1,6 +1,7 @@
 /**
  * @NApiVersion 2.1
  * @NScriptType ClientScript
+ * @NModuleScope Public
  */
 define(['N/error', 'N/ui/dialog', 'N/ui/message', 'N/url', 'N/record', 'N/currentRecord', 'N/log', 'N/search', 'N/runtime'],
 function(error, dialog, message, url, record, currentRecord, log, search, runtime) {

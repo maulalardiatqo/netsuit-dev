@@ -18,8 +18,8 @@ define(['N/task', 'N/search', 'N/record', 'N/log', 'N/runtime'], function(task, 
         var pageContent = '';
 
         if (request.method === 'GET') {
-            var script = '5103';
-            var deploy = '1'
+            var script = request.parameters.script;
+            var deploy = request.parameters.deploy
             var action = request.parameters.action;
             var taskId = request.parameters.taskId || '';
             if (action === 'start') {

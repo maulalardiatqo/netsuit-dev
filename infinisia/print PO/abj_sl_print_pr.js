@@ -486,7 +486,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         join: "CUSTRECORD_ISS_PR_PARENT",
                     })) || 0;
                     var leadTimeKirim = poRecord.getValue({
-                        name: "custrecord_iss_lead_time",
+                        name: "custrecord_iss_rumus_perhitungan",
                         join: "CUSTRECORD_ISS_PR_PARENT",
                     });
                     var avgpengBusdev = poRecord.getValue({
