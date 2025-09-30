@@ -4,52 +4,33 @@
  * @NModuleScope SameAccount
  */
 define([], function () {
+     var tableCek = document.getElementById('recmachcustrecord_iss_pr_parent__tab');
+     console.log('tableCek', tableCek);
+    // Cari header kolom Customer
+        const header = document.querySelector('td.listheadertd[data-label="Customer"]');
 
-    function pageInit(context) {
-        console.log('pageInit');
+        if (header) {
+            // Dapatkan index kolom Customer
+            const colIndex = Array.from(header.parentNode.children).indexOf(header);
 
-        // kasih delay biar DOM sublist keburu render
-        setTimeout(() => {
-            hidePRSublist();
-        }, 1000);
-    }
+            // Sembunyikan header kolom Customer
+            header.style.display = "none";
 
-    function hidePRSublist() {
-        const prTable = document.querySelector('#recmachcustrecord_iss_pr_parent__tab'); 
-        if (!prTable) {
-            console.log('PR sublist table not found');
-            return;
-        }
-
-        const headers = prTable.querySelectorAll('thead tr th');
-        let hideIndexes = [];
-
-        headers.forEach((th, idx) => {
-            const label = th.innerText.trim();
-            if (label === 'Customer' || label === 'Customer Name') {
-                hideIndexes.push(idx);
-                th.style.display = 'none'; // hide header
-                console.log('Hide header:', label);
-            }
-        });
-
-        if (hideIndexes.length > 0) {
-            const rows = prTable.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                hideIndexes.forEach(i => {
-                    const cell = row.children[i];
-                    if (cell) {
-                        cell.style.display = 'none';
-                    }
-                });
+            // Sembunyikan semua <td> di body sesuai index
+            document.querySelectorAll("table tr").forEach(tr => {
+                const td = tr.children[colIndex];
+                if (td) {
+                    td.style.display = "none";
+                }
             });
         }
 
-        // hide tombol edit
-        const editBtn = document.querySelector('#edit');
-        if (editBtn) editBtn.style.display = 'none';
+
+    function pageInit(context) {
+        console.log('pageInit');
     }
 
+   
     return {
         pageInit: pageInit
     };

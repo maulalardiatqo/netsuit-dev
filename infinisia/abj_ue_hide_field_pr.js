@@ -15,7 +15,8 @@ define(['N/runtime', 'N/ui/serverWidget', 'N/record'], (runtime, serverWidget, r
 
             const userRole = runtime.getCurrentUser().role;
             log.debug('userRole', userRole);
-            if (userRole !== 1019) return;
+            if (userRole != 1019) return;
+            // if (userRole != 3) return;
 
             let customForm;
             if (recId) {
