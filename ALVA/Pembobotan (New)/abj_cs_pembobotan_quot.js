@@ -379,8 +379,6 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
 
                     console.log('masuk disable');
 
-                    // Set isDisabled berdasarkan nilai pembobotanValue
-                    prosentField.isDisabled = pembobotanValue !== true;
                 }
             }
         }else if(recordType === 'estimate') {
@@ -403,13 +401,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                         fieldId: 'custrecord_asf_pembobotan',
                         line: i
                     });
-                    if(pembobotanValue){
-                        console.log('pembobotanValue for disable', pembobotanValue);
-                        prosentField.isDisabled = true;
-                    }else{
-                        console.log('pembobotanValue for disable', pembobotanValue);
-                        prosentField.isDisabled = false;
-                    }
+                    
                 }
             }
         }else if(recordType === 'invoice'){
@@ -450,7 +442,6 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     console.log('masuk disable');
 
                     // Set isDisabled berdasarkan nilai pembobotanValue
-                    prosentField.isDisabled = pembobotanValue !== true;
                 }
             }
         }else if(recordType === 'returnauthorization'){
@@ -488,8 +479,6 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
 
                     console.log('masuk disable');
 
-                    // Set isDisabled berdasarkan nilai pembobotanValue
-                    prosentField.isDisabled = pembobotanValue !== true;
                 }
             }
         }else if(recordType === 'creditmemo'){
@@ -530,7 +519,6 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     console.log('masuk disable');
 
                     // Set isDisabled berdasarkan nilai pembobotanValue
-                    prosentField.isDisabled = pembobotanValue !== true;
                 }
             }
         }
@@ -834,7 +822,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                             records.selectNewLine({
                                 sublistId: 'recmachcustrecord_transaction_id'
                             });
-
+                            console.log('dataPosition', data.position)
                             records.setCurrentSublistValue({
                                 sublistId: 'recmachcustrecord_transaction_id',
                                 fieldId: 'custrecord_position',
@@ -902,7 +890,6 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                                 fieldId: 'custrecord_asf_prosent',
                                 line: records.getCurrentSublistIndex({ sublistId: 'recmachcustrecord_transaction_id' })
                             });
-                            prosentField.isDisabled = true;
                             // Simpan barisnya
                             records.commitLine({
                                 sublistId: 'recmachcustrecord_transaction_id'
@@ -941,13 +928,6 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 });
                 console.log('fieldChaged', pembobotanChecked)
                 console.log('line', line)
-                if (pembobotanChecked) {
-                    prosentField.isDisabled = false;
-                    deptField.isDisabled = false;
-                } else {
-                    prosentField.isDisabled = true;
-                    deptField.isDisabled = true;
-                }
             }
             if(sublistId == 'recmachcustrecord_transaction_id' && fieldId == 'custrecord_asf_prosent'){
                 const lineCount = records.getLineCount({ sublistId: 'recmachcustrecord_transaction_id' });
@@ -958,10 +938,6 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 var kategorySOW = records.getCurrentSublistValue({
                     sublistId: 'recmachcustrecord_transaction_id',
                     fieldId: 'custrecord_category_sow'
-                });
-                var isPembobotan = records.getCurrentSublistValue({
-                    sublistId: 'recmachcustrecord_transaction_id',
-                    fieldId: 'custrecord_asf_pembobotan'
                 });
                 var idLine = records.getCurrentSublistValue({
                     sublistId : 'recmachcustrecord_transaction_id',
@@ -1094,25 +1070,25 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
         }
         
     }
-        function validateLine(context) {
-            var sublistId = context.sublistId;
-            console.log('sublistId', sublistId)
-            if (sublistId === 'recmachcustrecord_transaction_id') {
-                var cekTrigger = records.getCurrentSublistValue({
-                    sublistId: 'recmachcustrecord_transaction_id',
-                    fieldId: 'custrecord_id_line'
-                });
-                console.log('masuk kondisi')
-                if(cekTrigger){
-                    return true
-                }else{
-                    alert('Anda tidak diizinkan menambahkan baris manual.');
-                    return false;
-                }
-                
+    function validateLine(context) {
+        var sublistId = context.sublistId;
+        console.log('sublistId', sublistId)
+        if (sublistId === 'recmachcustrecord_transaction_id') {
+            var cekTrigger = records.getCurrentSublistValue({
+                sublistId: 'recmachcustrecord_transaction_id',
+                fieldId: 'custrecord_id_line'
+            });
+            console.log('masuk kondisi')
+            if(cekTrigger){
+                return true
+            }else{
+                alert('Anda tidak diizinkan menambahkan baris manual.');
+                return false;
             }
-            return true;
+            
         }
+        return true;
+    }
 
         function validateDelete(context) {
             if (context.sublistId !== 'item') return true;
@@ -1151,12 +1127,67 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
             
             return true;
         }
+        function saveRecord(context) {
+        try {
+            var rec = context.currentRecord;
+            var sublistId = 'recmachcustrecord_transaction_id';
+            var lineCount = rec.getLineCount({ sublistId: sublistId });
+
+            for (var i = 0; i < lineCount; i++) {
+                var pembobotan = rec.getSublistValue({
+                    sublistId: sublistId,
+                    fieldId: 'custrecord_asf_pembobotan',
+                    line: i
+                });
+
+                var prosent = rec.getSublistValue({
+                    sublistId: sublistId,
+                    fieldId: 'custrecord_asf_prosent',
+                    line: i
+                });
+
+                // Normalisasi pengecekan checkbox (terima 'T'/'F' atau boolean)
+                var isChecked = (pembobotan === true) || (String(pembobotan).toUpperCase() === 'T');
+
+                if (isChecked) {
+                    // Jika bernilai T, wajib ada prosent
+                    if (prosent === null || prosent === undefined || prosent === '') {
+                        alert("Silahkan isi field ASF(%) pada line ke-" + (i + 1) + " yang memiliki ASF.");
+                        return false; // batalkan save
+                    }
+                } else {
+                    // Jika F -> kosongkan kedua field pada baris itu
+                    // Gunakan selectLine -> setCurrentSublistValue -> commitLine
+                    rec.selectLine({ sublistId: sublistId, line: i });
+                    rec.setCurrentSublistValue({
+                        sublistId: sublistId,
+                        fieldId: 'custrecord_asf_prosent',
+                        value: '',
+                        ignoreFieldChange: true
+                    });
+                    rec.setCurrentSublistValue({
+                        sublistId: sublistId,
+                        fieldId: 'custrecord_amount_asf_pembobotan',
+                        value: '',
+                        ignoreFieldChange: true
+                    });
+                    rec.commitLine({ sublistId: sublistId });
+                }
+            }
+
+            return true; // semua valid, lanjutkan save
+        } catch (e) {
+            alert('Terjadi error saat validasi: ' + (e && e.message ? e.message : e));
+            return false;
+        }
+    }
 
     return {
         pageInit: pageInit,
         sublistChanged: sublistChanged,
         fieldChanged : fieldChanged,
         validateLine : validateLine,
-        validateDelete : validateDelete
+        validateDelete : validateDelete,
+        saveRecord: saveRecord
     };
 });

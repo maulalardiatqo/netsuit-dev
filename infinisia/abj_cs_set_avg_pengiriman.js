@@ -14,9 +14,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     }
 
     function getPreviousYear(date) {
-        const prevYear = new Date(date); 
-        prevYear.setFullYear(date.getFullYear() - 1);
-        return formatDate(prevYear);
+        const prev = new Date(date); 
+        prev.setFullYear(date.getFullYear() - 1); 
+        prev.setDate(prev.getDate() - 1);       
+        return formatDate(prev);
     }
 
     function searchData(itemId, customerId, date) {
@@ -34,9 +35,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             "AND", 
             ["cogs","is","F"], 
             "AND", 
-            ["taxline","is","F"], 
-            "AND", 
-            ["mainline","is","F"], 
+            ["taxline","is","F"],
             "AND", 
             ["trandate","within",oneYearBefore,formattedDate], 
             "AND", 

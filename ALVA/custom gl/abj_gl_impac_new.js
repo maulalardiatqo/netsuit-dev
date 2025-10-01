@@ -88,8 +88,8 @@ function customizeGlImpact(transactionRecord, standardLines, customLines, book)
                         var item_amount = transactionRecord.getLineItemValue('item','amount', i);
                         var itemInv = transactionRecord.getLineItemValue('item','item', i);
                         var lineIntem = transactionRecord.getLineItemValue('item','custcol_item_id_pembobotan', i);
-                        var lineIntem = transactionRecord.getLineItemValue('item','custcol_item_id_pembobotan', i);
                         var prorateAsf = transactionRecord.getLineItemValue('item','custcol_alvaprorateasf', i);
+                        nlapiLogExecution('DEBUG', 'prorateAsf', prorateAsf);
                         var qtyItem = transactionRecord.getLineItemValue('item','quantity', i);
                         if(parseFloat(item_amount) > 0){
                             allItemInv.push({
