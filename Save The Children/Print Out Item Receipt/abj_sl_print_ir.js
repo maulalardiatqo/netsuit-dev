@@ -66,6 +66,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     var createdById = recLoad.getValue('custbody_stc_create_by')
                     var createdBy = recLoad.getText('custbody_stc_create_by')
+                    var allGood = recLoad.getText('custbody_stc_proceed_payment');
                     var jobTitle = ""
                     if(createdById){
                         var lookup = search.lookupFields({
@@ -225,7 +226,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "</tr>"
                     body += "<tr>"
                     body += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; font-weight:bold; align:center' colspan='6'>All goods received / services completed to acceptable standard so can proceed with payment?</td>"
-                    body += "<td style='font-weight:bold; border:1px solid black;border-left:none;'></td>"
+                    body += "<td style='font-weight:bold; border:1px solid black;border-left:none;'>"+allGood+"</td>"
                     body += "</tr>"
                     body += "</tbody>";
                     body += "</table>";

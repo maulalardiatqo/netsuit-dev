@@ -489,14 +489,14 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 var createdFrom = records.getValue('createdfrom');
                 trigger = 'creditmemo'
                 console.log('customForm', customForm)
-                if(customForm == 159){
+
                     if(createdFrom){
                         loadPembobotanFromQuote(createdFrom, records, trigger)
                         setTimeout(function() {
                             disableSublistFields(records);
                         }, 500);
                     }
-                }
+                
             }
             var lineCount = records.getLineCount({
                 sublistId: 'recmachcustrecord_transaction_id'
