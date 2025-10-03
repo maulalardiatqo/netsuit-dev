@@ -319,6 +319,7 @@ define(["N/search", "N/record", "N/file", "N/https", "N/runtime", "N/format"], /
             let internalID = data.internalid;
             let customerID = data.entity.internalId;
             let transDate = data.transDate;
+            let trandId = data.tranId
             var dateObj = convertToDate(transDate);
             log.debug('dateObj', dateObj)
             let memo = data.memo;
@@ -342,6 +343,11 @@ define(["N/search", "N/record", "N/file", "N/https", "N/runtime", "N/format"], /
             });
             action = "created";
             }
+            dataRec.setValue({
+                fieldId: "tranid",
+                value: trandId,
+                ignoreFieldChange: false,
+            });
             dataRec.setValue({
                 fieldId: "entity",
                 value: customerID,
