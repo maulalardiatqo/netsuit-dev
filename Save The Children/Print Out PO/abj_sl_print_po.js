@@ -123,6 +123,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var terms = recordLoad.getText("terms")
                     var projectCode = recordLoad.getText("class")
                     var sofCode = recordLoad.getText("cseg_stc_sof")
+                    var receivedDate = recordLoad.getValue('duedate')
 
                     // pdf render
                     var response = context.response;
@@ -183,6 +184,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     header += "</tr>"
                     log.debug('trandate', trandate)
                     let dateObj = new Date(trandate);
+                    let receivedDateObj = new Date(receivedDate)
 
                     // Ambil tanggal, bulan, tahun
                     let day = dateObj.getDate().toString().padStart(2, '0');
@@ -191,6 +193,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     // Format dd/mm/yyyy
                     let formattedDate = `${day}/${month}/${year}`;
+                    let dayRec = receivedDateObj.getDate().toString().padStart(2, '0');
+                     let monthRec = (receivedDateObj.getMonth() + 1).toString().padStart(2, '0'); // bulan mulai dari 0
+                     let yearRec = receivedDateObj.getFullYear();
+                    let formatRecivedate = `${dayRec}/${monthRec}/${yearRec}`;
+
                     header += "<tr>"
                     header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black;'>Date:</td>"
                     header += "<td style='border:1px solid black; border-left:none; border-right:none;'>"+formattedDate+"</td>"
@@ -284,7 +291,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Shipping</p> <p style='padding:0px; margin:0px;'>requirements:</p></td>";
                     header += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(shippingRequirement)+"</td>";
                     header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Required</p> <p style='padding:0px; margin:0px;'>delivery date:</p></td>";
-                    header += "<td style='border:1px solid black; border-left:none;'></td>";
+                    header += "<td style='border:1px solid black; border-left:none;'>"+formatRecivedate+"</td>";
                     header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black; border-left:none;'><p>Payment terms:</p></td>";
                     header += "<td style='border:1px solid black; border-left:none;'>"+escapeXmlSymbols(terms)+"</td>";
                     header += "</tr>";

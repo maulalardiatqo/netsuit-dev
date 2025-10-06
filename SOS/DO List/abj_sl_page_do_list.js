@@ -28,13 +28,42 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 container: "filteroption",
                 source: 'customer'
             });
-            var orderNumber = form.addField({
-                id: 'custpage_order_number', 
+            var orderType = form.addField({
+                id: 'custpage_order_type',
                 type: serverWidget.FieldType.SELECT,
-                container: "filteroption",
-                label: 'Select Order Number',
-                source: 'salesorder'
+                label: 'Select Order Type',
+                container: 'filteroption' 
             });
+
+            orderType.addSelectOption({
+                value: '',
+                text: ''
+            });
+
+            orderType.addSelectOption({
+                value: '1',
+                text: 'Sales Order'
+            });
+
+            orderType.addSelectOption({
+                value: '2',
+                text: 'Transfer Order'
+            });
+            var orderNumber = form.addField({
+                id: 'custpage_order_number_so',
+                type: serverWidget.FieldType.SELECT,
+                label: 'Select Order Number',
+                container: 'filteroption',
+                source : 'salesorder'
+            });
+             var orderNumber = form.addField({
+                id: 'custpage_order_number_to',
+                type: serverWidget.FieldType.SELECT,
+                label: 'Select Order Number',
+                container: 'filteroption',
+                source : 'transferorder'
+            });
+
              var subsidiary = form.addField({
                 id: 'custpage_subsidiary', 
                 type: serverWidget.FieldType.SELECT,
@@ -64,7 +93,12 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 label: 'Ship Date'
             });
             date_trandate.isMandatory = true;
-           
+            var memo = form.addField({
+                id: 'custpage_memo', 
+                type: serverWidget.FieldType.TEXT,
+                container: "valueRedord",
+                label: 'Memo'
+            });
             var sublist = form.addSublist({
                 id: 'custpage_sublist',
                 type: serverWidget.SublistType.INLINEEDITOR,
@@ -78,6 +112,18 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             })
             .updateDisplayType({
                 displayType: serverWidget.FieldDisplayType.ENTRY,
+            });
+             sublist.addField({
+                id: 'custpage_sublist_pack_carton',
+                label: 'Pack Carton',
+                type: serverWidget.FieldType.TEXT
+            });
+            sublist.addField({
+                id: 'custpage_sublist_pack_carton_id',
+                label: 'packcarton_id',
+                type: serverWidget.FieldType.TEXT
+            }).updateDisplayType({
+                displayType: serverWidget.FieldDisplayType.HIDDEN,
             });
             sublist.addField({
                 id: 'custpage_sublist_transaction_type',
@@ -102,11 +148,6 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             sublist.addField({
                 id: 'custpage_sublist_customer',
                 label: 'Customer Project Name',
-                type: serverWidget.FieldType.TEXT
-            });
-            sublist.addField({
-                id: 'custpage_sublist_memo',
-                label: 'Memo',
                 type: serverWidget.FieldType.TEXT
             });
             sublist.addField({
@@ -166,16 +207,25 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             context.response.writePage(form);
         }else{
             function convertDate(dateStr) {
-                const date = new Date(dateStr);
+                log.debug('DATE STRING', dateStr);
+                const [d, m, y] = dateStr.split('/');
+
+                // Buat Date object dengan urutan YYYY, MM - 1, DD
+                const date = new Date(y, m - 1, d);
+
+                log.debug('DATE', date);
             
                 const day = String(date.getDate()).padStart(2, '0');
                 const month = String(date.getMonth() + 1).padStart(2, '0'); 
                 const year = date.getFullYear();
-                return `${day}/${month}/${year}`;
+                // return `${day}/${month}/${year}`;
+                return date;
             }
             try{
                 var subsidiary = context.request.parameters.custpage_subsidiary;
                 var shipDate = convertDate(context.request.parameters.custpage_date_trandate);
+                var memo = context.request.parameters.custpage_memo
+                // var shipDate = context.request.parameters.custpage_date_trandate;
                 log.debug('shipDate', shipDate)
                 var lineCount = context.request.getLineCount({
                     group: 'custpage_sublist'
@@ -184,6 +234,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                 
                 if(lineCount > 0){
                     var allIdFul = [];
+                    var allBoxList = [];
                     var isCreate = false
                     for (var i = 0; i < lineCount; i++) {
                         var fulfill = context.request.getSublistValue({
@@ -199,8 +250,14 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                                 name: 'custpage_sublist_idfulfill',
                                 line: i
                             });
+                            var idCarton = context.request.getSublistValue({
+                                group: 'custpage_sublist',
+                                name: 'custpage_sublist_pack_carton_id',
+                                line: i
+                            });
                             if(idFul){
                                 allIdFul.push(idFul)
+                                allBoxList.push(idCarton)
                             }
                         }
                     }
@@ -218,9 +275,19 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                             value: allIdFul,
                             ignoreFieldChange: true,
                         });
+                         createRec.setValue({
+                            fieldId: "custbody_sos_box_list",
+                            value: allBoxList,
+                            ignoreFieldChange: true,
+                        });
+                        createRec.setValue({
+                            fieldId: "memo",
+                            value: memo,
+                            ignoreFieldChange: true,
+                        });
                         createRec.setValue({
                             fieldId: "trandate",
-                            value: new Date(shipDate),
+                            value: shipDate,
                             ignoreFieldChange: true,
                         });
                         var saveCreate = createRec.save();

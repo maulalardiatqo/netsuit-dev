@@ -2,8 +2,8 @@
  *@NApiVersion 2.1
  *@NScriptType ClientScript
  */
- define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", "N/search", "N/runtime"],
-    function(error,dialog,url,record,currentRecord,log, search, runtime) {
+ define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", "N/search", "N/runtime", 'N/ui/message'],
+    function(error,dialog,url,record,currentRecord,log, search, runtime, message) {
         var allIdIr = []
         var records = currentRecord.get();
         function convertDate(dateStr) {
@@ -16,14 +16,33 @@
         }
         function pageInit(){
             console.log("masuk client");
+            const orderNumberSo = records.getField({ fieldId: 'custpage_order_number_so' });
+            const orderNumberTo = records.getField({ fieldId: 'custpage_order_number_to' });
+            orderNumberSo.isDisplay = false
+            orderNumberTo.isDisplay = false
         }
 
-         function fieldChanged(){
+        function fieldChanged(context){
+            if (context.fieldId !== 'custpage_order_type') return;
+            console.log('fieldHasChanged')
+            const rec = currentRecord.get();
+            const orderType = rec.getValue({ fieldId: 'custpage_order_type' });
 
-         }
+            const orderNumberSO = rec.getField({ fieldId: 'custpage_order_number_so' });
+            const orderNumberTO = rec.getField({ fieldId: 'custpage_order_number_to' });
+            if (orderType === '1') {
+                orderNumberSO.isDisplay = true
+                orderNumberTO.isDisplay = false
+            } else if (orderType === '2') {
+                orderNumberTO.isDisplay = true
+                orderNumberSO.isDisplay = false
+            }
+
+           
+        }
         window.onCustomButtonClick = function(context) {
             searchFilter(context)
-         }
+        }
         function searchFilter(context){
             var cekLine = records.getLineCount({sublistId : "custpage_sublist"});
             console.log('cekLine', cekLine)
@@ -43,7 +62,14 @@
             }
             console.log('cek log')
             var subsidiary = records.getValue('custpage_subsidiary');
-            var noDo = records.getValue('custpage_order_number');
+            var orderType = records.getValue('custpage_order_type');
+            var noDo
+            if(orderType == '1'){
+                noDo = records.getValue('custpage_order_number_so');
+            }else{
+                noDo = records.getValue('custpage_order_number_to');
+            }
+            
             var customerId = records.getValue('custpage_customer');
             var date_from = convertDate(records.getValue('custpage_date_from'));
             var date_to = convertDate(records.getValue('custpage_date_to'));
@@ -51,14 +77,15 @@
             if(subsidiary){
                 console.log('subsidiary', subsidiary)
                 var dataSearch = search.load({
-                    id: "customsearch_sos_generate_packing_list",
+                    id: "customsearch588",
                 });
                 console.log('1')
                 console.log('data filter', {customerId : customerId, date_from : date_from, date_to : date_to, subsId : subsId})
                 if(customerId){
                     dataSearch.filters.push(
                         search.createFilter({
-                        name: "entity",
+                        name: "name",
+                        join : "custrecord_packship_itemfulfillment",
                         operator: search.Operator.ANYOF,
                         values: customerId,
                         })
@@ -69,6 +96,7 @@
                     dataSearch.filters.push(
                         search.createFilter({
                         name: "trandate",
+                        join : "custrecord_packship_itemfulfillment",
                         operator: search.Operator.ONORAFTER,
                         values: date_from,
                         })
@@ -79,6 +107,7 @@
                      dataSearch.filters.push(
                         search.createFilter({
                         name: "trandate",
+                        join : "custrecord_packship_itemfulfillment",
                         operator: search.Operator.ONORBEFORE,
                         values: date_to,
                         })
@@ -89,6 +118,7 @@
                     dataSearch.filters.push(
                         search.createFilter({
                         name: "createdfrom",
+                        join : "custrecord_packship_itemfulfillment",
                         operator: search.Operator.ANYOF,
                         values: noDo,
                         })
@@ -99,6 +129,7 @@
                     dataSearch.filters.push(
                         search.createFilter({
                         name: "subsidiary",
+                        join : "custrecord_packship_itemfulfillment",
                         operator: search.Operator.ANYOF,
                         values: subsidiary,
                         })
@@ -131,29 +162,33 @@
                         var idCus = dataSearch[i].getValue({
                             name: dateSearchSet.columns[3],
                         });
-                        var memo = dataSearch[i].getValue({
+                        var currency = dataSearch[i].getText({
                             name: dateSearchSet.columns[4],
                         });
-                        var currency = dataSearch[i].getText({
-                            name: dateSearchSet.columns[5],
-                        });
                         var idSubs = dataSearch[i].getValue({
-                            name: dateSearchSet.columns[6],
+                            name: dateSearchSet.columns[5],
                         });
 
                         var idFul = dataSearch[i].getValue({
-                            name: dateSearchSet.columns[8],
+                            name: dateSearchSet.columns[6],
+                        });
+                        var packCartonId = dataSearch[i].getValue({
+                            name: dateSearchSet.columns[7],
+                        });
+                        var packCartonText = dataSearch[i].getText({
+                            name: dateSearchSet.columns[7],
                         });
                         allData.push({
                             doNumber : doNumber,
                             soNumber : soNumber,
                             doDate : doDate,
                             customer : customer,
-                            memo : memo,
                             currency : currency,
                             idCus : idCus,
                             idSubs : idSubs,
                             idFul : idFul,
+                            packCartonId : packCartonId,
+                            packCartonText : packCartonText
                         })
                     }
                     console.log('allData', allData)
@@ -162,9 +197,10 @@
                         var soNumber = data.soNumber
                         var doDate = data.doDate
                         var customer = data.customer
-                        var memo = data.memo
                         var currency = data.currency
                         var idFul = data.idFul
+                        var packCartonText = data.packCartonText
+                        var packCartonId = data.packCartonId
                     
                         records.selectNewLine({ sublistId: 'custpage_sublist' });
                         records.setCurrentSublistValue({
@@ -199,11 +235,6 @@
                         });
                         records.setCurrentSublistValue({
                             sublistId: 'custpage_sublist', 
-                            fieldId: 'custpage_sublist_memo',
-                            value: memo
-                        });
-                        records.setCurrentSublistValue({
-                            sublistId: 'custpage_sublist', 
                             fieldId: 'custpage_sublist_curr',
                             value: currency
                         });
@@ -221,6 +252,16 @@
                             sublistId: 'custpage_sublist', 
                             fieldId: 'custpage_sublist_idfulfill',
                             value: idFul
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_pack_carton',
+                            value: packCartonText
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'custpage_sublist', 
+                            fieldId: 'custpage_sublist_pack_carton_id',
+                            value: packCartonId
                         });
                         records.commitLine({ sublistId: 'custpage_sublist' });
 

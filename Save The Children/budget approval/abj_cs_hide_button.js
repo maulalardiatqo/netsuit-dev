@@ -17,8 +17,8 @@ define([], () => {
         if(btnReject){
             btnReject.style.display = 'none';
         }
-         const btnRejectSec = document.getElementById('tr_secondarycustpageworkflow253');
-         console.log('btnRejectSec', btnRejectSec)
+        const btnRejectSec = document.getElementById('tr_secondarycustpageworkflow253');
+        console.log('btnRejectSec', btnRejectSec)
         if(btnRejectSec){
             btnRejectSec.style.display = 'none';
         }
@@ -46,6 +46,23 @@ define([], () => {
         // if(btnRejectBillSec2){
         //     btnRejectBillSec2.style.display = 'none';
         // }
+        // TAR
+        const btnAppTAR = document.getElementById('custpageworkflow545')
+        if(btnAppTAR){
+            btnAppTAR.style.display = 'none';
+        }
+        const btnAppTarSec = document.getElementById('secondarycustpageworkflow545');
+        if(btnAppTarSec){
+            btnAppTarSec.style.display = 'none';
+        }
+        const btnRecTAR = document.getElementById('custpageworkflow544');
+        if(btnRecTAR){
+            btnRecTAR.style.display = 'none';
+        }
+        const btnRecTARsec = document.getElementById('secondarycustpageworkflow544');
+        if(btnRecTARsec){
+            btnRecTARsec.style.display = 'none';
+        }
     const pageInit = () => {
 
     };
