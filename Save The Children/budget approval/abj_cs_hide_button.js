@@ -63,6 +63,24 @@ define([], () => {
         if(btnRecTARsec){
             btnRecTARsec.style.display = 'none';
         }
+        // TER
+        const btnAppTer = document.getElementById('custpageworkflow927');
+        if(btnAppTer){
+            btnAppTer.style.display = 'none';
+        }
+        const btnAppTerSec = document.getElementById('secondarycustpageworkflow927');
+        if(btnAppTerSec){
+            btnAppTerSec.style.display = 'none';
+        }
+
+        const btnRejTer = document.getElementById('custpageworkflow928');
+        if(btnRejTer){
+            btnRejTer.style.display = 'none';
+        }
+         const btnRejTerSec = document.getElementById('secondarycustpageworkflow928');
+        if(btnRejTerSec){
+            btnRejTerSec.style.display = 'none';
+        }
     const pageInit = () => {
 
     };

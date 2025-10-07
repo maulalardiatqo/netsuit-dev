@@ -19,7 +19,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 const rec = context.newRecord;
                 let allowButton = false;
 
-                // === Cek sublist Item ===
                 const itemCount = rec.getLineCount({ sublistId: 'item' });
                 for (let i = 0; i < itemCount; i++) {
                     const approver = rec.getSublistValue({
@@ -88,10 +87,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
             if (context.type === context.UserEventType.EDIT){
                 const currentUser = runtime.getCurrentUser();
                 const employeeId = toInt(currentUser.id);
+                
 
                 const rec    = context.newRecord;
                 const recOld = context.oldRecord;
-
+                const  cekIsHolder = rec.getValue('custbody_stc_approval_budget_holder');
+                log.debug('cekIsHolder', cekIsHolder)
                 const valueBefore = recOld.getValue('custbody_stc_approval_by');
                 const cekTrigger  = rec.getValue('custbody_stc_approval_by');
 
@@ -130,6 +131,23 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         }
                     }
                 };
+                  const updateLinesForUserFA = (sublistId, statusValue) => {
+                    const count = recLoad.getLineCount({ sublistId });
+                    for (let i = 0; i < count; i++) {
+                        const approver = toInt(recLoad.getSublistValue({
+                            sublistId, fieldId: 'custcol_stc_approver_fa', line: i
+                        }));
+                        if (approver === employeeId) {
+                            recLoad.setSublistValue({
+                                sublistId,
+                                fieldId: 'custcol_stc_apprvl_sts_fa',
+                                line: i,
+                                value: statusValue
+                            });
+                            log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
+                        }
+                    }
+                };
 
                 /**
                  * Jika header approvalstatus berubah jadi 3 (Reject)
@@ -148,8 +166,54 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 /**
                  * Jika custbody_stc_approval_by berubah → logic approve
                  */
-                if (newVal !== oldVal && employeeId === newVal) {
-                    log.debug('Masuk eksekusi approve');
+                if (newVal !== oldVal && employeeId === newVal && cekIsHolder == true) {
+                    log.debug('Masuk eksekusi approve FA');
+
+                    // ---- Update line milik current user ke status 2 ----
+                    updateLinesForUserFA('item', 2);
+                    updateLinesForUserFA('expense', 2);
+
+                    // ---- Cek apakah semua line sudah approved ----
+                    const isAllApprovedFA = () => {
+                        let approverLines = 0;
+                        let notApproved   = 0;
+
+                        const scanFA = (sublistId) => {
+                            const count = recLoad.getLineCount({ sublistId });
+                            for (let i = 0; i < count; i++) {
+                                const approver = toInt(recLoad.getSublistValue({
+                                    sublistId, fieldId: 'custcol_stc_approver_fa', line: i
+                                }));
+                                if (approver > 0) {
+                                    approverLines++;
+                                    const statusLineNow = toInt(recLoad.getSublistValue({
+                                        sublistId, fieldId: 'custcol_stc_apprvl_sts_fa', line: i
+                                    }));
+                                    if (statusLineNow !== 2) notApproved++;
+                                }
+                            }
+                        };
+
+                        scanFA('item');
+                        scanFA('expense');
+
+                        log.debug('Approval scan FA result', { approverLines, notApproved });
+                        if (approverLines === 0) return false;
+                        return notApproved === 0;
+                    };
+
+                    if (isAllApprovedFA()) {
+                        recLoad.setValue({ fieldId: 'custbody_stc_approved_by_finance', value: true });
+                        log.debug('Header', 'Semua line approved -> approvalstatusFA = 2');
+                    } else {
+                        log.debug('Header', 'Masih ada line belum approved FA');
+                    }
+
+                    recLoad.save({ enableSourcing: false, ignoreMandatoryFields: true });
+                    log.debug('Selesai Approve FA', 'Record tersimpan');
+                }
+                if (newVal !== oldVal && employeeId === newVal && cekIsHolder == false) {
+                     log.debug('Masuk eksekusi approve');
 
                     // ---- Update line milik current user ke status 2 ----
                     updateLinesForUser('item', 2);

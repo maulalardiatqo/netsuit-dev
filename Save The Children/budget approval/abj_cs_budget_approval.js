@@ -42,12 +42,35 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
 
         return approval;
     }
+    function getFinanceMatric(sofId){
+        var approvalFinance
+        var customrecord_stc_apprvl_mtrix_financeSearchObj = search.create({
+            type: "customrecord_stc_apprvl_mtrix_finance",
+            filters: [
+                ["custrecord_stc_sof_mtrx_finance", "anyof", sofId]
+            ],
+            columns: [
+                search.createColumn({ name: "custrecord_stc_apprvl_finance", label: "Approval Finance" })
+            ]
+        });
 
+        var results = customrecord_stc_apprvl_mtrix_financeSearchObj.run().getRange({
+            start: 0,
+            end: 1
+        });
+
+        if (results.length > 0) {
+            approvalFinance = results[0].getValue("custrecord_stc_apprvl_finance");
+        }
+        return approvalFinance
+    }
     function validateLine(context) {
     var currentRec = currentRecord.get();
 
     // ==== KONDISI SUBLIST ITEM ====
     if (context.sublistId === 'item') {
+        var cekType = currentRec.getValue('type');
+        console.log('cekType', cekType)
         var itemId = currentRec.getCurrentSublistValue({
             sublistId: 'item',
             fieldId: 'item'
@@ -93,12 +116,34 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
             sublistId: "item",
             fieldId: "grossamt"
         });
+        if(cekType == 'cutrprch108'){
+            var grossamt = currentRec.getCurrentSublistValue({
+                sublistId: "item",
+                fieldId: "amount"
+            });
+        }
+        
 
         console.log('parameterSearch', { itemId: itemId, account: account, sofId: sofId, grossamt: grossamt })
         console.log('cekCurrentMode', currentMode)
 
         if (sofId) {
             var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+            if(cekType == 'vendbill'){
+                var emp = getFinanceMatric(sofId)
+                if(emp){
+                    currentRec.setCurrentSublistValue({
+                        sublistId : "item",
+                        fieldId : "custcol_stc_approver_fa",
+                        value : emp
+                    })
+                    currentRec.setCurrentSublistValue({
+                        sublistId: "item",
+                        fieldId: "custcol_stc_apprvl_sts_fa",
+                        value: "1"
+                    })
+                }
+            }
             console.log('cekEmp', cekEmp)
             if (cekEmp) {
                 currentRec.setCurrentSublistValue({
@@ -138,6 +183,21 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
         if (sofId) {
             var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
             console.log('cekEmp (expense)', cekEmp)
+            if(cekType == 'vendbill'){
+                var emp = getFinanceMatric(sofId)
+                if(emp){
+                    currentRec.setCurrentSublistValue({
+                        sublistId : "expense",
+                        fieldId : "custcol_stc_approver_fa",
+                        value : emp
+                    })
+                    currentRec.setCurrentSublistValue({
+                        sublistId: "expense",
+                        fieldId: "custcol_stc_apprvl_sts_fa",
+                        value: "1"
+                    })
+                }
+            }
             if (cekEmp) {
                 currentRec.setCurrentSublistValue({
                     sublistId: "expense",
