@@ -31,9 +31,23 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         fieldId: 'custcol_stc_approval_status_line',
                         line: i
                     });
-
+                    const approverFA = rec.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_stc_approver_fa',
+                        line: i
+                    });
+                    const approverSatatusFA = rec.getSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_stc_apprvl_sts_fa',
+                        line: i
+                    });
                     if (Number(approver) === Number(employeeId) &&
                         Number(approvalStatus) === 1) {
+                        allowButton = true;
+                        break;
+                    }
+                    if(Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1){
+                        log.debug('masuk kondisi approve FA')
                         allowButton = true;
                         break;
                     }
@@ -51,9 +65,25 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             fieldId: 'custcol_stc_approval_status_line',
                             line: j
                         });
+                        const approverFA = rec.getSublistValue({
+                            sublistId: 'expense',
+                            fieldId: 'custcol_stc_approver_fa',
+                            line: j
+                        });
+                        const approverSatatusFA = rec.getSublistValue({
+                            sublistId: 'expense',
+                            fieldId: 'custcol_stc_apprvl_sts_fa',
+                            line: j
+                        });
                         log.debug('approvalStatus', approvalStatus)
                         if (Number(approver) === Number(employeeId) &&
                             Number(approvalStatus) === 1) {
+                                log.debug('kondisi approver')
+                            allowButton = true;
+                            break;
+                        }
+                        if(Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1){
+                            log.debug('masuk kondisi2')
                             allowButton = true;
                             break;
                         }
@@ -95,6 +125,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 log.debug('cekIsHolder', cekIsHolder)
                 const valueBefore = recOld.getValue('custbody_stc_approval_by');
                 const cekTrigger  = rec.getValue('custbody_stc_approval_by');
+
+                const valueBeforeFA = recOld.getValue('custbody_stc_apprvl_by_fa');
+                const cekTriggerFA = rec.getValue('custbody_stc_apprvl_by_fa');
+
+                const oldValFA = toInt(valueBeforeFA);
+                const newValFA = toInt(cekTriggerFA)
 
                 const oldVal = toInt(valueBefore);
                 const newVal = toInt(cekTrigger);
@@ -157,6 +193,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                     log.debug('Reject', 'Approval status berubah jadi 3 (Reject), update line');
                     updateLinesForUser('item', 3);
                     updateLinesForUser('expense', 3);
+                    updateLinesForUserFA('item', 3);
+                    updateLinesForUserFA('expense', 3);
 
                     recLoad.save({ enableSourcing: false, ignoreMandatoryFields: true });
                     log.debug('Selesai Reject', 'Line milik user diset ke 3');
@@ -166,7 +204,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 /**
                  * Jika custbody_stc_approval_by berubah → logic approve
                  */
-                if (newVal !== oldVal && employeeId === newVal && cekIsHolder == true) {
+                if (newValFA !== oldValFA && employeeId === newValFA && cekIsHolder == true) {
                     log.debug('Masuk eksekusi approve FA');
 
                     // ---- Update line milik current user ke status 2 ----
@@ -271,12 +309,23 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             value : false,
                             ignoreMandatoryFields : true
                         })
+                         recLoad.setValue({
+                            fieldId : 'custbody_stc_approved_by_finance',
+                            value : false,
+                            ignoreMandatoryFields : true
+                        })
                     const resetLines = (sublistId, statusValue) => {
                         const count = recLoad.getLineCount({ sublistId });
                         for (let i = 0; i < count; i++) {
                             recLoad.setSublistValue({
                                 sublistId,
                                 fieldId: 'custcol_stc_approval_status_line',
+                                line: i,
+                                value: statusValue
+                            });
+                            recLoad.setSublistValue({
+                                sublistId,
+                                fieldId: 'custcol_stc_apprvl_sts_fa',
                                 line: i,
                                 value: statusValue
                             });
@@ -300,7 +349,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                     id: context.newRecord.id,
                     isDynamic: true
                 });
-
+                newRec.setValue({
+                    fieldId : "custbody_stc_approved_by_finance",
+                    value : false
+                })
                 // ==== LOOP SUBLIST ITEM ====
                 const lineCountItem = newRec.getLineCount({ sublistId: 'item' });
                 for (let i = 0; i < lineCountItem; i++) {

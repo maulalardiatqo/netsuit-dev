@@ -263,6 +263,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var projectName = ""
                 var taxpphList = [];
                 var totalQty = 0
+                var totalAmtLine = 0
                 if (countItem.length > 0) {
                     for (var i = 0; i < countItem.length; i++) {
                         var lineRec = countItem[i];
@@ -282,16 +283,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var rate = lineRec.getValue({
                             name: "rate",
                         });
-                        var ammount = lineRec.getValue({
-                            name: "amount",
-                        });
+                        
+                        // var ammount = lineRec.getValue({
+                        //     name: "amount",
+                        // });
                         var quantity = lineRec.getValue({
                             name: "quantity",
                         });
+                        var amtLine = Number(rate) * Number(quantity)
+                        totalAmtLine = Number(totalAmtLine) + Number(amtLine)
                         totalQty = Number(totalQty) + Number(quantity)
                         allDataLine.push({
                             description: description,
-                            ammount: ammount,
+                            ammount: amtLine,
                             rate : rate,
                             quantity : quantity
                         })
@@ -339,9 +343,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if (taxpphList.length > 0) {
                     var taxpphToPrint = taxpphList.join(" & ");
                 }
-                var subBefore = subTotal;
-                var taxtotalBefor = taxtotal;
-                total = Number(subBefore) + Number(taxtotalBefor);
+                log.debug('totalAmtLine', totalAmtLine)
+                total = totalAmtLine
                 amountReceive = total;
                 if (taxpphToPrint) {
                     amountReceive = amountReceive - totalWhTaxamount;
@@ -436,7 +439,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%; font-family: sans-serif}";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
            
-                style += ".tg .tg-img-logo{width:150px; height:150px; object-vit:cover;}";
+                style += ".tg .tg-img-logo{width:110px; height:115px; object-vit:cover;}";
                 style += ".tg .tg-headerrow{align: right;font-size:12px;}";
                 style += ".tg .tg-garis{align: right;font-size:12px; border :1px solid black; }";
                 style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
@@ -518,7 +521,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>";
                 body += "<td style='text-align:left; font-weight:bold;'>BILL TO</td>";
                 body += "<td style='text-align:left; font-weight:bold;'></td>";
-                body += "<td style='background-color:#474C5FFF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:40px; margin-bottom:10px;' rowspan='2'>INVOICE " + tandId + "</td>";
+                body += "<td style='background-color:#595B61FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:40px; margin-bottom:10px;' rowspan='2'>INVOICE " + tandId + "</td>";
                 body += "</tr>";
 
                 body += "<tr>";
@@ -529,7 +532,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>";
                 body += "<td style='text-align:left;' rowspan='2'>" + custAddres + "</td>";
                 body += "<td style='text-align:left; font-weight:bold;'></td>";
-                body += "<td style='background-color:#474C5FFF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:40px; margin-bottom:10px;'>"
+                body += "<td style='background-color:#595B61FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:40px; margin-bottom:10px;'>"
                     + "DATE <span style='font-size:10px; font-weight:normal; vertical-align:middle;'>" + InvDate + "</span>"
                     + "<span style='font-size:16px; font-weight:bold; padding-left:15px;'>TERMS "
                     + "<span style='font-weight:normal; font-size:10px;'>" + terms + "</span></span></td>";
@@ -538,11 +541,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body += "<tr>";
                 body += "<td style='text-align:left; font-weight:bold;'></td>";
-                body += "<td style='background-color:#474C5FFF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:40px;'>DUE DATE <span style='font-size:10px; font-weight:none;vertical-align:center;' >" + duedate + "</span></td>";
+                body += "<td style='background-color:#595B61FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:30px;'>DUE DATE <span style='font-size:10px; font-weight:none;vertical-align:center;' >" + duedate + "</span></td>";
                 body += "</tr>";
 
                 body += "<tr>";
-                body += "<td style='height:5px; background-color:#474C5FFF;' colspan='3'></td>";
+                body += "<td style='height:5px; background-color:' colspan='3'></td>";
+                body += "</tr>";
+
+                body += "<tr>";
+                body += "<td style='height:5px; background-color:#595B61FF;' colspan='3'></td>";
                 body += "</tr>";
 
                 body += "</tbody>";
@@ -561,25 +568,34 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tr>";
 
                 body += "<tr style='height:30px;'>";
-                body += "<td style='padding-left:10px; background-color:#474C5FFF; color:#FAFBFD; vertical-align: middle;'>ACTIVITY</td>";
-                body += "<td style='background-color:#474C5FFF; color:#FAFBFD; vertical-align: middle;'>QTY</td>";
-                body += "<td style='background-color:#474C5FFF; color:#FAFBFD; align: right; vertical-align: middle;'>RATE</td>";
-                body += "<td style='padding-right:10px; background-color:#474C5FFF; color:#FAFBFD; align: right; vertical-align: middle;'>AMOUNT</td>";
+                body += "<td style='padding-left:10px; background-color:#595B61FF; color:#FAFBFD; vertical-align: middle;'>ACTIVITY</td>";
+                body += "<td style='background-color:#595B61FF; color:#FAFBFD; vertical-align: middle;'>QTY</td>";
+                body += "<td style='background-color:#595B61FF; color:#FAFBFD; align: right; vertical-align: middle;'>RATE</td>";
+                body += "<td style='padding-right:10px; background-color:#595B61FF; color:#FAFBFD; align: right; vertical-align: middle;'>AMOUNT</td>";
                 body += "</tr>";
 
                 body+= getPOItem(context, allDataLine)
-                var qtyVat = (11/12) * totalQty;
+                var qtyVat = (12/100);
                 log.debug('qtyVat', qtyVat)
                 log.debug('total', total)
                 var amountVat = (11/12) * Number(totalBeforeFormat);
+                
                 log.debug('amountVat', amountVat)
                 var totalVat = Number(amountVat) * Number(qtyVat)
+                var totalDueCount = Number(totalBeforeFormat) +  Number(totalVat);
                 if (amountVat) {
                     amountVat = format.format({
                         value: amountVat,
                         type: format.Type.CURRENCY,
                     });
                     amountVat = removeDecimalFormat(amountVat);
+                }
+                if(totalDueCount){
+                    totalDueCount = format.format({
+                        value: totalDueCount,
+                        type: format.Type.CURRENCY,
+                    });
+                    totalDueCount = removeDecimalFormat(totalDueCount);
                 }
                 if (totalVat) {
                     totalVat = format.format({
@@ -595,6 +611,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='align:right;'>"+totalVat+"</td>";
                 body += "</tr>";
 
+                body += "<tr>"
+                body += "<td colspan='4'>Tax Basis: (11/12) x DPP</td>"
+                body += "</tr>";
                 body+= "</tbody>";
                 body+= "</table>";
 
@@ -629,13 +648,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body += "<tr style=''>";
                 body += "<td></td>"
-                body += "<td style='align:right; vertical-align:middle;background-color:#474C5FFF;color:#FAFBFD;padding-right:40px;' rowspan='2'>TOTAL DUE</td>"
-                body += "<td style='font-weight:bold;font-size:20px;background-color:#474C5FFF;color:#FAFBFD;padding-left:20px;'>"+total+"</td>"
+                body += "<td style='align:right; vertical-align:middle;background-color:#595B61FF;color:#FAFBFD;padding-right:40px;' rowspan='2'>TOTAL DUE</td>"
+                body += "<td style='font-weight:bold;font-size:20px;background-color:#595B61FF;color:#FAFBFD;padding-left:20px;'>"+totalDueCount+"</td>"
                 body += "</tr>";
 
                 body += "<tr style=''>";
                 body += "<td></td>"
-                body += "<td style='font-weight:bold;font-size:20px;background-color:#474C5FFF;color:#FAFBFD;padding-left:20px;'>"+tlcCurr+"</td>"
+                body += "<td style='font-weight:bold;font-size:20px;background-color:#595B61FF;color:#FAFBFD;padding-left:20px;'>"+tlcCurr+"</td>"
                 body += "</tr>";
 
                  body+= "</tbody>";
@@ -858,6 +877,26 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     // log.audit('Email sent for invoice', invoiceId);
                     response.write('OK');
+                    return;
+                }
+
+                var isemailv2 = context.request.parameters.isemailv2;
+                log.debug('isemailv2', isemailv2);
+                if(isemailv2){
+                    log.debug('masuk group by customer', isemailv2)
+                    let responseObj = {
+                        status: 'success',
+                        billTo: custName,
+                        xml: xml
+                    };
+
+                    context.response.setHeader({
+                        name: 'Content-Type',
+                        value: 'application/json'
+                    });
+
+                    context.response.write(JSON.stringify(responseObj));
+                    // response.write(xml);
                     return;
                 }
                 response.renderPdf({

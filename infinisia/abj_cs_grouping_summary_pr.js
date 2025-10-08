@@ -98,11 +98,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     fieldId : 'custcol10',
                     line: index
                 })
-                var avgPengAcc = currentRecordObj.getSublistValue({
-                    sublistId: 'item',
-                    fieldId : 'custcol11',
-                    line: index
-                })
                 var leadTimeKirim = currentRecordObj.getSublistValue({
                     sublistId: 'item',
                     fieldId : 'custcol8',
@@ -134,7 +129,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     tanggalKirim : tanggalKirim,
                     rumusPerhitungan : rumusPerhitungan,
                     avgPengBusdev : avgPengBusdev,
-                    avgPengAcc : avgPengAcc,
                     leadTimeKirim : leadTimeKirim,
                     totalPackaging : totalPackaging,
                     packSizeOrderText : packSizeOrderText,
@@ -159,8 +153,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         ratePackSize: data.ratePackSize,
                         totalPackaging : 0,
                         rumusPerhitungan: 0,
-                        avgPengBusdev: 0,
-                        avgPengAcc: 0,
+                        avgPengBusdev: data.avgPengBusdev,
                         leadTimeKirim: data.leadTimeKirim,
                         onHand: 0,
                         incomingStock: 0,
@@ -177,8 +170,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 groupedData[groupKey].foreCastBuffer += Number(data.foreCastBuffer);
                 groupedData[groupKey].totalOrder += Number(data.totalOrder);
                 groupedData[groupKey].totalPackaging += Number(data.totalPackaging);
-                groupedData[groupKey].avgPengAcc += Number(data.avgPengAcc);
-                groupedData[groupKey].avgPengBusdev += Number(data.avgPengBusdev);
                 groupedData[groupKey].rumusPerhitungan += Number(data.rumusPerhitungan);
                 
                 if (data.poCustomer && data.poCustomer.trim() !== "") {
@@ -252,7 +243,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     var leadTimeKirim = data.leadTimeKirim
                     var rumusPerhitungan = data.rumusPerhitungan
                     var avgPengBusdev = data.avgPengBusdev
-                    var avgPengAcc = data.avgPengAcc
                     var tanggalKirim = data.tanggalKirim
                     var totalPackaging = data.totalPackaging
                     var ratePackSize = data.ratePackSize
@@ -331,11 +321,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         sublistId: 'recmachcustrecord_iss_pr_parent',
                         fieldId: 'custrecord_iss_avg_busdev',
                         value: avgPengBusdev
-                    });
-                    currentRecordObj.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_iss_pr_parent',
-                        fieldId: 'custrecord_iss_avg_accounting',
-                        value: avgPengAcc
                     });
                     // currentRecordObj.setCurrentSublistValue({
                     //     sublistId: 'recmachcustrecord_iss_pr_parent',

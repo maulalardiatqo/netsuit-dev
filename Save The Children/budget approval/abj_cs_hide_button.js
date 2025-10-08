@@ -81,6 +81,24 @@ define([], () => {
         if(btnRejTerSec){
             btnRejTerSec.style.display = 'none';
         }
+        // approval FA
+        const btnAppFA = document.getElementById('custpageworkflow292');
+        console.log('btnAppFA', btnAppFA)
+        if(btnAppFA){
+            btnAppFA.style.display = 'none';
+        }
+        const btnRejFA = document.getElementById('custpageworkflow291');
+        if(btnRejFA){
+            btnRejFA.style.display = 'none';
+        }
+        const btnAppFASec = document.getElementById('secondarycustpageworkflow292');
+        if(btnAppFASec){
+            btnAppFASec.style.display = 'none';
+        }
+        const btnRejFASec = document.getElementById('secondarycustpageworkflow291');
+        if(btnRejFASec){
+            btnRejFASec.style.display = 'none';
+        }
     const pageInit = () => {
 
     };

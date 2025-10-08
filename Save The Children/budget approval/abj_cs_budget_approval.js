@@ -164,6 +164,9 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
 
     // ==== KONDISI SUBLIST EXPENSE ====
     if (context.sublistId === 'expense') {
+        var cekType = currentRec.getValue('type');
+        console.log('cekType', cekType);
+       
         var account = currentRec.getCurrentSublistValue({
             sublistId: 'expense',
             fieldId: 'account'
@@ -176,6 +179,16 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
             sublistId: "expense",
             fieldId: "grossamt"
         });
+        if(cekType == 'exprept'){
+            account =  currentRec.getCurrentSublistValue({
+                sublistId: 'expense',
+                fieldId: 'expenseaccount'
+            });
+            grossamt = currentRec.getCurrentSublistValue({
+                sublistId: "expense",
+                fieldId: "amount"
+            });
+        }
 
         console.log('parameterSearch (expense)', { account: account, sofId: sofId, grossamt: grossamt })
         console.log('cekCurrentMode', currentMode)
@@ -183,7 +196,8 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
         if (sofId) {
             var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
             console.log('cekEmp (expense)', cekEmp)
-            if(cekType == 'vendbill'){
+            
+            if(cekType == 'vendbill' || cekType == 'exprept'){
                 var emp = getFinanceMatric(sofId)
                 if(emp){
                     currentRec.setCurrentSublistValue({
