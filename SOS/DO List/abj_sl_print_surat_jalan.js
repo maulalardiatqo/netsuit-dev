@@ -79,8 +79,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var item = result.getText({
                             name : "item"
                         })
-                        var displayNameitem = result.getValue({
+                        var itemName = result.getValue({
                             name: "itemid",
+                            join: "item",
+                        })
+                        var displayNameitem = result.getValue({
+                            name: "displayname",
                             join: "item",
                         })
                         var doNo = result.getValue({
@@ -102,7 +106,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             customerName : customerName,
                             customer : customer,
                             displayNameitem : displayNameitem,
-                            doNo : doNo
+                            doNo : doNo,
+                            itemName : itemName
                         });
                     });
                 }
@@ -147,10 +152,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     log.debug('customerLines', customerLines)
                     log.debug('index', index)
                     if (index > 0) {
-                         body += "<div style='page-break-before:always'></div>";
+                        body += "<div style='page-break-before:always'></div>";
                     }
                 
-                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
+                    body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
                     body += "<tbody>";
                     var addressShip = customerLines[0].shipAddr
                     log.debug('addressShip', addressShip)
@@ -186,22 +191,25 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     body += "<tr>"
                     body += "<td style='width:5%; align:center; border: solid black 1px; border-right:none;'>NO.</td>"
-                    body += "<td style='width:25%; align:center; border: solid black 1px; border-right:none;'>NO. DO</td>"
+                    body += "<td style='width:20%; align:center; border: solid black 1px; border-right:none;'>NO. DO</td>"
                     body += "<td style='width:15%; align:center; border: solid black 1px; border-right:none;'>ITEM CODE</td>"
                     body += "<td style='width:35%; align:center; border: solid black 1px; border-right:none;'>ARTICLE</td>"
                     body += "<td style='width:7%; align:center; border: solid black 1px; border-right:none;'>COLOR</td>"
-                    body += "<td style='width:5%; align:center; border: solid black 1px; border-right:none;'>SIZE</td>"
+                    body += "<td style='width:10%; align:center; border: solid black 1px; border-right:none;'>SIZE</td>"
                     body += "<td style='width:8%; align:center; border: solid black 1px;'>QTY</td>"
                     body += "</tr>"
                     var Nomor = 1
                     var qtyTotal = 0
                     customerLines.forEach((line, idx) => {
-                        log.debug('line.displayNameitem', line.displayNameitem)
-                        var itemFullName = line.displayNameitem
-                        var afterSplit = itemFullName.split(':')[1].trim();
-                        let firstSpaceIndex = afterSplit.indexOf(' ');
-                        let itemCode = afterSplit.substring(0, firstSpaceIndex);
-                        let itemDesc = afterSplit.substring(firstSpaceIndex + 1);
+                        let itemCode = "";
+                        let itemBefore = line.itemName;
+
+                        if (itemBefore) {
+                            let parts = itemBefore.split(':');
+                            itemCode = parts[0].trim();
+                        }
+
+                        let itemDesc = line.displayNameitem || ""
                         body += "<tr>"
                         body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>"+Nomor+"</td>"
                         body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>"+escapeXmlSymbols(line.doNo || '')+"</td>"
@@ -278,17 +286,20 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "<pdf xmlns:pdf=\"http://ns.adobe.com/pdf/1.3/\">";
                 xml += "<head>";
                 xml += style;
+                xml += "<macrolist>";
+                xml += "<macro id=\"nlheader\">";
+                xml += header;
+                xml += "</macro>";
+                xml += "</macrolist>";
                 xml += "</head>";
 
                 // Persempit margin body
-               xml += "<body font-size='10' style='font-family: Tahoma,sans-serif; margin:0; padding:0; padding-left:15px; padding-right:15px; height: 14cm; width: 21cm;'>";
-
-
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif; margin:0; padding:0; padding-left:15px; padding-right:15px; height: 14cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "'>";
                 xml += body;
                 xml += footer;
                 xml += "\n</body>\n</pdf>";
-
                 xml = xml.replace(/ & /g, ' &amp; ');
+
                 response.renderPdf({
                     xmlString: xml
                 });

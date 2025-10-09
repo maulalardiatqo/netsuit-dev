@@ -8,8 +8,15 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log'], function(currentRecord, dial
         try{
             console.log('pageInit call');
             var currentRec = currentRecord.get();
-            var customLink = document.getElementById('custom1701lnk');
+            var cekCustomForm = currentRec.getValue('customform');
+            var cekType = currentRec.getValue('type');
+            var customLink = ""
+            if(cekType == 'custinvc' && cekCustomForm == '233'){
 
+            }else{
+                customLink = document.getElementById('custom1697lnk');
+            }   
+            
             if (customLink) {
                 customLink.style.display = 'none';
             }
@@ -53,56 +60,84 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log'], function(currentRecord, dial
         });
         log.debug('CekValue ' + sublistId + ':', value);
 
-        var customLink = document.getElementById('custom1701lnk');
+        var customLink = ""
+        var currentRec = currentRecord.get();
+            var cekCustomForm = currentRec.getValue('customform');
+            var cekType = currentRec.getValue('type');
+            if(cekType == 'custinvc'){
+
+            }else{
+                customLink = document.getElementById('custom1697lnk');
+            } 
         if (customLink) {
             customLink.style.display = (value === true || value === 'T') ? 'block' : 'none';
         }
     }
 
     function fieldChanged(context){
+        var rec = currentRecord.get();
+        var cekCustomForm = rec.getValue('customform');
+        var cekType = rec.getValue('type');
+        console.log('cekCustomForm', cekCustomForm);
+        console.log('cekType', cekType)
         if (
             (context.sublistId === 'item' || context.sublistId === 'expense') &&
             context.fieldId === 'custcol_4601_witaxapplies'
         ) {
-            checkAnyTrue(context.sublistId);
+                checkAnyTrue(context.sublistId);
+            
+            
         }
     }
 
     function saveRecord(context){
         var currentRec = currentRecord.get();
-        var isAnyTrue = checkAnyTrueLine('item') || checkAnyTrueLine('expense');
-        log.debug('isAnyTrue', isAnyTrue);
-        
+        var cekCustomForm = currentRec.getValue('customform');
+        console.log('cekCustomForm', cekCustomForm)
+        var cekType = currentRec.getValue('type');
+        console.log('cekType', cekType);
+        if(cekType == 'custinvc' && cekCustomForm == '233'){
+            var isAnyTrue = checkAnyTrueLine('item') || checkAnyTrueLine('expense');
+            console.log('isAnyTrue', isAnyTrue);
+        }
         if (isAnyTrue) {
-            var requiredFields = [
-                { id: 'custbody_bs_tahun_pajak', label: 'Tahun Pajak' },
-                { id: 'custbody_bs_masa_pajak', label: 'Masa Pajak' },
-                { id: 'custbody_bs_npwp_vendor', label: 'NPWP' },
-                { id: 'custbody_bs_id_tku_penerima_penghasil', label: 'ID TKU Penerima Penghasilan' },
-                { id: 'custbody_bs_fasilitas', label: 'Fasilitas' },
-                { id: 'custbody_bs_kode_obj_pajak', label: 'Kode Objek Pajak' },
-                { id: 'custbody_bs_tarif', label: 'Tarif' },
-                { id: 'custbody_id_tku_pemotong', label: 'ID TKU Pemotong' },
-                { id: 'custbody_bs_jenis_dok_ref', label: 'Jenis Dok. Referensi' }
-            ];
-            var missingFields = requiredFields.filter(function(field) {
-                return currentRec.getValue(field.id) === '' || currentRec.getValue(field.id) == null;
-            });
+            if(cekType != 'custinvc'){
+                console.log('invoicce')
+            }else{
+                if(cekCustomForm == '232'){
+                    var requiredFields = [
+                        { id: 'custbody_bs_tahun_pajak', label: 'Tahun Pajak' },
+                        { id: 'custbody_bs_masa_pajak', label: 'Masa Pajak' },
+                        { id: 'custbody_bs_npwp_vendor', label: 'NPWP' },
+                        { id: 'custbody_bs_id_tku_penerima_penghasil', label: 'ID TKU Penerima Penghasilan' },
+                        { id: 'custbody_bs_fasilitas', label: 'Fasilitas' },
+                        { id: 'custbody_bs_kode_obj_pajak', label: 'Kode Objek Pajak' },
+                        { id: 'custbody_bs_tarif', label: 'Tarif' },
+                        { id: 'custbody_id_tku_pemotong', label: 'ID TKU Pemotong' },
+                        { id: 'custbody_bs_jenis_dok_ref', label: 'Jenis Dok. Referensi' }
+                    ];
+                    var missingFields = requiredFields.filter(function(field) {
+                        return currentRec.getValue(field.id) === '' || currentRec.getValue(field.id) == null;
+                    });
 
-            if (missingFields.length > 0) {
-                var missingFieldNames = missingFields.map(function(field) {
-                    return '- ' + field.label;
-                }).join('<br>');
+                    if (missingFields.length > 0) {
+                        var missingFieldNames = missingFields.map(function(field) {
+                            return '- ' + field.label;
+                        }).join('<br>');
 
-                dialog.alert({
-                    title: 'Missing Required Fields',
-                    message: 'Please fill in the following fields before saving:<br><br>' + missingFieldNames
-                });
+                        dialog.alert({
+                            title: 'Missing Required Fields',
+                            message: 'Please fill in the following fields before saving:<br><br>' + missingFieldNames
+                        });
 
-                return false;
-            } else {
-                return true;
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                
             }
+            
         } else {
             return true;
         }

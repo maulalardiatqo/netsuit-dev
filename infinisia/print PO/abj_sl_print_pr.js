@@ -247,7 +247,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> NO. PO </td>"
             body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> TANGGAL KIRIM </td>"
             body += "<td class='tg-head_body' style='background-color:#72C9FA; align:center; border-right:none;' colspan='2'> FORECAST  BUFFER STOCK </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; align:center; border-right:none;' colspan='2'> RATA RATA PENGIRIMAN </td>"
+            body += "<td class='tg-head_body' style='background-color:#72C9FA; align:center; border-right:none;' colspan='2' rowspan='2'> AVR DELIVERY </td>"
             body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; border-right:none; align:center' rowspan='2'> TOTAL ORDER </td>"
             body += "<td class='tg-head_body' style='background-color:#72C9FA; vertical-align:center; align:center' rowspan='2'> NOTE </td>"
             body += "</tr>";
@@ -255,8 +255,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "<tr>";
             body += "<td class='tg-head_body' style='background-color:#72C9FA; border-right:none;'> BUSDEV </td>"
             body += "<td class='tg-head_body' style='background-color:#72C9FA; border-right:none;'> RUMUS <br/> PEHITUNGAN </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; border-right:none;'> BUSDEV </td>"
-            body += "<td class='tg-head_body' style='background-color:#72C9FA; border-right:none;'> ACCOUNTING </td>"
             body += "</tr>";
             body += getPOItem(context, recid);
             body += "</tbody>";
@@ -387,8 +385,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.tglKirim}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalForecase}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.leadTimeKirim}</td>
-                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.avgpengBusdev}</td>
-                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.avgpengAcc}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;" colspan="2">${firstItem.avgpengBusdev}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalQty}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black;">${dataItem.lastNotes}</td>
             </tr>`;
@@ -410,8 +407,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalForecase}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;" colspan="2"></td>
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalQty}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;"></td>
             </tr>`;
@@ -493,10 +489,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         name: "custrecord_iss_avg_busdev",
                         join: "CUSTRECORD_ISS_PR_PARENT",
                     });
-                    var avgpengAcc = poRecord.getValue({
-                        name: "custrecord_iss_avg_accounting",
-                        join: "CUSTRECORD_ISS_PR_PARENT",
-                    });
                     var qty = parseFloat(poRecord.getValue({
                         name: "custrecord_iss_total_order",
                         join: "CUSTRECORD_ISS_PR_PARENT",
@@ -521,7 +513,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         forecase : forecase,
                         leadTimeKirim : leadTimeKirim,
                         avgpengBusdev : avgpengBusdev,
-                        avgpengAcc : avgpengAcc,
                         qty : qty,
                         notes : notes,
                         customerId : customerId

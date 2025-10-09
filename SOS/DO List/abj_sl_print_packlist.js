@@ -70,9 +70,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             join: "CUSTRECORD_PACKSHIP_ITEMFULFILLMENT"
                         });
                         var displayNameitem = result.getValue({
-                            name: "itemid",
+                            name: "displayname",
                             join: "CUSTRECORD_PACKSHIP_FULFILLMENTITEM",
                         });
+                        var itemName = result.getValue({
+                            name: "itemid",
+                            join: "CUSTRECORD_PACKSHIP_FULFILLMENTITEM",
+                        })
                         var sizeItem = result.getText({
                             name: "custitem_item_size",
                             join: "CUSTRECORD_PACKSHIP_FULFILLMENTITEM",
@@ -92,6 +96,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             totalPickedQty: totalPickedQty,
                             totalPackedQty: totalPackedQty,
                             displayNameitem : displayNameitem,
+                            itemName : itemName,
                             sizeItem : sizeItem
                         });
                     });
@@ -210,12 +215,18 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var qtyTotal = 0
                     var qtyPackedTotal = 0
                     customerLines.forEach((line, idx) => {
-                        log.debug('line.displayNameitem', line.displayNameitem)
                         var itemFullName = line.displayNameitem
-                        var afterSplit = itemFullName.split(':')[1].trim();
-                        let firstSpaceIndex = afterSplit.indexOf(' ');
-                        let itemCode = afterSplit.substring(0, firstSpaceIndex);
-                        let itemDesc = afterSplit.substring(firstSpaceIndex + 1);
+                        
+                        
+                        let itemCode = "";
+                        let itemBefore = line.itemName;
+
+                        if (itemBefore) {
+                            let parts = itemBefore.split(':');
+                            itemCode = parts[0].trim();
+                        }
+
+                        let itemDesc = line.displayNameitem || ""
                         body += "<tr>"
                         body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>"+Nomor+"</td>"
                         body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>"+escapeXmlSymbols(itemCode || '')+"</td>"
@@ -237,6 +248,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "</tr>"
                     body += "</tbody>";
                     body += "</table>";
+
 
                 });
 
