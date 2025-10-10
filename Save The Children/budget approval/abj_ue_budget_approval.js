@@ -18,7 +18,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
 
                 const rec = context.newRecord;
                 let allowButton = false;
-
                 const itemCount = rec.getLineCount({ sublistId: 'item' });
                 for (let i = 0; i < itemCount; i++) {
                     const approver = rec.getSublistValue({

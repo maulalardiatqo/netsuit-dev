@@ -1,6 +1,8 @@
 { 
     "transactionType" : "cashsale", 
     "data" : { 
+        "cashSaleInternalId" : "536", 
+        "isVoid" : true,
         "entity" : { 
             "internalId" : "20", 
             "name" : "3 Individual Donor" 
@@ -10,64 +12,62 @@
             "internalId": "1", 
             "name": "IDR" 
         }, 
-        "memo" : "Testing Integration", 
+        "memo" : "Sales Force Integration $date", 
         "class" : { 
-            "internalId" : "1", 
-            "name" : "Tematik" 
+            "internalId" : "114", 
+            "name" : "NONE" 
         }, 
         "department" : { 
-            "internalId" : "2", 
-            "name" : "Bandung" 
+            "internalId" : "3", 
+            "name" : "36100 Indonesia Main Office" 
         }, 
         "sof" : { 
-            "internalId" : "1", 
-            "name" : "SOF1" 
+            "internalId" : "66", 
+            "name" : "NONE" 
         }, 
-        "items" : [
-            { 
-                "item" : { 
-                    "internalId" : "15", 
-                    "name" : "OPR-0006" 
-                }, 
-                "quantity" : "1", 
-                "amount" : "10000", 
-                "itemDescription" : "Test Description", 
-                "class" : { 
-                    "internalId" : "1", 
-                    "name" : "Tematik" 
-                }, 
-                "department" : { 
-                    "internalId" : "2", 
-                    "name" : "Bandung" 
-                },  
-                "sof" : { 
-                    "internalId" : "1", 
-                    "name" : "SOF1" 
-                } 
-            }
-        ],
+        "items" : [{ 
+            "item" : { 
+                "internalId" : "22", 
+                "name" : "INC-0001" 
+            }, 
+            "quantity" : "1", 
+            "amount" : "15000", 
+            "itemDescription" : "Test Description", 
+            "class" : { 
+                "internalId" : "75", 
+                "name" : "3619985 IDN Digital Fundraising" 
+            }, 
+            "department" : { 
+                "internalId" : "3", 
+                "name" : "36100 Indonesia Main Office" 
+            }, 
+            "sof" : { 
+                "internalId" : "20", 
+                "name" : "36190006 IDN unrestricted locally-raised funds (funding stream)" 
+            } 
+        }] ,
         "payments" : [
             {
                 "item" : {
                     "internalId" : "21", 
                     "name" : "Item Payment BCA" 
                 },
-                "amount" : "-10000",
+                "amount" : "-15000",
                 "class" : { 
-                    "internalId" : "1", 
-                    "name" : "Tematik" 
+                    "internalId" : "114", 
+                    "name" : "NONE" 
                 }, 
                 "department" : { 
-                    "internalId" : "2", 
-                    "name" : "Bandung" 
+                    "internalId" : "3", 
+                    "name" : "36100 Indonesia Main Office" 
                 },
                 "sof" : { 
-                    "internalId" : "1", 
-                    "name" : "SOF1" 
-                }  
+                    "internalId" : "66", 
+                    "name" : "NONE" 
+                }
+  
             }
         ]
-            
-        
+
     } 
 } 

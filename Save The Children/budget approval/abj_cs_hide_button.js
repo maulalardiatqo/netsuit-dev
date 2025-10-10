@@ -99,6 +99,41 @@ define([], () => {
         if(btnRejFASec){
             btnRejFASec.style.display = 'none';
         }
+
+        // expense report
+        const btnAppExp = document.getElementById('custpageworkflow340');
+        if(btnAppExp){
+            btnAppExp.style.display = 'none';
+        }
+        const btnRejExp = document.getElementById('custpageworkflow341');
+        if(btnRejExp){
+            btnRejExp.style.display = 'none';
+        }
+        const btnAppExpSec = document.getElementById('secondarycustpageworkflow340');
+        if(btnAppExpSec){
+            btnAppExpSec.style.display = 'none';
+        }
+        const btnRejSec = document.getElementById('secondarycustpageworkflow341');
+        if(btnRejSec){
+            btnRejSec.style.display = 'none';
+        }
+        const btnAppExpFa = document.getElementById('custpageworkflow957');
+        if(btnAppExpFa){
+            btnAppExpFa.style.display = 'none';
+        }
+        const btnRejExpFa = document.getElementById('custpageworkflow958');
+        if(btnRejExpFa){
+            btnRejExpFa.style.display = 'none';
+        }
+        const btnAppExpFaSec = document.getElementById('secondarycustpageworkflow957');
+        if(btnAppExpFaSec){
+            btnAppExpFaSec.style.display = 'none';
+        }
+        const btnRejExpFaSec = document.getElementById('secondarycustpageworkflow958');
+        if(btnRejExpFaSec){
+            btnRejExpFaSec.style.display = 'none';
+        }
+
     const pageInit = () => {
 
     };

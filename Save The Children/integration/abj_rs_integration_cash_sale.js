@@ -466,7 +466,12 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
                 var reqBody = JSON.stringify(context)
                 if(context.transactionType == "cashsale"){
                     if(context.data.cashSaleInternalId){
-                        result = updateCashSale(context.data);
+                        if(data.isVoid == true){
+
+                        }else{
+                            result = updateCashSale(context.data);
+                        }
+                        
                     }else{
                         createCustRec(reqBody, result, '', 1, 409, 1, 'Update')
                         return {

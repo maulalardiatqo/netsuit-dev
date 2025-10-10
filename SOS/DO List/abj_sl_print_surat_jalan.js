@@ -190,122 +190,156 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body+= "</tbody>";
                     body+= "</table>";
 
-                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
-                    body += "<tbody>";
+                    var lengthCustomer = customerLines.length;
+                    var capacities = [];
 
-                    body += "<tr>"
-                    body += "<td style='width:5%; align:center; border: solid black 1px; border-right:none;'>NO.</td>"
-                    body += "<td style='width:20%; align:center; border: solid black 1px; border-right:none;'>NO. DO</td>"
-                    body += "<td style='width:15%; align:center; border: solid black 1px; border-right:none;'>ITEM CODE</td>"
-                    body += "<td style='width:35%; align:center; border: solid black 1px; border-right:none;'>ARTICLE</td>"
-                    body += "<td style='width:7%; align:center; border: solid black 1px; border-right:none;'>COLOR</td>"
-                    body += "<td style='width:10%; align:center; border: solid black 1px; border-right:none;'>SIZE</td>"
-                    body += "<td style='width:8%; align:center; border: solid black 1px;'>QTY</td>"
-                    body += "</tr>"
-                    var Nomor = 1
-                    var qtyTotal = 0
-                    var lengthCustomer = customerLines.length
-                    customerLines.forEach((line, idx) => {
-                        log.debug('lengthCustomer', lengthCustomer)
-                        if ((idx + 1) % 7 === 0) {
-                            numbPage = numbPage + 1
-                            log.debug('idx', idx)
-                            log.debug('masuk break')
-                            body += "</tbody></table>";
+                    // === Tambahan baru: jika 5 atau kurang, semua ditampilkan di 1 halaman ===
+                    if (lengthCustomer <= 5) {
+                        capacities.push(lengthCustomer);
+                    } else {
+                        // === Logika lama tetap ===
+                        var firstPageRows = (lengthCustomer <= 8) ? Math.max(0, lengthCustomer - 1) : 8;
+                        capacities.push(firstPageRows);
+
+                        var remaining = lengthCustomer - firstPageRows;
+                        while (remaining > 0) {
+                            var take = Math.min(10, remaining); 
+                            capacities.push(take);
+                            remaining -= take;
+                        }
+
+                        if (capacities.length > 1) {
+                            var lastIdx = capacities.length - 1;
+                            if (capacities[lastIdx] === 10) {
+                                capacities[lastIdx] = 9;
+                                capacities.push(1);
+                            }
+                        } else {
+                            if (capacities[0] === 0 && lengthCustomer === 1) {
+                                capacities[0] = 0;
+                                capacities.push(1);
+                            }
+                        }
+                    }
+
+                    var pointer = 0; 
+                    var Nomor = 1;
+                    var qtyTotal = 0;
+                    var numbPage = 1;
+
+                    for (var p = 0; p < capacities.length; p++) {
+                        var rowsForPage = capacities[p];
+
+                        body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed; font-size:10px;\">";
+                        body += "<tbody>";
+
+                        if (p > 0) {
+                            numbPage = p + 1; 
+                            body += "<tr>";
+                            body += "<td style='width:5%;'></td>";
+                            body += "<td style='width:20%;'></td>";
+                            body += "<td style='width:15%;'></td>";
+                            body += "<td style='width:35%;'></td>";
+                            body += "<td style='width:7%;'></td>";
+                            body += "<td style='width:10%;'></td>";
+                            body += "<td style='width:8%;'></td>";
+                            body += "</tr>";
+                            body += "<tr style='height:25px;'>";
+                            body += "<td style='align:right; color:grey;' colspan='7'>Page :" + numbPage + "</td>";
+                            body += "</tr>";
+                        }
+
+                        // header row (NO, NO DO, ITEM CODE, ARTICLE, COLOR, SIZE, QTY)
+                        body += "<tr>";
+                        body += "<td style='width:5%; align:center; border: solid black 1px; border-right:none;'>NO.</td>";
+                        body += "<td style='width:20%; align:center; border: solid black 1px; border-right:none;'>NO. DO</td>";
+                        body += "<td style='width:15%; align:center; border: solid black 1px; border-right:none;'>ITEM CODE</td>";
+                        body += "<td style='width:35%; align:center; border: solid black 1px; border-right:none;'>ARTICLE</td>";
+                        body += "<td style='width:7%; align:center; border: solid black 1px; border-right:none;'>COLOR</td>";
+                        body += "<td style='width:10%; align:center; border: solid black 1px; border-right:none;'>SIZE</td>";
+                        body += "<td style='width:8%; align:center; border: solid black 1px;'>QTY</td>";
+                        body += "</tr>";
+
+                        for (var r = 0; r < rowsForPage; r++) {
+                            var line = customerLines[pointer];
+                            if (!line) break; 
+
+                            var itemCode = "";
+                            var itemBefore = line.itemName;
+                            if (itemBefore) {
+                                var parts = itemBefore.split(':');
+                                itemCode = parts[0].trim();
+                            }
+                            var itemDesc = line.displayNameitem || "";
+
+                            body += "<tr>";
+                            body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>" + Nomor + "</td>";
+                            body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>" + escapeXmlSymbols(line.doNo || '') + "</td>";
+                            body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>" + escapeXmlSymbols(itemCode || '') + "</td>";
+                            body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>" + escapeXmlSymbols(itemDesc || '') + "</td>";
+                            body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>" + escapeXmlSymbols(line.color || '') + "</td>";
+                            body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>" + escapeXmlSymbols(line.size || '') + "</td>";
+                            body += "<td style='border: solid black 1px; border-top:none;'>" + escapeXmlSymbols(line.qty || '') + "</td>";
+                            body += "</tr>";
+
+                            Nomor += 1;
+                            qtyTotal += Number(line.qty || 0);
+                            pointer += 1;
+                        }
+
+                        if (p === capacities.length - 1) {
+                            body += "<tr>";
+                            body += "<td style='border: solid black 1px; border-right:none;' colspan='6'>Total Quantity</td>";
+                            body += "<td style='border: solid black 1px;'>" + qtyTotal + "</td>";
+                            body += "</tr>";
+
+                            body += "<tr style='height:20px;'>";
+                            body += "</tr>";
+                        }
+
+                        body += "</tbody>";
+                        body += "</table>";
+
+                        if (p < capacities.length - 1) {
                             body += "<div style='page-break-before:always'></div>";
-                            body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
-                            body += "<tbody>";
-                            body += "<tr>"
-                            body += "<td style='width:5%;'></td>"
-                            body += "<td style='width:20%;'></td>"
-                            body += "<td style='width:15%;'></td>"
-                            body += "<td style='width:35%;'></td>"
-                            body += "<td style='width:7%;'></td>"
-                            body += "<td style='width:10%;'></td>"
-                            body += "<td style='width:8%;'></td>"
-                            body += "</tr>"
-                            body += "<tr style='height:25px;'>"
-                            body += "<td style='align:right; color:grey;' colspan='7'>Page :"+numbPage+"</td>"
-                            body += "</tr>"
-                            body += "<tr>"
-                            body += "<td style='align:center; border: solid black 1px; border-right:none;'>NO.</td>"
-                            body += "<td style='align:center; border: solid black 1px; border-right:none;'>NO. DO</td>"
-                            body += "<td style='align:center; border: solid black 1px; border-right:none;'>ITEM CODE</td>"
-                            body += "<td style='align:center; border: solid black 1px; border-right:none;'>ARTICLE</td>"
-                            body += "<td style='align:center; border: solid black 1px; border-right:none;'>COLOR</td>"
-                            body += "<td style='align:center; border: solid black 1px; border-right:none;'>SIZE</td>"
-                            body += "<td style='align:center; border: solid black 1px;'>QTY</td>"
-                            body += "</tr>"
                         }
-                        let itemCode = "";
-                        let itemBefore = line.itemName;
+                    }
 
-                        if (itemBefore) {
-                            let parts = itemBefore.split(':');
-                            itemCode = parts[0].trim();
-                        }
-
-                        let itemDesc = line.displayNameitem || ""
-                        body += "<tr>"
-                        body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>"+Nomor+"</td>"
-                        body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>"+escapeXmlSymbols(line.doNo || '')+"</td>"
-                        body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>"+escapeXmlSymbols(itemCode || '')+"</td>"
-                        body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>"+escapeXmlSymbols(itemDesc || '')+"</td>"
-                        body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>"+escapeXmlSymbols(line.color || '')+"</td>"
-                        body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>"+escapeXmlSymbols(line.size || '')+"</td>"
-                        body += "<td style='border: solid black 1px; border-top:none;'>"+escapeXmlSymbols(line.qty || '')+"</td>"
-                        body += "</tr>"
-
-                        Nomor += 1
-                        qtyTotal += parseInt(line.qty || 0)
-                    });
-                    body += "<tr>"
-                    body += "<td style='border: solid black 1px; border-right:none;' colspan='6'>Total Quantity</td>"
-                    body += "<td style='border: solid black 1px;'>"+qtyTotal+"</td>"
-                    body += "</tr>"
-
-                    body += "<tr style='height:20px;'>"
-                    body += "</tr>"
-
-                    body += "</tbody>";
-                    body += "</table>";
-
-                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+                    body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
                     body += "<tbody>";
 
-                    body += "<tr>"
-                    body += "<td style='width:20%'></td>"
-                    body += "<td style='width:20%'></td>"
-                    body += "<td style='width:20%'></td>"
-                    body += "<td style='width:20%'></td>"
-                    body += "<td style='width:20%'></td>"
-                    body += "</tr>"
+                    body += "<tr>";
+                    body += "<td style='width:20%'></td>";
+                    body += "<td style='width:20%'></td>";
+                    body += "<td style='width:20%'></td>";
+                    body += "<td style='width:20%'></td>";
+                    body += "<td style='width:20%'></td>";
+                    body += "</tr>";
 
-                    body += "<tr>"
-                    body += "<td style='font-size:14px; align:center; background-color:black; color:white;' colspan='4'>PREPARED BY</td>"
-                    body += "</tr>"
+                    body += "<tr>";
+                    body += "<td style='font-size:14px; align:center; background-color:black; color:white;' colspan='4'>PREPARED BY</td>";
+                    body += "</tr>";
 
-                    body += "<tr>"
-                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; align:center;'>Diserahkan Oleh,</td>"
-                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; align:center;'>Dikirim Oleh,</td>"
-                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; align:center;'>Mengetahui,</td>"
-                    body += "<td style='border: 1px solid black; border-bottom:none; align:center;'>Diterima Oleh,</td>"
-                    body += "</tr>"
+                    body += "<tr>";
+                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; align:center;'>Diserahkan Oleh,</td>";
+                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; align:center;'>Dikirim Oleh,</td>";
+                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; align:center;'>Mengetahui,</td>";
+                    body += "<td style='border: 1px solid black; border-bottom:none; align:center;'>Diterima Oleh,</td>";
+                    body += "</tr>";
 
-                    body += "<tr style='height:60px;'>"
-                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; border-top:none; align:center;'></td>"
-                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; border-top:none; align:center;'>Bag. Expedisi</td>"
-                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; border-top:none; align:center;'>Ka. Gudang</td>"
-                    body += "<td style='border: 1px solid black; border-bottom:none; border-top:none;'></td>"
-                    body += "</tr>"
+                    body += "<tr style='height:60px;'>";
+                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; border-top:none; align:center;'></td>";
+                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; border-top:none; align:center;'>Bag. Expedisi</td>";
+                    body += "<td style='border: 1px solid black; border-right:none; border-bottom:none; border-top:none; align:center;'>Ka. Gudang</td>";
+                    body += "<td style='border: 1px solid black; border-bottom:none; border-top:none;'></td>";
+                    body += "</tr>";
 
-
-                    body += "<tr style=''>"
-                    body += "<td style='border: 1px solid black; border-right:none; border-top:none; align:center;'>(.........................)</td>"
-                    body += "<td style='border: 1px solid black; border-right:none; border-top:none; align:center;'>(.........................)</td>"
-                    body += "<td style='border: 1px solid black; border-right:none; border-top:none; align:center;'>(.........................)</td>"
-                    body += "<td style='border: 1px solid black; border-top:none; align:center;'>(.........................)</td>"
-                    body += "</tr>"
+                    body += "<tr style=''>";
+                    body += "<td style='border: 1px solid black; border-right:none; border-top:none; align:center;'>(.........................)</td>";
+                    body += "<td style='border: 1px solid black; border-right:none; border-top:none; align:center;'>(.........................)</td>";
+                    body += "<td style='border: 1px solid black; border-right:none; border-top:none; align:center;'>(.........................)</td>";
+                    body += "<td style='border: 1px solid black; border-top:none; align:center;'>(.........................)</td>";
+                    body += "</tr>";
 
                     body += "</tbody>";
                     body += "</table>";
