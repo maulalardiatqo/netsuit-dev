@@ -116,7 +116,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var xml = "";
                 var header = "";
                 var body = "";
-                var headerHeight = '0%';
+                var headerHeight = '1%';
                 var style = "";
                 var footer = "";
                 var pdfFile = null;
@@ -149,42 +149,46 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 customerIds.forEach((customerId, index) => {
                     const customerLines = allDataLineByCustomer[customerId];
+                    var numbPage = 1
                     log.debug('customerLines', customerLines)
                     log.debug('index', index)
                     if (index > 0) {
                         body += "<div style='page-break-before:always'></div>";
                     }
                 
-                    body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
-                    body += "<tbody>";
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
+                    body+= "<tbody>";
                     var addressShip = customerLines[0].shipAddr
                     log.debug('addressShip', addressShip)
                     const customerName = customerLines[0].customerName;
 
-                    body += "<tr>"
-                    body += "<td style='width:50%'></td>"
-                    body += "<td style='width:50%'></td>"
-                    body += "</tr>"
+                    body+= "<tr>"
+                    body+= "<td style='width:50%'></td>"
+                    body+= "<td style='width:50%'></td>"
+                    body+= "</tr>"
+                    body+= "<tr>"
+                    body+= "<td style='align:right; color:grey;' colspan='2'>Page :"+numbPage+"</td>"
+                    body+= "</tr>"
 
-                    body += "<tr>"
-                    body += "<td style='font-size:18px; align:center; font-weight:bold;' colspan='2'>Delivery Notes</td>"
-                    body += "</tr>"
+                    body+= "<tr>"
+                    body+= "<td style='font-size:18px; align:center; font-weight:bold;' colspan='2'>Delivery Notes </td>"
+                    body+= "</tr>"
 
-                    body += "<tr>"
-                    body += "<td style='font-size:10px; border-top:1px solid black; border-left:1px solid black; border-right:4px solid black; border-bottom:1px solid black;'><p>"+escapeXmlSymbols(subsidiary)+"</p>"+escapeXmlSymbols(addr1)+"</td>"
-                    body += "<td style='font-size:10px; border-top:1px solid black; border-bottom:1px solid black; border-right:1px solid black;'><p>Kepada Yth,"+escapeXmlSymbols(customerName)+"</p>"+escapeXmlSymbols(addressShip)+"</td>"
-                    body += "</tr>"
+                    body+= "<tr>"
+                    body+= "<td style='font-size:10px; border-top:1px solid black; border-left:1px solid black; border-right:4px solid black; border-bottom:1px solid black;'><p>"+escapeXmlSymbols(subsidiary)+"</p>"+escapeXmlSymbols(addr1)+"</td>"
+                    body+= "<td style='font-size:10px; border-top:1px solid black; border-bottom:1px solid black; border-right:1px solid black;'><p>Kepada Yth,"+escapeXmlSymbols(customerName)+"</p>"+escapeXmlSymbols(addressShip)+"</td>"
+                    body+= "</tr>"
 
-                    body += "<tr>";
-                    body += "<td colspan='2' style='width:2px; background-color:black; height:10px; padding:0;'></td>";
-                    body += "</tr>";
+                    body+= "<tr>";
+                    body+= "<td colspan='2' style='width:2px; background-color:black; height:10px; padding:0;'></td>";
+                    body+= "</tr>";
 
-                    body += "<tr>"
-                    body += "<td style='font-size:10px; border: 1px solid black' colspan='2'><p>No. Bukti : ST"+escapeXmlSymbols(docNumb)+"</p>No. Refference : SL"+escapeXmlSymbols(docNumb)+"</td>"
-                    body += "</tr>"
+                    body+= "<tr>"
+                    body+= "<td style='font-size:10px; border: 1px solid black' colspan='2'><p>No. Bukti : ST"+escapeXmlSymbols(docNumb)+"</p>No. Refference : SL"+escapeXmlSymbols(docNumb)+"</td>"
+                    body+= "</tr>"
 
-                    body += "</tbody>";
-                    body += "</table>";
+                    body+= "</tbody>";
+                    body+= "</table>";
 
                     body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
                     body += "<tbody>";
@@ -200,7 +204,39 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "</tr>"
                     var Nomor = 1
                     var qtyTotal = 0
+                    var lengthCustomer = customerLines.length
                     customerLines.forEach((line, idx) => {
+                        log.debug('lengthCustomer', lengthCustomer)
+                        if ((idx + 1) % 7 === 0) {
+                            numbPage = numbPage + 1
+                            log.debug('idx', idx)
+                            log.debug('masuk break')
+                            body += "</tbody></table>";
+                            body += "<div style='page-break-before:always'></div>";
+                            body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+                            body += "<tbody>";
+                            body += "<tr>"
+                            body += "<td style='width:5%;'></td>"
+                            body += "<td style='width:20%;'></td>"
+                            body += "<td style='width:15%;'></td>"
+                            body += "<td style='width:35%;'></td>"
+                            body += "<td style='width:7%;'></td>"
+                            body += "<td style='width:10%;'></td>"
+                            body += "<td style='width:8%;'></td>"
+                            body += "</tr>"
+                            body += "<tr style='height:25px;'>"
+                            body += "<td style='align:right; color:grey;' colspan='7'>Page :"+numbPage+"</td>"
+                            body += "</tr>"
+                            body += "<tr>"
+                            body += "<td style='align:center; border: solid black 1px; border-right:none;'>NO.</td>"
+                            body += "<td style='align:center; border: solid black 1px; border-right:none;'>NO. DO</td>"
+                            body += "<td style='align:center; border: solid black 1px; border-right:none;'>ITEM CODE</td>"
+                            body += "<td style='align:center; border: solid black 1px; border-right:none;'>ARTICLE</td>"
+                            body += "<td style='align:center; border: solid black 1px; border-right:none;'>COLOR</td>"
+                            body += "<td style='align:center; border: solid black 1px; border-right:none;'>SIZE</td>"
+                            body += "<td style='align:center; border: solid black 1px;'>QTY</td>"
+                            body += "</tr>"
+                        }
                         let itemCode = "";
                         let itemBefore = line.itemName;
 
@@ -273,11 +309,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     body += "</tbody>";
                     body += "</table>";
+
+                    
                 });
 
                 footer += "<table class='tg' style='table-layout: fixed;'>";
                 footer += "<tbody>";
-                footer += "<tr style='height:40px;'>";
+                footer += "<tr style='height:10px;'>";
+                footer += "<td style='align:right; color:grey;'></td>"
                 footer += "</tr>";
                 footer += "</tbody>";
                 footer += "</table>";

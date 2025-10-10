@@ -88,74 +88,71 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                   let avgBusdev = prToPO[i].getValue({
                     name: prToPOSet.columns[8],
                   });
-                  let avgAccounting = prToPO[i].getValue({
+                  let note = prToPO[i].getValue({
                     name: prToPOSet.columns[9],
                   });
-                  let note = prToPO[i].getValue({
+                  let internalIDPR = prToPO[i].getValue({
                     name: prToPOSet.columns[10],
                   });
-                  let internalIDPR = prToPO[i].getValue({
-                    name: prToPOSet.columns[11],
-                  });
                   let docNumber = prToPO[i].getValue({
-                    name: prToPOSet.columns[18],
+                    name: prToPOSet.columns[17],
                   });
                   let osPO = prToPO[i].getValue({
-                    name: prToPOSet.columns[12],
+                    name: prToPOSet.columns[11],
                   });
                   let cek2 = prToPO[i].getValue({
-                    name: prToPOSet.columns[15],
+                    name: prToPOSet.columns[14],
                   });
                   let leadTimeKirim = prToPO[i].getValue({
-                    name: prToPOSet.columns[16],
+                    name: prToPOSet.columns[15],
                   });
                   let units = prToPO[i].getValue({
-                    name: prToPOSet.columns[17],
+                    name: prToPOSet.columns[16],
                   });
                   
                   let soNO = prToPO[i].getValue({
-                    name: prToPOSet.columns[19],
+                    name: prToPOSet.columns[18],
                   });
                   let taxItemRate = prToPO[i].getValue({
-                    name: prToPOSet.columns[21],
+                    name: prToPOSet.columns[20],
                   });
                   let tanggalKirim = prToPO[i].getValue({
-                    name: prToPOSet.columns[22],
+                    name: prToPOSet.columns[21],
                   });
                   let packSize = prToPO[i].getValue({
-                    name: prToPOSet.columns[23],
+                    name: prToPOSet.columns[22],
                   });
                   let packSizeText = prToPO[i].getText({
-                    name: prToPOSet.columns[23],
+                    name: prToPOSet.columns[22],
                   });
                   let soNumber = prToPO[i].getValue({
-                    name: prToPOSet.columns[19],
+                    name: prToPOSet.columns[18],
                   });
                   let soNumberText = prToPO[i].getText({
-                    name: prToPOSet.columns[19],
+                    name: prToPOSet.columns[18],
                   });
                   let qtyPO = prToPO[i].getValue({
-                    name: prToPOSet.columns[27],
+                    name: prToPOSet.columns[26],
                   })
                   let lineId = prToPO[i].getValue({
-                    name : prToPOSet.columns[29]
+                    name : prToPOSet.columns[28]
                   })
                   let currency = prToPO[i].getValue({
-                    name : prToPOSet.columns[31]
+                    name : prToPOSet.columns[30]
                   })
                   let idSum = prToPO[i].getValue({
-                    name : prToPOSet.columns[32]
+                    name : prToPOSet.columns[31]
                   });
                   let poCust = prToPO[i].getValue({
-                    name : prToPOSet.columns[34]
+                    name : prToPOSet.columns[33]
                   });
                   var ratePackSIze = 0
                   let ratePackSIzeInteger = prToPO[i].getValue({
-                    name : prToPOSet.columns[37]
+                    name : prToPOSet.columns[36]
                   }) || 0;
                   log.debug('ratePackSIzeInteger', ratePackSIzeInteger)
                   let ratePackSizeDecimal = prToPO[i].getValue({
-                    name : prToPOSet.columns[42]
+                    name : prToPOSet.columns[41]
                   }) || 0;
                   log.debug('ratePackSizeDecimal', ratePackSizeDecimal)
                   if(ratePackSIzeInteger > 0){
@@ -164,10 +161,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     ratePackSIze = ratePackSizeDecimal
                   }
                   var cekTotalPackaging = prToPO[i].getValue({
-                    name : prToPOSet.columns[35]
+                    name : prToPOSet.columns[34]
                   }) || 0;
                   var idPrSUm = prToPO[i].getValue({
-                    name : prToPOSet.columns[39]
+                    name : prToPOSet.columns[38]
                   }) || 0;
                   log.debug('unitNames', unitNames)
                   if (itemID) itemIds.push(itemID);
@@ -184,7 +181,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     forecastBusdev : forecastBusdev,
                     forecastPerhitungan : forecastPerhitungan,
                     avgBusdev : avgBusdev,
-                    avgAccounting : avgAccounting,
                     units : units,
                     leadTimeKirim : leadTimeKirim,
                     itemRate : itemRate,
@@ -304,7 +300,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             var forecastBusdev = POLine.forecastBusdev;
             var forecastPerhitungan = POLine.forecastPerhitungan;
             var avgBusdev = POLine.avgBusdev;
-            var avgAccounting = POLine.avgAccounting;
             var units = POLine.units;
             var leadTimeKirim = POLine.leadTimeKirim;
             var itemRate = POLine.itemRate;
@@ -384,12 +379,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 line: line_idx,
                 value: avgBusdev,
               });
-              poData.setSublistValue({
-                sublistId: "item",
-                fieldId: "custcol11",
-                line: line_idx,
-                value: avgAccounting,
-              });
+              // poData.setSublistValue({
+              //   sublistId: "item",
+              //   fieldId: "custcol11",
+              //   line: line_idx,
+              //   value: avgAccounting,
+              // });
               poData.setSublistValue({
                 sublistId: "item",
                 fieldId: "custcol6",

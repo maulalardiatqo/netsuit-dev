@@ -207,31 +207,30 @@
                 let forecastBusdev = prToPO[i].getValue({ name: prToPOSet.columns[6] });
                 let forecastPerhitungan = prToPO[i].getValue({ name: prToPOSet.columns[7] });
                 let avgBusdev = prToPO[i].getValue({ name: prToPOSet.columns[8] });
-                let avgAccounting = prToPO[i].getValue({ name: prToPOSet.columns[9] });
-                let note = prToPO[i].getValue({ name: prToPOSet.columns[10] });
-                let internalID = prToPO[i].getValue({ name: prToPOSet.columns[11] });
-                let docNumber = prToPO[i].getValue({ name: prToPOSet.columns[18] });
-                let osPO = prToPO[i].getValue({ name: prToPOSet.columns[12] });
-                let cek2 = prToPO[i].getValue({ name: prToPOSet.columns[15] });
-                let leadTimeKirim = prToPO[i].getValue({ name: prToPOSet.columns[16] });
-                let units = prToPO[i].getValue({ name: prToPOSet.columns[17] });
-                let soNO = prToPO[i].getValue({ name: prToPOSet.columns[19] });
-                let taxItemRate = prToPO[i].getValue({ name: prToPOSet.columns[21] });
-                let tanggalKirim = prToPO[i].getValue({ name: prToPOSet.columns[22] });
-                let packSize = prToPO[i].getValue({ name: prToPOSet.columns[23] });
-                let packSizeText = prToPO[i].getText({ name: prToPOSet.columns[23] });
-                let soNumber = prToPO[i].getValue({ name: prToPOSet.columns[19] });
-                let soNumberText = prToPO[i].getText({ name: prToPOSet.columns[19] });
-                let qtyPO = prToPO[i].getValue({ name: prToPOSet.columns[27] });
-                let lineId = prToPO[i].getValue({ name: prToPOSet.columns[29] });
-                let currency = prToPO[i].getValue({ name: prToPOSet.columns[31] });
-                let idSum = prToPO[i].getValue({ name: prToPOSet.columns[32] });
-                let poCust = prToPO[i].getValue({ name: prToPOSet.columns[34] });
-                let ratePackSIze = prToPO[i].getValue({ name: prToPOSet.columns[37] }) || 0;
-                var cekTotalPackaging = prToPO[i].getValue({ name: prToPOSet.columns[35] }) || 0;
-                var idPrSUm = prToPO[i].getValue({ name: prToPOSet.columns[39] }) || 0;
-                var memo = prToPO[i].getValue({ name: prToPOSet.columns[40] });
-                var ratePackSizeDecimal = prToPO[i].getValue({ name: prToPOSet.columns[42] }) || 0;
+                let note = prToPO[i].getValue({ name: prToPOSet.columns[9] });
+                let internalID = prToPO[i].getValue({ name: prToPOSet.columns[10] });
+                let docNumber = prToPO[i].getValue({ name: prToPOSet.columns[17] });
+                let osPO = prToPO[i].getValue({ name: prToPOSet.columns[11] });
+                let cek2 = prToPO[i].getValue({ name: prToPOSet.columns[14] });
+                let leadTimeKirim = prToPO[i].getValue({ name: prToPOSet.columns[15] });
+                let units = prToPO[i].getValue({ name: prToPOSet.columns[16] });
+                let soNO = prToPO[i].getValue({ name: prToPOSet.columns[18] });
+                let taxItemRate = prToPO[i].getValue({ name: prToPOSet.columns[20] });
+                let tanggalKirim = prToPO[i].getValue({ name: prToPOSet.columns[21] });
+                let packSize = prToPO[i].getValue({ name: prToPOSet.columns[22] });
+                let packSizeText = prToPO[i].getText({ name: prToPOSet.columns[22] });
+                let soNumber = prToPO[i].getValue({ name: prToPOSet.columns[18] });
+                let soNumberText = prToPO[i].getText({ name: prToPOSet.columns[18] });
+                let qtyPO = prToPO[i].getValue({ name: prToPOSet.columns[26] });
+                let lineId = prToPO[i].getValue({ name: prToPOSet.columns[28] });
+                let currency = prToPO[i].getValue({ name: prToPOSet.columns[30] });
+                let idSum = prToPO[i].getValue({ name: prToPOSet.columns[31] });
+                let poCust = prToPO[i].getValue({ name: prToPOSet.columns[33] });
+                let ratePackSIze = prToPO[i].getValue({ name: prToPOSet.columns[36] }) || 0;
+                var cekTotalPackaging = prToPO[i].getValue({ name: prToPOSet.columns[34] }) || 0;
+                var idPrSUm = prToPO[i].getValue({ name: prToPOSet.columns[38] }) || 0;
+                var memo = prToPO[i].getValue({ name: prToPOSet.columns[39] });
+                var ratePackSizeDecimal = prToPO[i].getValue({ name: prToPOSet.columns[41] }) || 0;
                 let cek1 = prToPO[i].getValue({
                   name: prToPOSet.columns[25],
                 });
@@ -261,7 +260,6 @@
                   forecastBusdev,
                   forecastPerhitungan,
                   avgBusdev,
-                  avgAccounting,
                   note,
                   internalID,
                   docNumber,
@@ -341,7 +339,6 @@
               var forecastBusdev = data.forecastBusdev;
               var forecastPerhitungan = data.forecastPerhitungan;
               var avgBusdev = data.avgBusdev;
-              var avgAccounting = data.avgAccounting;
               var note = data.note;
               var internalID = data.internalID;
               var docNumber = data.docNumber;
@@ -446,12 +443,12 @@
                 value: avgBusdev || " ",
                 line: i,
               });
-              currentRecord.setSublistValue({
-                sublistId: "custpage_sublist_item",
-                id: "custpage_sublist_avg_accounting",
-                value: avgAccounting || " ",
-                line: i,
-              });
+              // currentRecord.setSublistValue({
+              //   sublistId: "custpage_sublist_item",
+              //   id: "custpage_sublist_avg_accounting",
+              //   value: avgAccounting || " ",
+              //   line: i,
+              // });
              
               currentRecord.setSublistValue({
                 sublistId: "custpage_sublist_item",
