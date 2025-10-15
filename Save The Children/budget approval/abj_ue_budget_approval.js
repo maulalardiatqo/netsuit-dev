@@ -119,6 +119,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 
 
                 const rec    = context.newRecord;
+                const typeRec = rec.type
+                log.debug('typeRec', typeRec)
                 const recOld = context.oldRecord;
                 const  cekIsHolder = rec.getValue('custbody_stc_approval_budget_holder');
                 log.debug('cekIsHolder', cekIsHolder)
@@ -203,7 +205,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 /**
                  * Jika custbody_stc_approval_by berubah → logic approve
                  */
-                if (newValFA !== oldValFA && employeeId === newValFA && cekIsHolder == true) {
+                if (newValFA !== oldValFA && employeeId === newValFA && (
+                        (typeRec === 'purchaserequisition' && cekIsHolder === false) ||
+                        (typeRec !== 'purchaserequisition' && cekIsHolder === true)
+                    )) {
                     log.debug('Masuk eksekusi approve FA');
 
                     // ---- Update line milik current user ke status 2 ----
@@ -249,7 +254,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                     recLoad.save({ enableSourcing: false, ignoreMandatoryFields: true });
                     log.debug('Selesai Approve FA', 'Record tersimpan');
                 }
-                if (newVal !== oldVal && employeeId === newVal && cekIsHolder == false) {
+                if (newVal !== oldVal && employeeId === newVal && (
+                    (typeRec === 'purchaserequisition' && cekIsHolder === false) ||
+                    (typeRec !== 'purchaserequisition' && cekIsHolder === false)
+                )) {
                      log.debug('Masuk eksekusi approve');
 
                     // ---- Update line milik current user ke status 2 ----

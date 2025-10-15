@@ -134,6 +134,40 @@ define([], () => {
             btnRejExpFaSec.style.display = 'none';
         }
 
+        // PR
+        const btnAppPR = document.getElementById('custpageworkflow879');
+        if(btnAppPR){
+            btnAppPR.style.display = 'none';
+        }
+        const btnRejPr = document.getElementById('custpageworkflow880');
+        if(btnRejPr){
+            btnRejPr.style.display = 'none';
+        }
+        const btnAppPRSec = document.getElementById('secondarycustpageworkflow879');
+        if(btnAppPRSec){
+            btnAppPRSec.style.display = 'none';
+        }
+        const btnRejPrSec = document.getElementById('secondarycustpageworkflow880');
+        if(btnRejPrSec){
+            btnRejPrSec.style.display = 'none';
+        }
+
+        const btnAppFAPR = document.getElementById('custpageworkflow885');
+         if(btnAppFAPR){
+            btnAppFAPR.style.display = 'none';
+        }
+        const btnRejFAPR = document.getElementById('custpageworkflow886');
+         if(btnRejFAPR){
+            btnRejFAPR.style.display = 'none';
+        }
+        const btnAppFAPRSec = document.getElementById('secondarycustpageworkflow885');
+         if(btnAppFAPRSec){
+            btnAppFAPRSec.style.display = 'none';
+        }
+        const btnRejFAPRSec = document.getElementById('secondarycustpageworkflow886');
+         if(btnRejFAPRSec){
+            btnRejFAPRSec.style.display = 'none';
+        }
     const pageInit = () => {
 
     };

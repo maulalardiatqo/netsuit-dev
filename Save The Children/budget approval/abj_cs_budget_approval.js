@@ -116,7 +116,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
             sublistId: "item",
             fieldId: "grossamt"
         });
-        if(cekType == 'cutrprch108'){
+        if(cekType == 'cutrprch108' || cekType == 'purchreq'){
             var grossamt = currentRec.getCurrentSublistValue({
                 sublistId: "item",
                 fieldId: "amount"
@@ -129,7 +129,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
 
         if (sofId) {
             var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
-            if(cekType == 'vendbill'){
+            if(cekType == 'vendbill' || cekType == 'purchreq'){
                 var emp = getFinanceMatric(sofId)
                 if(emp){
                     currentRec.setCurrentSublistValue({
@@ -179,7 +179,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
             sublistId: "expense",
             fieldId: "grossamt"
         });
-        if(cekType == 'exprept'){
+        if(cekType == 'exprept' || cekType == 'purchreq'){
             account =  currentRec.getCurrentSublistValue({
                 sublistId: 'expense',
                 fieldId: 'expenseaccount'
@@ -197,7 +197,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
             var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
             console.log('cekEmp (expense)', cekEmp)
             
-            if(cekType == 'vendbill' || cekType == 'exprept'){
+            if(cekType == 'vendbill' || cekType == 'exprept' || cekType == 'purchreq'){
                 var emp = getFinanceMatric(sofId)
                 if(emp){
                     currentRec.setCurrentSublistValue({
