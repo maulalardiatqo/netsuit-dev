@@ -6,7 +6,7 @@ define(['N/file', 'N/record', 'N/runtime', 'N/log'], (file, record, runtime, log
 
   const getInputData = () => {
     try {
-      const fileId = runtime.getCurrentScript().getParameter({ name: 'custscript_csv_file_id' });
+      const fileId = runtime.getCurrentScript().getParameter({ name: 'custscript_csv_file_id_v' });
       const csvFile = file.load({ id: fileId });
       let lines = csvFile.getContents().split(/\r?\n/).filter(line => line.trim() !== '');
       log.debug('lines', lines)
