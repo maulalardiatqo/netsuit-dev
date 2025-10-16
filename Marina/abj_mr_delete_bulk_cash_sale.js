@@ -5,7 +5,7 @@
 
 define(['N/search', 'N/record', 'N/log'], function (search, record, log) {
     function getInputData() {
-        return search.load({ id: 'customsearch2339' });
+        return search.load({ id:'customsearch2359'})
     }
 
     function map(context) {

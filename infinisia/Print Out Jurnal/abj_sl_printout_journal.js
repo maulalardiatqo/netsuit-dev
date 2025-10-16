@@ -381,7 +381,7 @@
                             let debitAmount = parseFloat(data.amountDebit) || 0;
                             let memo = data.memo || '';
 
-                            if (memo.toLowerCase().includes("vat")) {
+                            if (memo.toLowerCase().includes(" vat ")) {
                                 vatLines.push(data);
                             } else if (debitAmount !== 0 && creditamount === 0) {
                                 debitLines.push(data);
@@ -421,7 +421,9 @@
 
                             // Jika VAT, gabungkan memo
                             if (isVAT && memoDebitReferensi) {
+                                log.debug('isVAT', isVAT)
                                 memo = memoDebitReferensi + ' ' + '-' + ' ' + memo;
+                                log.debug('memoDebitReferensi', memoDebitReferensi)
                             }
 
                             // Render baris HTML
