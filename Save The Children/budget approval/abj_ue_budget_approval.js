@@ -19,38 +19,41 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 const rec = context.newRecord;
                 let allowButton = false;
                 const itemCount = rec.getLineCount({ sublistId: 'item' });
-                for (let i = 0; i < itemCount; i++) {
-                    const approver = rec.getSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'custcol_stc_approver_linetrx',
-                        line: i
-                    });
-                    const approvalStatus = rec.getSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'custcol_stc_approval_status_line',
-                        line: i
-                    });
-                    const approverFA = rec.getSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'custcol_stc_approver_fa',
-                        line: i
-                    });
-                    const approverSatatusFA = rec.getSublistValue({
-                        sublistId: 'item',
-                        fieldId: 'custcol_stc_apprvl_sts_fa',
-                        line: i
-                    });
-                    if (Number(approver) === Number(employeeId) &&
-                        Number(approvalStatus) === 1) {
-                        allowButton = true;
-                        break;
-                    }
-                    if(Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1){
-                        log.debug('masuk kondisi approve FA')
-                        allowButton = true;
-                        break;
+                if(itemCount > 0){
+                    for (let i = 0; i < itemCount; i++) {
+                        const approver = rec.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_stc_approver_linetrx',
+                            line: i
+                        });
+                        const approvalStatus = rec.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_stc_approval_status_line',
+                            line: i
+                        });
+                        const approverFA = rec.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_stc_approver_fa',
+                            line: i
+                        });
+                        const approverSatatusFA = rec.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_stc_apprvl_sts_fa',
+                            line: i
+                        });
+                        if (Number(approver) === Number(employeeId) &&
+                            Number(approvalStatus) === 1) {
+                            allowButton = true;
+                            break;
+                        }
+                        if(Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1){
+                            log.debug('masuk kondisi approve FA')
+                            allowButton = true;
+                            break;
+                        }
                     }
                 }
+                
                 if (!allowButton) {
                     const expCount = rec.getLineCount({ sublistId: 'expense' });
                     for (let j = 0; j < expCount; j++) {
@@ -258,7 +261,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                     (typeRec === 'purchaserequisition' && cekIsHolder === false) ||
                     (typeRec !== 'purchaserequisition' && cekIsHolder === false)
                 )) {
-                     log.debug('Masuk eksekusi approve');
+                    log.debug('Masuk eksekusi approve');
 
                     // ---- Update line milik current user ke status 2 ----
                     updateLinesForUser('item', 2);
