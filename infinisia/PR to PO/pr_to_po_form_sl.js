@@ -139,22 +139,25 @@
               return;
           }
           log.debug("filter", {
-          filterVendor: filterVendor,
-          filterItem: filterItem,
+            filterVendor: filterVendor,
+            filterItem: filterItem,
+            filterPR : filterPR,
+            newFilterPR : newFilterPR
           });
   
           var prToPO = search.load({
-          id: "customsearch1094",
+            id: "customsearch_data_pr_to_po",
           });
           if (filterVendor) {
-          prToPO.filters.push(
-              search.createFilter({
-              name: "internalid",
-              join: "vendor",
-              operator: search.Operator.ANYOF,
-              values: [filterVendor],
-              })
-          );
+            log.debug('filterVendor', filterVendor)
+            prToPO.filters.push(
+                search.createFilter({
+                  name: "internalid",
+                  join: "vendor",
+                  operator: search.Operator.ANYOF,
+                  values: [filterVendor],
+                })
+            );
           
           }
           if (filterItem) {
@@ -178,6 +181,7 @@
             );
             prSelect.defaultValue = filterPR;
           }
+          log.debug('newFilterPR', newFilterPR)
           if(newFilterPR){
               prToPO.filters.push(
                 search.createFilter({
@@ -188,7 +192,7 @@
             );
           }
           var prToPOSet = prToPO.run();
-          var prToPO = prToPOSet.getRange(0, 500);
+          var prToPO = prToPOSet.getRange(0, 1000);
           log.debug('prToPO.length', prToPO.length)
           var allIdPoselected = []
           

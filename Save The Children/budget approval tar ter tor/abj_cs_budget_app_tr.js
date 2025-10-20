@@ -69,16 +69,34 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
         var typeRec = currentRec.type;
         console.log('typeRec', typeRec)
         var sublistExpens
+        var sublistItem
         if(typeRec == 'customrecord_tar'){
             sublistExpens = 'recmachcustrecord_tar_e_id'
         }
+
+        if(typeRec == 'customrecord_ter'){
+            sublistItem = 'recmachcustrecord_terd_id'
+        }
         // ==== KONDISI SUBLIST ITEM ====
-        if (context.sublistId === 'item') {
+        if (context.sublistId === sublistItem) {
             var cekType = currentRec.getValue('type');
             console.log('cekType', cekType)
+            var itemField
+            var sofField
+            var amtField
+            var approverLineField
+            var approvalStatusLineField
+            if(typeRec == 'customrecord_ter'){
+                itemField = 'custrecord_ted_item'
+                sofField = 'custrecord_terd_sourcing_of_funding'
+                amtField = 'custrecord_terd_amount'
+                approverLineField = 'custrecord_terd_approver'
+                approvalStatusLineField = 'custrecord_terd_approval_status'
+            }
+
             var itemId = currentRec.getCurrentSublistValue({
-                sublistId: 'item',
-                fieldId: 'item'
+                sublistId: sublistItem,
+                fieldId: itemField
             }) || 0;
             console.log('itemId', itemId)
 
@@ -114,19 +132,13 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
             }
 
             var sofId = currentRec.getCurrentSublistValue({
-                sublistId: "item",
-                fieldId: "cseg_stc_sof"
+                sublistId: sublistItem,
+                fieldId: sofField
             });
             var grossamt = currentRec.getCurrentSublistValue({
-                sublistId: "item",
-                fieldId: "grossamt"
+                sublistId: sublistItem,
+                fieldId: amtField
             });
-            if(cekType == 'cutrprch108' || cekType == 'purchreq'){
-                var grossamt = currentRec.getCurrentSublistValue({
-                    sublistId: "item",
-                    fieldId: "amount"
-                });
-            }
             
 
             console.log('parameterSearch', { itemId: itemId, account: account, sofId: sofId, grossamt: grossamt })
@@ -138,12 +150,12 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
                     var emp = getFinanceMatric(sofId)
                     if(emp){
                         currentRec.setCurrentSublistValue({
-                            sublistId : "item",
+                            sublistId : sublistItem,
                             fieldId : "custcol_stc_approver_fa",
                             value : emp
                         })
                         currentRec.setCurrentSublistValue({
-                            sublistId: "item",
+                            sublistId: sublistItem,
                             fieldId: "custcol_stc_apprvl_sts_fa",
                             value: "1"
                         })
@@ -152,14 +164,14 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
                 console.log('cekEmp', cekEmp)
                 if (cekEmp) {
                     currentRec.setCurrentSublistValue({
-                        sublistId: "item",
-                        fieldId: "custcol_stc_approver_linetrx",
+                        sublistId: sublistItem,
+                        fieldId: approverLineField,
                         value: cekEmp
                     })
                 }
                 currentRec.setCurrentSublistValue({
-                    sublistId: "item",
-                    fieldId: "custcol_stc_approval_status_line",
+                    sublistId: sublistItem,
+                    fieldId: approvalStatusLineField,
                     value: "1"
                 })
             } else {
