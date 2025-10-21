@@ -57,11 +57,20 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
                 type: "cashsale",
                 isDynamic: true
             });
-            createRec.setValue({
-                fieldId: "entity",
-                value: data.entity.internalId,
-                ignoreFieldChange: false,
-            });
+            if(data.entity.internalId){
+                createRec.setValue({
+                    fieldId: "entity",
+                    value: data.entity.internalId,
+                    ignoreFieldChange: false,
+                });
+            }else{
+                createRec.setValue({
+                    fieldId: "entity",
+                    value: 20,
+                    ignoreFieldChange: false,
+                });
+            }
+            
             var dateConverted = new Date(data.tranDate);
             log.debug('dateConverted', dateConverted)
             createRec.setValue({
@@ -78,21 +87,22 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
             }
             createRec.setValue({
                 fieldId: "class",
-                value: data.class.internalId,
+                value: 114,
                 ignoreFieldChange: false,
             });
             createRec.setValue({
                 fieldId: "department",
-                value: data.department.internalId,
+                value: 3,
                 ignoreFieldChange: false,
             });
-            if(data.sof.internalId){
-                createRec.setValue({
+            createRec.setValue({
                     fieldId: "cseg_stc_sof",
-                    value: data.sof.internalId,
+                    value: 66,
                     ignoreFieldChange: false,
                 });
-            }
+            // if(data.sof.internalId){
+                
+            // }
             var items = data.items
             if(items.length > 0){
                 for (var i = 0; i < items.length; i++) {
@@ -145,23 +155,21 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
                     createRec.setCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "class",
-                        value: data.items[i].class.internalId,
+                        value: 114,
                     });
                     createRec.setCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "department",
-                        value: data.items[i].department.internalId,
+                        value: 3,
                     });
                     log.debug('beforSOF')
-                    var sofId = data.items[i].sof.internalId
-                    log.debug('sofId', sofId)
-                    if(sofId){
-                        createRec.setCurrentSublistValue({
+                    // var sofId = data.items[i].sof.internalId
+                    // log.debug('sofId', sofId)
+                    createRec.setCurrentSublistValue({
                             sublistId: "item",
                             fieldId: "cseg_stc_sof",
-                            value: sofId,
+                            value: 20,
                         });
-                    }
                     createRec.commitLine({ sublistId: 'item' });
                     
                 }
@@ -173,8 +181,8 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
                 var classId = payment.class.internalId
                 var departmentId = payment.department.internalId
                 var sofPayment = payment.sof.internalId
-                log.debug('sofPayment', sofPayment)
                 log.debug('itemId', itemId);
+                log.debug('amountPayment', amountPayment)
                 createRec.selectNewLine({ sublistId: 'item' })
                 createRec.setCurrentSublistValue({
                     sublistId: "item",
@@ -204,21 +212,18 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
                 createRec.setCurrentSublistValue({
                     sublistId: "item",
                     fieldId: "class",
-                    value: classId,
+                    value: 114,
                 });
                 createRec.setCurrentSublistValue({
                     sublistId: "item",
                     fieldId: "department",
-                    value: departmentId,
+                    value: 3,
                 });
-                var sofId = sofPayment
-                    if(sofId){
-                        createRec.setCurrentSublistValue({
+                createRec.setCurrentSublistValue({
                             sublistId: "item",
                             fieldId: "cseg_stc_sof",
-                            value: sofId,
+                            value: 20,
                         });
-                    }
                 createRec.commitLine({ sublistId: 'item' });
 
             });
@@ -249,11 +254,20 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
             });
 
             // ==== HEADER FIELDS ====
-            createRec.setValue({
-                fieldId: "entity",
-                value: data.entity.internalId,
-                ignoreFieldChange: false,
-            });
+            if(data.entity.internalId){
+                createRec.setValue({
+                    fieldId: "entity",
+                    value: data.entity.internalId,
+                    ignoreFieldChange: false,
+                });
+            }else{
+                createRec.setValue({
+                    fieldId: "entity",
+                    value: 20,
+                    ignoreFieldChange: false,
+                });
+            }
+            
             var dateConverted = new Date(data.tranDate);
             createRec.setValue({
                 fieldId: "trandate",
@@ -269,21 +283,20 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
             }
             createRec.setValue({
                 fieldId: "class",
-                value: data.class.internalId,
+                value: 114,
                 ignoreFieldChange: false,
             });
             createRec.setValue({
                 fieldId: "department",
-                value: data.department.internalId,
+                value: 3,
                 ignoreFieldChange: false,
             });
-            if (data.sof?.internalId) {
-                createRec.setValue({
-                    fieldId: "cseg_stc_sof",
-                    value: data.sof.internalId,
-                    ignoreFieldChange: false,
-                });
-            }
+            createRec.setValue({
+                fieldId: "cseg_stc_sof",
+                value: 66,
+                ignoreFieldChange: false,
+            });
+            
 
             // ==== CLEAR OLD LINES (items + payments) ====
             let lineCount = createRec.getLineCount({ sublistId: 'item' });
@@ -346,20 +359,18 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
                     createRec.setCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "class",
-                        value: itemLine.class.internalId,
+                        value: 114,
                     });
                     createRec.setCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "department",
-                        value: itemLine.department.internalId,
+                        value: 3,
                     });
-                    if (itemLine.sof?.internalId) {
-                        createRec.setCurrentSublistValue({
+                    createRec.setCurrentSublistValue({
                             sublistId: "item",
                             fieldId: "cseg_stc_sof",
-                            value: itemLine.sof.internalId,
+                            value: 20,
                         });
-                    }
                     createRec.commitLine({ sublistId: 'item' });
                 });
             }
@@ -401,12 +412,12 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
                 createRec.setCurrentSublistValue({
                     sublistId: "item",
                     fieldId: "class",
-                    value: classId,
+                    value: 114,
                 });
                 createRec.setCurrentSublistValue({
                     sublistId: "item",
                     fieldId: "department",
-                    value: departmentId,
+                    value: 3,
                 });
                 createRec.commitLine({ sublistId: 'item' });
             });
