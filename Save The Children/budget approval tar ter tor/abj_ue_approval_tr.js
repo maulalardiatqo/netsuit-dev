@@ -74,6 +74,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             });
                             log.debug('approverFA', approverFA)
                             log.debug('approverSatatusFA', approverSatatusFA)
+                            log.debug('i', i)
                             if(recType == 'customrecord_tor'){
                                 if(Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1){
                                     log.debug('masuk kondisi approve FA')
@@ -414,13 +415,13 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             for (let i = 0; i < count; i++) {
                                 newRecLoad.setSublistValue({
                                     sublistId,
-                                    fieldId: 'custcol_stc_approval_status_line',
+                                    fieldId: 'custrecord_tori_approval_status',
                                     line: i,
                                     value: statusValue
                                 });
                                 newRecLoad.setSublistValue({
                                     sublistId,
-                                    fieldId: 'custcol_stc_apprvl_sts_fa',
+                                    fieldId: 'custrecord_tori_approval_status_fa',
                                     line: i,
                                     value: statusValue
                                 });
