@@ -76,6 +76,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
 
         if(typeRec == 'customrecord_ter'){
             sublistItem = 'recmachcustrecord_terd_id'
+            sublistExpens = 'recmachcustrecord_tar_id_ter'
         }
         if(typeRec == 'customrecord_tor'){
             sublistItem = 'recmachcustrecord_tori_id'
@@ -197,6 +198,12 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
             var approverField
             var statusField
             if(typeRec == 'customrecord_tar'){
+                accontField = 'custrecord_tare_account';
+                sofField = 'custrecord_tare_source_of_funding'
+                amountField = 'custrecord_tare_amount'
+                approverField = 'custrecord_tare_approver'
+                statusField = 'custrecord_tare_approval_status'
+            }else if(typeRec == 'customrecord_ter'){
                 accontField = 'custrecord_tare_account';
                 sofField = 'custrecord_tare_source_of_funding'
                 amountField = 'custrecord_tare_amount'

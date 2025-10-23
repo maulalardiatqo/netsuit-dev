@@ -191,7 +191,23 @@ define([], () => {
             rejSecTAR.style.display = 'none';
         }
 
-
+        // TOR
+        const btnAppFATOR = document.getElementById('custpageworkflow1184');
+         if (btnAppFATOR) {
+            btnAppFATOR.style.display = 'none';
+        }
+        const btnRejFATOR = document.getElementById('custpageworkflow1185');
+         if (btnRejFATOR) {
+            btnRejFATOR.style.display = 'none';
+        }
+        const btnSecAppFATOR = document.getElementById('secondarycustpageworkflow1184');
+         if (btnSecAppFATOR) {
+            btnSecAppFATOR.style.display = 'none';
+        }
+        const btnSecRejFATOR = document.getElementById('secondarycustpageworkflow1185');
+         if (btnSecRejFATOR) {
+            btnSecRejFATOR.style.display = 'none';
+        }
     const pageInit = () => {
 
     };
