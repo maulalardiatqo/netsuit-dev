@@ -77,6 +77,9 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
         if(typeRec == 'customrecord_ter'){
             sublistItem = 'recmachcustrecord_terd_id'
         }
+        if(typeRec == 'customrecord_tor'){
+            sublistItem = 'recmachcustrecord_tori_id'
+        }
         // ==== KONDISI SUBLIST ITEM ====
         if (context.sublistId === sublistItem) {
             var cekType = currentRec.getValue('type');
@@ -92,6 +95,12 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
                 amtField = 'custrecord_terd_amount'
                 approverLineField = 'custrecord_terd_approver'
                 approvalStatusLineField = 'custrecord_terd_approval_status'
+            }else if(typeRec == 'customrecord_tor'){
+                itemField = 'custrecord_tori_item'
+                sofField = 'custrecord_tori_source_of_funding'
+                amtField = 'custrecord_tori_amount'
+                approverLineField = 'custrecord_tori_approver'
+                approvalStatusLineField = 'custrecord_tori_approval_status'
             }
 
             var itemId = currentRec.getCurrentSublistValue({
@@ -146,17 +155,17 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
 
             if (sofId) {
                 var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
-                if(cekType == 'vendbill' || cekType == 'purchreq'){
+                if(typeRec == 'customrecord_tor'){
                     var emp = getFinanceMatric(sofId)
                     if(emp){
                         currentRec.setCurrentSublistValue({
                             sublistId : sublistItem,
-                            fieldId : "custcol_stc_approver_fa",
+                            fieldId : "custrecord_tori_approver_fa",
                             value : emp
                         })
                         currentRec.setCurrentSublistValue({
                             sublistId: sublistItem,
-                            fieldId: "custcol_stc_apprvl_sts_fa",
+                            fieldId: "custrecord_tori_approval_status_fa",
                             value: "1"
                         })
                     }

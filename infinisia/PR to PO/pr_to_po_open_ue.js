@@ -515,24 +515,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
     }
   }
 
-  function beforeSubmit(context) {
-    if (context.type == context.UserEventType.CREATE) {
-      var dataRec = context.newRecord;
-      var isConvertPR = dataRec.getValue("custbody_convert_from_pr");
-      if (isConvertPR) {
-        dataRec.setValue({
-          fieldId: "customform",
-          value: 104,
-          ignoreFieldChange: true,
-        });
-      }
-    }
-   
-  }
+
 
 
   return {
-    beforeLoad: beforeLoad,
-    beforeSubmit: beforeSubmit,
+    beforeLoad: beforeLoad
   };
 });

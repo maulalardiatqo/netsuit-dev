@@ -64,20 +64,20 @@ define([], () => {
             btnRecTARsec.style.display = 'none';
         }
         // TER
-        const btnAppTer = document.getElementById('custpageworkflow927');
+        const btnAppTer = document.getElementById('custpageworkflow1128');
         if(btnAppTer){
             btnAppTer.style.display = 'none';
         }
-        const btnAppTerSec = document.getElementById('secondarycustpageworkflow927');
+        const btnAppTerSec = document.getElementById('secondarycustpageworkflow1128');
         if(btnAppTerSec){
             btnAppTerSec.style.display = 'none';
         }
 
-        const btnRejTer = document.getElementById('custpageworkflow928');
+        const btnRejTer = document.getElementById('custpageworkflow1151');
         if(btnRejTer){
             btnRejTer.style.display = 'none';
         }
-         const btnRejTerSec = document.getElementById('secondarycustpageworkflow928');
+         const btnRejTerSec = document.getElementById('secondarycustpageworkflow1151');
         if(btnRejTerSec){
             btnRejTerSec.style.display = 'none';
         }
@@ -190,6 +190,8 @@ define([], () => {
         if (rejSecTAR) {
             rejSecTAR.style.display = 'none';
         }
+
+
     const pageInit = () => {
 
     };

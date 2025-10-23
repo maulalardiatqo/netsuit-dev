@@ -19,32 +19,50 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 const rec = context.newRecord;
                 const recType = rec.type
                 log.debug('recType', recType);
+                var recBefLoad = record.load({
+                    type : recType,
+                    id : rec.id
+                })
                 var sublistExpense
+                var sublistItem
+                var approverField 
+                var approvalStatusField
                 if(recType == 'customrecord_tar'){
                     sublistExpense = 'recmachcustrecord_tar_e_id'
                 }
+                if(recType == 'customrecord_ter'){
+                    sublistItem = 'recmachcustrecord_terd_id'
+                    approverField = 'custrecord_terd_approver'
+                    approvalStatusField = 'custrecord_terd_approval_status'
+                }
+                if(recType == 'customrecord_tor'){
+                    sublistItem = 'recmachcustrecord_tori_id'
+                    approverField = 'custrecord_tori_approver'
+                    approvalStatusField = 'custrecord_tori_approval_status'
+                }
                 let allowButton = false;
-                const itemCount = rec.getLineCount({ sublistId: 'item' });
+                const itemCount = recBefLoad.getLineCount({ sublistId: sublistItem });
+                log.debug('itemCount', itemCount)
                 if(itemCount > 0){
                     for (let i = 0; i < itemCount; i++) {
-                        const approver = rec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_stc_approver_linetrx',
+                        const approver = recBefLoad.getSublistValue({
+                            sublistId: sublistItem,
+                            fieldId: approverField,
                             line: i
                         });
-                        const approvalStatus = rec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_stc_approval_status_line',
+                        const approvalStatus = recBefLoad.getSublistValue({
+                            sublistId: sublistItem,
+                            fieldId: approvalStatusField,
                             line: i
                         });
-                        const approverFA = rec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_stc_approver_fa',
+                        const approverFA = recBefLoad.getSublistValue({
+                            sublistId: sublistItem,
+                            fieldId: 'custrecord_tori_approver_fa',
                             line: i
                         });
-                        const approverSatatusFA = rec.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_stc_apprvl_sts_fa',
+                        const approverSatatusFA = recBefLoad.getSublistValue({
+                            sublistId: sublistItem,
+                            fieldId: 'custrecord_tori_approval_status_fa',
                             line: i
                         });
                         if (Number(approver) === Number(employeeId) &&
@@ -72,62 +90,63 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 'custrecord_tare_approval_status',
                             ]
                         });
-                    }
+                        const results = childSearch.run().getRange({ start: 0, end: 1000 });
+                        const expenseCount = results.length;
 
-                    const results = childSearch.run().getRange({ start: 0, end: 1000 });
-                    const expenseCount = results.length;
+                        if (expenseCount > 0) {
 
-                    if (expenseCount > 0) {
+                            for (var e = 0; e < expenseCount; e++) {
+                                var approverField;
+                                var approvalStatusField;
+                                var approvalFaField;
+                                var approvalStatusFAField;
+                                if (recType === 'customrecord_tar') {
+                                    approverField = 'custrecord_tare_approver';
+                                    approvalStatusField = 'custrecord_tare_approval_status';
+                                }
 
-                        for (var e = 0; e < expenseCount; e++) {
-                            var approverField;
-                            var approvalStatusField;
-                            var approvalFaField;
-                            var approvalStatusFAField;
-                            if (recType === 'customrecord_tar') {
-                                approverField = 'custrecord_tare_approver';
-                                approvalStatusField = 'custrecord_tare_approval_status';
-                            }
+                                const row = results[e];
+                                const approver = row.getValue(approverField);
+                                const approvalStatus = row.getValue(approvalStatusField);
+                                if(approvalFaField){
+                                    var approverFA = row.getValue(approvalFaField);
+                                }
+                                if(approvalStatusFAField){
+                                    var approverStatusFA = row.getValue(approvalStatusFAField);
+                                }
+                                
 
-                            const row = results[e];
-                            const approver = row.getValue(approverField);
-                            const approvalStatus = row.getValue(approvalStatusField);
-                            if(approvalFaField){
-                                var approverFA = row.getValue(approvalFaField);
-                            }
-                            if(approvalStatusFAField){
-                                var approverStatusFA = row.getValue(approvalStatusFAField);
-                            }
-                            
+                                // log.debug('check line', {
+                                //     e,
+                                //     approver,
+                                //     approvalStatus,
+                                //     approverFA,
+                                //     approverStatusFA,
+                                //     employeeId
+                                // });
 
-                            // log.debug('check line', {
-                            //     e,
-                            //     approver,
-                            //     approvalStatus,
-                            //     approverFA,
-                            //     approverStatusFA,
-                            //     employeeId
-                            // });
+                                if (
+                                    Number(approver) === Number(employeeId) &&
+                                    Number(approvalStatus) === 1
+                                ) {
+                                    // log.debug('masuk kondisi approve regular');
+                                    allowButton = true;
+                                    break;
+                                }
 
-                            if (
-                                Number(approver) === Number(employeeId) &&
-                                Number(approvalStatus) === 1
-                            ) {
-                                // log.debug('masuk kondisi approve regular');
-                                allowButton = true;
-                                break;
-                            }
-
-                            if (
-                                Number(approverFA) === Number(employeeId) &&
-                                Number(approverStatusFA) === 1
-                            ) {
-                                // log.debug('masuk kondisi approve FA');
-                                allowButton = true;
-                                break;
+                                if (
+                                    Number(approverFA) === Number(employeeId) &&
+                                    Number(approverStatusFA) === 1
+                                ) {
+                                    // log.debug('masuk kondisi approve FA');
+                                    allowButton = true;
+                                    break;
+                                }
                             }
                         }
                     }
+
+                    
                 }
 
                 log.debug('allowButton', allowButton)
