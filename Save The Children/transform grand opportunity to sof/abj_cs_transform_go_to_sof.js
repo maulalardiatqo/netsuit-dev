@@ -92,9 +92,9 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
             processMsg.hide();
 
             if (sofId) {
-                // Jika berhasil
+                // Jika berhasil custbody_stc_sof_awarded
                 recLoad.setValue({
-                    fieldId: "cseg_stc_sof",
+                    fieldId: "custbody_stc_sof_awarded",
                     value: sofId
                 });
                 recLoad.save();

@@ -3,7 +3,7 @@
  * @NScriptType Restlet
  */
 
-define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (record, log, error, format, search, runtime) => {
+define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/transaction'], (record, log, error, format, search, runtime, transaction) => {
     function createCustRec(reqBody, resBody, trxNumb, integrationStatus, scriptId, deploymentId, executionAs){
         var recCreate = record.create({
             type : "customtransaction_abj_integration_log"
@@ -155,7 +155,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
                     createRec.setCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "class",
-                        value: 114,
+                        value: data.items[i].class.internalId,
                     });
                     createRec.setCurrentSublistValue({
                         sublistId: "item",
@@ -267,7 +267,15 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
                     ignoreFieldChange: false,
                 });
             }
-            
+            log.debug('isVoided', data.isVoid)
+            if(data.isVoid == true){
+                log.debug('masuk isvoided')
+                createRec.setValue({
+                    fieldId: "voided",
+                    value: true,
+                    ignoreFieldChange: false,
+                });
+            }
             var dateConverted = new Date(data.tranDate);
             createRec.setValue({
                 fieldId: "trandate",
@@ -359,7 +367,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
                     createRec.setCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "class",
-                        value: 114,
+                        value: itemLine.class.internalId,
                     });
                     createRec.setCurrentSublistValue({
                         sublistId: "item",
@@ -435,7 +443,21 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
             return { status: false, message: e.message || JSON.stringify(e.message) };
         }
     };
-
+    const voidTrans = (data) => {
+        try{
+            var idCashSale = data.cashSaleInternalId
+            log.debug('idCashSale', idCashSale)
+            var voidedCashSale = transaction.void({
+                type: record.Type.CASH_SALE,
+                id: idCashSale
+            });
+            log.debug('voidedCashSale', voidedCashSale)
+            return { status: true, idCashSale };
+        }catch(e){
+            log.debug('error', e);
+            return { status: false, message: e.message || JSON.stringify(e.message) };
+        }
+    }
     return{
         post: (context) => {
             try{
@@ -477,11 +499,12 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime'], (r
                 var reqBody = JSON.stringify(context)
                 if(context.transactionType == "cashsale"){
                     if(context.data.cashSaleInternalId){
-                        if(data.isVoid == true){
-
+                        if(context.data.isVoid == true){
+                            result = voidTrans(context.data)
                         }else{
                             result = updateCashSale(context.data);
                         }
+                        
                         
                     }else{
                         createCustRec(reqBody, result, '', 1, 409, 1, 'Update')
