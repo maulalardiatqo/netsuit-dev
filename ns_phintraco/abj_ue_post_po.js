@@ -18,6 +18,17 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                     id : idRec
                 })
                 const status = rec.getValue('approvalstatus'); 
+                const createdById = rec.getValue('custbody_abj_creator');
+                var created_by = ''
+                if(createdById){
+                    var lookCreated = search.lookupFields({
+                        type: "customrecord_list_users_web",
+                        id: createdById,
+                        columns: ["custrecord_id_users_web"],
+                    });
+                    created_by = lookCreated.custrecord_id_users_web
+                }
+                
                 var isAttach = false
                 var isApprover = false
                 const cekLineAttach = rec.getLineCount({
@@ -30,11 +41,15 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 const cekApproverLine = rec.getLineCount({
                     sublistId : 'recmachcustrecord_abj_a_id'
                 })
+                
                 log.debug('cekApproverLine', cekApproverLine)
                 if(cekApproverLine > 0){
                     isApprover = true
                 }
-                if(isAttach && isApprover){
+                const cekFlagApproval = rec.getValue('custbody_abj_flag_approval')
+                const cekIsRecall = rec.getValue('custbody_abj_revision')
+                if(isAttach && isApprover && cekFlagApproval == false){
+                    log.debug('masuk kirim web')
                     var appStatus
                     var cekApprovStatus = rec.getValue('approvalstatus');
                     if(cekApprovStatus == '1'){
@@ -42,6 +57,7 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                     }
                     const poData = {
                         id: rec.id,
+                        isRevision : rec.getValue('custbody_abj_revision'),
                         tranid: rec.getValue('tranid'),
                         vendor: rec.getValue('entity'),
                         employee: rec.getValue('employee'),
@@ -71,7 +87,8 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                         totalAmount:rec.getValue('total'),
                         submission_status : appStatus,
                         status: status,
-                        created_by: runtime.getCurrentUser().id,
+                        created_by: created_by || '',
+                        customForm : rec.getValue('customform'),
                         line_items: [],
                         expenses: [],
                         attachments: [],
@@ -183,6 +200,14 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                         const saveFlag = rec.save();
                         log.debug('saveFlag', saveFlag);
                     }
+                    if(res.status === 'success_recall'){
+                        rec.setValue({
+                            fieldId: 'custbody_abj_revision',
+                            value: false
+                        });
+                        const saveFlag = rec.save();
+                        log.debug('saveFlag', saveFlag);
+                    }
                 }
             
             }
@@ -191,6 +216,28 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
             log.error('Error in afterSubmit', e);
         }
     };
-
-    return { afterSubmit };
+    const beforeLoad = (context) => {
+        try{
+            if(context.type === context.UserEventType.VIEW){
+                var form = context.form;
+                const rec = context.newRecord;
+                const cekAppralStat = rec.getValue('approvalstatus');
+                log.debug('cekAppralStat', cekAppralStat)
+                const cekFlagApproval = rec.getValue('custbody_abj_flag_approval');
+                log.debug('cekFlagApproval', cekFlagApproval)
+                if(cekFlagApproval == true && cekAppralStat != '2'){
+                    form.addButton({
+                        id: 'custpage_button_recall',
+                        label: "Recall",
+                        functionName: "recall()"
+                    });
+                    form.removeButton('edit');
+                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
+                }
+            }
+        }catch(e){
+            log.debug('error', e)
+        }
+    }
+    return { afterSubmit : afterSubmit, beforeLoad : beforeLoad };
 });
