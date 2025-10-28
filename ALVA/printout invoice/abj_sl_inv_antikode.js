@@ -76,127 +76,127 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 var currenc = invoiceRecord.getValue({ name : "currency"});
                 if (currenc) {
-                  var recCurrenc = record.load({
+                var recCurrenc = record.load({
                     type: "currency",
                     id: currenc,
                     isDynamic: false,
-                  });
-                  var tlcCurr = recCurrenc.getValue("symbol");
+                });
+                var tlcCurr = recCurrenc.getValue("symbol");
                 }
                 var crFrom = invoiceRecord.getValue({ name :"createdfrom"});
                 var subsidiari = invoiceRecord.getValue({ name : "subsidiary"});
                 // load subsidiarie
                 if (subsidiari) {
-                  var subsidiariRec = record.load({
+                var subsidiariRec = record.load({
                     type: "subsidiary",
                     id: subsidiari,
                     isDynamic: false,
-                  });
-                  // load for header
-                  var legalName = subsidiariRec.getValue("legalname");
-                  var addresSubsidiaries = subsidiariRec.getValue("mainaddress_text");
-                  var name = subsidiariRec.getValue("name");
-                  var retEmailAddres = subsidiariRec.getValue("email");
-                  var Npwp = subsidiariRec.getValue("custrecord_fcn_npwppgrs");
-          
-                  var bankName = subsidiariRec.getValue("custrecord_fcn_sub_bank_name");
-                  var swiftCode = subsidiariRec.getValue("custrecord_fcn_sub_swift_code");
-                  var bankBranch = subsidiariRec.getValue("custrecord_fcn_sub_bank_branch");
-                  var bankBranch2 = subsidiariRec.getValue("custrecord_fcn_sub_bank_branch2");
-                  var bankBranch3 = subsidiariRec.getValue("custrecord_fcn_sub_bank_branch3");
-                  var accountNo = subsidiariRec.getValue("custrecord_fcn_sub_account_number");
-                  var accountNo2 = subsidiariRec.getValue("custrecord_fcn_sub_account_number2");
-                  var accountNo3 = subsidiariRec.getValue("custrecord_fcn_sub_account_number3");
-                  var paymentReferences = subsidiariRec.getValue("custrecord_fcn_sub_payment_reference");
-                  var logo = subsidiariRec.getValue("logo");
-                  var filelogo;
-                  var urlLogo = "";
-                  if (logo) {
+                });
+                // load for header
+                var legalName = subsidiariRec.getValue("legalname");
+                var addresSubsidiaries = subsidiariRec.getValue("mainaddress_text");
+                var name = subsidiariRec.getValue("name");
+                var retEmailAddres = subsidiariRec.getValue("email");
+                var Npwp = subsidiariRec.getValue("custrecord_fcn_npwppgrs");
+        
+                var bankName = subsidiariRec.getValue("custrecord_fcn_sub_bank_name");
+                var swiftCode = subsidiariRec.getValue("custrecord_fcn_sub_swift_code");
+                var bankBranch = subsidiariRec.getValue("custrecord_fcn_sub_bank_branch");
+                var bankBranch2 = subsidiariRec.getValue("custrecord_fcn_sub_bank_branch2");
+                var bankBranch3 = subsidiariRec.getValue("custrecord_fcn_sub_bank_branch3");
+                var accountNo = subsidiariRec.getValue("custrecord_fcn_sub_account_number");
+                var accountNo2 = subsidiariRec.getValue("custrecord_fcn_sub_account_number2");
+                var accountNo3 = subsidiariRec.getValue("custrecord_fcn_sub_account_number3");
+                var paymentReferences = subsidiariRec.getValue("custrecord_fcn_sub_payment_reference");
+                var logo = subsidiariRec.getValue("logo");
+                var filelogo;
+                var urlLogo = "";
+                if (logo) {
                     filelogo = file.load({
-                      id: logo,
+                    id: logo,
                     });
                     //get url
                     urlLogo = filelogo.url.replace(/&/g, "&amp;");
-                  }
-                  var fileLogoFroyo = file.load({
+                }
+                var fileLogoFroyo = file.load({
                     id: 55785,
-                  });
-                  if(fileLogoFroyo){
+                });
+                if(fileLogoFroyo){
                     logoFroyo = fileLogoFroyo.url.replace(/&/g, "&amp;");
-                  }
+                }
                 //   if (addresSubsidiaries.includes("<br>")) {
                 //     addresSubsidiaries = addresSubsidiaries.replace(/<br>/g, "");
                 //   }
-                  if (name) {
+                if (name) {
                     addresSubsidiaries = addresSubsidiaries.replace(name, "");
-                  }
                 }
-          
+                }
+        
                 // load vendor
                 var customer_id = invoiceRecord.getValue({name: "internalid",
                     join: "customer",});
                 log.debug("customer_id", customer_id);
                 if (customer_id) {
-                  var customerRecord = record.load({
+                var customerRecord = record.load({
                     type: "customer",
                     id: customer_id,
                     isDynamic: false,
-                  });
-                  var isperson = customerRecord.getValue("isperson");
-                  var custName = "";
-                  if (isperson == "T") {
+                });
+                var isperson = customerRecord.getValue("isperson");
+                var custName = "";
+                if (isperson == "T") {
                     var firstname = customerRecord.getValue("firstname") || "";
                     var middleName = customerRecord.getValue("middlename") || "";
                     var lastname = customerRecord.getValue("lastname") || "";
                     custName = firstname + " " + middleName + " " + lastname;
-                  } else {
+                } else {
                     var check = customerRecord.getValue("isautogeneratedrepresentingentity");
-          
+        
                     if (check === true) {
-                      custName = customerRecord.getValue("comments");
+                    custName = customerRecord.getValue("comments");
                     } else {
-                      custName = customerRecord.getValue("companyname");
+                    custName = customerRecord.getValue("companyname");
                     }
-                  }
-                  var custAddres = customerRecord.getValue("billaddr1");
-                  if (custAddres === "") {
+                }
+                var custAddres = customerRecord.getValue("billaddr1");
+                if (custAddres === "") {
                     custAddres = customerRecord.getValue("defaultaddress");
-                  }
-                  log.debug("custAdress", custAddres);
-                  if (custAddres.includes("&")) {
+                }
+                log.debug("custAdress", custAddres);
+                if (custAddres.includes("&")) {
                     custAddres = custAddres.replace(/&/g, "dan");
-                  }
-                  log.debug("custAdress after", custAddres);
-                  var custEmail = customerRecord.getValue("email");
-                  var taxRegNo = customerRecord.getValue("vatregnumber");
-                  var count = customerRecord.getLineCount({
+                }
+                log.debug("custAdress after", custAddres);
+                var custEmail = customerRecord.getValue("email");
+                var taxRegNo = customerRecord.getValue("vatregnumber");
+                var count = customerRecord.getLineCount({
                     sublistId: "submachine",
-                  });
-          
-                  for (var i = 0; i < count; i++) {
+                });
+        
+                for (var i = 0; i < count; i++) {
                     var subsidiary = customerRecord.getSublistValue({
-                      sublistId: "submachine",
-                      fieldId: "subsidiary",
-                      line: i,
+                    sublistId: "submachine",
+                    fieldId: "subsidiary",
+                    line: i,
                     });
-          
+        
                     if (subsidiary == subsidiari) {
-                      var balance = customerRecord.getSublistValue({
+                    var balance = customerRecord.getSublistValue({
                         sublistId: "submachine",
                         fieldId: "balance",
                         line: i,
-                      });
-                      break;
+                    });
+                    break;
                     }
-                  }
                 }
-          
+                }
+        
                 if (balance) {
-                  balance = format.format({
+                balance = format.format({
                     value: balance,
                     type: format.Type.CURRENCY,
-                  });
-                  balance = removeDecimalFormat(balance);
+                });
+                balance = removeDecimalFormat(balance);
                 }
                 // PO data
                 var tandId = invoiceRecord.getValue({ name : "tranid"});
@@ -238,10 +238,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if(jobNumber == ''){
                     jobNumber = tandId
                 }
-          
+        
                 var bankNumber = invoiceRecord.getText({ name :'custbody8'})
                 var bankDetail = invoiceRecord.getText({ name :'custbody9'})
-          
+        
                 var otehrRefNum = invoiceRecord.getValue({ name :"otherrefnum"});
                 discount = Math.abs(discount);
                 prosentDiscount = Math.abs(prosentDiscount);
@@ -258,7 +258,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 var itemSearchSet = searchLine.run();
                 var countItem = itemSearchSet.getRange(0, 100);
-          
+        
                 var allDataLine = []
                 var projectName = ""
                 var taxpphList = [];
@@ -299,7 +299,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             rate : rate,
                             quantity : quantity
                         })
-          
+        
                         var taxpph = lineRec.getValue({
                             name: "custcol_4601_witaxrate",
                         });
@@ -381,7 +381,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                     discount = removeDecimalFormat(discount);
                 }
-          
+        
                 if (subTotal) {
                     subTotal = pembulatan(subTotal);
                     subTotal = format.format({
@@ -390,7 +390,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                     subTotal = removeDecimalFormat(subTotal);
                 }
-          
+        
                 if (taxtotal) {
                     taxtotal = pembulatan(taxtotal);
                     taxtotal = format.format({
@@ -408,7 +408,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                     total = removeDecimalFormat(total);
                 }
-          
+        
                 if (duedate) {
                     function sysDate() {
                         var date = new Date(duedate); 
@@ -423,7 +423,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     duedate = sysDate();
                 }
-              
+            
                 var response = context.response;
                 var xml = "";
                 var header = "";
@@ -438,8 +438,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 style += "<style type='text/css'>";
                 style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%; font-family: sans-serif}";
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
-           
-                style += ".tg .tg-img-logo{width:110px; height:115px; object-vit:cover;}";
+        
+                style += ".tg .tg-img-logo{width:150px; height:40px; object-vit:cover;}";
                 style += ".tg .tg-headerrow{align: right;font-size:12px;}";
                 style += ".tg .tg-garis{align: right;font-size:12px; border :1px solid black; }";
                 style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
@@ -504,7 +504,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // body += "<td style=' font-size:60px; text-align:right; font-weight:bold;'></td>";
                 // body += "</tr>";
                 
-              
+            
                 
                 body += "</tbody>";
                 body += "</table>";
@@ -533,15 +533,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='text-align:left;' rowspan='2'>" + custAddres + "</td>";
                 body += "<td style='text-align:left; font-weight:bold;'></td>";
                 body += "<td style='background-color:#595B61FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:40px; margin-bottom:10px;'>"
-                    + "DATE <span style='font-size:10px; font-weight:normal; vertical-align:middle;'>" + InvDate + "</span>"
+                    + "DATE <span style='font-size:14px; font-weight:normal; vertical-align:middle;'>" + InvDate + "</span>"
                     + "<span style='font-size:16px; font-weight:bold; padding-left:15px;'>TERMS "
-                    + "<span style='font-weight:normal; font-size:10px;'>" + terms + "</span></span></td>";
+                    + "<span style='font-weight:normal; font-size:12px;'>" + terms + "</span></span></td>";
                 body += "</tr>";
 
 
                 body += "<tr>";
                 body += "<td style='text-align:left; font-weight:bold;'></td>";
-                body += "<td style='background-color:#595B61FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:30px;'>DUE DATE <span style='font-size:10px; font-weight:none;vertical-align:center;' >" + duedate + "</span></td>";
+                body += "<td style='background-color:#595B61FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:30px;'>DUE DATE <span style='font-size:14px; font-weight:none;vertical-align:center;' >" + duedate + "</span></td>";
                 body += "</tr>";
 
                 body += "<tr>";
@@ -559,7 +559,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
     
                 body+= "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
-             
+            
                 body += "<tr>";
                 body += "<td style='width:45%;'></td>";
                 body += "<td style='width:5%;'></td>";
@@ -657,7 +657,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='font-weight:bold;font-size:20px;background-color:#595B61FF;color:#FAFBFD;padding-left:20px;'>"+tlcCurr+"</td>"
                 body += "</tr>";
 
-                 body+= "</tbody>";
+                body+= "</tbody>";
                 body+= "</table>";
 
 
@@ -708,7 +708,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 log.debug('IS EMAIL', isemail);
                 // response.write("IS EMAIL"+isemail);
                 if(isemail){
-                   var pdfFiletoEmail = render.xmlToPdf({
+                var pdfFiletoEmail = render.xmlToPdf({
                         xmlString: xml
                     });
                     pdfFiletoEmail.name = 'Invoice #' + tandId + '.pdf';
@@ -865,7 +865,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             mailOptions.attachments = [pdfFiletoEmail];
                         }
 
-                       
+                    
                         const mail = email.send(mailOptions);
                         log.debug('MAIL SENT', mail);
                         
