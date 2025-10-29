@@ -73,8 +73,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var expectedOutput = recLoad.getValue('custrecord_tor_expected_output');
                     var attachment = recLoad.getValue('custrecord_tor_attachment');
 
-                    var activityFrom = recLoad.getValue('custrecord_tor_timeline_p_from');
-                    var activityTo = recLoad.getValue('custrecord_tor_timeline_period_to')
+                    var activityFrom = recLoad.getText('custrecord_tor_timeline_p_from');
+                    var activityTo = recLoad.getText('custrecord_tor_timeline_period_to')
                     var dataActivity = [];
                     var lineActivity = recLoad.getLineCount({
                         sublistId : 'recmachcustrecord_ac_id_tor'
@@ -166,7 +166,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var xml = "";
                         var header = "";
                         var body = "";
-                        var headerHeight = '3%';
+                        var headerHeight = '8%';
                         var style = "";
                         var footer = "";
                         var pdfFile = null;
@@ -201,9 +201,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         
                         header += "<tr>"
                         if (urlLogo) {
-                            header += "<td class='tg-headerlogo' style='width:50%;vertical-align:midle; align:center; margin-left:4px; border:1px solid black;' rowspan='3'><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+                            header += "<td class='tg-headerlogo' style='width:50%;vertical-align: middle; align:center; margin-left:4px; border:1px solid black;' rowspan='3'><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
                         }
-                        header += "<td style='width:100%; align:center; font-weight:bold; font-size:16px; border:1px solid black; border-left:none;'>"+legalName+"</td>"
+                        header += "<td style='width:100%; align:center; font-weight:bold; font-size:16px; border:1px solid black; border-left:none;'>"+escapeXmlSymbols(legalName)+"</td>"
                         header += "</tr>"
 
                         header += "<tr>"
@@ -211,23 +211,208 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         header += "</tr>"
 
                         header += "<tr>"
-                        header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+nameActivity+"</td>"
+                        header += "<td style='border:1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(nameActivity)+"</td>"
                         header += "</tr>"
 
                         header += "</tbody>";
                         header += "</table>";
 
-                        body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
+                        body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
                         body += "<tbody>";
 
                         body += "<tr>"
-                        body += "<td style='width:15%;'></td>"
-                        body += "<td style='width:1%;'></td>"
-                        body += "<td style='width:84%;'></td>"
+                        body += "<td style='color:red; font-size:14px; font-weight:bold;'>BACKGROUND</td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td style=''>"+escapeXmlSymbols(background)+"</td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td style='color:red; font-size:14px; font-weight:bold;'>OBJECTIVES</td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td style=''>"+escapeXmlSymbols(objective)+"</td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td style='color:red; font-size:14px; font-weight:bold;'>EXPECTED OUTPUT/DELIVERABLES</td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td style=''>"+escapeXmlSymbols(expectedOutput)+"</td>"
                         body += "</tr>"
 
                         body += "</tbody>"
                         body += "</table>"
+
+                        body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
+                        body += "<tbody>";
+
+                        body += "<tr>"
+                        body += "<td style='width:7%'></td>"
+                        body += "<td style='width:33%'></td>"
+                        body += "<td style='width:60%'></td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td style='color:red; font-size:14px; font-weight:bold;' colspan='3'>TIMELINE</td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td style='' colspan='3'>This ToR is for series of activities and consultant hired from "+escapeXmlSymbols(activityFrom)+" - "+escapeXmlSymbols(activityTo)+"</td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td style='border:1px solid black; font-weight:bold;'>No</td>"
+                        body += "<td style='border:1px solid black; border-left:none; font-weight:bold;'>Activity</td>"
+                        body += "<td style='border:1px solid black; border-left:none; font-weight:bold;'>Indicative timeline</td>"
+                        body += "</tr>"
+                        
+                        if(dataActivity.length > 0){
+                            var no = 1
+                            dataActivity.forEach((data)=>{
+                                var actLine = data.actLine
+                                var indiCativeTimeLine = data.indiCativeTimeLine
+
+                                body += "<tr>"
+                                body += "<td style='border:1px solid black; border-top:none;'>"+no+"</td>"
+                                body += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(actLine)+"</td>"
+                                body += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(indiCativeTimeLine)+"</td>"
+                                body += "</tr>"
+
+                                no = Number(no) + 1
+                            })
+                        }
+
+                        body += "</tbody>"
+                        body += "</table>"
+
+                        body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
+                        body += "<tbody>";
+
+                        body += "<tr>"
+                        body += "<td style='width:15%'></td>"
+                        body += "<td style='width:15%'></td>"
+                        body += "<td style='width:15%'></td>"
+                        body += "<td style='width:15%'></td>"
+                        body += "<td style='width:20%'></td>"
+                        body += "<td style='width:20%'></td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td style='color:red; font-size:14px; font-weight:bold;' colspan='6'>BUDGET</td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td style='' colspan='6'>All expenses will be charged to:</td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td style='border:1px solid black; font-weight:bold;'>Cost Centre</td>"
+                        body += "<td style='border:1px solid black; border-left:none; font-weight:bold;'>Project Code</td>"
+                        body += "<td style='border:1px solid black; border-left:none; font-weight:bold;'>SOF</td>"
+                        body += "<td style='border:1px solid black; border-left:none; font-weight:bold;'>DEA</td>"
+                        body += "<td style='border:1px solid black; border-left:none; font-weight:bold;'>Item</td>"
+                        body += "<td style='border:1px solid black; border-left:none; font-weight:bold;'>Cost</td>"
+                        body += "</tr>"
+
+                        if(dataBudget.length > 0){
+                            var total = 0
+                            dataBudget.forEach((budget)=>{
+                                var costCenter = budget.costCenter;
+                                var projectCode = budget.projectCode;
+                                var sofCode = budget.sofCode;
+                                var dea = budget.dea;
+                                var item = budget.item;
+                                var cost = budget.cost
+                                total = Number(total) + Number(cost);
+                                body += "<tr>"
+                                body += "<td style='border:1px solid black; border-top:none;'>"+costCenter+"</td>"
+                                body += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+projectCode+"</td>"
+                                body += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+sofCode+"</td>"
+                                body += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+dea+"</td>"
+                                body += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(item)+"</td>"
+                                body += "<td style='border:1px solid black; border-left:none; border-top:none;'>Rp. "+formatNumber(cost)+"</td>"
+                                body += "</tr>"
+                            })
+                            body += "<tr>"
+                            body += "<td style='border:1px solid black; border-top:none;'></td>"
+                            body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                            body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                            body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                            body += "<td style='border:1px solid black; border-left:none; border-top:none; font-weight:bold;'>Total</td>"
+                            body += "<td style='border:1px solid black; border-left:none; border-top:none;'>Rp. "+formatNumber(total)+"</td>"
+                            body += "</tr>"
+                            
+                        }
+                        body += "</tbody>"
+                        body += "</table>"
+
+                        body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
+                        body += "<tbody>";
+                        body += "<tr>"
+                        body += "<td style='color:red; font-size:14px; font-weight:bold;'>ATTACHMENT</td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td>"+attachment+"</td>"
+                        body += "</tr>"
+                        body += "</tbody>"
+                        body += "</table>"
+
+                        body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
+                        body += "<tbody>";
+
+                        body += "<tr>"
+                        body += "<td style='width:50%'></td>"
+                        body += "<td style='width:50%'></td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td style='border:1px solid black;'>Disiapkan oleh,</td>"
+                        body += "<td style='border:1px solid black; border-left:none'>Diperiksa oleh, </td>"
+                        body += "</tr>"
+
+                        body += "<tr style='height:5%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'></td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        body += "</tr>"
+
+                        body += "<tr style='height:2%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'></td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        body += "</tr>"
+
+                        body += "<tr style='height:2%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'></td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        body += "</tr>"
+
+                        body += "<tr style='height:1%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'>Disetujui oleh,  (Finance)</td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'>Disetujui oleh,  (Budget Holder – can be various/multiple according to SOF)</td>"
+                        body += "</tr>"
+
+                        body += "<tr style='height:5%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'></td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        body += "</tr>"
+
+                         body += "<tr style='height:2%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'></td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        body += "</tr>"
+
+                        body += "<tr style='height:2%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'></td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        body += "</tr>"
+
+                        body += "</tbody>"
+                        body += "</table>"
+
 
                         footer += "<table class='tg' style='table-layout: fixed; width: 100%; font-size:8px'>";
                         footer += "<tbody>";
