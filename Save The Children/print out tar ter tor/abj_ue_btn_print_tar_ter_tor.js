@@ -28,6 +28,13 @@ define(["N/runtime", "N/log"], (runtime, log) => {
                     functionName: "window.open('/app/site/hosting/scriptlet.nl?script=647&deploy=1&recid=' + nlapiGetRecordId())"
                 });
             }
+            if(cekType == 'customrecord_tor'){
+                form.addButton({
+                    id: 'custpage_button_print_tor',
+                    label: 'Print TOR',
+                    functionName: "window.open('/app/site/hosting/scriptlet.nl?script=648&deploy=1&recid=' + nlapiGetRecordId())"
+                });
+            }
         }
 }
 return {
