@@ -37,6 +37,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         'custcol_price_kg_usd',
                         'item',
                         'memomain',
+                        'custcol2',
                         search.createColumn({
                             name: "vendorname",
                             join: "item",
@@ -133,8 +134,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         name: 'formulatext6',
                         label: 'moq'
                     })
-                    var itemstatus = result.getValue({
-                        name: 'memomain',
+                    var itemstatus = result.getText({
+                        name: 'custcol2',
                         label: 'status'
                     })
                     var itemLeadTime = result.getValue({
@@ -412,8 +413,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>";
                 body += "<td style='border:1px solid #808080; align:center; background-color: #B2D1FAFF;'>DESCRIPTION</td>"
                 body += "<td style='border:1px solid #808080; border-left:none; align:center; background-color: #B2D1FAFF;'>PRINCIPLE</td>"
-                body += "<td style='border:1px solid #808080; border-left:none; align:center; background-color: #B2D1FAFF;'>UNIT PRICE</td>"
-                body += "<td style='border:1px solid #808080; border-left:none; align:center; background-color: #B2D1FAFF;'>MOQ</td>"
+                body += "<td style='border:1px solid #808080; border-left:none; align:center; background-color: #B2D1FAFF;'>UNIT PRICE (USD)</td>"
+                body += "<td style='border:1px solid #808080; border-left:none; align:center; background-color: #B2D1FAFF;'>MOQ (KG)</td>"
                 body += "<td style='border:1px solid #808080; border-left:none; align:center; background-color: #B2D1FAFF;'>STATUS </td>"
                 body += "</tr>";
 
@@ -460,7 +461,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td></td>"
                 body += "<td style='align: center; font-weight:bold;'>ADMIN BUSINESS DEVELOPMENT</td>"
                 body += "<td style='align: center; font-weight:bold;'></td>"
-                body += "<td style='align: center; font-weight:bold;'>BUSIDESS DEVELOPMENT</td>"
+                body += "<td style='align: center; font-weight:bold;'>BUSINESS DEVELOPMENT</td>"
                 body += "</tr>";
 
                 body += "<tr style='height:10px'>"
@@ -610,15 +611,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
                     body += "</tr>";
                     body += "<tr>";
-                    body += "<td style=' border: 1px solid #808080; border-top:none; font-weight:bold;' colspan='5'>All Products related information is subject to change based on the principal's policy and will be informed accordingl</td>";
-                    body += "</tr>";
-
-                    body += "<tr>";
-                    body += "<td style=' border: 1px solid #808080; border-top:none;'>Lead Time : "+leadTime+"</td>";
-                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
-                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
-                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
-                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
+                    body += "<td style=' border: 1px solid #808080; border-top:none; font-weight:bold;' colspan='5'>All Products related information is subject to change based on the principal's policy and will be informed accordingly</td>";
                     body += "</tr>";
 
                     body += "<tr>";

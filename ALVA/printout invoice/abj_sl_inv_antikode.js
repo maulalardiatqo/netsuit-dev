@@ -108,6 +108,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var accountNo2 = subsidiariRec.getValue("custrecord_fcn_sub_account_number2");
                 var accountNo3 = subsidiariRec.getValue("custrecord_fcn_sub_account_number3");
                 var paymentReferences = subsidiariRec.getValue("custrecord_fcn_sub_payment_reference");
+                
                 var logo = subsidiariRec.getValue("logo");
                 var filelogo;
                 var urlLogo = "";
@@ -238,7 +239,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if(jobNumber == ''){
                     jobNumber = tandId
                 }
-        
+                var otherComment = invoiceRecord.getValue("custbody3");
+                var poNo = invoiceRecord.getValue("otherrefnum");
                 var bankNumber = invoiceRecord.getText({ name :'custbody8'})
                 var bankDetail = invoiceRecord.getText({ name :'custbody9'})
         
@@ -461,16 +463,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tbody>";
                 
                 body += "<tr>";
-                body += "<td style='width:25%;'></td>";
-                body += "<td style='width:50%;'></td>";
-                body += "<td style='width:25%;'></td>";
+                body += "<td style='width:40%;'></td>";
+                body += "<td style='width:30%;'></td>";
+                body += "<td style='width:30%;'></td>";
                 body += "</tr>";
                 
                 body += "<tr>";
-                if (urlLogo) {
-                    body += "<td class='tg-headerlogo' style='vertical-align:center; align:left; margin-left:0;' rowspan='6' ><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
-                }
+                
                 body += "<td style='text-align:left; font-weight:bold; font-size:12pt;'>Antikode</td>";
+                body += "<td style='text-align:left; font-weight:bold; font-size:12pt;'></td>";
+                
+                if (urlLogo) {
+                    body += "<td class='tg-headerlogo' style='vertical-align:center; align:right; margin-left:0;' rowspan='2' ><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+                }
                 body += "</tr>";
 
                 body += "<tr>";
@@ -479,18 +484,24 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body += "<tr>";
                 body += "<td style='text-align:left; font-size:10pt;'>Jurangmangu Barat, Pondok Aren, Tangerang Selatan</td>";
+                 body += "<td style='font-size:16px; align:right; font-weight:bold;height:40px; margin-bottom:10px;' colspan='2'>INVOICE " + tandId + "</td>";
                 body += "</tr>";
-
                 body += "<tr>";
                 body += "<td style='text-align:left; font-size:10pt;'>Banten 15223 ID</td>";
+                body += "<td style='font-size:16px; align:right; font-weight:bold;height:40px; margin-bottom:10px;' colspan='2' rowspan='2'>"
+                    + "DATE <span style='font-size:14px; font-weight:normal; vertical-align:middle;'>" + InvDate + "</span>"
+                    + "<span style='font-size:16px; font-weight:bold; padding-left:15px;'>TERMS "
+                    + "<span style='font-weight:normal; font-size:12px;'>" + terms + "</span></span></td>";
                 body += "</tr>";
 
                 body += "<tr>";
                 body += "<td style='text-align:left; font-size:10pt;'>finance@antikode.com</td>";
+               
                 body += "</tr>";
 
                 body += "<tr>";
                 body += "<td style='text-align:left; font-size:10pt;'>http://www.antikode.com</td>";
+                body += "<td style='font-size:16px; align:right; font-weight:bold;height:30px;' colspan='2'>DUE DATE <span style='font-size:14px; font-weight:none;vertical-align:center;'>" + duedate + "</span></td>";
                 body += "</tr>";
 
 
@@ -521,7 +532,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>";
                 body += "<td style='text-align:left; font-weight:bold;'>BILL TO</td>";
                 body += "<td style='text-align:left; font-weight:bold;'></td>";
-                body += "<td style='background-color:#595B61FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:40px; margin-bottom:10px;' rowspan='2'>INVOICE " + tandId + "</td>";
                 body += "</tr>";
 
                 body += "<tr>";
@@ -532,16 +542,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>";
                 body += "<td style='text-align:left;' rowspan='2'>" + custAddres + "</td>";
                 body += "<td style='text-align:left; font-weight:bold;'></td>";
-                body += "<td style='background-color:#595B61FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:40px; margin-bottom:10px;'>"
-                    + "DATE <span style='font-size:14px; font-weight:normal; vertical-align:middle;'>" + InvDate + "</span>"
-                    + "<span style='font-size:16px; font-weight:bold; padding-left:15px;'>TERMS "
-                    + "<span style='font-weight:normal; font-size:12px;'>" + terms + "</span></span></td>";
                 body += "</tr>";
 
 
                 body += "<tr>";
                 body += "<td style='text-align:left; font-weight:bold;'></td>";
-                body += "<td style='background-color:#595B61FF; color:#FAFBFD; font-size:16px; text-align:right; font-weight:bold;height:30px;'>DUE DATE <span style='font-size:14px; font-weight:none;vertical-align:center;' >" + duedate + "</span></td>";
                 body += "</tr>";
 
                 body += "<tr>";
@@ -610,9 +615,21 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='align:right;'>"+amountVat+"</td>";
                 body += "<td style='align:right;'>"+totalVat+"</td>";
                 body += "</tr>";
-
+                
+                body += "<tr style='height:10px'>"
+                body += "</tr>";
                 body += "<tr>"
                 body += "<td colspan='4'>Tax Basis: (11/12) x DPP</td>"
+                body += "</tr>";
+
+                body += "<tr>"
+                body += "<td colspan='4'>Other Information : "+otherComment+"</td>"
+                body += "</tr>";
+                body += "<tr>"
+                body += "<td colspan='4'>Quot: "+jobNumber+"</td>"
+                body += "</tr>";
+                 body += "<tr>"
+                body += "<td colspan='4'>PO: "+poNo+"</td>"
                 body += "</tr>";
                 body+= "</tbody>";
                 body+= "</table>";
@@ -649,13 +666,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr style=''>";
                 body += "<td></td>"
                 body += "<td style='align:right; vertical-align:middle;background-color:#595B61FF;color:#FAFBFD;padding-right:40px;' rowspan='2'>TOTAL DUE</td>"
-                body += "<td style='font-weight:bold;font-size:20px;background-color:#595B61FF;color:#FAFBFD;padding-left:20px;'>"+totalDueCount+"</td>"
+                body += "<td style='font-weight:bold;font-size:20px;background-color:#595B61FF;color:#FAFBFD;padding-left:20px;'>"+totalDueCount+" Rp</td>"
                 body += "</tr>";
 
-                body += "<tr style=''>";
-                body += "<td></td>"
-                body += "<td style='font-weight:bold;font-size:20px;background-color:#595B61FF;color:#FAFBFD;padding-left:20px;'>"+tlcCurr+"</td>"
-                body += "</tr>";
 
                 body+= "</tbody>";
                 body+= "</table>";
