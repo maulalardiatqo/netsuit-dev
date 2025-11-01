@@ -463,45 +463,49 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tbody>";
                 
                 body += "<tr>";
-                body += "<td style='width:40%;'></td>";
-                body += "<td style='width:30%;'></td>";
+                body += "<td style='width:60%;'></td>";
+                body += "<td style='width:10%;'></td>";
                 body += "<td style='width:30%;'></td>";
                 body += "</tr>";
                 
                 body += "<tr>";
                 
-                body += "<td style='text-align:left; font-weight:bold; font-size:12pt;'>Antikode</td>";
-                body += "<td style='text-align:left; font-weight:bold; font-size:12pt;'></td>";
-                
+                body += "<td></td>"
                 if (urlLogo) {
-                    body += "<td class='tg-headerlogo' style='vertical-align:center; align:right; margin-left:0;' rowspan='2' ><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+                    body += "<td class='tg-headerlogo' style='vertical-align:center; align:right; margin-left:0;' colspan='2'><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
                 }
                 body += "</tr>";
 
+                body += "<tr>"
+                body += "<td style='text-align:left; font-weight:bold; font-size:12pt;'>PT. Antikode Desain Eksperiensia</td>";
+                body += "</tr>"
+
                 body += "<tr>";
-                body += "<td style='text-align:left; font-size:10pt;'>Jl. Jurangmangu Barat No. 008 RT 004 RW001</td>";
+                body += "<td style='text-align:left; font-size:10pt;'>Jl. Jurangmangu Barat No. 008 RT 004</td>";
+                body += "<td style='font-size:16px; align:right; font-weight:bold;' colspan='2'>INVOICE " + tandId + "</td>";
                 body += "</tr>";
 
                 body += "<tr>";
-                body += "<td style='text-align:left; font-size:10pt;'>Jurangmangu Barat, Pondok Aren, Tangerang Selatan</td>";
-                 body += "<td style='font-size:16px; align:right; font-weight:bold;height:40px; margin-bottom:10px;' colspan='2'>INVOICE " + tandId + "</td>";
-                body += "</tr>";
-                body += "<tr>";
-                body += "<td style='text-align:left; font-size:10pt;'>Banten 15223 ID</td>";
-                body += "<td style='font-size:16px; align:right; font-weight:bold;height:40px; margin-bottom:10px;' colspan='2' rowspan='2'>"
+                body += "<td style='text-align:left; font-size:10pt;'>RW001 Jurangmangu Barat, Pondok</td>";
+                 body += "<td style='font-size:16px; align:right; font-weight:bold;' colspan='2'>"
                     + "DATE <span style='font-size:14px; font-weight:normal; vertical-align:middle;'>" + InvDate + "</span>"
                     + "<span style='font-size:16px; font-weight:bold; padding-left:15px;'>TERMS "
                     + "<span style='font-weight:normal; font-size:12px;'>" + terms + "</span></span></td>";
                 body += "</tr>";
+                body += "<tr>";
+                body += "<td style='text-align:left; font-size:10pt;'>Aren, Tangerang Selatan Banten 15223 ID</td>";
+                 body += "<td style='font-size:16px; align:right; font-weight:bold;' colspan='2'>DUE DATE <span style='font-size:14px; font-weight:none;vertical-align:center;'>" + duedate + "</span></td>";
+                body += "</tr>";
 
                 body += "<tr>";
                 body += "<td style='text-align:left; font-size:10pt;'>finance@antikode.com</td>";
+                
+               
                
                 body += "</tr>";
 
                 body += "<tr>";
                 body += "<td style='text-align:left; font-size:10pt;'>http://www.antikode.com</td>";
-                body += "<td style='font-size:16px; align:right; font-weight:bold;height:30px;' colspan='2'>DUE DATE <span style='font-size:14px; font-weight:none;vertical-align:center;'>" + duedate + "</span></td>";
                 body += "</tr>";
 
 
