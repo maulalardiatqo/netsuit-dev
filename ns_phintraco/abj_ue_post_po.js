@@ -109,6 +109,7 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
             });
         }
         const approvalCount = rec.getLineCount({sublistId : 'recmachcustrecord_abj_a_id'})
+        var approvalNo = 1
         for(let i = 0; i < approvalCount; i++){
             var appId = rec.getSublistValue({
                 sublistId : 'recmachcustrecord_abj_a_id',
@@ -122,12 +123,16 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
             });
             userId = lookupF.custrecord_id_users_web
             log.debug('userId', userId)
+
             poData.approvers.push({
                 po_id : rec.id,
                 user_approver :userId,
                 status_approve : rec.getSublistValue({ sublistId : 'recmachcustrecord_abj_a_id', fieldId : 'custrecord_abj_status_approve', line : i}),
                 tgl_approve : rec.getSublistValue({ sublistId : 'recmachcustrecord_abj_a_id', fieldId : 'custrecord_abj_tgl_appprove', line : i}),
+                approval_group : rec.getSublistValue({ sublistId : 'recmachcustrecord_abj_a_id', fieldId : 'custrecord_approval_group', line : i}),
+                approval_no : approvalNo
             })
+            approvalNo = Number(approvalNo) + 1
         }
         // --- Attachments & Approvers (misalnya dari subrecord custom) ---
         // Di sini bisa ditambahkan sesuai kebutuhan kamu
