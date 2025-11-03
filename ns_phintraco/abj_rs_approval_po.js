@@ -25,7 +25,7 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
             });
             log.debug('status', status)
             if(status == '1' && approver){
-                setSublist(recPo, status, approver, '')
+                setSublist(recPo, '2', approver, '')
             }
             if(status == '3' && approver){
                 setSublist(recPo, status, approver, reason)

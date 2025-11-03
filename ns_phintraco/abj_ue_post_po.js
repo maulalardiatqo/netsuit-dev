@@ -6,7 +6,13 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
     
     const WEBSITE_API_URL = 'https://sbapproval.phintraco.com/welcome/receive_po';
     function callIntegrate(rec){
-        const cekIsRecall = rec.getValue('custbody_abj_revision')
+        log.debug('integration called')
+        const afterRecall = rec.getValue('custbody_after_recall')
+        log.debug('afterRecall', afterRecall)
+        var isUpdate = false
+        if(afterRecall == true){
+            isUpdate = true
+        }
         const createdById = rec.getValue('custbody_abj_creator');
         var created_by = ''
         if(createdById){
@@ -57,6 +63,7 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
             submission_status : appStatus,
             id_web:rec.getValue('custbody_id_web') || '',
             status: status,
+            isUpdate : isUpdate,
             created_by: created_by || '',
             customForm : rec.getValue('customform'),
             line_items: [],
@@ -148,13 +155,13 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
 
             try {
                 const fileObj = file.load({ id: fileId });
-                const fileContent = fileObj.getContents(); // base64 string
+                const fileContent = fileObj.getContents(); 
 
                 poData.attachments.push({
                     id: fileId,
                     name: fileObj.name,
                     type: fileObj.fileType,
-                    content: fileContent // kirim sebagai base64
+                    content: fileContent
                 });
             } catch (e) {
                 log.error('Failed to load file', `File ID: ${fileId} | ${e.message}`);
@@ -179,6 +186,7 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 log.debug('triggered')
 
                 const recordV = context.newRecord;
+                const oldRec = context.oldRecord;
                 const idRec = recordV.id
                 const rec = record.load({
                     type : recordV.type,
@@ -223,10 +231,26 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                         const saveFlag = rec.save();
                         log.debug('saveFlag', saveFlag);
                     }
+                    if(result.status === 'success_update'){
+                        rec.setValue({
+                            fieldId: 'custbody_after_recall',
+                            value: false
+                        });
+                        rec.setValue({
+                            fieldId: 'custbody_abj_flag_approval',
+                            value: true
+                        });
+                        const saveFlag = rec.save();
+                        log.debug('saveFlag', saveFlag);
+                    }
                     if(result.status === 'success_recall'){
                         rec.setValue({
                             fieldId: 'custbody_abj_revision',
                             value: false
+                        });
+                        rec.setValue({
+                            fieldId: 'custbody_after_recall',
+                            value: true
                         });
                         const saveFlag = rec.save();
                         log.debug('saveFlag', saveFlag);
@@ -257,6 +281,28 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                     form.removeButton('edit');
                     context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
                 }
+            }
+            if(context.type === context.UserEventType.COPY){
+                const rec = context.newRecord;
+                const cekFlagApproval = rec.getValue('custbody_abj_flag_approval');
+                log.debug('cekFlagApproval on bfload copy', cekFlagApproval)
+                const cekIdWeb = rec.getValue('custbody_id_web');
+                log.debug('cekIdWeb', cekIdWeb);
+                rec.setValue({
+                    fieldId : 'custbody_id_web',
+                    value : ''
+                })
+                if(cekFlagApproval == true){
+                    log.debug('true');
+                    rec.setValue({
+                        fieldId : 'custbody_abj_flag_approval',
+                        value : false
+                    })
+                }
+                rec.setValue({
+                    fieldId: 'custbody_after_recall',
+                    value: true
+                });
             }
         }catch(e){
             log.debug('error', e)
