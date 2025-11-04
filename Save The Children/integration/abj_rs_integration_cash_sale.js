@@ -96,10 +96,9 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
                 ignoreFieldChange: false,
             });
             createRec.setValue({
-                    fieldId: "cseg_stc_sof",
-                    value: 66,
-                    ignoreFieldChange: false,
-                });
+                fieldId: "cseg_stc_sof",
+                value: "66"
+            });
             // if(data.sof.internalId){
                 
             // }
@@ -155,7 +154,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
                     createRec.setCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "class",
-                        value: data.items[i].class.internalId,
+                        value: data.items[i].class.internalId || 114,
                     });
                     createRec.setCurrentSublistValue({
                         sublistId: "item",
@@ -166,10 +165,10 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
                     // var sofId = data.items[i].sof.internalId
                     // log.debug('sofId', sofId)
                     createRec.setCurrentSublistValue({
-                            sublistId: "item",
-                            fieldId: "cseg_stc_sof",
-                            value: 20,
-                        });
+                        sublistId: "item",
+                        fieldId: "cseg_stc_sof",
+                        value: "20"
+                    });
                     createRec.commitLine({ sublistId: 'item' });
                     
                 }
@@ -220,10 +219,10 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
                     value: 3,
                 });
                 createRec.setCurrentSublistValue({
-                            sublistId: "item",
-                            fieldId: "cseg_stc_sof",
-                            value: 20,
-                        });
+                    sublistId: "item",
+                    fieldId: "cseg_stc_sof",
+                    value: "66"
+                });
                 createRec.commitLine({ sublistId: 'item' });
 
             });
@@ -263,7 +262,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
             }else{
                 createRec.setValue({
                     fieldId: "entity",
-                    value: 20,
+                    value: "20",
                     ignoreFieldChange: false,
                 });
             }
@@ -301,7 +300,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
             });
             createRec.setValue({
                 fieldId: "cseg_stc_sof",
-                value: 66,
+                value: "66",
                 ignoreFieldChange: false,
             });
             
@@ -345,7 +344,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
                     createRec.setCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "taxcode",
-                        value: "5",
+                        value: 5,
                     });
                     createRec.setCurrentSublistValue({
                         sublistId: 'item',
@@ -375,10 +374,11 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
                         value: 3,
                     });
                     createRec.setCurrentSublistValue({
-                            sublistId: "item",
-                            fieldId: "cseg_stc_sof",
-                            value: 20,
-                        });
+                        sublistId: "item",
+                        fieldId: "cseg_stc_sof",
+                        value: "20",
+                        ignoreFieldChange : true
+                    });
                     createRec.commitLine({ sublistId: 'item' });
                 });
             }
@@ -426,6 +426,11 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
                     sublistId: "item",
                     fieldId: "department",
                     value: 3,
+                });
+                createRec.setCurrentSublistValue({
+                    sublistId: "item",
+                    fieldId: "cseg_stc_sof",
+                    value: 66,
                 });
                 createRec.commitLine({ sublistId: 'item' });
             });
