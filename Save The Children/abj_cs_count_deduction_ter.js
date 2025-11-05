@@ -87,6 +87,20 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 sublistId : 'recmachcustrecord_terd_id',
                 fieldId : 'custrecord_terd_rate'
             })
+            if(sublistFieldName == 'custrecord_terd_rate'){
+                var cekrate = records.getCurrentSublistValue({
+                    sublistId : 'recmachcustrecord_terd_id',
+                    fieldId : 'custrecord_terd_rate'
+                })
+                if(cekrate){
+                    records.setCurrentSublistValue({
+                        sublistId: 'recmachcustrecord_terd_id',
+                        fieldId: 'custrecord_terd_amount',
+                        value : cekrate
+                    })
+                }
+                
+            }
             if(sublistFieldName == 'custrecord_terd_breakfast'){
                 var breakFirst = records.getCurrentSublistValue({
                     sublistId : 'recmachcustrecord_terd_id',
