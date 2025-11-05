@@ -70,7 +70,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 
                 var subsidiari = invoiceRecord.getValue('subsidiary');
                 // load subsidiarie
-                
+                var infoBank = '';
                 if(subsidiari){
                     var subsidiariRec = record.load({
                         type: "subsidiary",
@@ -93,6 +93,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var logo = subsidiariRec.getValue('logo');
                     var filelogo;
                     var urlLogo = '';
+                    infoBank = bankName + " " + accountNo + " / " + legalName 
                     if (logo) {
                         filelogo = file.load({
                             id: logo
@@ -437,7 +438,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body+= "<td style=''>No. Faktur : "+FakturPenjualan+"</td>"
+                body+= "<td style=''>No. Rek : "+infoBank+"</td>"
                 body+= "<td style=''>Pelanggan</td>"
                 body+= "<td style=''>:</td>"
                 body+= "<td style=''>"+custName+"</td>"
@@ -594,7 +595,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "</macro>";
                 xml += "</macrolist>";
                 xml += "</head>"
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 14cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='7%'>";
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 14cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='1%'>";
                 xml += body;
                 xml += "\n</body>\n</pdf>";
     
