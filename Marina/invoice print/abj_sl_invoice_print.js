@@ -375,7 +375,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var xml = "";
                 var header = "";
                 var body = "";
-                var headerHeight = '0%';
+                var headerHeight = '2%';
                 var style = "";
                 var footer = "";
                 var pdfFile = null;

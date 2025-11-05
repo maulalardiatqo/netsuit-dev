@@ -11,7 +11,7 @@ define(["N/record", "N/search"], function(
     function afterSubmit(context) {
         try {
             log.debug('context.type', context.type)
-            if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.PAYBILLS || context.type == context.UserEventType.EDIT) {
+            if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.PAYBILLS) {
                 log.debug('triggerred')
                 function formatDateToDDMMYYYY(dateStr) {
                     var date = new Date(dateStr);
@@ -28,8 +28,12 @@ define(["N/record", "N/search"], function(
                     }
 
                     var startDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 7, 0, 0));
-                    var endDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 7, 0, 0));
-
+                    var endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0, 12, 0, 0);
+                    log.debug('data date', {
+                        startDate : startDate,
+                        endDate : endDate
+                        
+                    })
                     return {
                         startDate: startDate, 
                         endDate: endDate      
@@ -114,7 +118,8 @@ define(["N/record", "N/search"], function(
                         log.debug('formatedDate', formatedDate)
                         var startDateFormated = formatDateToDDMMYYYY(startDate)
                         var endDateFormated = formatDateToDDMMYYYY(endDate)
-
+                        log.debug('startDateFormated', startDateFormated)
+                        log.debug('endDateFormated', endDateFormated)
                         // saved search
                         var lastNumber
                         var idCustRec
