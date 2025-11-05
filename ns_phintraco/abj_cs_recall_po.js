@@ -37,6 +37,10 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime'],
                     fieldId : 'custbody_abj_revision',
                     value : true
                 })
+                recordLoad.setValue({
+                    fieldId : 'custbody_after_recall',
+                    value : false
+                })
                 var cekRec = recordLoad.save()
                 if(cekRec){
                     dialog.alert({
