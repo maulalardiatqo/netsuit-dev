@@ -8,10 +8,32 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
     function callIntegrate(rec){
         log.debug('integration called')
         const afterRecall = rec.getValue('custbody_after_recall')
+        const cekTriggerResubmit = rec.getValue('custbody_abj_trigger_resubmit');
+        const cekAfterSubmit = rec.getValue('custbody_trigger_after_resubmit');
         log.debug('afterRecall', afterRecall)
         var isUpdate = false
         if(afterRecall == true){
             isUpdate = true
+        }
+        var triggerResubmit = false
+        if(cekTriggerResubmit == true){
+            triggerResubmit = true
+        }
+        var afterSubmit = false;
+        var codeRevision = '';
+        if (cekAfterSubmit == true) {
+            afterSubmit = true;
+            var cekCodeRevision = rec.getValue('custbody_abj_revision_code');
+
+            if (!cekCodeRevision) {
+                // Jika belum ada kode revisi
+                codeRevision = 'R1';
+            } else {
+                // Jika sudah ada, ambil angka setelah huruf 'R' lalu tambahkan 1
+                var currentNumber = parseInt(cekCodeRevision.replace('R', '')) || 0;
+                var nextNumber = currentNumber + 1;
+                codeRevision = 'R' + nextNumber;
+            }
         }
         const createdById = rec.getValue('custbody_abj_creator');
         var created_by = ''
@@ -30,6 +52,8 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
         if(cekApprovStatus == '1'){
             appStatus = 'APPROVAL PROCESS'
         }
+        var cekRevision = rec.getValue('custbody_abj_revision');
+        log.debug('afterSubmit', afterSubmit);
         const poData = {
             id: rec.id,
             isRevision : rec.getValue('custbody_abj_revision'),
@@ -64,7 +88,10 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
             id_web:rec.getValue('custbody_id_web') || '',
             status: status,
             isUpdate : isUpdate,
+            triggerResubmit : triggerResubmit,
+            afterSubmit : afterSubmit,
             created_by: created_by || '',
+            codeRevision : codeRevision,
             customForm : rec.getValue('customform'),
             line_items: [],
             expenses: [],
@@ -255,6 +282,49 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                         const saveFlag = rec.save();
                         log.debug('saveFlag', saveFlag);
                     }
+                    if(result.status == 'success_resubmit'){
+                        rec.setValue({
+                            fieldId: 'custbody_abj_trigger_resubmit',
+                            value: false
+                        });
+                        rec.setValue({
+                            fieldId: 'custbody_trigger_after_resubmit',
+                            value: true
+                        });
+                        const saveFlag = rec.save();
+                        log.debug('saveFlag', saveFlag);
+                    }
+                    if(result.status == 'success_after_submit'){
+                        rec.setValue({
+                            fieldId: 'custbody_trigger_after_resubmit',
+                            value: false
+                        });
+                        var codeRevision = result.codeRevision;
+                        log.debug('codeRevision', codeRevision);
+                        if(codeRevision){
+                            rec.setValue({
+                                fieldId : 'custbody_abj_revision_code',
+                                value : codeRevision
+                            })
+                        }
+                        var idWeb = result.po_id
+                        log.debug('idWeb', idWeb);
+                        rec.setValue({
+                            fieldId : 'custbody_id_web',
+                            value : idWeb
+
+                        })
+                        rec.setValue({
+                            fieldId: 'custbody_abj_flag_approval',
+                            value: true
+                        });
+                        rec.setValue({
+                            fieldId: 'custbody_is_revision',
+                            value: true
+                        });
+                        const saveFlag = rec.save();
+                        log.debug('saveFlag', saveFlag);
+                    }
                 }
             
             }
@@ -271,12 +341,23 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 const cekAppralStat = rec.getValue('approvalstatus');
                 log.debug('cekAppralStat', cekAppralStat)
                 const cekFlagApproval = rec.getValue('custbody_abj_flag_approval');
+                const cekIdWeb = rec.getValue('custbody_id_web');
                 log.debug('cekFlagApproval', cekFlagApproval)
-                if(cekFlagApproval == true && cekAppralStat != '2'){
+                const cekResubmit = rec.getValue('custbody_abj_trigger_resubmit');
+                if(cekFlagApproval == true && cekAppralStat != '2' && !cekResubmit){
                     form.addButton({
                         id: 'custpage_button_recall',
                         label: "Recall",
                         functionName: "recall()"
+                    });
+                    form.removeButton('edit');
+                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
+                }
+                if(cekAppralStat == '2' && cekIdWeb){
+                    form.addButton({
+                        id: 'custpage_button_resubmit',
+                        label: "Resubmit For Approval",
+                        functionName: "resubmit()"
                     });
                     form.removeButton('edit');
                     context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
@@ -287,6 +368,7 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 const cekFlagApproval = rec.getValue('custbody_abj_flag_approval');
                 log.debug('cekFlagApproval on bfload copy', cekFlagApproval)
                 const cekIdWeb = rec.getValue('custbody_id_web');
+                const triggerResubmit = rec.getValue('custbody_abj_trigger_resubmit');
                 log.debug('cekIdWeb', cekIdWeb);
                 rec.setValue({
                     fieldId : 'custbody_id_web',
@@ -299,10 +381,33 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                         value : false
                     })
                 }
+                if(triggerResubmit){
+                    rec.setValue({
+                        fieldId : 'custbody_abj_trigger_resubmit',
+                        value : false
+                    })
+                }
                 rec.setValue({
                     fieldId: 'custbody_after_recall',
-                    value: true
+                    value: false
                 });
+                rec.setValue({
+                    fieldId : 'custbody_abj_revision',
+                    value : false
+                })
+                rec.setValue({
+                    fieldId : 'custbody_trigger_after_resubmit',
+                    value : false
+                })
+                 rec.setValue({
+                    fieldId : 'custbody_is_revision',
+                    value : false
+                })
+                rec.setValue({
+                    fieldId : 'custbody_abj_revision_code',
+                    value : false
+                })
+                
             }
         }catch(e){
             log.debug('error', e)
