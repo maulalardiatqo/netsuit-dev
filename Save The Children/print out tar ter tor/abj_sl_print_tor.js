@@ -207,7 +207,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         header += "</tr>"
 
                         header += "<tr>"
-                        header += "<td style='border:1px solid black; border-top:none; border-left:none; font-size:14px;'>Term Of References (ToR)</td>"
+                        header += "<td style='border:1px solid black; border-top:none; border-left:none; font-size:14px;'>Term of References (ToR)</td>"
                         header += "</tr>"
 
                         header += "<tr>"
@@ -362,56 +362,56 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "</tbody>"
                         body += "</table>"
 
-                        body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
-                        body += "<tbody>";
+                        footer += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
+                        footer += "<tbody>";
 
-                        body += "<tr>"
-                        body += "<td style='width:50%'></td>"
-                        body += "<td style='width:50%'></td>"
-                        body += "</tr>"
+                        footer += "<tr>"
+                        footer += "<td style='width:50%'></td>"
+                        footer += "<td style='width:50%'></td>"
+                        footer += "</tr>"
 
-                        body += "<tr>"
-                        body += "<td style='border:1px solid black;'>Disiapkan oleh,</td>"
-                        body += "<td style='border:1px solid black; border-left:none'>Diperiksa oleh, </td>"
-                        body += "</tr>"
+                        footer += "<tr>"
+                        footer += "<td style='border:1px solid black;'>Disiapkan oleh,</td>"
+                        footer += "<td style='border:1px solid black; border-left:none'>Diperiksa oleh, </td>"
+                        footer += "</tr>"
 
-                        body += "<tr style='height:5%'>"
-                        body += "<td style='border:1px solid black; border-top:none;'></td>"
-                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
-                        body += "</tr>"
+                        footer += "<tr style='height:5%'>"
+                        footer += "<td style='border:1px solid black; border-top:none;'></td>"
+                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        footer += "</tr>"
 
-                        body += "<tr style='height:2%'>"
-                        body += "<td style='border:1px solid black; border-top:none;'></td>"
-                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
-                        body += "</tr>"
+                        footer += "<tr style='height:2%'>"
+                        footer += "<td style='border:1px solid black; border-top:none;'></td>"
+                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        footer += "</tr>"
 
-                        body += "<tr style='height:2%'>"
-                        body += "<td style='border:1px solid black; border-top:none;'></td>"
-                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
-                        body += "</tr>"
+                        footer += "<tr style='height:2%'>"
+                        footer += "<td style='border:1px solid black; border-top:none;'></td>"
+                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        footer += "</tr>"
 
-                        body += "<tr style='height:1%'>"
-                        body += "<td style='border:1px solid black; border-top:none;'>Disetujui oleh,  (Finance)</td>"
-                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'>Disetujui oleh,  (Budget Holder – can be various/multiple according to SOF)</td>"
-                        body += "</tr>"
+                        footer += "<tr style='height:1%'>"
+                        footer += "<td style='border:1px solid black; border-top:none;'>Disetujui oleh,  (Finance)</td>"
+                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>Disetujui oleh,  (Budget Holder – can be various/multiple according to SOF)</td>"
+                        footer += "</tr>"
 
-                        body += "<tr style='height:5%'>"
-                        body += "<td style='border:1px solid black; border-top:none;'></td>"
-                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
-                        body += "</tr>"
+                        footer += "<tr style='height:5%'>"
+                        footer += "<td style='border:1px solid black; border-top:none;'></td>"
+                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        footer += "</tr>"
 
-                         body += "<tr style='height:2%'>"
-                        body += "<td style='border:1px solid black; border-top:none;'></td>"
-                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
-                        body += "</tr>"
+                         footer += "<tr style='height:2%'>"
+                        footer += "<td style='border:1px solid black; border-top:none;'></td>"
+                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        footer += "</tr>"
 
-                        body += "<tr style='height:2%'>"
-                        body += "<td style='border:1px solid black; border-top:none;'></td>"
-                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
-                        body += "</tr>"
+                        footer += "<tr style='height:2%'>"
+                        footer += "<td style='border:1px solid black; border-top:none;'></td>"
+                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        footer += "</tr>"
 
-                        body += "</tbody>"
-                        body += "</table>"
+                        footer += "</tbody>"
+                        footer += "</table>"
 
 
                         footer += "<table class='tg' style='table-layout: fixed; width: 100%; font-size:8px'>";
@@ -420,27 +420,40 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         footer += "</tr>"
                         footer += "</tbody>";
                         footer += "</table>";
-                        var xml = '<?xml version="1.0"?>\n<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">';
+                        var xml = '<?xml version="1.0"?>\n' +
+                        '<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">';
+
                         xml += "<pdf>";
                         xml += "<head>";
                         xml += style;
                         xml += "<macrolist>";
+
                         xml += "<macro id=\"nlheader\">";
                         xml += header;
                         xml += "</macro>";
+
+                        xml += "<macro id=\"nlfooter\">";
+                        xml += footer;
+                        xml += "</macro>";
+
                         xml += "</macrolist>";
                         xml += "</head>";
 
-                        xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' margin-left='0.7cm' margin-right='0.7cm'>";
+                        xml += "<body font-size='10' style='font-family: Tahoma,sans-serif; height: 29.7cm; width: 21cm;' " +
+                            "header='nlheader' header-height='" + headerHeight + "' " +
+                            "footer='nlfooter' footer-height='20%' " + 
+                            "margin-left='0.7cm' margin-right='0.7cm'>";
+
                         xml += body;
-                        xml += footer;
 
                         xml += "\n</body>\n</pdf>";
 
                         xml = xml.replace(/ & /g, ' &amp; ');
+
                         response.renderPdf({
                             xmlString: xml
                         });
+
                     }
                     
                 }

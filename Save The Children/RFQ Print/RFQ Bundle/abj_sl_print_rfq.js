@@ -87,11 +87,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "<td style='width:50%; align:left; font-weight:bold; font-size:14px; color:white; background-color: red;'>SAVE THE CHILDREN</td>"
                 header += "<td style='width:50%; align:right; font-weight:bold; font-size:14px; color:white; background-color: red;'>REQUEST FOR QUOTATION</td>"
                 header += "</tr>"
-                header += "<tr style='height:10px;'></tr>"
                 header += "</tbody>";
                 header += "</table>";
 
-                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:8px;'>";
+                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:8px; font-weight:bold;'>";
                 header += "<tbody>";
                 header += "<tr>"
                 header += "<td style='width:12%; background-color: #9F9F9FFF; border:1px solid black; align:center;'>PR Number</td>"
@@ -100,11 +99,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "<td style='width:13%; border:1px solid black; border-left:none;'></td>"
                 header += "<td style='width:50%'></td>"
                 header += "</tr>"
-                header += "<tr style='height:10px;'></tr>"
+                header += "<tr>"
+                header += "<td style='font-weight:bold;' colspan='5'>PART 1 - INFORMATION FOR SUPPLIER : SUBMISSION DETAILS</td>"
+                header += "</tr>"
+                header += "<tr>"
+                header += "<td style='font-weight:bold;' colspan='5'><i>(SCI to Complete)</i></td>"
+                header += "</tr>"
                 header += "</tbody>";
                 header += "</table>";
 
-                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:8px;'>";
+                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:8px; font-weight:bold;'>";
                 header += "<tbody>";
                 header += "<tr>"
                 header += "<td style='width:8%'></td>"
@@ -144,6 +148,76 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "<td style='border:1px solid black; border-top:none; border-left:none; align:center;'></td>"
                 header += "</tr>"
 
+                header += "<tr>"
+                header += "<td style='font-weight:bold;' colspan='8'>PART 2 - BID SUBMISSION</td>"
+                header += "</tr>"
+                header += "<tr>"
+                header += "<td style='font-weight:bold;' colspan='8'><i>(Supplier to Complete)</i></td>"
+                header += "</tr>"
+
+                header += "</tbody>";
+                header += "</table>";
+
+                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:8px; font-weight:bold;'>";
+                header += "<tbody>";
+                header += "<tr>"
+                header += "<td style='width:15%'></td>"
+                header += "<td style='width:15%'></td>"
+                header += "<td style='width:5%'></td>"
+                header += "<td style='width:35%'></td>"
+                header += "<td style='width:15%'></td>"
+                header += "<td style='width:15%'></td>"
+                header += "</tr>"
+
+                header += "<tr>"
+                header += "<td style='font-weight:bold; color:white; background-color:red; align:center; border: 1px solid black;' colspan='2'>SUPPLIER INFORMATION</td>"
+                header += "<td></td>"
+                header += "<td style='font-weight:bold; color:white; background-color:red; align:center; border: 1px solid black;' colspan='3'>SUPPLIER DECLARATIONS</td>"
+                header += "</tr>"
+                header += "<tr>"
+                header += "<td style='font-weight:bold; background-color:#9F9F9FFF; align:center; border: 1px solid black; border-top:none;'>Supplier Name	</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
+                header += "<td></td>"
+                header += "<td style='font-weight:bold; background-color:#9F9F9FFF; border: 1px solid black; border-top:none;'>The supplier agrees and acknowledges that…</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Supplier Acceptance</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Comments</td>"
+                header += "</tr>"
+                header += "<tr>"
+                header += "<td style='font-weight:bold; background-color:#9F9F9FFF; align:center; border: 1px solid black; border-top:none;'>Contact Name</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
+                header += "<td></td>"
+                header += "<td style='font-weight:bold; background-color:#9F9F9FFF; border: 1px solid black; border-top:none;'>for any future orders placed, the Terms & Conditions shared as part of this RFQ will apply. If no Terms & Conditions were shared, the attached Terms and Conditions will apply.</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Yes</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
+                header += "</tr>"
+
+                header += "<tr>"
+                header += "<td style='font-weight:bold; background-color:#9F9F9FFF; align:center; border: 1px solid black; border-top:none;'>E-mail</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
+                header += "<td></td>"
+                header += "<td style='font-weight:bold; background-color:#9F9F9FFF; border: 1px solid black; border-top:none;'>to adhere to all the below mandatory Save the Children policies.</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Yes</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
+                header += "</tr>"
+
+                header += "<tr>"
+                header += "<td style='font-weight:bold; background-color:#9F9F9FFF; align:center; border: 1px solid black; border-top:none;'>Phone / Mobile</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
+                header += "<td></td>"
+                header += "<td style='font-weight:bold; background-color:#9F9F9FFF; border: 1px solid black; border-top:none;'>that all pricing included in the quote will be valid for a minimum of 60 days</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Yes</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
+                header += "</tr>"
+
+                header += "<tr>"
+                header += "<td style='font-weight:bold; background-color:#9F9F9FFF; align:center; border: 1px solid black; border-top:none;'>Address</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
+                header += "<td></td>"
+                header += "<td style='font-weight:bold; background-color:#9F9F9FFF; border: 1px solid black; border-top:none;'>this Request for Quotation does not constitute an order.</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Yes</td>"
+                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
+                header += "</tr>"
+
                 header += "</tbody>";
                 header += "</table>";
 
@@ -155,11 +229,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
                 body += "<tbody>";
                 body += "<tr>"
+                body += "<td style='width:5%;'></td>"
+                body += "<td style='width:25%;'></td>"
                 body += "<td style='width:15%;'></td>"
-                body += "<td style='width:15%;'></td>"
-                body += "<td style='width:15%;'></td>"
-                body += "<td style='width:15%;'></td>"
-                body += "<td style='width:15%;'></td>"
+                body += "<td style='width:10%;'></td>"
+                body += "<td style='width:10%;'></td>"
+                body += "<td style='width:10%;'></td>"
+                body += "<td style='width:25%;'></td>"
+                body += "<td style='width:25%;'></td>"
                 body += "<td style='width:25%;'></td>"
                 body += "</tr>"
 

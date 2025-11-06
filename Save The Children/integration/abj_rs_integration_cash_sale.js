@@ -70,7 +70,8 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
                     ignoreFieldChange: false,
                 });
             }
-            
+            var fields = createRec.getFields();
+            log.debug('Available fields', fields);
             var dateConverted = new Date(data.tranDate);
             log.debug('dateConverted', dateConverted)
             createRec.setValue({
@@ -97,7 +98,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
             });
             createRec.setValue({
                 fieldId: "cseg_stc_sof",
-                value: "66"
+                value: 66
             });
             // if(data.sof.internalId){
                 
