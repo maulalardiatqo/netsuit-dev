@@ -42,7 +42,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var xml = "";
                 var header = "";
                 var body = "";
-                var headerHeight = '30%';
+                var headerHeight = '33%';
                 var style = "";
                 var footer = "";
                 var pdfFile = null;
@@ -231,13 +231,24 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>"
                 body += "<td style='width:5%;'></td>"
                 body += "<td style='width:25%;'></td>"
-                body += "<td style='width:15%;'></td>"
+                body += "<td style='width:13%;'></td>"
+                body += "<td style='width:10%;'></td>"
+                body += "<td style='width:7%;'></td>"
+                body += "<td style='width:7%;'></td>"
+                body += "<td style='width:13%;'></td>"
                 body += "<td style='width:10%;'></td>"
                 body += "<td style='width:10%;'></td>"
-                body += "<td style='width:10%;'></td>"
-                body += "<td style='width:25%;'></td>"
-                body += "<td style='width:25%;'></td>"
-                body += "<td style='width:25%;'></td>"
+                body += "</tr>"
+												
+                body += "<tr>"
+                body += "<td style='font-weight:bold;' colspan='9'>SAVE THE CHILDREN REQUIREMENTS</td>"
+                body += "</tr>"
+                body += "<tr>"
+                body += "<td style='font-weight:bold;' colspan='9'><i>(SCI & Supplier to Complete)</i></td>"
+                body += "</tr>"
+
+                body += "<tr>"
+                body += "<td></td>"
                 body += "</tr>"
 
                 body += "</tbody>";
