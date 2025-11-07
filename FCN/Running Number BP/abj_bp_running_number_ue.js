@@ -10,7 +10,7 @@ define(["N/record", "N/search"], function(
 ) {
   function afterSubmit(context) {
     try {
-      if (context.type == context.UserEventType.CREATE ) {
+      if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT) {
 
         var rec = context.newRecord;
         log.debug('rec', rec)
@@ -51,23 +51,27 @@ define(["N/record", "N/search"], function(
         log.debug('formatRunning', formatRunning);
 
 
-        var searchBPNumber =  search.create({
-          type: 'customrecord_bp_numbering',
-          columns: ['internalid', 'custrecord_fcn_bpn_subsidiary', 'custrecord_fcn_bpn_last_run', 'custrecord_fcn_bpn_minimum_digit', 'custrecord_fcn_bpn_start_date', 'custrecord_fcn_bpn_end_date', 'custrecord_fcn_bpn_sample_format'],
-          filters: [{
-            name: 'custrecord_fcn_bpn_subsidiary',
-            operator: 'is',
-            values: subsidiary
-          },{
-              name: 'custrecord_fcn_bpn_start_date',
-              operator: 'onorbefore',
-              values: formattedDate
-          },{
-              name: 'custrecord_fcn_bpn_end_date',
-              operator: 'onorafter',
-              values: formattedDate
-          }]
-        });
+        var searchBPNumber = search.create({
+        type: "customrecord_bp_numbering",
+        filters:
+        [
+            ["custrecord_fcn_bpn_subsidiary","anyof",subsidiary], 
+            "AND", 
+            ["custrecord_fcn_bpn_start_date","onorbefore",formattedDate], 
+            "AND", 
+            ["custrecord_fcn_bpn_end_date","onorafter",formattedDate]
+        ],
+        columns:
+        [
+            search.createColumn({name: "internalid", label: "Internal ID"}),
+            search.createColumn({name: "custrecord_fcn_bpn_subsidiary", label: "Subsidiary"}),
+            search.createColumn({name: "custrecord_fcn_bpn_last_run", label: "Last Running Number"}),
+            search.createColumn({name: "custrecord_fcn_bpn_minimum_digit", label: "Minimum Digit"}),
+            search.createColumn({name: "custrecord_fcn_bpn_start_date", label: "Start Date"}),
+            search.createColumn({name: "custrecord_fcn_bpn_end_date", label: "End Date"}),
+            search.createColumn({name: "custrecord_fcn_bpn_sample_format", label: "Sample Format"})
+        ]
+      });
       var searchBPNumberSet = searchBPNumber.run()
       searchBPNumber = searchBPNumberSet.getRange({
           start: 0,

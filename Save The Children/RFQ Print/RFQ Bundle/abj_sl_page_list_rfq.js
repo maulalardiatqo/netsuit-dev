@@ -6,10 +6,8 @@ define(['N/ui/serverWidget', 'N/search', 'N/runtime'], (ui, search, runtime) => 
 
     const onRequest = (context) => {
         if (context.request.method === 'GET') {
-            // === FORM SETUP ===
             const form = ui.createForm({ title: 'Print RFQ' });
 
-            // Field Select
             const rfqField = form.addField({
                 id: 'custpage_rfq_select',
                 type: ui.FieldType.SELECT,

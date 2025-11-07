@@ -29,21 +29,33 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 log.debug('recid', recid)
                 if(recid){
                     var recLoad = record.load({
-                        type : "requestforquote",
+                        type : "vendorrequestforquote",
                         id : recid
                     });
                     var trandId = recLoad.getValue('tranid');
                     log.debug('trandId', trandId)
                 }
                 // data Header
-
-                var fieldPR = recLoad.getValue('custbody_stc_link_to_pr');
-                var serchTrans = search.lookupFields({
-                    type: "purchaserequisition",
-                    id: fieldPR,
-                    columns: ["tranid"],
-                });
-                var prNo = serchTrans.tranid
+                var rfqId = recLoad.getValue('parent');
+                log.debug('rfqId', rfqId)
+                var idPR
+                if(rfqId){
+                    var rfqRec = record.load({
+                        type : "requestforquote",
+                        id : rfqId
+                    });
+                    idPR = rfqRec.getValue('custbody_stc_link_to_pr')
+                }
+                var prNo = ''
+                if(idPR){
+                    var serchTrans = search.lookupFields({
+                        type: "purchaserequisition",
+                        id: idPR,
+                        columns: ["tranid"],
+                    });
+                    prNo = serchTrans.tranid
+                }
+                
                 log.debug('prNo', prNo)
                 var sendDate = recLoad.getValue('startdate');
                 var bidCloseDate = recLoad.getValue('bidclosedate');
@@ -110,9 +122,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "<tbody>";
                 header += "<tr>"
                 header += "<td style='width:12%; background-color: #9F9F9FFF; border:1px solid black; align:center;'>PR Number</td>"
-                header += "<td style='width:13%; border:1px solid black; border-left:none;'></td>"
+                header += "<td style='width:13%; border:1px solid black; border-left:none;'>"+prNo+"</td>"
                 header += "<td style='width:12%; background-color: #9F9F9FFF; border:1px solid black; border-left:none; align:center;'>Date RFQ Issued</td>"
-                header += "<td style='width:13%; border:1px solid black; border-left:none;'></td>"
+                header += "<td style='width:13%; border:1px solid black; border-left:none;'>"+formatDateToDDMMYYYY(sendDate)+"</td>"
                 header += "<td style='width:50%'></td>"
                 header += "</tr>"
                 header += "<tr>"
