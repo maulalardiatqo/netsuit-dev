@@ -101,141 +101,36 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "<tbody>";
                 header += "<tr>"
                 header += "<td style='width:50%; align:left; font-weight:bold; font-size:14px; color:white; background-color: red;'>SAVE THE CHILDREN</td>"
-                header += "<td style='width:50%; align:right; font-weight:bold; font-size:14px; color:white; background-color: red;'>REQUEST FOR QUOTATION</td>"
                 header += "</tr>"
                 header += "</tbody>";
                 header += "</table>";
 
-                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:7px; font-weight:bold;'>";
+                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:8px;'>";
                 header += "<tbody>";
                 header += "<tr>"
-                header += "<td style='width:12%; background-color: #9F9F9FFF; border:1px solid black; align:center;'>PR Number</td>"
-                header += "<td style='width:13%; border:1px solid black; border-left:none;'></td>"
-                header += "<td style='width:12%; background-color: #9F9F9FFF; border:1px solid black; border-left:none; align:center;'>Date RFQ Issued</td>"
-                header += "<td style='width:13%; border:1px solid black; border-left:none;'></td>"
-                header += "<td style='width:50%'></td>"
+                header += "<td style='width:3%;'></td>"
+                header += "<td style='width:19%;'></td>"
+                header += "<td style='width:8%;'></td>"
+                header += "<td style='width:10%;'></td>"
+                header += "<td style='width:8%;'></td>"
+                header += "<td style='width:5%;'></td>"
+                header += "<td style='width:8%;'></td>"
+                header += "<td style='width:8%;'></td>"
+                header += "<td style='width:8%;'></td>"
+                header += "<td style='width:5%;'></td>"
+                header += "<td style='width:5%;'></td>"
+                header += "<td style='width:5%;'></td>"
+                header += "<td style='width:8%;'></td>"
                 header += "</tr>"
+
                 header += "<tr>"
-                header += "<td style='font-weight:bold;' colspan='5'>PART 1 - INFORMATION FOR SUPPLIER : SUBMISSION DETAILS</td>"
-                header += "</tr>"
-                header += "<tr>"
-                header += "<td style='font-weight:bold;' colspan='5'><i>(SCI to Complete)</i></td>"
+                header += "<td colspan='2'>PR Reference No.</td>"
+                header += "<td colspan='8'></td>"
+                header += "<td colspan='2'>PR Reference No.</td>"
                 header += "</tr>"
                 header += "</tbody>";
                 header += "</table>";
 
-                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:7px; font-weight:bold;'>";
-                header += "<tbody>";
-                header += "<tr>"
-                header += "<td style='width:8%'></td>"
-                header += "<td style='width:12%'></td>"
-                header += "<td style='width:8%'></td>"
-                header += "<td style='width:12%'></td>"
-                header += "<td style='width:10%'></td>"
-                header += "<td style='width:20%'></td>"
-                header += "<td style='width:20%'></td>"
-                header += "<td style='width:10%'></td>"
-                header += "</tr>"
-                header += "<tr>"
-                header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-right:none; align:center;' colspan='6'>SUBMISSION INFORMATION</td>"
-                header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-left:none; align:center;' colspan='2'>REQUIREMENTS INFORMATION</td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; align:center; vertical-align:middle;' rowspan='3'>Deadline for Submission</td>"
-                header += "<td style='border:1px solid black; border-top:none; align:center; border-left:none; vertical-align:middle;' rowspan='3'></td>"
-                header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; border-left:none; align:center;'>Submission Format ?</td>"
-                header += "<td style='border:1px solid black; border-top:none; align:center; border-left:none;'>By Netsuite/Email</td>"
-                header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; border-left:none; align:center; vertical-align:middle;' rowspan='3'>Deadline for Submission</td>"
-                header += "<td style='border:1px solid black; border-top:none; align:center; border-left:none; vertical-align:middle;' rowspan='3'></td>"
-                header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; border-left:none; align:center;'>Date Goods / Services Required</td>"
-                header += "<td style='border:1px solid black; border-top:none; align:center; border-left:none;'></td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; border-left:none; align:center; vertical-align:middle;' rowspan='2'>Submission Location (Email Address / Address)</td>"
-                header += "<td style='border:1px solid black; border-top:none; border-left:none; align:center; vertical-align:middle;' rowspan='2'></td>"
-                header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; border-left:none; align:center;'>Delivery Address for Goods / Services</td>"
-                header += "<td style='border:1px solid black; border-top:none; border-left:none; align:center;'></td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; border-left:none; align:center;'>Requirement Incoterms</td>"
-                header += "<td style='border:1px solid black; border-top:none; border-left:none; align:center;'></td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td style='font-weight:bold;' colspan='8'>PART 2 - BID SUBMISSION</td>"
-                header += "</tr>"
-                header += "<tr>"
-                header += "<td style='font-weight:bold;' colspan='8'><i>(Supplier to Complete)</i></td>"
-                header += "</tr>"
-
-                header += "</tbody>";
-                header += "</table>";
-
-                header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:7px; font-weight:bold;'>";
-                header += "<tbody>";
-                header += "<tr>"
-                header += "<td style='width:15%'></td>"
-                header += "<td style='width:15%'></td>"
-                header += "<td style='width:5%'></td>"
-                header += "<td style='width:35%'></td>"
-                header += "<td style='width:15%'></td>"
-                header += "<td style='width:15%'></td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td style='font-weight:bold; color:white; background-color:red; align:center; border: 1px solid black;' colspan='2'>SUPPLIER INFORMATION</td>"
-                header += "<td></td>"
-                header += "<td style='font-weight:bold; color:white; background-color:red; align:center; border: 1px solid black;' colspan='3'>SUPPLIER DECLARATIONS</td>"
-                header += "</tr>"
-                header += "<tr>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none;'>Supplier Name	</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
-                header += "<td></td>"
-                header += "<td style='font-weight:bold; border: 1px solid black; border-top:none;'>The supplier agrees and acknowledges that…</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Supplier Acceptance</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Comments</td>"
-                header += "</tr>"
-                header += "<tr>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none;'>Contact Name</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
-                header += "<td></td>"
-                header += "<td style='font-weight:bold; border: 1px solid black; border-top:none;'>for any future orders placed, the Terms & Conditions shared as part of this RFQ will apply. If no Terms & Conditions were shared, the attached Terms and Conditions will apply.</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Yes</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none;'>E-mail</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
-                header += "<td></td>"
-                header += "<td style='font-weight:bold; border: 1px solid black; border-top:none;'>to adhere to all the below mandatory Save the Children policies.</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Yes</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none;'>Phone / Mobile</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
-                header += "<td></td>"
-                header += "<td style='font-weight:bold; border: 1px solid black; border-top:none;'>that all pricing included in the quote will be valid for a minimum of 60 days</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Yes</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
-                header += "</tr>"
-
-                header += "<tr>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none;'>Address</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
-                header += "<td></td>"
-                header += "<td style='font-weight:bold; border: 1px solid black; border-top:none;'>this Request for Quotation does not constitute an order.</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Yes</td>"
-                header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'></td>"
-                header += "</tr>"
-
-                header += "</tbody>";
-                header += "</table>";
 
                 body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:7px;\">";
                 body += "<tbody>";
@@ -293,7 +188,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "</macrolist>";
                 xml += "</head>";
 
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' margin-left='0.5cm' margin-right='0.5cm'>";
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 21cm; width: 29.7cm;' header='nlheader' header-height='" + headerHeight + "' margin-left='0.5cm' margin-right='0.5cm'>";
                 xml += body;
                 xml += footer;
 
