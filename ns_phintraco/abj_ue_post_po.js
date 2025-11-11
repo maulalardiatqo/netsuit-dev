@@ -219,7 +219,12 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                     type : recordV.type,
                     id : idRec
                 })
-
+                var statusOld = oldRec.getValue('approvalstatus')
+                var statusNew = rec.getValue('approvalstatus');
+                log.debug('statusCek',{
+                    statusOld : statusOld,
+                    statusNew : statusNew
+                })
                 var isAttach = false
                 var isApprover = false
                 const cekLineAttach = rec.getLineCount({
@@ -344,7 +349,7 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 const cekIdWeb = rec.getValue('custbody_id_web');
                 log.debug('cekFlagApproval', cekFlagApproval)
                 const cekResubmit = rec.getValue('custbody_abj_trigger_resubmit');
-                if(cekFlagApproval == true && cekAppralStat != '2' && !cekResubmit){
+                if(cekFlagApproval == true && cekAppralStat != '2' && !cekResubmit && cekAppralStat != '3'){
                     form.addButton({
                         id: 'custpage_button_recall',
                         label: "Recall",
@@ -356,8 +361,17 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 if(cekAppralStat == '2' && cekIdWeb){
                     form.addButton({
                         id: 'custpage_button_resubmit',
-                        label: "Resubmit For Approval",
+                        label: "Resubmit Revision",
                         functionName: "resubmit()"
+                    });
+                    form.removeButton('edit');
+                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
+                }
+                if(cekAppralStat == '3' && cekIdWeb){
+                    form.addButton({
+                        id: 'custpage_button_resubmit_app',
+                        label: "Resubmit Approval",
+                        functionName: "afterReject()"
                     });
                     form.removeButton('edit');
                     context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"

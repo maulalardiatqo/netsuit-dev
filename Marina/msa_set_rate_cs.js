@@ -47,34 +47,24 @@ define(["N/error", "N/log", "N/search", "N/record", "N/currentRecord"],
                         fieldId: 'taxrate1',
                         line: lineNum
                     });
-                    var objGrosir
-                    log.debug('cust_id', cust_id)
-                    if(cust_id){
-                        var customerSearchObj = search.create({
-                            type: "customer",
-                            filters:
-                            [
-                                ["internalid","anyof",cust_id]
-                            ],
-                            columns:
-                            [
-                                search.createColumn({name: "custentity_ajb_grosir_list", label: "Grosir List"})
-                            ]
-                            });
-                            var searchResultCount = customerSearchObj.runPaged().count;
-                            log.debug("customerSearchObj result count",searchResultCount);
-                        customerSearchObj.run().each(function(result){
-                            var grosir = result.getValue({
-                                name : 'custentity_ajb_grosir_list'
-                            })
-                            if(grosir){
-                                objGrosir = grosir
-                            }
-                            return true;
+                    var objGrosir;
+                    log.debug('cust_id', cust_id);
+
+                    if (cust_id) {
+                        var lookupCust = search.lookupFields({
+                            type: 'customer',
+                            id: cust_id,
+                            columns: ['custentity_ajb_grosir_list']
                         });
+
+                        if (lookupCust && lookupCust.custentity_ajb_grosir_list) {
+                            objGrosir = lookupCust.custentity_ajb_grosir_list;
+                        }
                     }
-                     console.log('objGrosir', objGrosir)
+
                     log.debug('objGrosir', objGrosir);
+                    console.log('objGrosir', objGrosir);
+
                     var cust_grosir_list = 0;
                     if (objGrosir.length > 0) {
                         cust_grosir_list = objGrosir[0].value;

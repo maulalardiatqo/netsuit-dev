@@ -61,8 +61,20 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
             var projectTotal = recLoad.getValue('projectedtotal') || "";
             var date = recLoad.getValue('custbody_stc_tar_date') || "";
             var icr = recLoad.getValue('custbody_stc_icr') || "";
+            var projectId = recLoad.getValue('job');
+            var startDate 
+            var enddate
+            if(projectId){
+                var fieldLookUpSection = search.lookupFields({
+                    type: "job",
+                    id: projectId,
+                    columns: ["startdate", "enddate"],
+                });
+                startDate = fieldLookUpSection.startdate;
+                enddate = fieldLookUpSection.enddate;
+            }
 
-            console.log('Data yang diambil:', { titel, company, details, projectTotal, date, icr });
+            console.log('Data yang diambil:', { titel, company, details, projectTotal, date, icr, startDate, enddate, projectId });
 
             if (!titel) {
                 processMsg.hide();
@@ -74,7 +86,20 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                 button.value = 'Create SOF';
                 return;
             }
-
+            function parseDateDDMMYYYY(dateStr) {
+                if (!dateStr) return null;
+                var parts = dateStr.split("/"); // [DD, MM, YYYY]
+                var day = parseInt(parts[0], 10);
+                var month = parseInt(parts[1], 10) - 1; // JS month is 0-based
+                var year = parseInt(parts[2], 10);
+                return new Date(year, month, day);
+            }
+            var startDateObj = parseDateDDMMYYYY(startDate);
+            var endDateObj = parseDateDDMMYYYY(enddate)
+            console.log('date', {
+                startDateObj : startDateObj,
+                endDateObj : endDateObj
+            })
             // Create record custom SOF
             var recCreate = record.create({
                 type: "customrecord_cseg_stc_sof"
@@ -83,9 +108,11 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
             recCreate.setValue({ fieldId: "custrecord8", value: company });
             recCreate.setValue({ fieldId: "custrecord3", value: details });
             recCreate.setValue({ fieldId: "custrecord4", value: projectTotal });
-            recCreate.setValue({ fieldId: "custrecord5", value: date });
+            recCreate.setValue({ fieldId: "custrecord5", value: startDateObj });
             recCreate.setValue({ fieldId: "custrecord12", value: icr });
             recCreate.setValue({ fieldId: "custrecordstc_sof_createdfrom", value: recId });
+            recCreate.setValue({ fieldId: "custrecord_sof_project", value: projectId });
+            recCreate.setValue({ fieldId: "custrecord6", value: endDateObj });
 
             var sofId = recCreate.save();
 
