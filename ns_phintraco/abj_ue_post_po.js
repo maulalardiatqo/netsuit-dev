@@ -413,7 +413,7 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 })
                 rec.setValue({
                     fieldId : 'custbody_abj_revision_code',
-                    value : false
+                    value : ''
                 })
                 
             }

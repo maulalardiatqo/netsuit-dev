@@ -99,6 +99,19 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime'],
                     fieldId : 'custbody_abj_flag_approval',
                     value : false
                 })
+                var cekLine = recordLoad.getLineCount({
+                    sublistId: 'recmachcustrecord_abj_a_id'
+                });
+                if(cekLine > 0){
+                    for(var i = 0; i < cekLine; i++){
+                        recordLoad.setSublistValue({
+                            sublistId : 'recmachcustrecord_abj_a_id',
+                            fieldId : 'custrecord_abj_status_approve',
+                            value : '1',
+                            line : i
+                        });
+                    }
+                }
                 var cekRec = recordLoad.save()
                 if(cekRec){
                     dialog.alert({
