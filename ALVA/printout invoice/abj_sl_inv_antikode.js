@@ -533,6 +533,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='width:45%;'></td>";
                 body += "</tr>";
 
+                body += "<tr style='height:15px'>"
+                body += "</tr>"
                 body += "<tr>";
                 body += "<td style='text-align:left; font-weight:bold;'>BILL TO</td>";
                 body += "<td style='text-align:left; font-weight:bold;'></td>";
@@ -556,10 +558,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr>";
                 body += "<td style='height:5px; background-color:' colspan='3'></td>";
                 body += "</tr>";
+                body += "<tr style='height:15px;'>"
+                body += "</tr>"
 
                 body += "<tr>";
                 body += "<td style='height:5px; background-color:#595B61FF;' colspan='3'></td>";
                 body += "</tr>";
+
+                
 
                 body += "</tbody>";
                 body += "</table>";
@@ -568,7 +574,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
     
                 body+= "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
-            
+                
                 body += "<tr>";
                 body += "<td style='width:45%;'></td>";
                 body += "<td style='width:5%;'></td>";
@@ -576,6 +582,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='width:30%;'></td>";
                 body += "</tr>";
 
+                
                 body += "<tr style='height:30px;'>";
                 body += "<td style='padding-left:10px; background-color:#595B61FF; color:#FAFBFD; vertical-align: middle;'>ACTIVITY</td>";
                 body += "<td style='background-color:#595B61FF; color:#FAFBFD; vertical-align: middle;'>QTY</td>";
@@ -620,12 +627,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='align:right;'>"+totalVat+"</td>";
                 body += "</tr>";
                 
-                body += "<tr style='height:10px'>"
+                body += "<tr style=''>"
                 body += "</tr>";
                 body += "<tr>"
                 body += "<td colspan='4'>Tax Basis: (11/12) x DPP</td>"
                 body += "</tr>";
 
+                body += "<tr style='height:15px;'>"
+                body += "</tr>";
                 body += "<tr>"
                 body += "<td colspan='4'>Other Information : "+otherComment+"</td>"
                 body += "</tr>";
@@ -670,7 +679,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tr style=''>";
                 body += "<td></td>"
                 body += "<td style='align:right; vertical-align:middle;background-color:#595B61FF;color:#FAFBFD;padding-right:40px;' rowspan='2'>TOTAL DUE</td>"
-                body += "<td style='font-weight:bold;font-size:20px;background-color:#595B61FF;color:#FAFBFD;padding-left:20px;'>"+totalDueCount+" Rp</td>"
+                body += "<td style='font-weight:bold;font-size:20px;background-color:#595B61FF;color:#FAFBFD;padding-left:20px;'>Rp. "+totalDueCount+"</td>"
                 body += "</tr>";
 
 
@@ -688,6 +697,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<td style='width:30%;'></td>"
                 footer += "</tr>";
 
+                footer += "<tr style='height:50px'>";
+                footer += "</tr>";
                 footer += "<tr style=''>";
                 footer += "<td style='font-weight:bold;font-size:20px;'></td>"
                 footer += "<td style='align:right;' colspan='2'>"+nameSignatured+"</td>"
@@ -716,7 +727,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "</macro>";
                 xml += "</macrolist>";
                 xml += "</head>"
-                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='25%'>";
+                xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 29.7cm; width: 21cm;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='10%'>";
                 xml += body;
                 xml += "\n</body>\n</pdf>";
     

@@ -10,8 +10,11 @@ define(["N/record", "N/search"], function(
 ) {
   function afterSubmit(context) {
     try {
-      if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT) {
-
+      log.debug('context.type', context.type)
+      if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT ||  context.type == context.UserEventType.PAYBILLS) {
+        if(context.type == context.UserEventType.PAYBILLS){
+          log.debug('make payment')
+        }
         var rec = context.newRecord;
         log.debug('rec', rec)
         log.debug('execute')

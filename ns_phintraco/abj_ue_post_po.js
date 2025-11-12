@@ -219,12 +219,6 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                     type : recordV.type,
                     id : idRec
                 })
-                var statusOld = oldRec.getValue('approvalstatus')
-                var statusNew = rec.getValue('approvalstatus');
-                log.debug('statusCek',{
-                    statusOld : statusOld,
-                    statusNew : statusNew
-                })
                 var isAttach = false
                 var isApprover = false
                 const cekLineAttach = rec.getLineCount({
