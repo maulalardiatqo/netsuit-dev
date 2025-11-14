@@ -52,6 +52,14 @@ define(["N/runtime", "N/log"], (runtime, log) => {
                 });
                 context.form.clientScriptModulePath = "SuiteScripts/abj_cs_je_premis.js"
             }
+            if(cForm == 141){
+                form.addButton({
+                    id: 'custpage_btn_generate_sof',
+                    label: "Generate SOF List",
+                    functionName: "generate()"
+                });
+                context.form.clientScriptModulePath = "SuiteScripts/abj_cs_je_non_premis.js"
+            }
         }
 }
 return {
