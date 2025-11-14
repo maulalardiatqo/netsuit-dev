@@ -266,6 +266,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                     value : 20
                 })
                 recCreate.setValue({
+                    fieldId : 'payablesaccount',
+                    value : 110
+                })
+                recCreate.setValue({
                     fieldId : 'comments',
                     value : otherName
                 })

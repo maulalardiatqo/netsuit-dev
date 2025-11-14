@@ -125,7 +125,12 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                     value: sofId
                 });
                 recLoad.save();
-
+                record.submitFields({
+                    type: 'job',
+                    id: projectId,
+                    values: { cseg_stc_sof: sofId },
+                    options: { enableSourcing: false, ignoreMandatoryFields: true }
+                });
                 var successMsg = message.create({
                     title: "Success",
                     message: "Record SOF berhasil dibuat (ID: " + sofId + ")",

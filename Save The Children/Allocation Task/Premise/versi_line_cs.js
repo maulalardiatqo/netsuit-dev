@@ -75,6 +75,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
     function generate(context) {
         console.log('called generate');
+
         var sofIdHead = records.getValue('cseg_stc_sof');
         var accountHeader = records.getValue('custbody_stc_source_account_allocation');
         var amountAllocated = records.getValue('custbody_abj_amount_to_allocate');
@@ -96,41 +97,64 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var page = pagedData.fetch({ index: pageRange.index });
             page.data.forEach(function (result) {
                 sofResult.push({
-                    sofId: result.getValue({ name: 'internalid' })
+                    sofId: result.getValue({ name: 'internalid' }),
+                    deaPromise: [] 
                 });
             });
         });
 
-        console.log('sofResult.length', sofResult.length);
-        var idDea = '';
+        console.log('sofResult', sofResult);
 
-        if (accountHeader && sofIdHead) {
-            console.log('masuk search');
+        if (accountHeader && sofResult.length > 0) {
+            console.log('masuk search DEA Promise');
+
             var searchDea = search.load({ id: 'customsearch_dea_promise' });
-            var filters = searchDea.filters;
+            var filters = searchDea.filters || [];
 
             filters.push(search.createFilter({
                 name: 'cseg_stc_segmentdea_filterby_cseg_stc_sof',
-                operator: search.Operator.IS,
-                values: sofIdHead
+                operator: search.Operator.ANYOF,
+                values: sofResult.map(s => s.sofId)
             }));
+
+            // filters.push(search.createFilter({
+            //     name: 'custrecord_stc_dea_account_relation',
+            //     operator: search.Operator.IS,
+            //     values: accountHeader
+            // }));
+
             searchDea.filters = filters;
 
-            var result = searchDea.run().getRange({ start: 0, end: 1 });
+            var deaPaged = searchDea.runPaged({ pageSize: 1000 });
+            deaPaged.pageRanges.forEach(function (pageRange) {
+                var page = deaPaged.fetch({ index: pageRange.index });
+                page.data.forEach(function (res) {
+                    var sofLinked = res.getValue({
+                        name: 'cseg_stc_segmentdea_filterby_cseg_stc_sof'
+                    });
 
-            if (result && result.length > 0) {
-                var firstResult = result[0];
-                idDea = firstResult.getValue({ name: "internalid" });
-                console.log('idDea:', idDea);
-            }
+                    var drcSegmen = res.getValue({
+                        name: 'cseg_stc_segmentdea_filterby_cseg_stc_drc_segmen'
+                    });
 
-            // ✅ CEK DULU apakah sublist ada isinya
+                    var target = sofResult.find(s => s.sofId == sofLinked);
+                    if (target) {
+                        target.deaPromise.push({
+                            deaId: res.getValue({ name: 'internalid' }),
+                            deaName: res.getValue({ name: 'name' }),
+                            drcSegmen: drcSegmen || null
+                        });
+                    }
+                });
+            });
+
+            console.log('sofResult mapped:', JSON.stringify(sofResult));
+
             var lineCount = records.getLineCount({
                 sublistId: 'recmachcustrecord_stc_trx_id_allocation'
             });
             console.log('lineCount existing:', lineCount);
 
-            // Jika ada line, hapus semuanya
             if (lineCount > 0) {
                 for (var i = lineCount - 1; i >= 0; i--) {
                     records.removeLine({
@@ -141,31 +165,68 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 console.log('All existing lines removed.');
             }
 
-            // ✅ Setelah sublist kosong, tambahkan line baru
             sofResult.forEach(function (item) {
                 var sofId = item.sofId;
-                records.selectNewLine({ sublistId: 'recmachcustrecord_stc_trx_id_allocation' });
-                records.setCurrentSublistValue({
-                    sublistId: 'recmachcustrecord_stc_trx_id_allocation',
-                    fieldId: 'custrecord_stc_list_coa_allocation',
-                    value: accountHeader
-                });
-                records.setCurrentSublistValue({
-                    sublistId: 'recmachcustrecord_stc_trx_id_allocation',
-                    fieldId: 'custrecord_stc_list_sof_allocation',
-                    value: sofId
-                });
-                if (idDea) {
+
+                if (item.deaPromise.length === 0) {
+                    records.selectNewLine({ sublistId: 'recmachcustrecord_stc_trx_id_allocation' });
                     records.setCurrentSublistValue({
                         sublistId: 'recmachcustrecord_stc_trx_id_allocation',
-                        fieldId: 'custrecord_stc_list_dea_to_allocate',
-                        value: idDea
+                        fieldId: 'custrecord_stc_list_coa_allocation',
+                        value: accountHeader
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: 'recmachcustrecord_stc_trx_id_allocation',
+                        fieldId: 'custrecord_stc_list_sof_allocation',
+                        value: sofId
+                    });
+                    // records.setCurrentSublistValue({
+                    //     sublistId: 'recmachcustrecord_stc_trx_id_allocation',
+                    //     fieldId: 'custrecord_stc_list_dea_to_allocate',
+                    //     value: null
+                    // });
+                    // records.setCurrentSublistValue({
+                    //     sublistId: 'recmachcustrecord_stc_trx_id_allocation',
+                    //     fieldId: 'cseg_stc_drc_segmen',
+                    //     value: null
+                    // });
+                    records.commitLine({ sublistId: 'recmachcustrecord_stc_trx_id_allocation' });
+                } else {
+                    item.deaPromise.forEach(function (dea) {
+                        records.selectNewLine({ sublistId: 'recmachcustrecord_stc_trx_id_allocation' });
+                        records.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_stc_trx_id_allocation',
+                            fieldId: 'custrecord_stc_list_coa_allocation',
+                            value: accountHeader
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_stc_trx_id_allocation',
+                            fieldId: 'custrecord_stc_list_sof_allocation',
+                            value: sofId
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_stc_trx_id_allocation',
+                            fieldId: 'custrecord_stc_list_dea_to_allocate',
+                            value: dea.deaId || ''
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_stc_trx_id_allocation',
+                            fieldId: 'cseg_stc_segmentdea',
+                            value: dea.deaId || ''
+                        });
+                        records.setCurrentSublistValue({
+                            sublistId: 'recmachcustrecord_stc_trx_id_allocation',
+                            fieldId: 'cseg_stc_drc_segmen',
+                            value: dea.drcSegmen || ''
+                        });
+                        records.commitLine({ sublistId: 'recmachcustrecord_stc_trx_id_allocation' });
                     });
                 }
-                records.commitLine({ sublistId: 'recmachcustrecord_stc_trx_id_allocation' });
             });
         }
     }
+
+
 
     function calculate(context) {
         console.log('called calculate');
@@ -184,7 +245,12 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             for (var i = 0; i < cekLine; i++) {
                 var dea = records.getSublistValue({
                     sublistId: 'recmachcustrecord_stc_trx_id_allocation',
-                    fieldId: 'custrecord_stc_list_dea_to_allocate',
+                    fieldId: 'cseg_stc_segmentdea',
+                    line: i
+                });
+                var drc = records.getSublistValue({
+                    sublistId: 'recmachcustrecord_stc_trx_id_allocation',
+                    fieldId: 'cseg_stc_drc_segmen',
                     line: i
                 });
                 var sofId = records.getSublistValue({
@@ -202,7 +268,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     allDataSet.push({
                         dea: dea,
                         sofId: sofId,
-                        percentage: percentage
+                        percentage: percentage,
+                        drc : drc
                     });
                 } else {
                     alert('Please make sure that percentage to count is filled');
@@ -233,23 +300,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
                 // ✅ Setelah kosong, baru tambahkan line baru
                 var total = 0;
-                var deaId
-                var drcId
                 allDataSet.forEach(function (data) {
                     var dea = data.dea;
-                    deaId = dea
-                    var drc = '';
-                    if (dea) {
-                        var searchDrc = search.lookupFields({
-                            type: "customrecord_cseg_stc_segmentdea",
-                            id: dea,
-                            columns: ["cseg_stc_segmentdea_filterby_cseg_stc_drc_segmen"]
-                        });
-                        drc = searchDrc.cseg_stc_segmentdea_filterby_cseg_stc_drc_segmen;
-                    }
-                    if(drc){
-                        drcId = drc
-                    }
+                    var drc = data.drc
+                    
                     var sofId = data.sofId;
                     var percentage = data.percentage;
                     var memoSet = memo + ' ' + percentage + '%';
@@ -277,15 +331,16 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: 'class',
                         value: projectCodeIdClass
                     });
-                    records.setCurrentSublistValue({
-                        sublistId: 'line',
-                        fieldId: 'cseg_stc_sof',
-                        value: sofId
-                    });
+                    
                     records.setCurrentSublistValue({
                         sublistId: 'line',
                         fieldId: 'memo',
                         value: memoSet
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'cseg_stc_sof',
+                        value: sofId
                     });
                     if(drc){
                         records.setCurrentSublistValue({
@@ -298,7 +353,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         records.setCurrentSublistValue({
                             sublistId: 'line',
                             fieldId: 'cseg_stc_segmentdea',
-                            value: drc
+                            value: dea
                         });
                     }
                     
@@ -306,7 +361,38 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 });
 
                 if (total > 0) {
-                    // Tambahkan baris kredit (total)
+                    var idDea = ''
+                    var idDrc = ''
+                    var deaSearch = search.load({
+                        id : 'customsearch_dea_promise'
+                    });
+                    var filters = deaSearch.filters;
+                    // filters.push(search.createFilter({
+                    //     name: 'custrecord_stc_dea_account_relation',
+                    //     operator: search.Operator.IS,
+                    //     values: accountHeader
+                    // }));
+                    filters.push(search.createFilter({
+                        name: 'cseg_stc_segmentdea_filterby_cseg_stc_sof',
+                        operator: search.Operator.IS,
+                        values: sofIdHead
+                    }));
+                    deaSearch.filters = filters;
+
+                    var result = deaSearch.run().getRange({ start: 0, end: 1 });
+
+                    if (result && result.length > 0) {
+                        var firstResult = result[0];
+                        idDea = firstResult.getValue({
+                            name: "internalid"
+                        });
+                        console.log('idDea', idDea)
+                        idDrc = firstResult.getValue({
+                            name: "cseg_stc_segmentdea_filterby_cseg_stc_drc_segmen"
+                        });
+                        console.log('idDrc', idDrc)
+                        
+                    }
                     records.selectNewLine({ sublistId: 'line' });
                     records.setCurrentSublistValue({
                         sublistId: 'line',
@@ -333,18 +419,18 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: 'cseg_stc_sof',
                         value: sofIdHead
                     });
-                    if(drcId){
+                    if(idDrc){
                         records.setCurrentSublistValue({
                             sublistId: 'line',
                             fieldId: 'cseg_stc_drc_segmen',
-                            value: drcId
+                            value: idDrc
                         });
                     }
-                    if(deaId){
+                    if(idDea){
                         records.setCurrentSublistValue({
                             sublistId: 'line',
                             fieldId: 'cseg_stc_segmentdea',
-                            value: deaId
+                            value: idDea
                         });
                     }
                     records.commitLine({ sublistId: 'line' });

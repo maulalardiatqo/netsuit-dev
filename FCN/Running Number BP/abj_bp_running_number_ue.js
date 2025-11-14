@@ -11,7 +11,7 @@ define(["N/record", "N/search"], function(
   function afterSubmit(context) {
     try {
       log.debug('context.type', context.type)
-      if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT ||  context.type == context.UserEventType.PAYBILLS) {
+      if (context.type == context.UserEventType.CREATE ||  context.type == context.UserEventType.PAYBILLS) {
         if(context.type == context.UserEventType.PAYBILLS){
           log.debug('make payment')
         }
