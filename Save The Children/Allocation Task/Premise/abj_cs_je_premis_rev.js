@@ -200,7 +200,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var memoSet = 'Allocation Premise Office Rental ' + periodText;
             sofResult.forEach(function (item) {
                 var sofId = item.sofId;
-                var amountTempt = 1
+                var amountTempt = 0
                 totalAmountTemp = Number(totalAmountTemp) + Number(amountTempt)
                 var dea
                 var drc
