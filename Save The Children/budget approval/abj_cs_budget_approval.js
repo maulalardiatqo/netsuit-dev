@@ -2,7 +2,7 @@
  * @NApiVersion 2.1
  * @NScriptType clientscript
  */
-define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(currentRecord, dialog, log, search) {
+define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https'], function(currentRecord, dialog, log, search, url, https) {
     let currentMode = '';
 
     function pageInit(context) {
@@ -42,12 +42,14 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
 
         return approval;
     }
-    function getFinanceMatric(sofId){
+    function getFinanceMatric(sofId, amount){
         var approvalFinance
         var customrecord_stc_apprvl_mtrix_financeSearchObj = search.create({
             type: "customrecord_stc_apprvl_mtrix_finance",
             filters: [
-                ["custrecord_stc_sof_mtrx_finance", "anyof", sofId]
+                ["custrecord_stc_sof_mtrx_finance","anyof",sofId], 
+                "AND", 
+                ["custrecord_finance_max_amnt","greaterthanorequalto",amount]
             ],
             columns: [
                 search.createColumn({ name: "custrecord_stc_apprvl_finance", label: "Approval Finance" })
@@ -65,172 +67,156 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
         return approvalFinance
     }
     function validateLine(context) {
-    var currentRec = currentRecord.get();
+        var currentRec = currentRecord.get();
 
-    // ==== KONDISI SUBLIST ITEM ====
-    if (context.sublistId === 'item') {
-        var cekType = currentRec.getValue('type');
-        console.log('cekType', cekType)
-        var itemId = currentRec.getCurrentSublistValue({
-            sublistId: 'item',
-            fieldId: 'item'
-        }) || 0;
-        console.log('itemId', itemId)
+        // ==== KONDISI SUBLIST ITEM ====
+        if (context.sublistId === 'item') {
+            var cekType = currentRec.getValue('type');
+            console.log('cekType', cekType)
+            var itemId = currentRec.getCurrentSublistValue({
+                sublistId: 'item',
+                fieldId: 'item'
+            }) || 0;
+            console.log('itemId', itemId)
 
-        var account;
-        if (itemId) {
-            var itemSearchObj = search.create({
-                type: "item",
-                filters: [["internalid", "anyof", itemId]],
-                columns: [
-                    search.createColumn({ name: "itemid", label: "Name" }),
-                    search.createColumn({ name: "displayname", label: "Display Name" }),
-                    search.createColumn({ name: "type", label: "Type" }),
-                    search.createColumn({ name: "baseprice", label: "Base Price" }),
-                    search.createColumn({ name: "assetaccount", label: "Asset Account" }),
-                    search.createColumn({ name: "expenseaccount", label: "Expense/COGS Account" })
-                ]
+            var account;
+            if (itemId) {
+                const suiteletUrl = url.resolveScript({
+                    scriptId: "customscript_abj_sl_get_item",
+                    deploymentId: "customdeploy_abj_sl_get_item",
+                    params: {
+                        custscript_item_id: itemId,
+                    }
+                });
+
+                const response = https.get({ url: suiteletUrl });
+                account = response.body || ''
+                console.log('response', response)
+            }
+
+            var sofId = currentRec.getCurrentSublistValue({
+                sublistId: "item",
+                fieldId: "cseg_stc_sof"
             });
-            var results = itemSearchObj.run().getRange({ start: 0, end: 1000 });
-
-            console.log("itemSearchObj result count", results.length);
-
-            results.forEach(function (result) {
-                var type = result.getValue({ name: "type" });
-                var assetAccount = result.getValue({ name: "assetaccount" });
-                var expenseAccount = result.getValue({ name: "expenseaccount" });
-
-                if (type == 'InvtPart') {
-                    account = assetAccount;
-                } else {
-                    account = expenseAccount;
-                }
-            });
-        }
-
-        var sofId = currentRec.getCurrentSublistValue({
-            sublistId: "item",
-            fieldId: "cseg_stc_sof"
-        });
-        var grossamt = currentRec.getCurrentSublistValue({
-            sublistId: "item",
-            fieldId: "grossamt"
-        });
-        if(cekType == 'cutrprch108' || cekType == 'purchreq'){
             var grossamt = currentRec.getCurrentSublistValue({
                 sublistId: "item",
-                fieldId: "amount"
+                fieldId: "grossamt"
             });
-        }
-        
+            if(cekType == 'cutrprch108' || cekType == 'purchreq'){
+                var grossamt = currentRec.getCurrentSublistValue({
+                    sublistId: "item",
+                    fieldId: "amount"
+                });
+            }
+            
 
-        console.log('parameterSearch', { itemId: itemId, account: account, sofId: sofId, grossamt: grossamt })
-        console.log('cekCurrentMode', currentMode)
+            console.log('parameterSearch', { itemId: itemId, account: account, sofId: sofId, grossamt: grossamt })
+            console.log('cekCurrentMode', currentMode)
 
-        if (sofId) {
-            var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
-            if(cekType == 'vendbill' || cekType == 'purchreq'){
-                var emp = getFinanceMatric(sofId)
-                if(emp){
-                    currentRec.setCurrentSublistValue({
-                        sublistId : "item",
-                        fieldId : "custcol_stc_approver_fa",
-                        value : emp
-                    })
+            if (sofId) {
+                var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+                if(cekType == 'vendbill' || cekType == 'purchreq' || cekType == 'purchord'){
+                    var emp = getFinanceMatric(sofId, grossamt)
+                    if(emp){
+                        currentRec.setCurrentSublistValue({
+                            sublistId : "item",
+                            fieldId : "custcol_stc_approver_fa",
+                            value : emp
+                        })
+                        currentRec.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "custcol_stc_apprvl_sts_fa",
+                            value: "1"
+                        })
+                    }
+                }
+                console.log('cekEmp', cekEmp)
+                if (cekEmp) {
                     currentRec.setCurrentSublistValue({
                         sublistId: "item",
-                        fieldId: "custcol_stc_apprvl_sts_fa",
-                        value: "1"
+                        fieldId: "custcol_stc_approver_linetrx",
+                        value: cekEmp
                     })
                 }
-            }
-            console.log('cekEmp', cekEmp)
-            if (cekEmp) {
                 currentRec.setCurrentSublistValue({
                     sublistId: "item",
-                    fieldId: "custcol_stc_approver_linetrx",
-                    value: cekEmp
+                    fieldId: "custcol_stc_approval_status_line",
+                    value: "1"
                 })
+            } else {
+                return true
             }
-            currentRec.setCurrentSublistValue({
-                sublistId: "item",
-                fieldId: "custcol_stc_approval_status_line",
-                value: "1"
-            })
-        } else {
-            return true
         }
-    }
 
-    // ==== KONDISI SUBLIST EXPENSE ====
-    if (context.sublistId === 'expense') {
-        var cekType = currentRec.getValue('type');
-        console.log('cekType', cekType);
-       
-        var account = currentRec.getCurrentSublistValue({
-            sublistId: 'expense',
-            fieldId: 'account'
-        });
-        var sofId = currentRec.getCurrentSublistValue({
-            sublistId: "expense",
-            fieldId: "cseg_stc_sof"
-        });
-        var grossamt = currentRec.getCurrentSublistValue({
-            sublistId: "expense",
-            fieldId: "grossamt"
-        });
-        if(cekType == 'exprept' || cekType == 'purchreq'){
-            account =  currentRec.getCurrentSublistValue({
+        // ==== KONDISI SUBLIST EXPENSE ====
+        if (context.sublistId === 'expense') {
+            var cekType = currentRec.getValue('type');
+            console.log('cekType', cekType);
+        
+            var account = currentRec.getCurrentSublistValue({
                 sublistId: 'expense',
-                fieldId: 'expenseaccount'
+                fieldId: 'account'
             });
-            grossamt = currentRec.getCurrentSublistValue({
+            var sofId = currentRec.getCurrentSublistValue({
                 sublistId: "expense",
-                fieldId: "amount"
+                fieldId: "cseg_stc_sof"
             });
-        }
+            var grossamt = currentRec.getCurrentSublistValue({
+                sublistId: "expense",
+                fieldId: "grossamt"
+            });
+            if(cekType == 'exprept' || cekType == 'purchreq'){
+                account =  currentRec.getCurrentSublistValue({
+                    sublistId: 'expense',
+                    fieldId: 'expenseaccount'
+                });
+                grossamt = currentRec.getCurrentSublistValue({
+                    sublistId: "expense",
+                    fieldId: "amount"
+                });
+            }
 
-        console.log('parameterSearch (expense)', { account: account, sofId: sofId, grossamt: grossamt })
-        console.log('cekCurrentMode', currentMode)
+            console.log('parameterSearch (expense)', { account: account, sofId: sofId, grossamt: grossamt })
+            console.log('cekCurrentMode', currentMode)
 
-        if (sofId) {
-            var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
-            console.log('cekEmp (expense)', cekEmp)
-            
-            if(cekType == 'vendbill' || cekType == 'exprept' || cekType == 'purchreq'){
-                var emp = getFinanceMatric(sofId)
-                if(emp){
-                    currentRec.setCurrentSublistValue({
-                        sublistId : "expense",
-                        fieldId : "custcol_stc_approver_fa",
-                        value : emp
-                    })
+            if (sofId) {
+                var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+                console.log('cekEmp (expense)', cekEmp)
+                
+                if(cekType == 'vendbill' || cekType == 'exprept' || cekType == 'purchreq' || cekType == 'purchord'){
+                    var emp = getFinanceMatric(sofId, grossamt)
+                    if(emp){
+                        currentRec.setCurrentSublistValue({
+                            sublistId : "expense",
+                            fieldId : "custcol_stc_approver_fa",
+                            value : emp
+                        })
+                        currentRec.setCurrentSublistValue({
+                            sublistId: "expense",
+                            fieldId: "custcol_stc_apprvl_sts_fa",
+                            value: "1"
+                        })
+                    }
+                }
+                if (cekEmp) {
                     currentRec.setCurrentSublistValue({
                         sublistId: "expense",
-                        fieldId: "custcol_stc_apprvl_sts_fa",
-                        value: "1"
+                        fieldId: "custcol_stc_approver_linetrx",
+                        value: cekEmp
                     })
                 }
-            }
-            if (cekEmp) {
                 currentRec.setCurrentSublistValue({
                     sublistId: "expense",
-                    fieldId: "custcol_stc_approver_linetrx",
-                    value: cekEmp
+                    fieldId: "custcol_stc_approval_status_line",
+                    value: "1"
                 })
+            } else {
+                return true
             }
-            currentRec.setCurrentSublistValue({
-                sublistId: "expense",
-                fieldId: "custcol_stc_approval_status_line",
-                value: "1"
-            })
-        } else {
-            return true
         }
-    }
 
-    return true;
-}
+        return true;
+    }
 
     return{
         validateLine : validateLine,

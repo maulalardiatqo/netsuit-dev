@@ -184,7 +184,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     header += "</tr>"
                     log.debug('trandate', trandate)
                     let dateObj = new Date(trandate);
-                    let receivedDateObj = new Date(receivedDate)
+                   
 
                     // Ambil tanggal, bulan, tahun
                     let day = dateObj.getDate().toString().padStart(2, '0');
@@ -193,10 +193,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     // Format dd/mm/yyyy
                     let formattedDate = `${day}/${month}/${year}`;
-                    let dayRec = receivedDateObj.getDate().toString().padStart(2, '0');
-                     let monthRec = (receivedDateObj.getMonth() + 1).toString().padStart(2, '0'); // bulan mulai dari 0
-                     let yearRec = receivedDateObj.getFullYear();
-                    let formatRecivedate = `${dayRec}/${monthRec}/${yearRec}`;
+                    var formatRecivedate = ''
+                    if(receivedDate){
+                        let receivedDateObj = new Date(receivedDate)
+                        let dayRec = receivedDateObj.getDate().toString().padStart(2, '0');
+                        let monthRec = (receivedDateObj.getMonth() + 1).toString().padStart(2, '0'); // bulan mulai dari 0
+                        let yearRec = receivedDateObj.getFullYear();
+                        formatRecivedate = `${dayRec}/${monthRec}/${yearRec}`;
+                    }
+                    
 
                     header += "<tr>"
                     header += "<td style='background-color:#D5D6D6FF; font-weight:bold; border:1px solid black;'>Date:</td>"

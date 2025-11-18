@@ -129,10 +129,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type : "account",
                         id : coaId
                     });
-                    bankName = recCoa.getValue('sbankname');
+                    bankName = recCoa.getValue('custrecord_stc_bank_name');
                     bankAddress = recCoa.getValue('custrecordstc_bank_address')
                     accountName = recCoa.getValue('custrecord_stc_account_name');
-                    accountNumber = recCoa.getValue('sbankcompanyid');
+                    accountNumber = recCoa.getValue('custrecord_stc_bank_acc_no');
                     swiftCode = recCoa.getValue('custrecord_stc_swift_code')
                 }
                 log.debug('coa data', {bankName : bankName, bankAddress : bankAddress, accountName : accountName, accountNumber : accountNumber, swiftCode : swiftCode})
