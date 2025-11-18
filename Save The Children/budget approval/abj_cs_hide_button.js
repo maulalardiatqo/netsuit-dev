@@ -225,6 +225,24 @@ define([], () => {
         if (btnSecRejTOR) {
             btnSecRejTOR.style.display = 'none';
         }
+
+        // PO finance
+        const btnAppFinPO = document.getElementById('custpageworkflow1438');
+        if (btnAppFinPO) {
+            btnAppFinPO.style.display = 'none';
+        }
+        const btnRejFinPO = document.getElementById('custpageworkflow1439');
+        if (btnRejFinPO) {
+            btnRejFinPO.style.display = 'none';
+        }
+        const btnAppFinPOSec = document.getElementById('secondarycustpageworkflow1438');
+        if (btnAppFinPOSec) {
+            btnAppFinPOSec.style.display = 'none';
+        }
+        const btnRejFinPOSec = document.getElementById('secondarycustpageworkflow1439');
+        if (btnRejFinPOSec) {
+            btnRejFinPOSec.style.display = 'none';
+        }
     const pageInit = () => {
 
     };

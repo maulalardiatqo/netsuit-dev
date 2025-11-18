@@ -4,7 +4,7 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/runtime", "N/log"], (runtime, log) => {
+define(["N/runtime", "N/log", "N/record"], (runtime, log, record) => {
     function beforeLoad(context) {
         if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.EDIT) {
             var form = context.form;
@@ -61,8 +61,65 @@ define(["N/runtime", "N/log"], (runtime, log) => {
                 context.form.clientScriptModulePath = "SuiteScripts/abj_cs_je_non_premis.js"
             }
         }
-}
+    }
+    function afterSubmit(context) {
+        if(context.type === context.UserEventType.CREATE || context.type === context.UserEventType.EDIT){
+            
+            try {
+                var recId = context.newRecord.id;
+                var recType = context.newRecord.type;
+                var rec = record.load({
+                    type: recType,
+                    id: recId,
+                    isDynamic: true
+                });
+                var cForm = rec.getValue('customform');
+                log.debug('cForm', cForm)
+                if(cForm == 140){
+                    var lineCount = rec.getLineCount({
+                        sublistId: 'line'
+                    });
+
+                    if (lineCount > 0) {
+                        for (var i = lineCount - 1; i >= 0; i--) {
+
+                            var debit = rec.getSublistValue({
+                                sublistId: 'line',
+                                fieldId: 'debit',
+                                line: i
+                            }) || 0;
+
+                            var credit = rec.getSublistValue({
+                                sublistId: 'line',
+                                fieldId: 'credit',
+                                line: i
+                            }) || 0;
+
+                            if ((credit === 0 || credit === '' || credit == null) &&
+                                (debit === 0 || debit === '' || debit == null)) {
+
+                                log.debug('Removing line', 'Line ' + i + ' removed (debit=0 & credit=0)');
+                                rec.removeLine({
+                                    sublistId: 'line',
+                                    line: i
+                                });
+                            }
+                        }
+
+                        rec.save({
+                            ignoreMandatoryFields: true
+                        });
+                    }
+                }
+                
+
+            } catch (e) {
+                log.error('Error afterSubmit', e);
+            }
+        }
+    }
 return {
     beforeLoad: beforeLoad,
+    afterSubmit : afterSubmit
 };
 });

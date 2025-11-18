@@ -77,7 +77,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
                 log.debug('lineVendor', lineVendor);
                 var allDataVendor = []
-                var allVendorName = [];
                 if(lineVendor > 0){
                     var maxLoop = Math.min(lineVendor, 3);
                     for(var i = 0; i < maxLoop; i ++){
@@ -91,7 +90,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             id : vendId
                         });
                         var vendName = recVend.getValue('altname')
-                        allVendorName.push(vendName)
+                        
                         var vendAddr = recVend.getValue('defaultaddress')
                         var responsId = recLoad.getSublistValue({
                             sublistId : 'vendor',
@@ -99,55 +98,58 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             line : i
                         });
                         // record load response
-                        var recResponse = record.load({
-                            type: "vendorrequestforquote",
-                            id: responsId,
-                        })
-                        var resCurrency = recResponse.getText('currency')
-                        var resNumber = recResponse.getValue('tranid')
-                        var resQTyGood = recResponse.getValue('custbody_stc_quality_of_goods')
-                        var otherCriteria = recResponse.getValue('custbody_stc_other_criteria')
-                        var bidderPassed = recResponse.getValue('custbody_stc_bidder_pass_criteria')
-                        var bidderScore = recResponse.getValue('custbody_stc_bidder_score')
-                        var responseLine = recResponse.getLineCount({
-                            sublistId : 'item'
-                        });
-                        var itemResponse = []
-                        if(responseLine > 0){
-                            for(var k = 0; k < responseLine; k++){
-                                var idItemResponse = recResponse.getSublistValue({
-                                    sublistId : 'item',
-                                    fieldId : 'item',
-                                    line : k
-                                })
-                                var rate = recResponse.getSublistValue({
-                                    sublistId : 'item',
-                                    fieldId : 'rate',
-                                    line : k
-                                })
-                                var leadTime = recResponse.getSublistValue({
-                                    sublistId : 'item',
-                                    fieldId : 'custcol_stc_lead_time',
-                                    line : k
-                                })
-                                itemResponse.push({
-                                    idItemResponse : idItemResponse,
-                                    rate : rate,
-                                    leadTime : leadTime
-                                })
+                        if(responsId){
+                            var recResponse = record.load({
+                                type: "vendorrequestforquote",
+                                id: responsId,
+                            })
+                            var resCurrency = recResponse.getText('currency')
+                            var resNumber = recResponse.getValue('tranid')
+                            var resQTyGood = recResponse.getValue('custbody_stc_quality_of_goods')
+                            var otherCriteria = recResponse.getValue('custbody_stc_other_criteria')
+                            var bidderPassed = recResponse.getValue('custbody_stc_bidder_pass_criteria')
+                            var bidderScore = recResponse.getValue('custbody_stc_bidder_score')
+                            var responseLine = recResponse.getLineCount({
+                                sublistId : 'item'
+                            });
+                            var itemResponse = []
+                            if(responseLine > 0){
+                                for(var k = 0; k < responseLine; k++){
+                                    var idItemResponse = recResponse.getSublistValue({
+                                        sublistId : 'item',
+                                        fieldId : 'item',
+                                        line : k
+                                    })
+                                    var rate = recResponse.getSublistValue({
+                                        sublistId : 'item',
+                                        fieldId : 'rate',
+                                        line : k
+                                    })
+                                    var leadTime = recResponse.getSublistValue({
+                                        sublistId : 'item',
+                                        fieldId : 'custcol_stc_lead_time',
+                                        line : k
+                                    })
+                                    itemResponse.push({
+                                        idItemResponse : idItemResponse,
+                                        rate : rate,
+                                        leadTime : leadTime
+                                    })
+                                }
                             }
+                            allDataVendor.push({
+                                vendName : vendName,
+                                vendAddr : vendAddr,
+                                resNumber : resNumber,
+                                resCurrency : resCurrency,
+                                resQTyGood : resQTyGood,
+                                otherCriteria : otherCriteria,
+                                bidderPassed : bidderPassed,
+                                bidderScore : bidderScore,
+                                itemResponse : itemResponse
+                            })
                         }
-                        allDataVendor.push({
-                            vendName : vendName,
-                            vendAddr : vendAddr,
-                            resNumber : resNumber,
-                            resCurrency : resCurrency,
-                            resQTyGood : resQTyGood,
-                            otherCriteria : otherCriteria,
-                            bidderPassed : bidderPassed,
-                            bidderScore : bidderScore,
-                            itemResponse : itemResponse
-                        })
+                        
                         
                     }
                     
@@ -158,31 +160,59 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var cekLineItem = recLoad.getLineCount({
                     sublistId : 'item'
                 });
-                if(cekLineItem > 0){
-                    for(var i = 0; i < cekLineItem; i ++){
+                
+                var allVendorName = [];
+                var vendorIdSet = {}; 
+
+                if (cekLineItem > 0) {
+                    for (var i = 0; i < cekLineItem; i++) {
+
                         var itemId = recLoad.getSublistValue({
-                            sublistId : 'item',
-                            fieldId : 'item',
-                            line : i
-                        })
+                            sublistId: 'item',
+                            fieldId: 'item',
+                            line: i
+                        });
+
                         var itemText = recLoad.getSublistText({
-                            sublistId : 'item',
-                            fieldId : 'item',
-                            line : i
-                        })
+                            sublistId: 'item',
+                            fieldId: 'item',
+                            line: i
+                        });
+
                         var unitText = recLoad.getSublistText({
-                            sublistId : 'item',
-                            fieldId : 'units',
-                            line : i
-                        })
+                            sublistId: 'item',
+                            fieldId: 'units',
+                            line: i
+                        });
+
+                        var vendId = recLoad.getSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'povendor',
+                            line: i
+                        });
+
+                        if (!vendorIdSet[vendId]) {
+
+                            var recVend = record.load({
+                                type: 'vendor',
+                                id: vendId
+                            });
+
+                            var vendName = recVend.getValue('altname');
+
+                            allVendorName.push(vendName);
+
+                            vendorIdSet[vendId] = true;
+                        }
+
                         allLineItem.push({
-                            itemId : itemId,
-                            itemText : itemText,
-                            unitText : unitText
-                        })
+                            itemId: itemId,
+                            itemText: itemText,
+                            unitText: unitText
+                        });
                     }
-                    
                 }
+
                 log.debug('allDataVendor', allDataVendor)
                 log.debug('itemPR', itemPR)
                 log.debug('allLineItem', allLineItem)
