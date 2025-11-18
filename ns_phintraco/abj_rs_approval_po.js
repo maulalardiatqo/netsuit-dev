@@ -44,6 +44,7 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
             // === Jika updateHeader == true, ubah header ke Approved ===
             if (updateHeader === 'true') {
                 log.debug('Update Header', 'Semua approver sudah approve, ubah approvalstatus ke Approved.');
+                setSublist(recPo, 2, approver, reason || '');
                 recPo.setValue({
                     fieldId: 'approvalstatus',
                     value: 2, // Approved

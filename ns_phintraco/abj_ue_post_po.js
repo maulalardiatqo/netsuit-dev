@@ -177,7 +177,11 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 fieldId: 'custrecord_a_attachment',
                 line: i
             });
-
+            const desc = rec.getSublistValue({
+                sublistId : 'recmachcustrecord_a_id',
+                fieldId : 'custrecord_abj_a_keterangan',
+                line : i
+            })
             if (!fileId) continue;
 
             try {
@@ -188,7 +192,8 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                     id: fileId,
                     name: fileObj.name,
                     type: fileObj.fileType,
-                    content: fileContent
+                    content: fileContent,
+                    desc : desc
                 });
             } catch (e) {
                 log.error('Failed to load file', `File ID: ${fileId} | ${e.message}`);
