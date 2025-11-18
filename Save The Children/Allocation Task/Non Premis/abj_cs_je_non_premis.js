@@ -22,7 +22,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 var periodId = records.getValue('postingperiod');
                 var accountId = records.getValue('custbody_abj_destination_account');
                 var searchAmt = search.load({
-                    id: 'customsearch_abj_premise_allocate_amou_3'
+                    id: 'customsearch_abj_premise_allocate_amou_4'
                 });
 
                 var filters = searchAmt.filters;
@@ -65,10 +65,55 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
         }
     }
+    var processMsg;  
+
+    function onClickGenerate() {
+        var rec = currentRecord.get();
+
+        var btn = document.getElementById('custpage_btn_generate_sof');
+        if (btn) {
+            btn.disabled = true;
+            btn.style.opacity = "0.6";
+            btn.style.cursor = "not-allowed";
+        }
+
+        processMsg = message.create({
+            title: "Processing",
+            message: "On Process. Please wait...",
+            type: message.Type.INFORMATION
+        });
+        processMsg.show();
+
+        setTimeout(function () {
+            try {
+                generate({ currentRecord: rec });
+
+                // Setelah selesai → hide message
+                if (processMsg) {
+                    processMsg.hide();
+                }
+
+                // Optional: enable tombol kembali
+                if (btn) {
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+                    btn.style.cursor = "pointer";
+                }
+
+            } catch (e) {
+                if (processMsg) {
+                    processMsg.hide();
+                }
+                alert("Error: " + e.message);
+                console.log(e);
+            }
+        }, 500);
+    }
     function generate(context){
         var cekAmountAllocate = records.getValue('custbody_abj_amount_to_allocate');
+        var accountHead = records.getValue('custbody_abj_destination_account');
         console.log('cekAmountAllocate', cekAmountAllocate)
-        if(cekAmountAllocate){
+        if(cekAmountAllocate && accountHead){
             var allSofId = [];
 
             var searchSof = search.load({
@@ -86,15 +131,15 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             console.log('allSofId', allSofId);
             
         }else{
-            alert('amount cannot be empty or 0');
+            alert('Account & Amount To Alocate Cannot Be Empty');
             return false
         }
         if(allSofId.length > 0){
-            var accountHead = records.getValue('custbody_abj_destination_account');
+            
             var periodId = records.getValue('postingperiod');
             var dataInclude = [];
             var searchInclude = search.load({
-                id : 'customsearch_abj_premise_allocate_amou_3'
+                id : 'customsearch_abj_premise_allocate_amou_4'
             });
             var filters = searchInclude.filters;
             filters.push(search.createFilter({
@@ -114,11 +159,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             if (resultInclude && resultInclude.length > 0) {
                 var firstResult = resultInclude[0];
                 var costCenter = firstResult.getValue({
-                    name: "departmentnohierarchy",
+                    name: "department",
                     summary: "GROUP",
                 });
                 var project = firstResult.getValue({
-                    name: "classnohierarchy",
+                    name: "class",
                     summary: "GROUP",
                 });
                 var drc = firstResult.getValue({
@@ -195,11 +240,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 });
             });
             console.log('allRemaining', allRemaining)
-            // =======================
-            // FINAL MERGE
-            // =======================
 
-            // buat map lookup agar cepat
             var spendMap = {};
             allSpendAmount.forEach(function (d) {
                 spendMap[d.sofId] = Number(d.amtSpend || 0);
@@ -210,7 +251,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 remainingMap[d.sofIdRemaining] = Number(d.amtRemaining || 0);
             });
 
-            // data include dipakai sama untuk semua SOF
             var includeData = dataInclude.length > 0 ? dataInclude[0] : {
                 costCenter : "",
                 project : "",
@@ -237,7 +277,19 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     dea: includeData.dea
                 });
             });
+            var lineCount = records.getLineCount({ sublistId: 'line' });
+                console.log('existing journal lines:', lineCount);
 
+                // Jika ada, hapus semua line dulu
+                if (lineCount > 0) {
+                    for (var j = lineCount - 1; j >= 0; j--) {
+                        records.removeLine({
+                            sublistId: 'line',
+                            line: j
+                        });
+                    }
+                    console.log('All existing journal lines removed.');
+                }
             console.log("FINAL MERGED DATA", finalData);
             finalData.forEach(function(row, index) {
                 var sofId = row.sofId;
@@ -247,10 +299,66 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 var project = row.project;
                 var drc = row.drc;
                 var dea = row.dea;
-                var bobotPerMonth = Number(spend) / Number(totalSpendAmt) * 100;
-                if(spend != 0){
-                    console.log('dataBobot', {bobotPerMonth : bobotPerMonth, spend : spend, totalSpendAmt : totalSpendAmt})
+                var bobotPerMonth = Number(spend) / Number(totalSpendAmt)
+                var prosent = Number(spend) / Number(totalSpendAmt) * 100
+                
+                var bassicAllocation = Number(spend) * Number(bobotPerMonth);
+                var amtDebit = 0;
+                if(Number(remaining) > Number(bassicAllocation)){
+                    amtDebit = bassicAllocation
                 }
+                records.selectNewLine({ sublistId: 'line' });
+                records.setCurrentSublistValue({
+                    sublistId: 'line',
+                    fieldId: 'account',
+                    value: accountHead
+                });
+                records.setCurrentSublistValue({
+                    sublistId: 'line',
+                    fieldId: 'debit',
+                    value: amtDebit
+                });
+                records.setCurrentSublistValue({
+                    sublistId: 'line',
+                    fieldId: 'department',
+                    value: costCenter
+                });
+                records.setCurrentSublistValue({
+                    sublistId: 'line',
+                    fieldId: 'class',
+                    value: project
+                });
+                records.setCurrentSublistValue({
+                    sublistId: 'line',
+                    fieldId: 'cseg_stc_sof',
+                    value: sofId
+                });
+                
+                records.setCurrentSublistValue({
+                    sublistId: 'line',
+                    fieldId: 'custcol_abj_remaining_budget_sof',
+                    value: remaining
+                });
+                records.setCurrentSublistValue({
+                    sublistId: 'line',
+                    fieldId: 'custcol_tar_percentage',
+                    value: prosent
+                });
+                if(drc){
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'cseg_stc_drc_segmen',
+                        value: drc
+                    });
+                }
+                if(dea){
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'cseg_stc_segmentdea',
+                        value: dea
+                    });
+                }
+                records.commitLine({ sublistId: 'line' });
                 
             });
 
@@ -259,6 +367,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     return {
         pageInit: pageInit,
         fieldChanged : fieldChanged,
-        generate : generate
+        generate : generate,
+        onClickGenerate : onClickGenerate
     };
 });

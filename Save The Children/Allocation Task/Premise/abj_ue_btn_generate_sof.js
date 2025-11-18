@@ -56,7 +56,7 @@ define(["N/runtime", "N/log"], (runtime, log) => {
                 form.addButton({
                     id: 'custpage_btn_generate_sof',
                     label: "Generate SOF List",
-                    functionName: "generate()"
+                    functionName: "onClickGenerate()"
                 });
                 context.form.clientScriptModulePath = "SuiteScripts/abj_cs_je_non_premis.js"
             }
