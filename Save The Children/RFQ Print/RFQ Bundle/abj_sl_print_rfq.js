@@ -448,12 +448,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     for (var v = 0; v < 3; v++) {
                         var vendor = allDataVendor[v];
                         var totalVal = totalsArr[v] || 0;
+
+                        // Border-left none jika bukan index 0
+                        var leftBorder = (v === 0 ? "1px solid black" : "none");
+
                         if (vendor) {
-                            body += "<td style='border:1px solid black; border-top:none;'></td>"; 
-                            body += "<td style='border:1px solid black; font-weight:" + (isBold ? "bold" : "normal") + "; align:right; border-top:none; border-left:none;'>" + totalVal.toLocaleString() + "</td>"; 
-                            body += "<td style='border:1px solid black; border-top:none; border-left:none;'></td>"; 
-                        } else {
+                            body += "<td style='border:1px solid black; border-top:none; border-left:" + leftBorder + ";'></td>";
+                            body += "<td style='border:1px solid black; font-weight:" + (isBold ? "bold" : "normal") + "; align:right; border-top:none; border-left:none;'>" + totalVal.toLocaleString() + "</td>";
                             body += "<td style='border:1px solid black; border-top:none; border-left:none;'></td>";
+                        } else {
+                            body += "<td style='border:1px solid black; border-top:none; border-left:" + leftBorder + ";'></td>";
                             body += "<td style='border:1px solid black; border-top:none; border-left:none;'></td>";
                             body += "<td style='border:1px solid black; border-top:none; border-left:none;'></td>";
                         }
@@ -461,6 +465,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     body += "</tr>";
                 }
+
 
                 // =====================
                 // Summary Section
@@ -483,41 +488,58 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 function addVendorExtraRow(label, key, isBoolean = false) {
                     body += "<tr>";
-                    if(key != 'bgbronze'){
+
+                    if (key != 'bgbronze') {
                         body += "<td colspan='4' style='border-top:none; font-weight:bold; align:right;'>" + escapeXmlSymbols(label) + "</td>";
-                    }else{
+                    } else {
                         body += "<td colspan='4' style='border-top:none; font-weight:bold; align:right; background-color:#DBD8D8FF;'>" + label + "</td>";
                     }
-                    
 
                     for (var v = 0; v < 3; v++) {
                         var vendor = allDataVendor[v];
+
+                        // Border-left rules
+                        var leftBorder = (v === 0 ? "1px solid black" : "none");
+
                         if (vendor) {
-                            if(key != 'bgbronze'){
+
+                            if (key != 'bgbronze') {
+
                                 var value = vendor[key];
                                 if (isBoolean) {
                                     value = value ? 'Yes' : 'No';
                                 }
                                 value = (value !== undefined && value !== null) ? value : '';
 
-                                body += "<td colspan='3' style='border:1px solid black; border-top:none; align:center;'>" + escapeXmlSymbols(value) + "</td>";
-                            }else{
-                                body += "<td colspan='3' style='border:1px solid black; border-top:none; align:center; background-color:#DBD8D8FF;'></td>";
+                                body += "<td colspan='3' "
+                                    + "style='border:1px solid black; border-left:" + leftBorder + "; border-top:none; align:center;'>"
+                                    + escapeXmlSymbols(value)
+                                    + "</td>";
+
+                            } else {
+
+                                body += "<td colspan='3' "
+                                    + "style='border:1px solid black; border-left:" + leftBorder + "; border-top:none; align:center; background-color:#DBD8D8FF;'>"
+                                    + "</td>";
                             }
-                            
+
                         } else {
                             // vendor kosong
-                            if(key == 'bgbronze'){
-                                body += "<td colspan='3' style='border:1px solid black; border-top:none; background-color:#DBD8D8FF;'></td>";
-                            }else{
-                                body += "<td colspan='3' style='border:1px solid black; border-top:none;'></td>";
+                            if (key == 'bgbronze') {
+                                body += "<td colspan='3' "
+                                    + "style='border:1px solid black; border-left:" + leftBorder + "; border-top:none; background-color:#DBD8D8FF;'>"
+                                    + "</td>";
+                            } else {
+                                body += "<td colspan='3' "
+                                    + "style='border:1px solid black; border-left:" + leftBorder + "; border-top:none;'>"
+                                    + "</td>";
                             }
-                            
                         }
                     }
 
                     body += "</tr>";
                 }
+
 
                 // Panggil urutannya sesuai kebutuhan
                 addVendorExtraRow("RFQ: Other criteria considered", "bgbronze")
