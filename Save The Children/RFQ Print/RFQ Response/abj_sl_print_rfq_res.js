@@ -149,10 +149,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     
                     log.debug('prNo', prNo)
                     var sendDate = recLoad.getValue('startdate');
-                    var bidCloseDate = recLoad.getValue('bidclosedate');
-                    var submissionLocation = recLoad.getText('custbody_stc_submission_location');
+                    var bidCloseDate = recLoad.getValue('bidclosedate') || '';
+                    var submissionLocation = recLoad.getText('custbody_stc_submission_location') || '';
                     var docRequired = recLoad.getValue('custbody_stc_document_rquired');
-                    var dateGoods = recLoad.getValue('custbody_stc_date_required');
+                    var dateGoods = recLoad.getValue('custbody_stc_date_required') || '';
                     var delivAddres = recLoad.getValue('custbody_stc_delivery_address');
                     var reqIncoterm = recLoad.getValue('custbody_stc_requirement_incotrm');
                     var supplierName = '';
@@ -220,6 +220,26 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         // Gabungkan ke format DD/MM/YYYY
                         return `${day}/${month}/${year}`;
                     }
+                    
+                    function formatDate(isoString) {
+                        if (!isoString) return '';
+
+                        const date = new Date(isoString);
+
+                        const day = String(date.getUTCDate()).padStart(2, '0');
+                        const month = String(date.getUTCMonth() + 1).padStart(2, '0'); 
+                        const year = date.getUTCFullYear();
+
+                        return `${day}/${month}/${year}`;
+                    }
+                    if(bidCloseDate){
+                        bidCloseDate = formatDate(bidCloseDate)
+                    }
+                    if(dateGoods){
+                        dateGoods = formatDate(dateGoods)
+                    }
+                    log.debug('bidCloseDate', bidCloseDate)
+                    log.debug('dateGoods', dateGoods)
                     // css
                     style += "<style type='text/css'>";
                     style += "*{padding : 0; margin:0;}";
@@ -287,25 +307,25 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     header += "<tr>"
                     header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; align:center; vertical-align:middle;' rowspan='3'>Deadline for Submission</td>"
-                    header += "<td style='border:1px solid black; border-top:none; align:center; border-left:none; vertical-align:middle;' rowspan='3'>"+formatDateToDDMMYYYY(bidCloseDate)+"</td>"
+                    header += "<td style='border:1px solid black; border-top:none; align:center; border-left:none; vertical-align:middle;' rowspan='3'>"+bidCloseDate+"</td>"
                     header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; border-left:none; align:center;'>Submission Format ?</td>"
                     header += "<td style='border:1px solid black; border-top:none; align:center; border-left:none;'>By Netsuite/Email</td>"
                     header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; border-left:none; align:center; vertical-align:middle;' rowspan='3'>Deadline for <br/> Submission</td>"
-                    header += "<td style='border:1px solid black; border-top:none; align:center; border-left:none; vertical-align:middle;' rowspan='3'>"+escapeXmlSymbols(docRequired)+"</td>"
+                    header += "<td style='border:1px solid black; border-top:none; align:center; border-left:none; vertical-align:middle;' rowspan='3'>"+escapeXmlSymbols(docRequired || '')+"</td>"
                     header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; border-left:none; align:center;'>Date Goods / Services Required</td>"
-                    header += "<td style='border:1px solid black; border-top:none; align:center; border-left:none;'>"+formatDateToDDMMYYYY(dateGoods)+"</td>"
+                    header += "<td style='border:1px solid black; border-top:none; align:center; border-left:none;'>"+dateGoods+"</td>"
                     header += "</tr>"
 
                     header += "<tr>"
                     header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; border-left:none; align:center; vertical-align:middle;' rowspan='2'>Submission Location (Email Address / Address)</td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none; align:center; vertical-align:middle;' rowspan='2'>"+escapeXmlSymbols(submissionLocation)+"</td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none; align:center; vertical-align:middle;' rowspan='2'>"+escapeXmlSymbols(submissionLocation || '')+"</td>"
                     header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; border-left:none; align:center;'>Delivery Address for Goods / Services</td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none; align:center;'>"+escapeXmlSymbols(delivAddres)+"</td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none; align:center;'>"+escapeXmlSymbols(delivAddres || '')+"</td>"
                     header += "</tr>"
 
                     header += "<tr>"
                     header += "<td style='background-color: #B6B3B3FF; border:1px solid black; border-top:none; border-left:none; align:center;'>Requirement Incoterms</td>"
-                    header += "<td style='border:1px solid black; border-top:none; border-left:none; align:center;'>"+escapeXmlSymbols(reqIncoterm)+"</td>"
+                    header += "<td style='border:1px solid black; border-top:none; border-left:none; align:center;'>"+escapeXmlSymbols(reqIncoterm || '')+"</td>"
                     header += "</tr>"
 
                     header += "<tr>"
@@ -336,7 +356,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     header += "</tr>"
                     header += "<tr>"
                     header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none;'>Supplier Name	</td>"
-                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(supplierName)+"</td>"
+                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(supplierName || '')+"</td>"
                     header += "<td></td>"
                     header += "<td style='font-weight:bold; border: 1px solid black; border-top:none;'>The supplier agrees and acknowledges that…</td>"
                     header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Supplier Acceptance</td>"
@@ -344,38 +364,38 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     header += "</tr>"
                     header += "<tr>"
                     header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none;'>Contact Name</td>"
-                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(contactName)+"</td>"
+                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(contactName || '')+"</td>"
                     header += "<td></td>"
                     header += "<td style='font-weight:bold; border: 1px solid black; border-top:none;'>for any future orders placed, the Terms & Conditions shared as part of this RFQ will apply. If no Terms & Conditions were shared, the attached Terms and Conditions will apply.</td>"
                     header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Yes</td>"
-                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(comment1)+"</td>"
+                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(comment1 || '')+"</td>"
                     header += "</tr>"
 
                     header += "<tr>"
                     header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none;'>E-mail</td>"
-                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(emailVend)+"</td>"
+                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(emailVend || '')+"</td>"
                     header += "<td></td>"
                     header += "<td style='font-weight:bold; border: 1px solid black; border-top:none;'>to adhere to all the below mandatory Save the Children policies.</td>"
                     header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Yes</td>"
-                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(comment2)+"</td>"
+                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(comment2 || '')+"</td>"
                     header += "</tr>"
 
                     header += "<tr>"
                     header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none;'>Phone / Mobile</td>"
-                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(phoneVend)+"</td>"
+                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(phoneVend || '')+"</td>"
                     header += "<td></td>"
                     header += "<td style='font-weight:bold; border: 1px solid black; border-top:none;'>that all pricing included in the quote will be valid for a minimum of 60 days</td>"
                     header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Yes</td>"
-                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(comment3)+"</td>"
+                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(comment3 || '')+"</td>"
                     header += "</tr>"
 
                     header += "<tr>"
                     header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none;'>Address</td>"
-                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(addressVend)+"</td>"
+                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(addressVend ||'')+"</td>"
                     header += "<td></td>"
                     header += "<td style='font-weight:bold; border: 1px solid black; border-top:none;'>this Request for Quotation does not constitute an order.</td>"
                     header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>Yes</td>"
-                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(comment4)+"</td>"
+                    header += "<td style='font-weight:bold; align:center; border: 1px solid black; border-top:none; border-left:none;'>"+escapeXmlSymbols(comment4 || '')+"</td>"
                     header += "</tr>"
 
                     header += "</tbody>";
