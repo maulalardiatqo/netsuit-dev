@@ -10,7 +10,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             let subsidiaryId = currentUser.subsidiary;
 
             var form = serverWidget.createForm({
-                title: 'DO List'
+                title: 'Generate Packing List'
             });
             var filterOption = form.addFieldGroup({
                 id: "filteroption",

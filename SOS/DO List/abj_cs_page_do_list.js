@@ -2,8 +2,8 @@
  *@NApiVersion 2.1
  *@NScriptType ClientScript
  */
- define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", "N/search", "N/runtime", 'N/ui/message'],
-    function(error,dialog,url,record,currentRecord,log, search, runtime, message) {
+ define(['N/error','N/ui/dialog', 'N/url',"N/record", "N/currentRecord","N/log", "N/search", "N/runtime", 'N/ui/message','N/https'],
+    function(error,dialog,url,record,currentRecord,log, search, runtime, message, https) {
         var allIdIr = []
         var records = currentRecord.get();
         function convertDate(dateStr) {
@@ -76,122 +76,25 @@
             var subsId = records.getValue('custpage_subsidiary');
             if(subsidiary){
                 console.log('subsidiary', subsidiary)
-                var dataSearch = search.load({
-                    id: "customsearch588",
-                });
-                console.log('1')
-                console.log('data filter', {customerId : customerId, date_from : date_from, date_to : date_to, subsId : subsId})
-                if(customerId){
-                    dataSearch.filters.push(
-                        search.createFilter({
-                        name: "name",
-                        join : "custrecord_packship_itemfulfillment",
-                        operator: search.Operator.ANYOF,
-                        values: customerId,
-                        })
-                    );
-                }
-                console.log('2')
-                if(date_from){
-                    dataSearch.filters.push(
-                        search.createFilter({
-                        name: "trandate",
-                        join : "custrecord_packship_itemfulfillment",
-                        operator: search.Operator.ONORAFTER,
-                        values: date_from,
-                        })
-                    );
-                }
-                console.log('3')
-                if(date_to){
-                     dataSearch.filters.push(
-                        search.createFilter({
-                        name: "trandate",
-                        join : "custrecord_packship_itemfulfillment",
-                        operator: search.Operator.ONORBEFORE,
-                        values: date_to,
-                        })
-                    );
-                }
-                console.log('4')
-                if(noDo){
-                    dataSearch.filters.push(
-                        search.createFilter({
-                        name: "createdfrom",
-                        join : "custrecord_packship_itemfulfillment",
-                        operator: search.Operator.ANYOF,
-                        values: noDo,
-                        })
-                    );
-                }
-                console.log('5')
-                if(subsidiary){
-                    dataSearch.filters.push(
-                        search.createFilter({
-                        name: "subsidiary",
-                        join : "custrecord_packship_itemfulfillment",
-                        operator: search.Operator.ANYOF,
-                        values: subsidiary,
-                        })
-                    );
-                }
-                console.log('6')
-                var dateSearchSet = dataSearch.run();
-                console.log('runSearch result', JSON.stringify(dateSearchSet));
-                var dataSearch = dateSearchSet.getRange({
-                    start: 0,
-                    end: 1000
-                });
-
-                console.log('dataSearch', dataSearch)
-                if (dataSearch.length > 0) {
-                    var allData = []
-                    for (var i = 0; i < dataSearch.length; i++) {
-                        var doNumber = dataSearch[i].getValue({
-                            name: dateSearchSet.columns[0],
-                        });
-                        var soNumber = dataSearch[i].getText({
-                            name: dateSearchSet.columns[1],
-                        });
-                        var doDate = dataSearch[i].getValue({
-                            name: dateSearchSet.columns[2],
-                        });
-                        var customer = dataSearch[i].getText({
-                            name: dateSearchSet.columns[3],
-                        });
-                        var idCus = dataSearch[i].getValue({
-                            name: dateSearchSet.columns[3],
-                        });
-                        var currency = dataSearch[i].getText({
-                            name: dateSearchSet.columns[4],
-                        });
-                        var idSubs = dataSearch[i].getValue({
-                            name: dateSearchSet.columns[5],
-                        });
-
-                        var idFul = dataSearch[i].getValue({
-                            name: dateSearchSet.columns[6],
-                        });
-                        var packCartonId = dataSearch[i].getValue({
-                            name: dateSearchSet.columns[7],
-                        });
-                        var packCartonText = dataSearch[i].getText({
-                            name: dateSearchSet.columns[7],
-                        });
-                        allData.push({
-                            doNumber : doNumber,
-                            soNumber : soNumber,
-                            doDate : doDate,
-                            customer : customer,
-                            currency : currency,
-                            idCus : idCus,
-                            idSubs : idSubs,
-                            idFul : idFul,
-                            packCartonId : packCartonId,
-                            packCartonText : packCartonText
-                        })
+                const suiteletUrl = url.resolveScript({
+                    scriptId: "customscript_abj_sl_getfulfill",
+                    deploymentId: "customdeploy_abj_sl_getfulfill",
+                    params: {
+                        custscript_customer_id: customerId,
+                        custscript_date_from: date_from,
+                        custscript_date_to: date_to,
+                        custscript_no_do: noDo,
+                        custscript_subs_id: subsId,
                     }
-                    console.log('allData', allData)
+                });
+
+                const response = https.get({ url: suiteletUrl });
+                var data = JSON.parse(response.body);
+                console.log('data', data)
+                allData = data.allData
+
+                console.log('allData', allData)
+                if (allData.length > 0) {
                     allData.forEach(function(data) {
                         var doNumber = data.doNumber
                         var soNumber = data.soNumber
@@ -199,6 +102,8 @@
                         var customer = data.customer
                         var currency = data.currency
                         var idFul = data.idFul
+                        var idCus = data.idCus
+                        var idSubs = data.idSubs
                         var packCartonText = data.packCartonText
                         var packCartonId = data.packCartonId
                     
