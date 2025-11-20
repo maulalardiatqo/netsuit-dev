@@ -8,66 +8,94 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     try{
         var records = currentRecord.get();
         var budgetContorlGolbal
-        var msgGlobal
+        var msgGlobal = `
+        <div style="color: red;
+                    font-size: 22px;
+                    font-weight: bold;
+                    text-align: center;
+                    padding: 10px;
+                    border: 2px solid red;
+                    border-radius: 8px;">
+            WARNING <br> One or more line transaction is exceeded Budget
+        </div>
+        `;
+
         function pageInit(context) {
             console.log('init masuk')
         }
-        function convertNumberToMonth(number) {
-            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            if (number < 1 || number > 12) {
-                return "Invalid month number"; 
-            }
-            return months[number - 1];
+        function getMonthIndex(dateObj) {
+            if (!dateObj) return null;
+            return dateObj.getMonth() + 1;
         }
-        function getBudget(account, department, classId, sofId){
-            log.debug('filter search budget', {account, department, classId, sofId})
-            console.log('filter search budget', {account, department, classId, sofId})
 
-            var budgetimportSearchObj = search.create({
-            type: "budgetimport",
+        function callPeriod(periodName){
+            var perId = ''
+            var accountingperiodSearchObj = search.create({
+            type: "accountingperiod",
             filters:
             [
-                ["account","anyof",account], 
-                "AND", 
-                ["class","anyof",classId], 
-                "AND", 
-                ["department","anyof",department], 
-                "AND", 
-                ["cseg_stc_sof","anyof",sofId]
+                ["periodname","is",periodName]
             ],
             columns:
             [
-                search.createColumn({name: "account", label: "Account"}),
-                search.createColumn({name: "year", label: "Year"}),
-                search.createColumn({name: "amount", label: "Amount"}),
-                search.createColumn({name: "department", label: "Cost Center"}),
-                search.createColumn({name: "class", label: "Project Code"}),
-                search.createColumn({name: "cseg_stc_sof", label: "Source of Funding"}),
-                search.createColumn({name: "category", label: "Category"}),
-                search.createColumn({name: "global", label: "Global"}),
-                search.createColumn({name: "currency", label: "Currency"}),
-                search.createColumn({name: "internalid", label: "Internal ID"})
+                search.createColumn({name: "periodname", label: "Name"}),
+                search.createColumn({name: "internalid", label: "Internal ID"}),
+                search.createColumn({name: "startdate", label: "Start Date"}),
+                search.createColumn({name: "enddate", label: "End Date"})
             ]
             });
-            // var searchResultCount = budgetimportSearchObj.runPaged().count;
-            // log.debug("budgetimportSearchObj result count",searchResultCount);
-            // budgetimportSearchObj.run().each(function(result){
-            // // .run().each has a limit of 4,000 results
-            // return true;
-            // });
-
-            var transSearchResult = budgetimportSearchObj.run().getRange({ start: 0, end: 1 });
-            //log.debug('transSearchResult : '+transSearchResult.length, transSearchResult);
-            var allDataBudget = []
-            if (transSearchResult.length > 0) {
-                var budget = transSearchResult[0].getValue({ name: "amount",});
-                allDataBudget.push({
-                    budget : budget,
+            var searchResultCount = accountingperiodSearchObj.runPaged().count;
+            log.debug("accountingperiodSearchObj result count",searchResultCount);
+            accountingperiodSearchObj.run().each(function(result){
+                perId = result.getValue({
+                    name: "internalid"
                 })
-            }
-            return allDataBudget
+            return true;
+            });
+            return perId
         }
-        function callSearch( account, department, estAmount, classId, sofId){
+        function getFiscalInfo(dateObj) {
+            if (!dateObj) return { tahun: "", periodName: "" };
+
+            // Daftar nama bulan dalam format NetSuite (3 huruf)
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+            const year = dateObj.getFullYear();
+            const month = monthNames[dateObj.getMonth()];
+
+            return {
+                tahun: `FY ${year}`,
+                periodName: `${month} ${year}`
+            };
+        }
+
+        function getBudget(account, department, classId, sofId, yearId, periodId, monthIndex){
+            log.debug('filter search budget', {account, department, classId, sofId})
+            console.log('filter search budget', {account, department, classId, sofId})
+            var budgetAmt = 0
+            const suiteletUrl = url.resolveScript({
+                scriptId: "customscript_abj_sl_get_budget",
+                deploymentId: "customdeploy_abj_sl_get_budget",
+                params: {
+                    custscript_account_id: account,
+                    custscript_department_id: department,
+                    custscript_class_id: classId,
+                    custscript_sof_id: sofId,
+                    custscript_year_id: yearId,
+                    custscript_period_id: periodId,
+                    custscript_monthidx: monthIndex,
+                }
+            });
+
+            const response = https.get({ url: suiteletUrl });
+            var data = JSON.parse(response.body);
+            console.log('data', data)
+            budgetAmt = data.amount || 0
+
+            return budgetAmt
+        }
+        function callSearch( account, department, estAmount, classId, sofId, periodId){
             log.debug('filterSearch consumed', { account : account, estAmount : estAmount, classId : classId, sofId: sofId, department : department})
             var transactionSearchObj = search.create({
             type: "transaction",
@@ -87,7 +115,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 "AND", 
                 ["class","anyof",classId], 
                 "AND", 
-                ["line.cseg_stc_sof","anyof",sofId]
+                ["line.cseg_stc_sof","anyof",sofId],
+                "AND",
+                ["postingperiod","abs",periodId]
             ],
             columns:
             [
@@ -141,10 +171,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var newAmount = Number(amtFromSearch) + Number(estAmount)
             return newAmount
         }
-        function setSblValue(currentRecordObj, account, department, classId, sofId, estAmount, additionalAmt, sblsId){
+        function setSblValue(currentRecordObj, account, department, classId, sofId, estAmount, additionalAmt, sblsId, yearId, periodId, monthIndex){
             var newAmount = 0
             if(account && department && estAmount && classId && sofId){
-                newAmount = callSearch( account, department, estAmount, classId, sofId)
+                newAmount = callSearch( account, department, estAmount, classId, sofId, periodId)
             }
             
             log.debug('newAmount', newAmount)
@@ -163,15 +193,15 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     value: estAmount,
                 });
             }
-            var dataBudget = []
+            var dataBudget = 0
             if(account && department){
-                dataBudget = getBudget(account, department, classId, sofId)
+                dataBudget = getBudget(account, department, classId, sofId, yearId, periodId, monthIndex)
             }
             console.log('DATA BUDGET', dataBudget)
             log.debug('DATA BUDGET', dataBudget)
             
-            if(dataBudget.length > 0){
-                var budgetAmt = dataBudget[0].budget
+            if(dataBudget){
+                var budgetAmt = dataBudget
                 var statLine = ''
                 if(amtSet > budgetAmt){
                     statLine = "Transaction line amount exceeds budget."
@@ -202,7 +232,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 });
             }
         }
-        function actionSublist(currentRecordObj, sblsId){
+        function actionSublist(currentRecordObj, sblsId, yearId, periodId, monthIndex){
             var department = currentRecordObj.getCurrentSublistValue({  
                 sublistId: sblsId,
                 fieldId: "department",
@@ -327,139 +357,117 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         }
                     }
                 }
-                setSblValue(currentRecordObj, account, department, classId, sofId, estAmount, additionalAmt, sblsId);
+                setSblValue(currentRecordObj, account, department, classId, sofId, estAmount, additionalAmt, sblsId, yearId, periodId, monthIndex);
             }
             
         }
         function validateLine(context) {
             var currentRecordObj = context.currentRecord;
             var sublistName = context.sublistId;
-
+            var date = currentRecordObj.getValue('trandate');
+            var result = getFiscalInfo(date);
+            var yearPeriodName = result.tahun;
+            var yearId = ''
+            if(yearPeriodName){
+                yearId = callPeriod(yearPeriodName)
+            }
+            var periodName = result.periodName;
+            var periodId = '';
+            if(periodName){
+                periodId = callPeriod(periodName);
+            }
+            console.log('date', date)
+            var monthIndex = getMonthIndex(date);
+            
             // EXPENSE SUBLIST
             if (sublistName === 'expense') {
                 var sblsId = "expense";
-
-                // Anda bisa cek semua field yang diperlukan di validateLine
-                var estimatedAmount = currentRecordObj.getCurrentSublistValue({
-                    sublistId: 'expense',
-                    fieldId: 'estimatedamount'
-                });
-                var department = currentRecordObj.getCurrentSublistValue({
-                    sublistId: 'expense',
-                    fieldId: 'department'
-                });
-
-                // bila salah satu field berubah nanti validate akan memproses
-                actionSublist(currentRecordObj, sblsId);
+                actionSublist(currentRecordObj, sblsId, yearId, periodId, monthIndex);
             }
-
             // ITEM SUBLIST
             if (sublistName === 'item') {
                 var sblsId = "item";
-
-                var estimatedAmount = currentRecordObj.getCurrentSublistValue({
-                    sublistId: 'item',
-                    fieldId: 'estimatedamount'
-                });
-                var department = currentRecordObj.getCurrentSublistValue({
-                    sublistId: 'item',
-                    fieldId: 'department'
-                });
-                var estimatedRate = currentRecordObj.getCurrentSublistValue({
-                    sublistId: 'item',
-                    fieldId: 'estimatedrate'
-                });
-
-                actionSublist(currentRecordObj, sblsId);
+                actionSublist(currentRecordObj, sblsId, yearId, periodId, monthIndex);
             }
 
-            // WAJIB return true agar line tidak diblok
             return true;
         }
 
-        // function saveRecord(context) {
-        //     var currentRecordObj = context.currentRecord;
-        //     log.debug('masuk save record')
-        //     var cekLineExp = currentRecordObj.getLineCount({ sublistId: 'expense' });
-        //     if (cekLineExp > 0) {
-        //         for (var i = 0; i < cekLineExp; i++) {
-        //             var budget = currentRecordObj.getSublistValue({  
-        //                 sublistId: "expense",
-        //                 fieldId: "custcol_bm_budgetamount",
-        //                 line: i
-        //             });
-        //             var consumed = currentRecordObj.getSublistValue({  
-        //                 sublistId: "expense",
-        //                 fieldId: "custcol_bm_budgetamountconsumed",
-        //                 line: i
-        //             });
-        //             log.debug('msgGlobal', msgGlobal);
-        //             if(budget && consumed){
-        //                 if (consumed > budget) {
-        //                     log.debug('budgetContorlGolbal', budgetContorlGolbal)
-        //                     if(budgetContorlGolbal == "1"){
-                                
-        //                         currentRecordObj.setValue({
-        //                             fieldId : "custbody_bm_budgetstatus",
-        //                             value : msgGlobal
-        //                         });
-        //                         return true
-        //                     }else{
-        //                         dialog.alert({
-        //                             title: 'Warning!',
-        //                             message: '<div style="color: red;">One or more transaction lines in the "Expense" sublist either do not have a matching budget or are exceeding budget. Check the transaction lines and update.</div>'
-        //                         });
-        //                         return true;
-        //                     }
+        function saveRecord(context) {
+            var currentRecordObj = context.currentRecord;
+            log.debug('masuk save record')
+            var cekLineExp = currentRecordObj.getLineCount({ sublistId: 'expense' });
+            if (cekLineExp > 0) {
+                for (var i = 0; i < cekLineExp; i++) {
+                    var budget = currentRecordObj.getSublistValue({  
+                        sublistId: "expense",
+                        fieldId: "custcol_stc_budget_amount",
+                        line: i
+                    });
+                    var consumed = currentRecordObj.getSublistValue({  
+                        sublistId: "expense",
+                        fieldId: "custcol_stc_budget_consumed",
+                        line: i
+                    });
+                    log.debug('msgGlobal', msgGlobal);
+                    if(budget && consumed){
+                        if (consumed > budget) {
+                            currentRecordObj.setValue({
+                                fieldId : "custbody_stc_budget_allert",
+                                value : msgGlobal
+                            });
+                            return true
                             
-        //                 }
-        //             }
+                        }else{
+                            currentRecordObj.setValue({
+                                fieldId : "custbody_stc_budget_allert",
+                                value : ''
+                            });
+                            return true
+                        }
+                    }
                     
                     
-        //         }
-        //     }
+                }
+            }
         
-        //     var cekLineItem = currentRecordObj.getLineCount({ sublistId: 'item' });
-        //     if (cekLineItem > 0) {
-        //         for (var k = 0; k < cekLineItem; k++) {
-        //             var budget = currentRecordObj.getSublistValue({  
-        //                 sublistId: "item",
-        //                 fieldId: "custcol_bm_budgetamount",
-        //                 line: k
-        //             });
-        //             var consumed = currentRecordObj.getSublistValue({  
-        //                 sublistId: "item",
-        //                 fieldId: "custcol_bm_budgetamountconsumed",
-        //                 line: k
-        //             });
-        //             log.debug('SAVE budget', budget)
-        //             log.debug('SAVE consumed', consumed)
-        //             if(budget && consumed){
-        //                 if (consumed > budget) {
-        //                     log.debug('budgetContorlGolbal', budgetContorlGolbal)
-        //                     if(budgetContorlGolbal == "1"){
-        //                         log.debug('msgGlobal', msgGlobal);
-        //                         currentRecordObj.setValue({
-        //                             fieldId : "custbody_bm_budgetstatus",
-        //                             value : msgGlobal
-        //                         });
-        //                         return true
-        //                     }else{
-        //                         dialog.alert({
-        //                             title: 'Warning!',
-        //                             message: '<div style="color: red;">One or more transaction lines in the "Item" sublist either do not have a matching budget or are exceeding budget. Check the transaction lines and update.</div>'
-        //                         });
-        //                         return true;
-        //                     }
+            var cekLineItem = currentRecordObj.getLineCount({ sublistId: 'item' });
+            if (cekLineItem > 0) {
+                for (var k = 0; k < cekLineItem; k++) {
+                    var budget = currentRecordObj.getSublistValue({  
+                        sublistId: "item",
+                        fieldId: "custcol_stc_budget_amount",
+                        line: k
+                    });
+                    var consumed = currentRecordObj.getSublistValue({  
+                        sublistId: "item",
+                        fieldId: "custcol_stc_budget_consumed",
+                        line: k
+                    });
+                    log.debug('SAVE budget', budget)
+                    log.debug('SAVE consumed', consumed)
+                    if(budget && consumed){
+                        if (consumed > budget) {
+                            currentRecordObj.setValue({
+                                fieldId : "custbody_stc_budget_allert",
+                                value : msgGlobal
+                            });
+                            return true
                             
-        //                 }
-        //             }
+                        }else{
+                            currentRecordObj.setValue({
+                                fieldId : "custbody_stc_budget_allert",
+                                value : ''
+                            });
+                            return true
+                        }
+                    }
                     
-        //         }
-        //     }
+                }
+            }
         
-        //     return true;
-        // }
+            return true;
+        }
     }catch(e){
         log.debug('error', e)
     }
@@ -467,6 +475,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     
     return {
         pageInit: pageInit,
-        validateLine : validateLine
+        validateLine : validateLine,
+        saveRecord : saveRecord
     };
 });
