@@ -2,7 +2,7 @@
  * @NApiVersion 2.1
  * @NScriptType clientscript
  */
-define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(currentRecord, dialog, log, search) {
+define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url'], function(currentRecord, dialog, log, search, https, url) {
     let currentMode = '';
 
     function pageInit(context) {
@@ -112,33 +112,17 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search'], function(current
 
             var account;
             if (itemId) {
-                var itemSearchObj = search.create({
-                    type: "item",
-                    filters: [["internalid", "anyof", itemId]],
-                    columns: [
-                        search.createColumn({ name: "itemid", label: "Name" }),
-                        search.createColumn({ name: "displayname", label: "Display Name" }),
-                        search.createColumn({ name: "type", label: "Type" }),
-                        search.createColumn({ name: "baseprice", label: "Base Price" }),
-                        search.createColumn({ name: "assetaccount", label: "Asset Account" }),
-                        search.createColumn({ name: "expenseaccount", label: "Expense/COGS Account" })
-                    ]
-                });
-                var results = itemSearchObj.run().getRange({ start: 0, end: 1000 });
-
-                console.log("itemSearchObj result count", results.length);
-
-                results.forEach(function (result) {
-                    var type = result.getValue({ name: "type" });
-                    var assetAccount = result.getValue({ name: "assetaccount" });
-                    var expenseAccount = result.getValue({ name: "expenseaccount" });
-
-                    if (type == 'InvtPart') {
-                        account = assetAccount;
-                    } else {
-                        account = expenseAccount;
+                const suiteletUrl = url.resolveScript({
+                    scriptId: "customscript_abj_sl_get_item",
+                    deploymentId: "customdeploy_abj_sl_get_item",
+                    params: {
+                        custscript_item_id: itemId,
                     }
                 });
+
+                const response = https.get({ url: suiteletUrl });
+                account = response.body || ''
+                console.log('response', response)
             }
 
             var sofId = currentRec.getCurrentSublistValue({

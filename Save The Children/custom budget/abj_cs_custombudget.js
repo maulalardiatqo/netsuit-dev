@@ -8,17 +8,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     try{
         var records = currentRecord.get();
         var budgetContorlGolbal
-        var msgGlobal = `
-        <div style="color: red;
-                    font-size: 22px;
-                    font-weight: bold;
-                    text-align: center;
-                    padding: 10px;
-                    border: 2px solid red;
-                    border-radius: 8px;">
-            WARNING <br> One or more line transaction is exceeded Budget
-        </div>
-        `;
+        var msgGlobal = '<b style="color:red; font-size:20px;">WARNING<br>One or more line transaction is exceeded Budget</b>';
+
 
         function pageInit(context) {
             console.log('init masuk')
@@ -393,81 +384,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             return true;
         }
 
-        function saveRecord(context) {
-            var currentRecordObj = context.currentRecord;
-            log.debug('masuk save record')
-            var cekLineExp = currentRecordObj.getLineCount({ sublistId: 'expense' });
-            if (cekLineExp > 0) {
-                for (var i = 0; i < cekLineExp; i++) {
-                    var budget = currentRecordObj.getSublistValue({  
-                        sublistId: "expense",
-                        fieldId: "custcol_stc_budget_amount",
-                        line: i
-                    });
-                    var consumed = currentRecordObj.getSublistValue({  
-                        sublistId: "expense",
-                        fieldId: "custcol_stc_budget_consumed",
-                        line: i
-                    });
-                    log.debug('msgGlobal', msgGlobal);
-                    if(budget && consumed){
-                        if (consumed > budget) {
-                            currentRecordObj.setValue({
-                                fieldId : "custbody_stc_budget_allert",
-                                value : msgGlobal
-                            });
-                            return true
-                            
-                        }else{
-                            currentRecordObj.setValue({
-                                fieldId : "custbody_stc_budget_allert",
-                                value : ''
-                            });
-                            return true
-                        }
-                    }
-                    
-                    
-                }
-            }
-        
-            var cekLineItem = currentRecordObj.getLineCount({ sublistId: 'item' });
-            if (cekLineItem > 0) {
-                for (var k = 0; k < cekLineItem; k++) {
-                    var budget = currentRecordObj.getSublistValue({  
-                        sublistId: "item",
-                        fieldId: "custcol_stc_budget_amount",
-                        line: k
-                    });
-                    var consumed = currentRecordObj.getSublistValue({  
-                        sublistId: "item",
-                        fieldId: "custcol_stc_budget_consumed",
-                        line: k
-                    });
-                    log.debug('SAVE budget', budget)
-                    log.debug('SAVE consumed', consumed)
-                    if(budget && consumed){
-                        if (consumed > budget) {
-                            currentRecordObj.setValue({
-                                fieldId : "custbody_stc_budget_allert",
-                                value : msgGlobal
-                            });
-                            return true
-                            
-                        }else{
-                            currentRecordObj.setValue({
-                                fieldId : "custbody_stc_budget_allert",
-                                value : ''
-                            });
-                            return true
-                        }
-                    }
-                    
-                }
-            }
-        
-            return true;
-        }
+       
     }catch(e){
         log.debug('error', e)
     }
@@ -475,7 +392,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     
     return {
         pageInit: pageInit,
-        validateLine : validateLine,
-        saveRecord : saveRecord
+        validateLine : validateLine
     };
 });
