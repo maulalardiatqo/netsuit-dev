@@ -88,12 +88,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             try {
                 generate({ currentRecord: rec });
 
-                // Setelah selesai → hide message
                 if (processMsg) {
                     processMsg.hide();
                 }
 
-                // Optional: enable tombol kembali
                 if (btn) {
                     btn.disabled = false;
                     btn.style.opacity = "1";
@@ -137,6 +135,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         if(allSofId.length > 0){
             
             var periodId = records.getValue('postingperiod');
+            var allDataCredits = []
             var dataInclude = [];
             var searchInclude = search.load({
                 id : 'customsearch_abj_premise_allocate_amou_4'

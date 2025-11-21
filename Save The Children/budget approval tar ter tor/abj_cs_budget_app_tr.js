@@ -42,12 +42,14 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url
 
         return approval;
     }
-    function getFinanceMatric(sofId){
+    function getFinanceMatric(sofId, amount){
         var approvalFinance
         var customrecord_stc_apprvl_mtrix_financeSearchObj = search.create({
             type: "customrecord_stc_apprvl_mtrix_finance",
             filters: [
-                ["custrecord_stc_sof_mtrx_finance", "anyof", sofId]
+                ["custrecord_stc_sof_mtrx_finance", "anyof", sofId],
+                "AND", 
+                ["custrecord_finance_max_amnt","greaterthanorequalto",amount]
             ],
             columns: [
                 search.createColumn({ name: "custrecord_stc_apprvl_finance", label: "Approval Finance" })
@@ -141,7 +143,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url
             if (sofId) {
                 var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
                 if(typeRec == 'customrecord_tor'){
-                    var emp = getFinanceMatric(sofId)
+                    var emp = getFinanceMatric(sofId, grossamt)
                     if(emp){
                         currentRec.setCurrentSublistValue({
                             sublistId : sublistItem,
@@ -215,7 +217,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url
                 console.log('cekEmp (expense)', cekEmp)
                 
                 if(cekType == 'vendbill' || cekType == 'exprept' || cekType == 'purchreq'){
-                    var emp = getFinanceMatric(sofId)
+                    var emp = getFinanceMatric(sofId, grossamt)
                     if(emp){
                         currentRec.setCurrentSublistValue({
                             sublistId : "expense",

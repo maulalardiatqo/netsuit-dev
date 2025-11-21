@@ -19,32 +19,25 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             return dateObj.getMonth() + 1;
         }
 
-        function callPeriod(periodName){
-            var perId = ''
-            var accountingperiodSearchObj = search.create({
-            type: "accountingperiod",
-            filters:
-            [
-                ["periodname","is",periodName]
-            ],
-            columns:
-            [
-                search.createColumn({name: "periodname", label: "Name"}),
-                search.createColumn({name: "internalid", label: "Internal ID"}),
-                search.createColumn({name: "startdate", label: "Start Date"}),
-                search.createColumn({name: "enddate", label: "End Date"})
-            ]
+        function callPeriodMulti(yearName, periodName) {
+            const suiteletUrl = url.resolveScript({
+                scriptId: "customscript_abj_sl_get_period_id",
+                deploymentId: "customdeploy_abj_sl_get_period_id",
+                params: {
+                    custscript_year_name: yearName,
+                    custscript_period_name: periodName
+                }
             });
-            var searchResultCount = accountingperiodSearchObj.runPaged().count;
-            log.debug("accountingperiodSearchObj result count",searchResultCount);
-            accountingperiodSearchObj.run().each(function(result){
-                perId = result.getValue({
-                    name: "internalid"
-                })
-            return true;
-            });
-            return perId
+
+            const response = https.get({ url: suiteletUrl });
+            var data = JSON.parse(response.body);
+
+            return {
+                yearId: data.yearId || '',
+                periodId: data.periodId || ''
+            };
         }
+
         function getFiscalInfo(dateObj) {
             if (!dateObj) return { tahun: "", periodName: "" };
 
@@ -356,33 +349,30 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var currentRecordObj = context.currentRecord;
             var sublistName = context.sublistId;
             var date = currentRecordObj.getValue('trandate');
+
             var result = getFiscalInfo(date);
             var yearPeriodName = result.tahun;
-            var yearId = ''
-            if(yearPeriodName){
-                yearId = callPeriod(yearPeriodName)
-            }
             var periodName = result.periodName;
-            var periodId = '';
-            if(periodName){
-                periodId = callPeriod(periodName);
-            }
-            console.log('date', date)
+
+            // call suitelet sekali saja
+            var periodData = callPeriodMulti(yearPeriodName, periodName);
+
+            var yearId = periodData.yearId;
+            var periodId = periodData.periodId;
+
             var monthIndex = getMonthIndex(date);
-            
-            // EXPENSE SUBLIST
+
             if (sublistName === 'expense') {
-                var sblsId = "expense";
-                actionSublist(currentRecordObj, sblsId, yearId, periodId, monthIndex);
+                actionSublist(currentRecordObj, 'expense', yearId, periodId, monthIndex);
             }
-            // ITEM SUBLIST
+
             if (sublistName === 'item') {
-                var sblsId = "item";
-                actionSublist(currentRecordObj, sblsId, yearId, periodId, monthIndex);
+                actionSublist(currentRecordObj, 'item', yearId, periodId, monthIndex);
             }
 
             return true;
         }
+
 
        
     }catch(e){
