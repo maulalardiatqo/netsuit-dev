@@ -136,6 +136,102 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             
             var periodId = records.getValue('postingperiod');
             var allDataCredits = []
+            var transactionSearchObj = search.create({
+            type: "transaction",
+            filters:
+            [
+                ["posting","is","T"], 
+                "AND", 
+                ["amount","greaterthan","0.00"], 
+                "AND", 
+                ["formulatext: {account.custrecord_stc_account_cam_mapping}","isnotempty",""], 
+                "AND", 
+                ["postingperiod","abs",periodId]
+            ],
+            columns:
+            [
+                search.createColumn({
+                    name: "account",
+                    summary: "GROUP",
+                    label: "Account"
+                }),
+                search.createColumn({
+                    name: "formulatext",
+                    summary: "GROUP",
+                    formula: "{account.custrecord_stc_account_cam_mapping}",
+                    label: "Destination CAM Account"
+                }),
+                search.createColumn({
+                    name: "department",
+                    summary: "GROUP",
+                    label: "Cost Center"
+                }),
+                search.createColumn({
+                    name: "class",
+                    summary: "GROUP",
+                    label: "Project Code"
+                }),
+                search.createColumn({
+                    name: "line.cseg_stc_drc_segmen",
+                    summary: "GROUP",
+                    label: "DRC Segment"
+                }),
+                search.createColumn({
+                    name: "line.cseg_stc_segmentdea",
+                    summary: "GROUP",
+                    label: "DEA Segment"
+                }),
+                search.createColumn({
+                    name: "postingperiod",
+                    summary: "GROUP",
+                    label: "Period"
+                }),
+                search.createColumn({
+                    name: "amount",
+                    summary: "SUM",
+                    label: "Amount"
+                })
+            ]
+            });
+            var searchResultCount = transactionSearchObj.runPaged().count;
+            log.debug("transactionSearchObj result count",searchResultCount);
+            transactionSearchObj.run().each(function(dataRes){
+                var acc = dataRes.getValue({
+                    name: "account",
+                    summary: "GROUP",
+                })
+                var costCenter = dataRes.getValue({
+                    name: "department",
+                    summary: "GROUP",
+                })
+                var projectCode = dataRes.getValue({
+                    name: "class",
+                    summary: "GROUP",
+                })
+                var drc = dataRes.getValue({
+                    name: "line.cseg_stc_drc_segmen",
+                    summary: "GROUP",
+                })
+                var dea = dataRes.getValue({
+                    name: "line.cseg_stc_segmentdea",
+                    summary: "GROUP",
+                })
+                var amt = dataRes.getValue({
+                    name: "amount",
+                    summary: "SUM",
+                });
+                allDataCredits.push({
+                    acc : acc,
+                    costCenter : costCenter,
+                    projectCode : projectCode,
+                    drc : drc,
+                    dea : dea,
+                    amt : amt
+                })
+                return true;
+            });
+
+
             var dataInclude = [];
             var searchInclude = search.load({
                 id : 'customsearch_abj_premise_allocate_amou_4'
@@ -208,7 +304,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
                 var sofId = result.getValue(columns[0]); 
                 var amtSpend = result.getValue(columns[2]); 
-                totalSpendAmt = Number(totalSpendAmt) + Number(amtSpend)
+                
                 allSpendAmount.push({
                     sofId: sofId,
                     amtSpend: amtSpend
@@ -264,17 +360,19 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 var spend = spendMap[sof] || 0;
                 var remaining = remainingMap[sof] || 0;
 
-                finalData.push({
-                    sofId: sof,
-                    amtSpend: spend,
-                    amtRemaining: remaining,
+                if (spend !== '' && spend !== 0 && spend !== null) {
+                    totalSpendAmt = Number(totalSpendAmt) + Number(spend)
+                    finalData.push({
+                        sofId: sof,
+                        amtSpend: spend,
+                        amtRemaining: remaining,
 
-                    // inject include data
-                    costCenter: includeData.costCenter,
-                    project: includeData.project,
-                    drc: includeData.drc,
-                    dea: includeData.dea
-                });
+                        costCenter: includeData.costCenter,
+                        project: includeData.project,
+                        drc: includeData.drc,
+                        dea: includeData.dea
+                    });
+                }
             });
             var lineCount = records.getLineCount({ sublistId: 'line' });
                 console.log('existing journal lines:', lineCount);
@@ -289,7 +387,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     }
                     console.log('All existing journal lines removed.');
                 }
-            console.log("FINAL MERGED DATA", finalData);
+            console.log('totalSpendAmt', totalSpendAmt)
             finalData.forEach(function(row, index) {
                 var sofId = row.sofId;
                 var spend = row.amtSpend;
@@ -299,13 +397,17 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 var drc = row.drc;
                 var dea = row.dea;
                 var bobotPerMonth = Number(spend) / Number(totalSpendAmt)
+                bobotPerMonth = bobotPerMonth.toFixed(4)
                 var prosent = Number(spend) / Number(totalSpendAmt) * 100
                 
-                var bassicAllocation = Number(spend) * Number(bobotPerMonth);
+                var bassicAllocation = (Number(bobotPerMonth) * Number(cekAmountAllocate));
                 var amtDebit = 0;
                 if(Number(remaining) > Number(bassicAllocation)){
                     amtDebit = bassicAllocation
+                }else{
+                    amtDebit = remaining
                 }
+                console.log('bobotPerMonth, debit', {bobotPerMonth : bobotPerMonth, amtDebit : amtDebit})
                 records.selectNewLine({ sublistId: 'line' });
                 records.setCurrentSublistValue({
                     sublistId: 'line',
@@ -315,7 +417,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 records.setCurrentSublistValue({
                     sublistId: 'line',
                     fieldId: 'debit',
-                    value: amtDebit
+                    value: amtDebit.toFixed(2)
                 });
                 records.setCurrentSublistValue({
                     sublistId: 'line',
@@ -338,28 +440,82 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     fieldId: 'custcol_abj_remaining_budget_sof',
                     value: remaining
                 });
+                var prosent = prosent; 
+                prosent = Number(prosent).toFixed(2); 
                 records.setCurrentSublistValue({
                     sublistId: 'line',
                     fieldId: 'custcol_tar_percentage',
                     value: prosent
                 });
-                if(drc){
-                    records.setCurrentSublistValue({
-                        sublistId: 'line',
-                        fieldId: 'cseg_stc_drc_segmen',
-                        value: drc
-                    });
-                }
-                if(dea){
-                    records.setCurrentSublistValue({
-                        sublistId: 'line',
-                        fieldId: 'cseg_stc_segmentdea',
-                        value: dea
-                    });
-                }
+                // if(drc){
+                //     records.setCurrentSublistValue({
+                //         sublistId: 'line',
+                //         fieldId: 'cseg_stc_drc_segmen',
+                //         value: drc
+                //     });
+                // }
+                // if(dea){
+                //     records.setCurrentSublistValue({
+                //         sublistId: 'line',
+                //         fieldId: 'cseg_stc_segmentdea',
+                //         value: dea
+                //     });
+                // }
                 records.commitLine({ sublistId: 'line' });
                 
             });
+            if(allDataCredits.length > 0){
+                allDataCredits.forEach((credits)=>{
+                    var acc = credits.acc
+                    var costCenter = credits.costCenter
+                    var projectCode = credits.projectCode
+                    var drc = credits.drc
+                    var dea = credits.dea
+                    var amt = credits.amt
+
+                    records.selectNewLine({ sublistId: 'line' });
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'account',
+                        value: acc
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'credit',
+                        value: amt
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'department',
+                        value: costCenter
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'class',
+                        value: projectCode
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'cseg_stc_sof',
+                        value: '57'
+                    });
+                    // if(drc){
+                    //     records.setCurrentSublistValue({
+                    //         sublistId: 'line',
+                    //         fieldId: 'cseg_stc_drc_segmen',
+                    //         value: drc
+                    //     });
+                    // }
+                    // if(dea){
+                    //     records.setCurrentSublistValue({
+                    //         sublistId: 'line',
+                    //         fieldId: 'cseg_stc_segmentdea',
+                    //         value: dea
+                    //     });
+                    // }
+                    records.commitLine({ sublistId: 'line' });
+                })
+            }
 
         }
     }

@@ -44,7 +44,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if(fieldPR){
                     var recPr = record.load({
                         type: "purchaserequisition",
-                        id: fieldPR,
+                        id: fieldPR
                     });
                     prNo = recPr.getValue('tranid')
                     var linePrcount = recPr.getLineCount({
@@ -325,8 +325,18 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='border:1px solid black; background-color:#DBD8D8FF;'>Location</td>";
                 for (var i = 0; i < 3; i++) {
                     var addr = allDataVendor[i] ? allDataVendor[i].vendAddr : '';
-                    addr = addr ? addr.replace(/\n/g, '<br/>') : '';
-                    body += "<td colspan='3' style='border:1px solid black; border-left:none; vertical-align:top;'>" + escapeXmlSymbols(addr) + "</td>";
+                    var result = '';
+
+                    if (addr) {
+                        var lines = addr.split('\n');
+                        lines = lines.map(function(line) {
+                            return escapeXmlSymbols(line); // hanya escapekan isi teks
+                        });
+                        result = lines.join('<br/>'); // gabungkan kembali dengan <br/>
+                    }
+
+                    body += "<td colspan='3' style='border:1px solid black; border-left:none; vertical-align:top;'>" +
+                            result + "</td>";
                 }
                 body += "</tr>";
 

@@ -80,79 +80,24 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             return budgetAmt
         }
         function callSearch( account, department, estAmount, classId, sofId, periodId){
-            log.debug('filterSearch consumed', { account : account, estAmount : estAmount, classId : classId, sofId: sofId, department : department})
-            var transactionSearchObj = search.create({
-            type: "transaction",
-            filters:
-            [
-                ["formulatext: {status}","doesnotcontain","reject"], 
-                "AND", 
-                ["accounttype","anyof","Expense","OthExpense","DeferExpense"], 
-                "AND", 
-                ["account.custrecord_bm_budgetaccount","is","F"], 
-                "AND", 
-                ["status","noneof","PurchOrd:P","PurchOrd:A"], 
-                "AND", 
-                ["account","anyof", account], 
-                "AND", 
-                ["department","anyof",department], 
-                "AND", 
-                ["class","anyof",classId], 
-                "AND", 
-                ["line.cseg_stc_sof","anyof",sofId],
-                "AND",
-                ["postingperiod","abs",periodId]
-            ],
-            columns:
-            [
-                search.createColumn({
-                    name: "account",
-                    summary: "GROUP",
-                    label: "Account"
-                }),
-                search.createColumn({
-                    name: "department",
-                    summary: "GROUP",
-                    label: "Cost Center"
-                }),
-                search.createColumn({
-                    name: "class",
-                    summary: "GROUP",
-                    label: "Project Code"
-                }),
-                search.createColumn({
-                    name: "line.cseg_stc_sof",
-                    summary: "GROUP",
-                    label: "SOF"
-                }),
-                search.createColumn({
-                    name: "custcol_stc_budget_amount",
-                    summary: "MAX",
-                    label: "STC - Budget Amount"
-                }),
-                search.createColumn({
-                    name: "formulacurrency",
-                    summary: "SUM",
-                    formula: "((SUM(NVL(CASE WHEN {recordType}='purchaseorder' THEN {amount} END,0)) - SUM(NVL(CASE WHEN {recordType} = 'itemreceipt' THEN {amount} END,0)) - SUM(NVL(CASE WHEN {recordType}='purchaseorder' AND {status} = 'Closed' THEN {rate}*({quantity} - {quantitybilled}) END,0)))+(SUM(NVL(CASE WHEN {recordType}='purchaserequisition'  AND {status} NOT IN ('PurchReq:F', 'Fully Ordered')THEN {amount}     END, 0)))) + (SUM(NVL(CASE WHEN {posting} = 'T' THEN {amount} END,0)))",
-                    label: "Formula (Currency)"
-                })
-            ]
-            });
-            var searchResults = transactionSearchObj.run().getRange({ start: 0, end: 1 });
-            var amtFromSearch = 0
-            log.debug('searchResults : '+searchResults.length, searchResults);
-            if (searchResults.length > 0) {
-                var amtSearch = searchResults[0].getValue({ 
-                    name: "formulacurrency",
-                    summary: "SUM",
-                    formula: "((SUM(NVL(CASE WHEN {recordType}='purchaseorder' THEN {amount} END,0)) - SUM(NVL(CASE WHEN {recordType} = 'itemreceipt' THEN {amount} END,0)) - SUM(NVL(CASE WHEN {recordType}='purchaseorder' AND {status} = 'Closed' THEN {rate}*({quantity} - {quantitybilled}) END,0)))+(SUM(NVL(CASE WHEN {recordType}='purchaserequisition'  AND {status} NOT IN ('PurchReq:F', 'Fully Ordered')THEN {amount}     END, 0)))) + (SUM(NVL(CASE WHEN {posting} = 'T' THEN {amount} END,0)))",
-                });
-                log.debug('amtSearch cek search', amtSearch)
-                if(amtSearch){
-                    amtFromSearch = amtSearch
+            log.debug('filterSearch consumed', { account : account, estAmount : estAmount, classId : classId, sofId: sofId, department : department, periodId : periodId})
+            const suiteletUrl = url.resolveScript({
+                scriptId: "customscript_abj_sl_get_coonsumedamt",
+                deploymentId: "customdeploy_abj_sl_get_coonsumedamt",
+                params: {
+                    custscript_account_id: account,
+                    custscript_department_id: department,
+                    custscript_class_id: classId,
+                    custscript_sof_id: sofId,
+                    custscript_period_id: periodId,
+                    custscript_est_amt: estAmount,
                 }
-            }
-            var newAmount = Number(amtFromSearch) + Number(estAmount)
+            });
+
+            const response = https.get({ url: suiteletUrl });
+            var data = JSON.parse(response.body);
+            console.log('data', data)
+            var newAmount = data.newAmt || 0
             return newAmount
         }
         function setSblValue(currentRecordObj, account, department, classId, sofId, estAmount, additionalAmt, sblsId, yearId, periodId, monthIndex){

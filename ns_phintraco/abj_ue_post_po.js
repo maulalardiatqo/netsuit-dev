@@ -128,6 +128,9 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 taxCode: rec.getSublistText({ sublistId : 'item', fieldId : 'taxcode', line : i}),
                 taxRate: rec.getSublistText({ sublistId : 'item', fieldId : 'taxrate1', line : i}),
                 tax1amt: rec.getSublistValue({ sublistId : 'item', fieldId : 'tax1amt', line : i}),
+                customRate: rec.getSublistValue({ sublistId : 'item', fieldId : 'custcol_ph_customrate', line : i}),
+                discount: rec.getSublistValue({ sublistId : 'item', fieldId : 'custcol_ph_discountpercentage', line : i}),
+                rateAfterDisc: rec.getSublistValue({ sublistId : 'item', fieldId : 'custcol_ph_customrateafterdiscount', line : i}),
             });
         }
 

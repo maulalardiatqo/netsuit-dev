@@ -2,7 +2,7 @@
  *@NApiVersion 2.1
  *@NScriptType ClientScript
  */
-define(['N/currentRecord', 'N/ui/dialog'], (currentRecord, dialog) => {
+define(['N/currentRecord', 'N/ui/dialog', 'N/search'], (currentRecord, dialog, search) => {
 
     const pageInit = (context) => {
         console.log('pageInit call');
@@ -19,6 +19,25 @@ define(['N/currentRecord', 'N/ui/dialog'], (currentRecord, dialog) => {
         if (customLink) {
             customLink.style.display = isAnyTrue ? 'block' : 'none';
         }
+        // ============================
+
+        var field = document.getElementById('custpage_nama_objek_pajak');
+
+        if (!field) return;
+
+        https.get({
+            url: '/app/site/hosting/scriptlet.nl?script=1324&deploy=1' 
+        }).then(function(res) {
+            var data = JSON.parse(res.body);
+
+            field.innerHTML = '';
+
+            field.add(new Option('-- Pilih Objek Pajak --', ''));
+
+            data.forEach(function(rec) {
+                field.add(new Option(rec.text, rec.id));
+            });
+        });
     };
 
     const checkAnyTrueLine = (sublistId) => {

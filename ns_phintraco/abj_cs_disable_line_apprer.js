@@ -3,6 +3,33 @@
  * @NScriptType ClientScript
  */
 define([], function () {
+    function pageInit(context){
+        var rec = context.currentRecord;
+        var cekLine = rec.getLineCount({
+            sublistId : 'recmachcustrecord_abj_a_id'
+        });
+        var cekDissable = false
+        if(cekLine > 0){
+            for(var i = 0; i < cekLine; i++){
+                var statusApproval = rec.getSublistValue({
+                    sublistId : 'recmachcustrecord_abj_a_id',
+                    fieldId : 'custrecord_abj_status_approve',
+                    line : i
+                });
+                if(statusApproval == '2'){
+                    cekDissable = true
+                }
+            }
+        }
+        if(cekDissable){
+            var fieldCreator = rec.getField({
+                fieldId : 'custbody_abj_creator'
+            });
+            if(fieldCreator){
+                fieldCreator.isDisabled = true;
+            }
+        }
+    }
 
     function lineInit(context) {
         var rec = context.currentRecord;
@@ -126,10 +153,32 @@ define([], function () {
 
         return true;
     }
+    function saveRecord(context) {
+        var rec = context.currentRecord;
+
+        var countA = rec.getLineCount({
+            sublistId: 'recmachcustrecord_abj_a_id'
+        });
+        if (countA === 0) {
+            return true;
+        }
+
+        var countB = rec.getLineCount({
+            sublistId: 'recmachcustrecord_a_id'
+        });
+
+        if (countB === 0) {
+            alert('File Attach Must be filled');
+            return false;
+        }
+        return true;
+    }
 
     return {
         lineInit: lineInit,
-        validateDelete : validateDelete
+        validateDelete : validateDelete,
+        pageInit : pageInit,
+        saveRecord : saveRecord
     };
 
 });
