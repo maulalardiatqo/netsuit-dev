@@ -162,6 +162,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
         }
         function actionSublist(currentRecordObj, sblsId, yearId, periodId, monthIndex){
+            var cekType = currentRecordObj.getValue('type');
+            console.log('cekType', cekType)
             var department = currentRecordObj.getCurrentSublistValue({  
                 sublistId: sblsId,
                 fieldId: "department",
@@ -198,20 +200,36 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 console.log('response', response)
             }
             
-            var estAmount = currentRecordObj.getCurrentSublistValue({
-                sublistId: sblsId,
-                fieldId: "estimatedamount",
-            });
+            var estAmount = 0
+            if(cekType == 'purchord'){
+                estAmount = currentRecordObj.getCurrentSublistValue({
+                    sublistId: sblsId,
+                    fieldId: "amount",
+                });
+            }else{
+                estAmount = currentRecordObj.getCurrentSublistValue({
+                    sublistId: sblsId,
+                    fieldId: "estimatedamount",
+                });
+            }
             if(sblsId == "item"){
-                var qty = currentRecordObj.getCurrentSublistValue({
-                    sublistId: sblsId,
-                    fieldId: "quantity",
-                });
-                var estRate = currentRecordObj.getCurrentSublistValue({
-                    sublistId: sblsId,
-                    fieldId: "estimatedrate",
-                });
-                estAmount = Number(estRate) * Number(qty);
+                if(cekType == 'purchord'){
+                    estAmount = currentRecordObj.getCurrentSublistValue({
+                        sublistId: sblsId,
+                        fieldId: "amount",
+                    });
+                }else{
+                    var qty = currentRecordObj.getCurrentSublistValue({
+                        sublistId: sblsId,
+                        fieldId: "quantity",
+                    });
+                    var estRate = currentRecordObj.getCurrentSublistValue({
+                        sublistId: sblsId,
+                        fieldId: "estimatedrate",
+                    });
+                    estAmount = Number(estRate) * Number(qty);
+                }
+               
                 console.log('estAmount', estAmount);
             }
             var additionalAmt = 0;

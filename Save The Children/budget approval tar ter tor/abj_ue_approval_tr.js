@@ -290,7 +290,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
 
                     const oldApprovalStatus = toInt(recOld.getValue('custrecord_tor_status'));
                     const newApprovalStatus = toInt(newRecLoad.getValue('custrecord_tor_status'));
-                    const cekIsFa = rec.getValue('custrecord_tor_approved_by_finance');
+                    const cekIsHO = rec.getValue('custrecord_tor_approved_by_budget_h');
                     log.debug('before/after', { 
                         oldVal, newVal, 
                         employeeId, 
@@ -308,7 +308,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         log.debug('Selesai Reject', 'Line milik user diset ke 3');
                         return;
                     }
-                    if(newValFA !== oldValFA && employeeId === newValFA && cekIsFa === false){
+                    if(newValFA !== oldValFA && employeeId === newValFA && cekIsHO === true){
                         updateLinesForUserFATOR('recmachcustrecord_tori_id', 2)
                         const isAllApprovedFA = () => {
                             let approverLines = 0;
@@ -347,7 +347,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         newRecLoad.save({ enableSourcing: false, ignoreMandatoryFields: true });
                         log.debug('Selesai Approve FA', 'Record tersimpan');
                     }
-                    if(newVal !== oldVal && employeeId === newVal && cekIsFa === true){
+                    if(newVal !== oldVal && employeeId === newVal){
                         log.debug('masuk approv budget')
                         updateLinesForUserTOR('recmachcustrecord_tori_id', 2);
                         const isAllApproved = () => {
