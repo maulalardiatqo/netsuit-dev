@@ -201,24 +201,21 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
             
             var estAmount = 0
-            if(cekType == 'purchord'){
-                estAmount = currentRecordObj.getCurrentSublistValue({
-                    sublistId: sblsId,
-                    fieldId: "amount",
-                });
-            }else{
-                estAmount = currentRecordObj.getCurrentSublistValue({
+            if(cekType == 'purchreq'){
+                
+                 estAmount = currentRecordObj.getCurrentSublistValue({
                     sublistId: sblsId,
                     fieldId: "estimatedamount",
                 });
+            }else{
+               estAmount = currentRecordObj.getCurrentSublistValue({
+                    sublistId: sblsId,
+                    fieldId: "amount",
+                });
             }
             if(sblsId == "item"){
-                if(cekType == 'purchord'){
-                    estAmount = currentRecordObj.getCurrentSublistValue({
-                        sublistId: sblsId,
-                        fieldId: "amount",
-                    });
-                }else{
+                if(cekType == 'purchreq'){
+                    
                     var qty = currentRecordObj.getCurrentSublistValue({
                         sublistId: sblsId,
                         fieldId: "quantity",
@@ -228,6 +225,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: "estimatedrate",
                     });
                     estAmount = Number(estRate) * Number(qty);
+                }else{
+                    estAmount = currentRecordObj.getCurrentSublistValue({
+                        sublistId: sblsId,
+                        fieldId: "amount",
+                    });
                 }
                
                 console.log('estAmount', estAmount);

@@ -14,53 +14,49 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var records = context.currentRecord;
         var amountAllocated = records.getValue('custbody_abj_amount_to_allocate');
         var cForm = records.getValue('customform');
-        var journalType = records.getValue('custbody_stc_journal_type'); //journal type 5 for non promise
+        var journalType = records.getValue('custbody_stc_journal_type');
         if (cForm == 141) {
             var fieldName = context.fieldId;
             var sublistFieldName = context.sublistId;
             if(fieldName == 'custbody_abj_destination_account'){
                 var periodId = records.getValue('postingperiod');
                 var accountId = records.getValue('custbody_abj_destination_account');
+                console.log('accountId', accountId)
+                console.log('periodId', periodId)
+                var totalAmt = 0
                 var searchAmt = search.load({
                     id: 'customsearch_abj_premise_allocate_amou_4'
                 });
 
                 var filters = searchAmt.filters;
                 filters.push(search.createFilter({
-                    name: 'account',
-                    operator: search.Operator.IS,
-                    values: accountId
-                }));
-                filters.push(search.createFilter({
                     name: 'postingperiod',
                     operator: search.Operator.IS,
                     values: periodId
                 }));
+                filters.push(search.createFilter({
+                    name: 'custrecord_stc_account_cam_mapping',
+                    join: 'account',
+                    operator: search.Operator.ANYOF,
+                    values: accountId
+                }));
                 searchAmt.filters = filters;
 
-                var result = searchAmt.run().getRange({ start: 0, end: 1 });
+               var resultSet = searchAmt.run().getRange({ start: 0, end: 100 });
 
-                if (result && result.length > 0) {
-                    var firstResult = result[0];
-                    console.log('Result ditemukan:', firstResult);
-                    var amount = firstResult.getValue({
-                        name: "amount",
-                        summary: "SUM",
-                    });
-                    console.log('Amount:', amount);
-                    if(amount){
-                        records.setValue({
-                            fieldId : 'custbody_abj_amount_to_allocate',
-                            value : amount
-                        })
-                    }
-                } else {
-                    console.log('Tidak ada data ditemukan untuk filter tersebut.');
-                    records.setValue({
-                        fieldId : 'custbody_abj_amount_to_allocate',
-                        value : 0
-                    })
+                for (var i = 0; i < resultSet.length; i++) {
+                    var amount = resultSet[i].getValue({
+                        name: 'amount',
+                        summary: 'SUM'
+                    }) || 0;
+
+                    totalAmt += Number(amount);
                 }
+                console.log('totalAmt', totalAmt)
+                records.setValue({
+                    fieldId : 'custbody_abj_amount_to_allocate',
+                    value : totalAmt
+                })
 
             }
         }
@@ -237,15 +233,21 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 id : 'customsearch_abj_premise_allocate_amou_4'
             });
             var filters = searchInclude.filters;
-            filters.push(search.createFilter({
-                name: 'account',
-                operator: search.Operator.IS,
-                values: accountHead
-            }));
+            // filters.push(search.createFilter({
+            //     name: 'account',
+            //     operator: search.Operator.IS,
+            //     values: accountHead
+            // }));
             filters.push(search.createFilter({
                 name: 'postingperiod',
                 operator: search.Operator.IS,
                 values: periodId
+            }));
+            filters.push(search.createFilter({
+                name: 'custrecord_stc_account_cam_mapping',
+                join: 'account',
+                operator: search.Operator.ANYOF,
+                values: accountHead
             }));
             searchInclude.filters = filters;
 
@@ -256,6 +258,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 var costCenter = firstResult.getValue({
                     name: "department",
                     summary: "GROUP",
+                });
+                var account = firstResult.getValue({
+                    name: "formulatext",
+                    summary: "GROUP",
+                    formula: "{account.custrecord_stc_account_cam_mapping}",
                 });
                 var project = firstResult.getValue({
                     name: "class",
@@ -273,7 +280,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     costCenter : costCenter,
                     project : project,
                     drc : drc,
-                    dea : dea
+                    dea : dea,
+                    account : account
                 })
                 
             }
@@ -303,11 +311,15 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             results.forEach(function(result) {
 
                 var sofId = result.getValue(columns[0]); 
-                var amtSpend = result.getValue(columns[2]); 
-                
+                var amtSpend = result.getValue(columns[4]); 
+                var costCenter = result.getValue(columns[2]); 
+                var projectCode = result.getValue(columns[3]); 
                 allSpendAmount.push({
                     sofId: sofId,
-                    amtSpend: amtSpend
+                    amtSpend: amtSpend,
+                    costCenter : costCenter,
+                    projectCode : projectCode
+
                 });
             });
 
@@ -337,8 +349,20 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             console.log('allRemaining', allRemaining)
 
             var spendMap = {};
+
             allSpendAmount.forEach(function (d) {
-                spendMap[d.sofId] = Number(d.amtSpend || 0);
+                var key = d.sofId + "_" + (d.costCenter || "") + "_" + (d.projectCode || "");
+
+                if (!spendMap[key]) {
+                    spendMap[key] = {
+                        sofId: d.sofId,
+                        costCenter: d.costCenter || "",
+                        projectCode: d.projectCode || "",
+                        amtSpend: 0
+                    };
+                }
+
+                spendMap[key].amtSpend += Number(d.amtSpend || 0);
             });
 
             var remainingMap = {};
@@ -350,30 +374,34 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 costCenter : "",
                 project : "",
                 drc : "",
-                dea : ""
+                dea : "",
+                account : ""
             };
 
             var finalData = [];
 
-            allSofId.forEach(function (sof) {
+            Object.keys(spendMap).forEach(function (key) {
 
-                var spend = spendMap[sof] || 0;
+                var row = spendMap[key];
+                var sof = row.sofId;
+
                 var remaining = remainingMap[sof] || 0;
 
-                if (spend !== '' && spend !== 0 && spend !== null) {
-                    totalSpendAmt = Number(totalSpendAmt) + Number(spend)
+                if (row.amtSpend > 0) {
+                    totalSpendAmt += row.amtSpend;
+
                     finalData.push({
                         sofId: sof,
-                        amtSpend: spend,
+                        amtSpend: row.amtSpend,
                         amtRemaining: remaining,
-
-                        costCenter: includeData.costCenter,
-                        project: includeData.project,
+                        costCenter: row.costCenter,
+                        project: row.projectCode,
                         drc: includeData.drc,
                         dea: includeData.dea
                     });
                 }
             });
+
             var lineCount = records.getLineCount({ sublistId: 'line' });
                 console.log('existing journal lines:', lineCount);
 
@@ -388,6 +416,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     console.log('All existing journal lines removed.');
                 }
             console.log('totalSpendAmt', totalSpendAmt)
+            console.log('finalData', finalData)
+            var dataSisa = []
             finalData.forEach(function(row, index) {
                 var sofId = row.sofId;
                 var spend = row.amtSpend;
@@ -406,6 +436,14 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     amtDebit = bassicAllocation
                 }else{
                     amtDebit = remaining
+                }
+                var cekSisa = Number(amtDebit) - Number(remaining);
+                if(cekSisa && cekSisa > 0){
+                    dataSisa.push({
+                        cekSisa : cekSisa,
+                        costCenter : costCenter,
+                        project : project
+                    })
                 }
                 console.log('bobotPerMonth, debit', {bobotPerMonth : bobotPerMonth, amtDebit : amtDebit})
                 records.selectNewLine({ sublistId: 'line' });
@@ -498,6 +536,54 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         sublistId: 'line',
                         fieldId: 'cseg_stc_sof',
                         value: '57'
+                    });
+                    // if(drc){
+                    //     records.setCurrentSublistValue({
+                    //         sublistId: 'line',
+                    //         fieldId: 'cseg_stc_drc_segmen',
+                    //         value: drc
+                    //     });
+                    // }
+                    // if(dea){
+                    //     records.setCurrentSublistValue({
+                    //         sublistId: 'line',
+                    //         fieldId: 'cseg_stc_segmentdea',
+                    //         value: dea
+                    //     });
+                    // }
+                    records.commitLine({ sublistId: 'line' });
+                })
+            }
+            if(dataSisa.length > 0){
+                dataSisa.forEach((sisa)=>{
+                    var amtDebit = sisa.cekSisa;
+                    var costCenter = sisa.costCenter
+                    var projectCode = sisa.projectCode
+                    records.selectNewLine({ sublistId: 'line' });
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'account',
+                        value: accountHead
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'debit',
+                        value: amtDebit
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'department',
+                        value: costCenter
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'class',
+                        value: projectCode
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'cseg_stc_sof',
+                        value: '80'
                     });
                     // if(drc){
                     //     records.setCurrentSublistValue({
