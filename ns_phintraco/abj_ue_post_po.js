@@ -5,14 +5,19 @@
 define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (record, https, runtime, file, log, search) => {
     
     const WEBSITE_API_URL = 'https://sbapproval.phintraco.com/welcome/receive_po';
-    function callIntegrate(rec){
+    function callIntegrate(rec, isAdmin){
         log.debug('integration called')
-        const afterRecall = rec.getValue('custbody_after_recall')
+        const cekStatus = rec.getValue('approvalstatus')
         const cekTriggerResubmit = rec.getValue('custbody_abj_trigger_resubmit');
         const cekAfterSubmit = rec.getValue('custbody_trigger_after_resubmit');
-        log.debug('afterRecall', afterRecall)
+        log.debug('cekStatus', cekStatus)
         var isUpdate = false
-        if(afterRecall == true){
+        var appStatus
+        if(cekStatus == '3'){
+            isUpdate = true
+            appStatus = 'APPROVAL PROCESS'
+        }
+        if(isAdmin == true){
             isUpdate = true
         }
         var triggerResubmit = false
@@ -26,10 +31,8 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
             var cekCodeRevision = rec.getValue('custbody_abj_revision_code');
 
             if (!cekCodeRevision) {
-                // Jika belum ada kode revisi
                 codeRevision = 'R1';
             } else {
-                // Jika sudah ada, ambil angka setelah huruf 'R' lalu tambahkan 1
                 var currentNumber = parseInt(cekCodeRevision.replace('R', '')) || 0;
                 var nextNumber = currentNumber + 1;
                 codeRevision = 'R' + nextNumber;
@@ -46,7 +49,7 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
             created_by = lookCreated.custrecord_id_users_web
         }
         log.debug('masuk kirim web')
-        var appStatus
+        
         const status = rec.getValue('approvalstatus'); 
         var cekApprovStatus = rec.getValue('approvalstatus');
         if(cekApprovStatus == '1'){
@@ -171,8 +174,7 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
             })
             approvalNo = Number(approvalNo) + 1
         }
-        // --- Attachments & Approvers (misalnya dari subrecord custom) ---
-        // Di sini bisa ditambahkan sesuai kebutuhan kamu
+        // Attachments
         const attachCount = rec.getLineCount({ sublistId: 'recmachcustrecord_a_id' });
         for (let i = 0; i < attachCount; i++) {
             const fileId = rec.getSublistValue({
@@ -214,7 +216,25 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
         const res = JSON.parse(response.body || '{}');
         return res
     }
-    
+    function setReject(rec){
+        rec.setValue({
+            fieldId : 'approvalstatus',
+            value : '1'
+        })
+        var cekLine = rec.getLineCount({
+            sublistId : 'recmachcustrecord_abj_a_id'
+        });
+        if(cekLine > 0){
+            for(var i = 0; i < cekLine; i++){
+                rec.setSublistValue({
+                    sublistId : 'recmachcustrecord_abj_a_id',
+                    fieldId : 'custrecord_abj_status_approve',
+                    value : '1',
+                    line : i
+                })
+            }
+        }
+    }
     const afterSubmit = (context) => {
         try {
             if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.EDIT || context.type === context.UserEventType.COPY){
@@ -245,9 +265,19 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                     isApprover = true
                 }
                 const cekFlagApproval = rec.getValue('custbody_abj_flag_approval')
-                
-                if(isAttach && isApprover && cekFlagApproval == false){
-                    var result = callIntegrate(rec)
+                const roleAdmin = 3
+                var isAdmin = false
+                const currentRole = runtime.getCurrentUser().role;
+                if(currentRole == roleAdmin){
+                    isAdmin = true
+                }
+                if((isAttach && isApprover && cekFlagApproval == false) || (isAttach && isApprover && isAdmin === true)){
+                    log.debug('masuk kondisi cek')
+                    var cekApprovStatus = rec.getValue('approvalstatus');
+                    if(cekApprovStatus == '3'){
+                        setReject(rec)
+                    }
+                    var result = callIntegrate(rec, isAdmin)
                     
                     log.debug('result', result)
                     if (result.status === 'success') {
@@ -335,6 +365,47 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 }
             
             }
+            // set header approval
+            if(context.type === context.UserEventType.EDIT){
+                const recordV = context.newRecord;
+                const idRec = recordV.id
+                const rec = record.load({
+                    type : recordV.type,
+                    id : idRec
+                })
+                 const cekApproverLine = rec.getLineCount({
+                    sublistId : 'recmachcustrecord_abj_a_id'
+                })
+                
+                log.debug('cekApproverLine', cekApproverLine)
+                if(cekApproverLine > 0){
+                    var setHeader = true; 
+
+                    for (var i = 0; i < cekApproverLine; i++) {
+                        var statusApprove = rec.getSublistValue({
+                            sublistId: 'recmachcustrecord_abj_a_id',
+                            fieldId: 'custrecord_abj_status_approve',
+                            line: i
+                        });
+                        log.debug('statusApprove', statusApprove)
+                        if (statusApprove != 2) {
+                            setHeader = false;
+                            break; 
+                        }
+                    }
+                    log.debug('setHeader', setHeader)
+                    if(setHeader == true){
+                        rec.setValue({
+                            fieldId: 'approvalstatus',
+                            value: 2, // Approved
+                            ignoreFieldChange: true
+                        })
+                        var savePoAfterApprove = rec.save();
+                        log.debug('savePoAfterApprove', savePoAfterApprove)
+                    }
+                }
+                
+            }
             
         } catch (e) {
             log.error('Error in afterSubmit', e);
@@ -345,12 +416,18 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
             if(context.type === context.UserEventType.VIEW){
                 var form = context.form;
                 const rec = context.newRecord;
+                const roleAdmin = 3
                 const cekAppralStat = rec.getValue('approvalstatus');
                 log.debug('cekAppralStat', cekAppralStat)
                 const cekFlagApproval = rec.getValue('custbody_abj_flag_approval');
                 const cekIdWeb = rec.getValue('custbody_id_web');
                 log.debug('cekFlagApproval', cekFlagApproval)
                 const cekResubmit = rec.getValue('custbody_abj_trigger_resubmit');
+                const currentRole = runtime.getCurrentUser().role;
+                log.debug("currentRole", currentRole);
+                if (currentRole == roleAdmin) {
+                    return; 
+                }
                 if(cekFlagApproval == true && cekAppralStat != '2' && !cekResubmit && cekAppralStat != '3'){
                     form.addButton({
                         id: 'custpage_button_recall',
@@ -365,15 +442,6 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                         id: 'custpage_button_resubmit',
                         label: "Resubmit Revision",
                         functionName: "resubmit()"
-                    });
-                    form.removeButton('edit');
-                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
-                }
-                if(cekAppralStat == '3' && cekIdWeb){
-                    form.addButton({
-                        id: 'custpage_button_resubmit_app',
-                        label: "Resubmit Approval",
-                        functionName: "afterReject()"
                     });
                     form.removeButton('edit');
                     context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"

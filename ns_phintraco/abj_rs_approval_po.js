@@ -28,7 +28,7 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
             log.debug('status', status);
 
             // === Update line approval ===
-            if (status == '1' && approver) {
+            if ((status == '1' && approver) || (status == '2' && approver)) {
                 setSublist(recPo, 2, approver, reason || '');
             }
              if (status == '3' && approver) {
@@ -39,20 +39,39 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
                     value: 3, 
                     ignoreFieldChange: true
                 });
-            }
-
-            // === Jika updateHeader == true, ubah header ke Approved ===
-            if (updateHeader === 'true') {
-                log.debug('Update Header', 'Semua approver sudah approve, ubah approvalstatus ke Approved.');
-                setSublist(recPo, 2, approver, reason || '');
                 recPo.setValue({
-                    fieldId: 'approvalstatus',
-                    value: 2, // Approved
+                    fieldId: 'custbody_abj_flag_approval',
+                    value: false, 
                     ignoreFieldChange: true
                 });
             }
 
-            const savePO = recPo.save();
+            // === Jika updateHeader == true, ubah header ke Approved ===
+            // if (updateHeader === 'true') {
+            //     log.debug('Update Header', 'Semua approver sudah approve, ubah approvalstatus ke Approved.');
+                
+            //     recPo.setValue({
+            //         fieldId: 'approvalstatus',
+            //         value: 2, // Approved
+            //         ignoreFieldChange: true
+            //     });
+            //     log.debug('after set header')
+            //     setSublist(recPo, 2, approver, reason || '');
+            // }
+            log.debug('VALIDATION', {
+                approvalStatus: recPo.getValue('approvalstatus'),
+                nextApprover: recPo.getValue('nextapprover'),
+                supervisor: recPo.getValue('supervisor'),
+                employee: recPo.getValue('employee'),
+                department: recPo.getValue('department'),
+                class: recPo.getValue('class'),
+                location: recPo.getValue('location'),
+            });
+            log.debug('bfore save')
+            const savePO = recPo.save({
+                enableSourcing: false,
+                ignoreMandatoryFields: true
+            });
             log.debug('PO Saved', savePO);
 
             return {
