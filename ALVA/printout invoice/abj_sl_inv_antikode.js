@@ -948,6 +948,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var amount = data.ammount;
                 var quantity = data.quantity
                 var rate = data.rate
+                var taxRate = data.taxpph
+                log.debug('taxRate', taxRate)
                 if (amount) {
                     amount = format.format({
                         value: amount,
@@ -968,6 +970,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td  style='align:right;'>"+rate+"</td>";
                 body += "<td  style='align:right;'>"+amount+"</td>";
                 body += "</tr>";
+
+                // body += "<tr>";
+                // body += "<td style='font-weight:bold;'>VAT 12%</td>";
+                // body += "<td style='align:right;'>"+qtyVat.toFixed(2)+"</td>";
+                // body += "<td style='align:right;'>"+amountVat+"</td>";
+                // body += "<td style='align:right;'>"+totalVat+"</td>";
+                // body += "</tr>";
             });
             return body
 
