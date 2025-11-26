@@ -227,7 +227,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var taxtotal = invoiceRecord.getValue({ name :"taxtotal"}) || 0;
                 var taxtotalCount = 0;
                 var poTotal = invoiceRecord.getValue({ name :"total"}) || 0;
-                var total = 0;
+                var total = 0;i
                 var amountReceive = 0;
                 var duedate = invoiceRecord.getValue({ name :"duedate"});
                 var prosentDiscount = invoiceRecord.getValue({ name :"discountrate"});
@@ -243,7 +243,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var poNo = invoiceRecord.getValue("otherrefnum");
                 var bankNumber = invoiceRecord.getText({ name :'custbody8'})
                 var bankDetail = invoiceRecord.getText({ name :'custbody9'})
-        
+                
                 var otehrRefNum = invoiceRecord.getValue({ name :"otherrefnum"});
                 discount = Math.abs(discount);
                 prosentDiscount = Math.abs(prosentDiscount);
@@ -289,6 +289,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         // var ammount = lineRec.getValue({
                         //     name: "amount",
                         // });
+                        var taxpph = lineRec.getValue({
+                            name: "custcol_4601_witaxrate",
+                        });
                         var quantity = lineRec.getValue({
                             name: "quantity",
                         });
@@ -299,12 +302,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             description: description,
                             ammount: amtLine,
                             rate : rate,
-                            quantity : quantity
+                            quantity : quantity,
+                            taxpph : taxpph,
                         })
         
-                        var taxpph = lineRec.getValue({
-                            name: "custcol_4601_witaxrate",
-                        });
+                        
                         whtaxammountItem = lineRec.getValue({
                             name: "custcol_4601_witaxamount",
                         });
@@ -410,21 +412,23 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                     total = removeDecimalFormat(total);
                 }
-        
-                if (duedate) {
-                    function sysDate() {
-                        var date = new Date(duedate); 
-                        if (isNaN(date.getTime())) { 
-                            return duedate; 
-                        }
+                log.debug('duedate',
+                     duedate
+                )
+                // if (duedate) {
+                //     function sysDate() {
+                //         var date = new Date(duedate); 
+                //         if (isNaN(date.getTime())) { 
+                //             return duedate; 
+                //         }
                 
-                        var tdate = date.getUTCDate();
-                        var month = date.getUTCMonth() + 1; 
-                        var year = date.getUTCFullYear();
-                        return tdate + "/" + month + "/" + year;
-                    }
-                    duedate = sysDate();
-                }
+                //         var tdate = date.getUTCDate();
+                //         var month = date.getUTCMonth() + 1; 
+                //         var year = date.getUTCFullYear();
+                //         return tdate + "/" + month + "/" + year;
+                //     }
+                //     duedate = sysDate();
+                // }
             
                 var response = context.response;
                 var xml = "";
@@ -620,12 +624,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                     totalVat = removeDecimalFormat(totalVat);
                 }
-                body += "<tr>";
-                body += "<td style='font-weight:bold;'>VAT 12%</td>";
-                body += "<td style='align:right;'>"+qtyVat.toFixed(2)+"</td>";
-                body += "<td style='align:right;'>"+amountVat+"</td>";
-                body += "<td style='align:right;'>"+totalVat+"</td>";
-                body += "</tr>";
+                // body += "<tr>";
+                // body += "<td style='font-weight:bold;'>VAT 12%</td>";
+                // body += "<td style='align:right;'>"+qtyVat.toFixed(2)+"</td>";
+                // body += "<td style='align:right;'>"+amountVat+"</td>";
+                // body += "<td style='align:right;'>"+totalVat+"</td>";
+                // body += "</tr>";
                 
                 body += "<tr style=''>"
                 body += "</tr>";

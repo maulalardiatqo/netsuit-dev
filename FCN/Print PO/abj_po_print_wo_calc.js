@@ -490,7 +490,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if (subsidiari == 1) {
                     style += ".tg .tg-img-logo{width:150px; height:111px; object-vit:cover;}";
                 } else if(subsidiari == 69){
-                    style += ".tg .tg-img-logo{width:100px; height:100px; object-vit:cover;}";
+                    style += ".tg .tg-img-logo{width:110px; height:30px; object-vit:cover;}";
                 }else{
                     style += ".tg .tg-img-logo{width:195px; height:90px; object-vit:cover;}";
                 }
@@ -518,9 +518,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
     
                 body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
                 body += "<tbody>";
+                log.debug('subsidiari',subsidiari)
                 if(subsidiari == 69){
                     body += "<tr>"
-                         body += "<td class='tg-headerlogo' style='vertical-align:center; align:left;'><div style='display: flex; height:100px; width:100px; '><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>"; 
+                         body += "<td class='tg-headerlogo' style='vertical-align:center; align:left;'><div style='display: flex; height:35px; width:110px; '><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>"; 
                          body += "</tr>"
                     }
                 if (isTampil == false) {
@@ -538,8 +539,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 body += "<tr>";
                 if (urlLogo) {
+                    log.debug('alva', alva)
                     if(alva == false){
-                         body += "<td class='tg-headerlogo' style='vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px; '><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>"; 
+                        body += "<td class='tg-headerlogo' style='vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px; '><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>"; 
                     }
                     
                    
