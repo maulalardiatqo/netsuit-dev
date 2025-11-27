@@ -83,7 +83,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                   });
                   var tlcCurr = recCurrenc.getValue("symbol");
                 }
-                var crFrom = invoiceRecord.getValue({ name :"createdfrom"});
+                var crFrom = invoiceRecord.getText({ name :"createdfrom"});
+                if(crFrom.includes('Sales Order')){
+                    crFrom = crFrom.replace('Sales Order', '').trim();
+                }
                 var subsidiari = invoiceRecord.getValue({ name : "subsidiary"});
                 // load subsidiarie
                 if (subsidiari) {
@@ -284,10 +287,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var ammount = lineRec.getValue({
                             name: "amount",
                         });
-                        allDataLine.push({
-                            description: description,
-                            ammount: ammount,
-                        })
+                        if(ammount > 0){
+                            allDataLine.push({
+                                description: description,
+                                ammount: ammount,
+                            })
+                        }
+                       
           
                         var taxpph = lineRec.getValue({
                             name: "custcol_4601_witaxrate",
@@ -450,8 +456,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                body += "<td style='width:50%;'></td>";
-                body += "<td style='width:10%;'></td>";
+                body += "<td style='width:55%;'></td>";
+                body += "<td style='width:5%;'></td>";
                 body += "<td style='width:40%;'></td>";
                 body+= "</tr>";
                 
@@ -459,19 +465,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // if (urlLogo) {
                 //     body += "<td class='tg-headerlogo' style='vertical-align:center; align:left; margin-left:0;' ><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
                 // }
-                body+="<td style='font-weight:bold;align:left;font-size:20px;'>"+escapeXmlSymbols(bankName)+"</td>";
+                body+="<td ><span style='font-weight:bold;align:left;font-size:20px;'>"+escapeXmlSymbols(bankName)+"</span><br/><span style='font-size:11px;'>Indonesaia Stock Exchange Tower 1 Level 3, Unit 304, <br/> Jl. Jenderal Sudirman Kav 52-53, Kel. Senayan, Kec. Kebayoran Baru, <br/> Jakarta 12190</span></td>";
                 body+="<td style='align:left;'></td>"; 
                 body+="<td style='color:#8c05ad; font-size:60px; align:right; font-weight:bold'>Invoice</td>"; 
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body += "<td style='vertical-align:bottom;'>Invoice To :</td>";
+                body += "<td style='vertical-align:bottom; font-weight:bold;'>Invoice To :</td>";
                 body += "<td></td>";
                 body += "<td style=''></td>";
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body += "<td>"+escapeXmlSymbols(custName)+"</td>";
+                body += "<td style='font-weight:bold;'>"+escapeXmlSymbols(custName)+"</td>";
                 body += "<td></td>";
                 body += "<td style='align:right'>"+InvDate+"</td>";
                 body+= "</tr>";
@@ -485,6 +491,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<tr>";
                 body += "<td></td>";
                 body += "<td style='align:right'>"+escapeXmlSymbols(projectName)+"</td>";
+                body+= "</tr>";
+                
+                body+= "<tr>";
+                body += "<td></td>";
+                body += "<td style='align:right'>"+escapeXmlSymbols(crFrom)+"</td>";
+                body+= "</tr>";
+
+                body+= "<tr>";
+                body += "<td></td>";
+                body += "<td style='align:right'>"+escapeXmlSymbols(otehrRefNum)+"</td>";
                 body+= "</tr>";
 
 
@@ -595,6 +611,201 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 xml += "\n</body>\n</pdf>";
     
                 xml = xml.replace(/ & /g, ' &amp; ');
+                var isemail = context.request.parameters.isemail;
+                log.debug('IS EMAIL', isemail);
+                // response.write("IS EMAIL"+isemail);
+                if(isemail){
+                    var pdfFiletoEmail = render.xmlToPdf({
+                        xmlString: xml
+                    });
+                    pdfFiletoEmail.name = 'Invoice #' + tandId + '.pdf';
+
+                    
+                    var recipientEmail = context.request.parameters.recipient;
+                    var senderId = context.request.parameters.author;
+                    var ccEmailString = invoiceRecord.getValue('custbody_autoemail_cc');
+                    var additionalEmail = invoiceRecord.getValue('custbody24');
+
+                    const ccEmail = ccEmailString ? ccEmailString.split(',') : [];
+                    var recipients = [];
+                    if(recipientEmail){
+                        recipients.push(recipientEmail);
+                    }
+                    if(additionalEmail){
+                        recipients.push(additionalEmail);
+                    }
+                    log.debug('SENDER ID', senderId);
+                    log.debug('RECEPIENTS EMAIL', recipients);
+                    log.debug('CC EMAIL', ccEmail);
+
+                    
+
+                    var templateId = 'STDTMPLCUSTINVC';
+                    
+                    try {
+                        var list = '';
+                        var itemCount = invoiceRecord.getLineCount({
+                            sublistId: 'item'
+                        });
+
+                        for(var index = 0; index < itemCount; index++){
+                            var description = invoiceRecord.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'description',
+                                line: index
+                            });
+                            var item = invoiceRecord.getSublistText({
+                                sublistId: 'item',
+                                fieldId: 'item',
+                                line: index
+                            });
+                            var qty = invoiceRecord.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'quantity',
+                                line: index
+                            });
+                            var rate = invoiceRecord.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'rate',
+                                line: index
+                            }) || 0;
+                            var amount = invoiceRecord.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'amount',
+                                line: index
+                            }) || 0;
+                            list += `
+                                <tr>
+                                    <td style='border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black;'>${description}</td>
+                                    <td style='border-right:1px solid black;border-bottom:1px solid black;' align='center'>${qty}</td>
+                                    <td style='border-right:1px solid black;border-bottom:1px solid black;' align='right'>${removeDecimalFormat(format.format({value: rate,type: format.Type.CURRENCY}))}</td>
+                                    <td style='border-right:1px solid black;border-bottom:1px solid black;' align='right'>${removeDecimalFormat(format.format({value: amount,type: format.Type.CURRENCY}))}</td>
+                                </tr>
+                            `
+                        }
+                        var totalDue = invoiceRecord.getValue('amountremainingtotalbox') || 0;
+                        var taxTotal = invoiceRecord.getValue('taxtotal') || 0;
+                        var subTotal = invoiceRecord.getValue('subtotal') || 0;
+                        var discountAmount = invoiceRecord.getValue('discounttotal') || 0;
+                        var dateToday = new Date();  // date sekarang dengan waktu
+                        var wibTime = new Date(dateToday.getTime() + (7 * 60 * 60 * 1000));  // Tambah 7 jam
+                        log.debug('WIB TIME', wibTime);
+                        var yyyy = wibTime.getFullYear();
+                        var MM = String(wibTime.getMonth() + 1);
+                        var DAY = String(wibTime.getDate());
+                        var sendByDate =  `${DAY}/${MM}/${yyyy}`;
+                        
+                        var emailBody = `
+                            <p>Greetings from ${legalName}</p>
+                            <p>I hope this message finds you well. This is a friendly reminder regarding the open balance on your account. We value your business and want to ensure that managing your account remains as convenient as possible for you.</p>
+                            <p><strong>${legalName}</strong><br/>${addresSubsidiaries}</p>
+                            
+                            <table width='80%' style='table-layount:fixed;'>
+                                <tr>
+                                    <td rowspan='3' width='50%' valign='top'>
+                                        <p><strong>Bill To:</strong><br/>${custName}<br/>${custAddres}</p>
+                                    </td>
+                                    <td style='background:#c8d7f5;'><strong>Total Invoice</strong></td>
+                                    <td style='background:#c8d7f5;'>${total}</td>
+                                </tr>
+                                <tr>
+                                    
+                                    <td style='background:#c8d7f5;'><strong>Total Amount Due</strong></td>
+                                    <td style='background:#c8d7f5;'>${removeDecimalFormat(format.format({value: totalDue,type: format.Type.CURRENCY}))}</td>
+                                </tr>
+                                <tr>
+                                    
+                                    <td style='background:#c8d7f5;'>Due Date</td>
+                                    <td style='background:#c8d7f5;'>${duedate}</td>
+                                </tr>
+                            </table>
+                            <table width='80%' style='border-collapse:collapse;'>
+                                <tr>
+                                    <td align='center' style='background-color:#B9B9B9;border-top:1px solid black;border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black;'>Description</td>
+                                    <td align='center' style='background-color:#B9B9B9;border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;'>Qty</td>
+                                    <td align='center' style='background-color:#B9B9B9;border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;'>Rate</td>
+                                    <td align='center' style='background-color:#B9B9B9;border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;'>Amount</td>
+                                </tr>
+                                ${list}
+                                <tr>
+                                    <td colspan='2'></td>
+                                    <td align='right'>Subtotal</td>
+                                    <td style='' align='right'>${removeDecimalFormat(format.format({value: subTotal,type: format.Type.CURRENCY}))}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan='2'></td>
+                                    <td align='right'>Discount</td>
+                                    <td style='' align='right'>${removeDecimalFormat(format.format({value: discountAmount,type: format.Type.CURRENCY}))}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan='2'></td>
+                                    <td align='right'>Tax Total</td>
+                                    <td style='' align='right'>${removeDecimalFormat(format.format({value: taxTotal,type: format.Type.CURRENCY}))}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan='2' style='background-color:#B9B9B9'></td>
+                                    <td align='right' style='background-color:#B9B9B9'>Total</td>
+                                    <td style='background-color:#B9B9B9' align='right'>${total}</td>
+                                </tr>
+                            </table>
+                            <p>
+                                If you have any questions, concerns, or need assistance with your account, please don't hesitate to reach out to our finance department.
+                                Thank you for your business, and we appreciate your timely response.
+                            </p>
+
+                        `;
+    
+                        // var emailBody = renderer.renderAsString();
+                        var attachFile = invoiceRecord.getValue('custbody23');
+                        log.debug('ATTACH FILE', attachFile);
+
+                        const mailOptions = {
+                            author: senderId,
+                            recipients : recipients,
+                            cc: ccEmail,
+                            subject: `REMINDER OUTSTANDING INVOICE [${tandId}]`,
+                            body: emailBody,
+                            isHTML: true
+                        };
+
+                        if (attachFile) {
+                            mailOptions.attachments = [pdfFiletoEmail];
+                        }
+
+                       
+                        const mail = email.send(mailOptions);
+                        log.debug('MAIL SENT', mail);
+                        
+                    } catch (error) {
+                        log.debug('FAILED TO SEND EMAIL', error);
+                        response.write('Failed to send email : ', error.message);
+                        return;
+                    }
+
+                    // log.audit('Email sent for invoice', invoiceId);
+                    response.write('OK');
+                    return;
+                }
+
+                var isemailv2 = context.request.parameters.isemailv2;
+                log.debug('isemailv2', isemailv2);
+                if(isemailv2){
+                    log.debug('masuk group by customer', isemailv2)
+                    let responseObj = {
+                        status: 'success',
+                        billTo: custName,
+                        xml: xml
+                    };
+
+                    context.response.setHeader({
+                        name: 'Content-Type',
+                        value: 'application/json'
+                    });
+
+                    context.response.write(JSON.stringify(responseObj));
+                    // response.write(xml);
+                    return;
+                }
                 response.renderPdf({
                     xmlString: xml
                 });

@@ -593,23 +593,73 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='background-color:#595B61FF; color:#FAFBFD; align: right; vertical-align: middle;'>RATE</td>";
                 body += "<td style='padding-right:10px; background-color:#595B61FF; color:#FAFBFD; align: right; vertical-align: middle;'>AMOUNT</td>";
                 body += "</tr>";
+                var totalAmtVat = 0
+                allDataLine.forEach(data => {
+                    var description = data.description;
+                    var amount = data.ammount;
+                    var quantity = data.quantity
+                    var rate = data.rate
+                    var taxRate = data.taxpph
+                    var qtyVat = 11/12
+                    log.debug('taxRate', taxRate)
+                    var amountVat = (11/12) * Number(amount);
+                    var totalVat = Number(qtyVat) * Number(amountVat)
+                    
+                    if (amount) {
+                        amount = format.format({
+                            value: amount,
+                            type: format.Type.CURRENCY,
+                        });
+                        amount = removeDecimalFormat(amount);
+                    }
+                    if (rate) {
+                        rate = format.format({
+                            value: rate,
+                            type: format.Type.CURRENCY,
+                        });
+                        rate = removeDecimalFormat(rate);
+                    }
+                    body += "<tr>";
+                    body += "<td  style=''>"+escapeXmlSymbols(description)+"</td>";
+                    body += "<td  style='align:right'>"+quantity+"</td>";
+                    body += "<td  style='align:right;'>"+rate+"</td>";
+                    body += "<td  style='align:right;'>"+amount+"</td>";
+                    body += "</tr>";
+                    if(taxRate){
+                        totalAmtVat = Number(totalAmtVat) + Number(totalVat)
+                        if (amountVat) {
+                            amountVat = format.format({
+                                value: amountVat,
+                                type: format.Type.CURRENCY,
+                            });
+                            amountVat = removeDecimalFormat(amountVat);
+                        }
+                        if (totalVat) {
+                            totalVat = format.format({
+                                value: totalVat,
+                                type: format.Type.CURRENCY,
+                            });
+                            totalVat = removeDecimalFormat(totalVat);
+                        }
+                        body += "<tr>";
+                        body += "<td style='font-weight:bold;'>VAT 12%</td>";
+                        body += "<td style='align:right;'>"+qtyVat.toFixed(2)+"</td>";
+                        body += "<td style='align:right;'>"+amountVat+"</td>";
+                        body += "<td style='align:right;'>"+totalVat+"</td>";
+                        body += "</tr>";
 
-                body+= getPOItem(context, allDataLine)
-                var qtyVat = (12/100);
-                log.debug('qtyVat', qtyVat)
-                log.debug('total', total)
-                var amountVat = (11/12) * Number(totalBeforeFormat);
+                        body += "<tr style=''>"
+                        body += "</tr>";
+                        body += "<tr>"
+                        body += "<td colspan='4'>Tax Basis: (11/12) x DPP</td>"
+                        body += "</tr>";
+                    }
+                    
+                });
+                log.debug('totalBeforeFormat', totalBeforeFormat);
+                log.debug('totalAmtVat', totalAmtVat)
+                var totalDueCount = Number(totalBeforeFormat) +  Number(totalAmtVat);
                 
-                log.debug('amountVat', amountVat)
-                var totalVat = Number(amountVat) * Number(qtyVat)
-                var totalDueCount = Number(totalBeforeFormat) +  Number(totalVat);
-                if (amountVat) {
-                    amountVat = format.format({
-                        value: amountVat,
-                        type: format.Type.CURRENCY,
-                    });
-                    amountVat = removeDecimalFormat(amountVat);
-                }
                 if(totalDueCount){
                     totalDueCount = format.format({
                         value: totalDueCount,
@@ -617,13 +667,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                     totalDueCount = removeDecimalFormat(totalDueCount);
                 }
-                if (totalVat) {
-                    totalVat = format.format({
-                        value: totalVat,
-                        type: format.Type.CURRENCY,
-                    });
-                    totalVat = removeDecimalFormat(totalVat);
-                }
+               
                 // body += "<tr>";
                 // body += "<td style='font-weight:bold;'>VAT 12%</td>";
                 // body += "<td style='align:right;'>"+qtyVat.toFixed(2)+"</td>";
@@ -631,11 +675,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // body += "<td style='align:right;'>"+totalVat+"</td>";
                 // body += "</tr>";
                 
-                body += "<tr style=''>"
-                body += "</tr>";
-                body += "<tr>"
-                body += "<td colspan='4'>Tax Basis: (11/12) x DPP</td>"
-                body += "</tr>";
 
                 body += "<tr style='height:15px;'>"
                 body += "</tr>";
@@ -880,7 +919,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                         `;
     
-                        // var emailBody = renderer.renderAsString();
                         var attachFile = invoiceRecord.getValue('custbody23');
                         log.debug('ATTACH FILE', attachFile);
 
@@ -949,7 +987,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var quantity = data.quantity
                 var rate = data.rate
                 var taxRate = data.taxpph
+                var qtyVat = 11/12
                 log.debug('taxRate', taxRate)
+                var amountVat = (11/12) * Number(amount);
+                var totalVat = Number(qtyVat) * Number(amountVat)
                 if (amount) {
                     amount = format.format({
                         value: amount,
@@ -970,13 +1011,21 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td  style='align:right;'>"+rate+"</td>";
                 body += "<td  style='align:right;'>"+amount+"</td>";
                 body += "</tr>";
+                if(taxRate){
+                    body += "<tr>";
+                    body += "<td style='font-weight:bold;'>VAT 12%</td>";
+                    body += "<td style='align:right;'>"+qtyVat.toFixed(2)+"</td>";
+                    body += "<td style='align:right;'>"+amountVat+"</td>";
+                    body += "<td style='align:right;'>"+totalVat+"</td>";
+                    body += "</tr>";
 
-                // body += "<tr>";
-                // body += "<td style='font-weight:bold;'>VAT 12%</td>";
-                // body += "<td style='align:right;'>"+qtyVat.toFixed(2)+"</td>";
-                // body += "<td style='align:right;'>"+amountVat+"</td>";
-                // body += "<td style='align:right;'>"+totalVat+"</td>";
-                // body += "</tr>";
+                    body += "<tr style=''>"
+                    body += "</tr>";
+                    body += "<tr>"
+                    body += "<td colspan='4'>Tax Basis: (11/12) x DPP</td>"
+                    body += "</tr>";
+                }
+                
             });
             return body
 

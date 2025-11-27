@@ -11,7 +11,7 @@ define(["N/record", "N/search"], function(
   function afterSubmit(context) {
     try {
       log.debug('context.type', context.type)
-      if (context.type == context.UserEventType.CREATE ||  context.type == context.UserEventType.PAYBILLS) {
+      if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.PAYBILLS || context.type == context.UserEventType.EDIT) {
         if(context.type == context.UserEventType.PAYBILLS){
           log.debug('make payment')
         }
@@ -138,7 +138,7 @@ define(["N/record", "N/search"], function(
           enableSourcing: false,
           ignoreMandatoryFields: true
           });
-
+          log.debug('runningNumber to set', runningNumber)
           billpymrec.setValue({
             fieldId : 'tranid',
             value : runningNumber,
