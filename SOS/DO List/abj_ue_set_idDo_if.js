@@ -8,6 +8,7 @@ define(['N/record', 'N/log', 'N/error'],
 
         const afterSubmit = (context) => {
             const newRecord = context.newRecord;
+            const oldRecord = context.oldRecord
             const packingListId = newRecord.id;
 
             // Saat CREATE
@@ -131,6 +132,55 @@ define(['N/record', 'N/log', 'N/error'],
                     } catch (e) {
                         log.error('Error Reset Carton (Delete)', `ID: ${cartonId}, Error: ${e.message}`);
                     }
+                });
+            }
+            if(context.type === context.UserEventType.EDIT){
+                var boxListOld = oldRecord.getValue('custbody_sos_box_list');
+                var boxListNew = newRecord.getValue('custbody_sos_box_list');
+                log.debug('boxListOld', boxListOld);
+                log.debug('boxListNew', boxListNew)
+                var added = boxListNew.filter(x => !boxListOld.includes(x));
+
+                // Cari yang dihapus
+                var removed = boxListOld.filter(x => !boxListNew.includes(x));
+
+                log.debug('added', added);
+                log.debug('removed', removed);
+
+                // ============================
+                //   JIKA ADA YANG DITAMBAHKAN
+                // ============================
+                added.forEach(function(cartonId){
+                    record.submitFields({
+                        type: 'customrecord_packship_carton',
+                        id: cartonId,
+                        values: {
+                            custrecord_sos_packing_list_number_pack: packingListId
+                        },
+                        options: {
+                            enableSourcing: false,
+                            ignoreMandatoryFields: true
+                        }
+                    });
+                    log.debug('Updated ADD carton', cartonId);
+                });
+
+                // ============================
+                //     JIKA ADA YANG DIHAPUS
+                // ============================
+                removed.forEach(function(cartonId){
+                    record.submitFields({
+                        type: 'customrecord_packship_carton',
+                        id: cartonId,
+                        values: {
+                            custrecord_sos_packing_list_number_pack: ''
+                        },
+                        options: {
+                            enableSourcing: false,
+                            ignoreMandatoryFields: true
+                        }
+                    });
+                    log.debug('Updated REMOVE carton', cartonId);
                 });
             }
 

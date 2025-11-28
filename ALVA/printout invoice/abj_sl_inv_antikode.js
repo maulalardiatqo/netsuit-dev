@@ -290,8 +290,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         //     name: "amount",
                         // });
                         var taxpph = lineRec.getValue({
-                            name: "custcol_4601_witaxrate",
+                            name: "formulatext",
+                            formula: "{taxcode}",
                         });
+                        log.debug('taxpph', taxpph)
                         var quantity = lineRec.getValue({
                             name: "quantity",
                         });
@@ -600,7 +602,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var quantity = data.quantity
                     var rate = data.rate
                     var taxRate = data.taxpph
-                    var qtyVat = 11/12
+                    var qtyVat = Number(quantity) * (12/100)
                     log.debug('taxRate', taxRate)
                     var amountVat = (11/12) * Number(amount);
                     var totalVat = Number(qtyVat) * Number(amountVat)
@@ -625,7 +627,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td  style='align:right;'>"+rate+"</td>";
                     body += "<td  style='align:right;'>"+amount+"</td>";
                     body += "</tr>";
-                    if(taxRate){
+                    if(taxRate == 'PPN 12%' || taxRate == 'PPN 11%'){
                         totalAmtVat = Number(totalAmtVat) + Number(totalVat)
                         if (amountVat) {
                             amountVat = format.format({
@@ -654,6 +656,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<td colspan='4'>Tax Basis: (11/12) x DPP</td>"
                         body += "</tr>";
                     }
+                    body += "<tr>";
+                    body += "<td colspan='4' style='border-top:1px solid black;'></td>"
+                    body += "</tr>";
+
                     
                 });
                 log.debug('totalBeforeFormat', totalBeforeFormat);
@@ -979,55 +985,55 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
         return {
             onRequest: onRequest,
         };
-        function getPOItem(context, allDataLine){
-            var body = "";
-            allDataLine.forEach(data => {
-                var description = data.description;
-                var amount = data.ammount;
-                var quantity = data.quantity
-                var rate = data.rate
-                var taxRate = data.taxpph
-                var qtyVat = 11/12
-                log.debug('taxRate', taxRate)
-                var amountVat = (11/12) * Number(amount);
-                var totalVat = Number(qtyVat) * Number(amountVat)
-                if (amount) {
-                    amount = format.format({
-                        value: amount,
-                        type: format.Type.CURRENCY,
-                    });
-                    amount = removeDecimalFormat(amount);
-                }
-                if (rate) {
-                    rate = format.format({
-                        value: rate,
-                        type: format.Type.CURRENCY,
-                    });
-                    rate = removeDecimalFormat(rate);
-                }
-                body += "<tr>";
-                body += "<td  style=''>"+escapeXmlSymbols(description)+"</td>";
-                body += "<td  style='align:right'>"+quantity+"</td>";
-                body += "<td  style='align:right;'>"+rate+"</td>";
-                body += "<td  style='align:right;'>"+amount+"</td>";
-                body += "</tr>";
-                if(taxRate){
-                    body += "<tr>";
-                    body += "<td style='font-weight:bold;'>VAT 12%</td>";
-                    body += "<td style='align:right;'>"+qtyVat.toFixed(2)+"</td>";
-                    body += "<td style='align:right;'>"+amountVat+"</td>";
-                    body += "<td style='align:right;'>"+totalVat+"</td>";
-                    body += "</tr>";
+        // function getPOItem(context, allDataLine){
+        //     var body = "";
+        //     allDataLine.forEach(data => {
+        //         var description = data.description;
+        //         var amount = data.ammount;
+        //         var quantity = data.quantity
+        //         var rate = data.rate
+        //         var taxRate = data.taxpph
+        //         var qtyVat = 11/12
+        //         log.debug('taxRate', taxRate)
+        //         var amountVat = (11/12) * Number(amount);
+        //         var totalVat = Number(qtyVat) * Number(amountVat)
+        //         if (amount) {
+        //             amount = format.format({
+        //                 value: amount,
+        //                 type: format.Type.CURRENCY,
+        //             });
+        //             amount = removeDecimalFormat(amount);
+        //         }
+        //         if (rate) {
+        //             rate = format.format({
+        //                 value: rate,
+        //                 type: format.Type.CURRENCY,
+        //             });
+        //             rate = removeDecimalFormat(rate);
+        //         }
+        //         body += "<tr>";
+        //         body += "<td  style=''>"+escapeXmlSymbols(description)+"</td>";
+        //         body += "<td  style='align:right'>"+quantity+"</td>";
+        //         body += "<td  style='align:right;'>"+rate+"</td>";
+        //         body += "<td  style='align:right;'>"+amount+"</td>";
+        //         body += "</tr>";
+        //         if(taxRate){
+        //             body += "<tr>";
+        //             body += "<td style='font-weight:bold;'>VAT 12%</td>";
+        //             body += "<td style='align:right;'>"+qtyVat.toFixed(2)+"</td>";
+        //             body += "<td style='align:right;'>"+amountVat+"</td>";
+        //             body += "<td style='align:right;'>"+totalVat+"</td>";
+        //             body += "</tr>";
 
-                    body += "<tr style=''>"
-                    body += "</tr>";
-                    body += "<tr>"
-                    body += "<td colspan='4'>Tax Basis: (11/12) x DPP</td>"
-                    body += "</tr>";
-                }
+        //             body += "<tr style=''>"
+        //             body += "</tr>";
+        //             body += "<tr>"
+        //             body += "<td colspan='4'>Tax Basis: (11/12) x DPP</td>"
+        //             body += "</tr>";
+        //         }
                 
-            });
-            return body
+        //     });
+        //     return body
 
-        }
+        // }
     });

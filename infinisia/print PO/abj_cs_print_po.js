@@ -54,11 +54,27 @@
                     newWindow = window.open(createPDFURL);
                 }
             } 
+        function printPDFPRPurchase() {
+            console.log("test in function");
+            var id = records.id;
+            var createPDFURL = url.resolveScript({
+                scriptId: 'customscript_abj_sl_print_pr_purchase',
+                deploymentId: 'customdeploy_abj_sl_print_pr_purchase',
+                returnExternalUrl: false
+            })
+            console.log("id",id);
+            console.log("urlpdf", createPDFURL);
+            createPDFURL += '&id=' +  id;
+                if (createPDFURL) {
+                    newWindow = window.open(createPDFURL);
+                }
+        } 
      return {
          pageInit: pageInit,
          printPDF : printPDF,
          printPDFOc : printPDFOc,
-         printPDFPR : printPDFPR
+         printPDFPR : printPDFPR,
+         printPDFPRPurchase : printPDFPRPurchase
      };
  }); 
  

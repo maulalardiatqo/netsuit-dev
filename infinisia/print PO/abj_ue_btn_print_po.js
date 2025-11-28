@@ -21,6 +21,14 @@ define(["N/runtime", "N/log"], (runtime, log) => {
             // log.debug('cekLinePR', cekLinePR)
             // if(cekLinePR > 0){
              const userRole = runtime.getCurrentUser().role;
+             if(userRole == 1019 || userRole == 3){
+                form.addButton({
+                    id: 'custpage_button_pr',
+                    label: "Print PR Purchasing",
+                    functionName: "printPDFPRPurchase()"
+                });
+                context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js "
+             }
              if(userRole != 1019){
                 form.addButton({
                     id: 'custpage_button_pr',

@@ -3,7 +3,23 @@
  * @NScriptType ClientScript
  */
 
-define(['N/record', 'N/search', 'N/ui/dialog'], function(record, search, dialog) {
+define(['N/record', 'N/search', 'N/ui/dialog', 'N/currentRecord', 'N/url'], function(record, search, dialog, currentRecord, url) {
+    function printPengajuan() {
+        var records = currentRecord.get();
+        console.log("test in function");
+        var id = records.id;
+        var createPDFURL = url.resolveScript({
+            scriptId: 'customscript_abj_sl_print_pengajuan_dana',
+            deploymentId: 'customdeploy_abj_sl_print_pengajuan_dana',
+            returnExternalUrl: false
+        })
+        console.log("id",id);
+        console.log("urlpdf", createPDFURL);
+        createPDFURL += '&id=' +  id;
+            if (createPDFURL) {
+                newWindow = window.open(createPDFURL);
+            }
+    }
     function saveRecord(context) {
         var rec = context.currentRecord;
         var cekApprovalLevel = rec.getValue('custrecord_approval_level');
@@ -57,6 +73,7 @@ define(['N/record', 'N/search', 'N/ui/dialog'], function(record, search, dialog)
         return true
     }
     return{
-        saveRecord : saveRecord
+        saveRecord : saveRecord,
+        printPengajuan : printPengajuan
     }
 })

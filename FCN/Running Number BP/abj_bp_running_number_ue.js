@@ -144,6 +144,8 @@ define(["N/record", "N/search"], function(
             value : runningNumber,
             ignoreFieldChange: true
           });
+          var cekTranIdAfterSet = billpymrec.getValue('tranid');
+          log.debug('cekTranIdAfterSet', cekTranIdAfterSet)
           billpymrec.save({
             enableSourcing: false,
             ignoreMandatoryFields: true
