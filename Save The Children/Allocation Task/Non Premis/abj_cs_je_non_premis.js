@@ -311,7 +311,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             results.forEach(function(result) {
 
                 var sofId = result.getValue(columns[0]); 
-                var amtSpend = result.getValue(columns[4]); 
+                var amtSpend = result.getValue(columns[6]); 
                 var costCenter = result.getValue(columns[2]); 
                 var projectCode = result.getValue(columns[3]); 
                 allSpendAmount.push({
@@ -337,9 +337,14 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
             var colRemaining = searchRemaining.columns;  
             resultRemaining.forEach(function(result) {
-
-                var sofIdRemaining = result.getValue(colRemaining[0]); 
-                var amtRemaining = result.getValue(colRemaining[2]); 
+                // console.log('colRemaining', colRemaining)
+                var sofIdRemaining = result.getValue(colRemaining[0]);
+                var budget = result.getValue(colRemaining[1]); 
+                var actual = result.getValue(colRemaining[2]); 
+                var amtRemaining = Number(budget) - Number(actual);
+                if(Number(amtRemaining) <= 0){
+                    amtRemaining = 0
+                } 
 
                 allRemaining.push({
                     sofIdRemaining: sofIdRemaining,
@@ -431,12 +436,19 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 var prosent = Number(spend) / Number(totalSpendAmt) * 100
                 
                 var bassicAllocation = (Number(bobotPerMonth) * Number(cekAmountAllocate));
+                console.log('bassicAllocation', bassicAllocation);
+                console.log('remaining', remaining)
                 var amtDebit = 0;
-                if(Number(remaining) > Number(bassicAllocation)){
-                    amtDebit = bassicAllocation
-                }else{
-                    amtDebit = remaining
+                if (Number(remaining) <= 0) {
+                    amtDebit = bassicAllocation;
+                    sofId = '80'
+                } else if (Number(remaining) > Number(bassicAllocation)) {
+                    amtDebit = bassicAllocation;
+                } else {
+                    amtDebit = remaining;
                 }
+
+
                 var cekSisa = Number(amtDebit) - Number(remaining);
                 if(cekSisa && cekSisa > 0){
                     dataSisa.push({
