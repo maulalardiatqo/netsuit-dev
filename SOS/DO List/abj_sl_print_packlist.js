@@ -191,7 +191,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         customerLines.map(line => line.itemFulfillmentText.replace('Item Fulfillment ', ''))
                     )].join(', ');
                     body += "<tr>"
-                    body += "<td style='font-size:12px;'> Customer : "+ escapeXmlSymbols(customerName) + "</td>";
+                    body += "<td style='font-size:12px;' colspan='2'> Customer : "+ escapeXmlSymbols(customerName) + "</td>";
                     body += "<td style='font-size:12px; align:right;'>No DO :</td>";
                     body += "<td style='font-size:12px;' colspan='2'>"+ escapeXmlSymbols(noDOList) +"</td>";
                     body += "</tr>"
@@ -207,9 +207,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td style='width:10%; align:center; border: solid black 1px; border-right:none;'>Item Code</td>"
                     body += "<td style='width:35%; align:center; border: solid black 1px; border-right:none;'>Item Description</td>"
                     body += "<td style='width:10%; align:center; border: solid black 1px; border-right:none;'>Size</td>"
-                    body += "<td style='width:10%; align:center; border: solid black 1px; border-right:none;'>Qty order</td>"
-                    body += "<td style='width:10%; align:center; border: solid black 1px; border-right:none;'>Qty Pack</td>"
-                    body += "<td style='width:20%; align:center; border: solid black 1px; '>Box. No.</td>"
+                    body += "<td style='width:9%; align:center; border: solid black 1px; border-right:none;'>Qty order</td>"
+                    body += "<td style='width:9%; align:center; border: solid black 1px; border-right:none;'>Qty Pack</td>"
+                    body += "<td style='width:22%; align:center; border: solid black 1px; '>Box. No.</td>"
                     body += "</tr>"
                     var Nomor = 1
                     var qtyTotal = 0

@@ -272,15 +272,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             }
                             var itemDesc = line.displayNameitem || "";
 
-                            body += "<tr>";
-                            body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>" + Nomor + "</td>";
-                            body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>" + escapeXmlSymbols(line.doNo || '') + "</td>";
-                            body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>" + escapeXmlSymbols(itemCode || '') + "</td>";
-                            body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>" + escapeXmlSymbols(itemDesc || '') + "</td>";
-                            body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>" + escapeXmlSymbols(line.color || '') + "</td>";
-                            body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>" + escapeXmlSymbols(line.size || '') + "</td>";
-                            body += "<td style='border: solid black 1px; border-top:none;'>" + escapeXmlSymbols(line.qty || '') + "</td>";
-                            body += "</tr>";
+                            // body += "<tr>";
+                            // body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>" + Nomor + "</td>";
+                            // body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>" + escapeXmlSymbols(line.doNo || '') + "</td>";
+                            // body += "<td style='border: solid black 1px; border-right:none; border-top:none;'>" + escapeXmlSymbols(itemCode || '') + "</td>";
+                            // body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>" + escapeXmlSymbols(itemDesc || '') + "</td>";
+                            // body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>" + escapeXmlSymbols(line.color || '') + "</td>";
+                            // body += "<td style='border: solid black 1px; border-right:none;  border-top:none;'>" + escapeXmlSymbols(line.size || '') + "</td>";
+                            // body += "<td style='border: solid black 1px; border-top:none;'>" + escapeXmlSymbols(line.qty || '') + "</td>";
+                            // body += "</tr>";
 
                             Nomor += 1;
                             qtyTotal += Number(line.qty || 0);
