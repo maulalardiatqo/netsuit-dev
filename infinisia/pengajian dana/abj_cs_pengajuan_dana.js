@@ -4,6 +4,7 @@
  */
 define([], () => {
         const customLink = document.getElementById('recmachcustrecord_fund_journaltxt');
+        console.log('customLink', customLink)
         if (customLink) {
             customLink.style.display = 'none';
         }

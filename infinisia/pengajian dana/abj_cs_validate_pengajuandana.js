@@ -24,7 +24,7 @@ define(['N/record', 'N/search', 'N/ui/dialog', 'N/currentRecord', 'N/url'], func
         var rec = context.currentRecord;
         var cekApprovalLevel = rec.getValue('custrecord_approval_level');
         console.log('cekApprovalLevel', cekApprovalLevel)
-        if(cekApprovalLevel == '3' || cekApprovalLevel == '4'){
+        if(cekApprovalLevel && cekApprovalLevel.includes('Pending Setup COA')){
             console.log('masuk kondisi')
             var cekLine = rec.getLineCount({
                 sublistId : 'recmachcustrecord_fund_journal'
@@ -35,7 +35,7 @@ define(['N/record', 'N/search', 'N/ui/dialog', 'N/currentRecord', 'N/url'], func
                 return false
             }else{
                 var totalAmountJournal = 0
-                var totalAMountHead = rec.getValue('custrecord_total_pengajuan_dana')
+                var totalAMountHead = rec.getValue('custrecord_fund_total_amt_realisasi')
                 var totalDebit = 0;
                 var totalCredit = 0;
                 for(var i = 0; i < cekLine; i++){
@@ -61,7 +61,7 @@ define(['N/record', 'N/search', 'N/ui/dialog', 'N/currentRecord', 'N/url'], func
                     return false
                 }else{
                     if(totalAMountHead != totalDebit){
-                        alert('total amount in journal must balance with total amount transaction');
+                        alert('total amount in journal must balance with total amount Realisasi');
                         return false
                     }else{
                         return true

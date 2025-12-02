@@ -18,7 +18,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                 var form = context.form;
                 var cekApprovalLevel = rec.getValue('custrecord_approval_level');
                 log.debug('cekApprovalLevel', cekApprovalLevel)
-                if(cekApprovalLevel != '3' && cekApprovalLevel != '4'){
+                if(cekApprovalLevel && cekApprovalLevel.includes('Pending Setup COA')){
+                    log.debug('masuk kondisi panggil client')
+                    
+                }else{
                     context.form.clientScriptModulePath = 'SuiteScripts/abj_cs_pengajuan_dana.js';
                 }
                 form.addButton({
@@ -68,11 +71,22 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                         fieldId : 'custrecord_fund_je_department',
                         line : i
                     })
-                    var purpose = recFund.getSublistText({
+                    var purpose
+                    var ptext = recFund.getSublistText({
                         sublistId : 'recmachcustrecord_fund_journal',
                         fieldId : 'custrecord_fund_j_purpouse',
                         line : i
                     })
+                    var remarks = recFund.getSublistText({
+                        sublistId : 'recmachcustrecord_fund_journal',
+                        fieldId : 'custrecord_j_f_remarks',
+                        line : i
+                    })
+                    if(remarks){
+                        purpose = remarks
+                    }else{
+                        purpose = ptext
+                    }
                     allDataLine.push({
                         acc : acc,
                         debit : debit,
@@ -172,7 +186,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                 }
                 var cekAppLev = recOld.getValue('custrecord_approval_level')
                 log.debug('cekAppLev', cekAppLev)
-                if (cekAppLev == 3 || cekAppLev == 4) {
+                if (cekAppLev && cekAppLev.includes('Pending Setup COA')) {
                     var cekLineJournal = recordCust.getLineCount({
                         sublistId: 'recmachcustrecord_fund_journal'
                     });
