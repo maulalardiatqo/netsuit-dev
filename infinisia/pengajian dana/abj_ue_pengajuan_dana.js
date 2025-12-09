@@ -12,7 +12,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
     error
     ) {
   function beforeLoad(context) {
-        if(context.type == context.UserEventType.VIEW || context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT || ontext.type == context.UserEventType.COPY){
+        if(context.type == context.UserEventType.VIEW || context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT || context.type == context.UserEventType.COPY){
             try {
                 var rec = context.newRecord;
                 var form = context.form;

@@ -75,11 +75,55 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/search'], (currentRecord, dialog, s
     };
 
     const fieldChanged = (context) => {
+        const currentRec = currentRecord.get();
         if (
             (context.sublistId === 'item' || context.sublistId === 'expense') &&
             context.fieldId === 'custcol_4601_witaxapplies'
         ) {
             checkAnyTrue(context.sublistId);
+        }
+        if(context.fieldId === 'custbody_nama_object_pajak'){
+            var cekNamaPajak = currentRec.getValue('custbody_nama_object_pajak');
+            console.log('cekNamaPajak', cekNamaPajak);
+            if(cekNamaPajak){
+                var searchNamePajak = search.lookupFields({
+                    type: "customrecord_nama_kode_pajak",
+                    id: cekNamaPajak,
+                    columns: ["name", "custrecord_kode_pajak"],
+                });
+                console.log('searchNamePajak', searchNamePajak)
+                var kodePjk = searchNamePajak.custrecord_kode_pajak;
+                console.log('kodePjk', kodePjk)
+                if (kodePjk) {
+
+                    const result = search.create({
+                        type: 'customrecord_sos_list_kode_objek_pajak',
+                        filters: [
+                            ['name', 'is', kodePjk]   // ganti hardcode "22-100-08"
+                        ],
+                        columns: [
+                            search.createColumn({ name: 'internalid' })
+                        ]
+                    })
+                    .run()
+                    .getRange({ start: 0, end: 1 });
+
+                    let internalId = null;
+
+                    if (result && result.length > 0) {
+                        internalId = result[0].getValue({ name: 'internalid' });
+                    }
+
+                    console.log('Internal ID Found', internalId);
+                    if(internalId){
+                        currentRec.setValue({
+                            fieldId : 'custbody_sos_kode_obj_pajak',
+                            value : internalId
+                        })
+                    }
+                }
+
+            }
         }
     };
     const saveRecord = (context) => {

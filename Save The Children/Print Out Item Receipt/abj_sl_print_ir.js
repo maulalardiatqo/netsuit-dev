@@ -184,11 +184,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 fieldId: "description",
                                 line : i
                             });
-                            var units = recLoad.getSublistText({
+                            var units = recLoad.getSublistValue({
                                 sublistId : "item",
-                                fieldId: "units",
+                                fieldId: "unitsdisplay",
                                 line : i
                             });
+                            log.debug('units', units)
                             var qty = recLoad.getSublistText({
                                 sublistId : "item",
                                 fieldId: "quantity",

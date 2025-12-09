@@ -342,9 +342,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 var budget = result.getValue(colRemaining[1]); 
                 var actual = result.getValue(colRemaining[2]); 
                 var amtRemaining = Number(budget) - Number(actual);
-                if(Number(amtRemaining) <= 0){
-                    amtRemaining = 0
-                } 
+                // if(Number(amtRemaining) <= 0){
+                //     amtRemaining = 0
+                // } 
 
                 allRemaining.push({
                     sofIdRemaining: sofIdRemaining,
@@ -423,246 +423,239 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             console.log('totalSpendAmt', totalSpendAmt)
             console.log('finalData', finalData)
            // Helper pembulatan wajib
-function round2(num) {
-    return Number(Number(num).toFixed(2));
-}
+            function round2(num) {
+                return Number(Number(num).toFixed(2));
+            }
 
-var dataSisa = [];
+            var dataSisa = [];
 
-finalData.forEach(function (row) {
-    var sofId = row.sofId;
-    var spend = Number(row.amtSpend);
-    var remaining = Number(row.amtRemaining);
-    var costCenter = row.costCenter;
-    var project = row.project;
-    var drc = row.drc;
-    var dea = row.dea;
+            finalData.forEach(function (row) {
+                var sofId = row.sofId;
+                var spend = Number(row.amtSpend);
+                var remaining = Number(row.amtRemaining);
+                var costCenter = row.costCenter;
+                var project = row.project;
+                var drc = row.drc;
+                var dea = row.dea;
 
-    // ==========================
-    // Perhitungan bobot + allocation (dibulatkan!)
-    // ==========================
-    var bobotPerMonth = spend / Number(totalSpendAmt);
-    var allocation = round2(bobotPerMonth * Number(cekAmountAllocate));
+                // ==========================
+                // Perhitungan bobot + allocation (dibulatkan!)
+                // ==========================
+                var bobotPerMonth = spend / Number(totalSpendAmt);
+                var prosent = Number(bobotPerMonth) * 100 
+                var allocation = round2(bobotPerMonth * Number(cekAmountAllocate));
 
-    var amtDebit = 0;
-    var sisa = 0;
+                var amtDebit = 0;
+                var sisa = 0;
 
-    // ==========================
-    // LOGIKA BARU debit & sisa (with rounding)
-    // ==========================
-    if (remaining <= 0) {
-        sisa = round2(allocation);
-    } else if (remaining >= allocation) {
-        amtDebit = round2(allocation);
-    } else {
-        amtDebit = round2(remaining);
-        sisa = round2(allocation - remaining);
-    }
+                if (remaining <= 0) {
+                    sisa = round2(allocation);
+                } else if (remaining >= allocation) {
+                    amtDebit = round2(allocation);
+                } else {
+                    amtDebit = round2(remaining);
+                    sisa = round2(allocation - remaining);
+                }
 
-    // simpan sisa jika ada
-    if (sisa > 0) {
-        dataSisa.push({
-            cekSisa: sisa,
-            costCenter: costCenter,
-            project: project
-        });
-    }
+                if (sisa > 0) {
+                    dataSisa.push({
+                        cekSisa: sisa,
+                        costCenter: costCenter,
+                        project: project,
+                        prosent : prosent,
+                        bobotPerMonth : bobotPerMonth,
+                        remaining : remaining
+                    });
+                }
 
-    console.log("bobotPerMonth, debit", {
-        bobotPerMonth: bobotPerMonth,
-        amtDebit: amtDebit
-    });
+                console.log("bobotPerMonth, debit", {
+                    bobotPerMonth: bobotPerMonth,
+                    amtDebit: amtDebit
+                });
 
-    // ======================================
-    // INSERT DEBIT UTAMA
-    // ======================================
-    if (amtDebit > 0) {
-        records.selectNewLine({ sublistId: "line" });
+                if (amtDebit > 0) {
+                    records.selectNewLine({ sublistId: "line" });
 
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "account",
-            value: accountHead
-        });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "debit",
-            value: amtDebit
-        });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "department",
-            value: costCenter
-        });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "class",
-            value: project
-        });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "cseg_stc_sof",
-            value: sofId
-        });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "custcol_abj_remaining_budget_sof",
-            value: remaining
-        });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "account",
+                        value: accountHead
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "debit",
+                        value: amtDebit
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "department",
+                        value: costCenter
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "class",
+                        value: project
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "cseg_stc_sof",
+                        value: sofId
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "custcol_abj_remaining_budget_sof",
+                        value: remaining
+                    });
 
-        var prosentFix = Number(prosent).toFixed(2);
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "custcol_tar_percentage",
-            value: prosentFix
-        });
+                    var prosentFix = Number(prosent).toFixed(2);
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "custcol_tar_percentage",
+                        value: prosentFix
+                    });
 
-        records.commitLine({ sublistId: "line" });
-    }
-});
+                    records.commitLine({ sublistId: "line" });
+                }
+            });
 
+            if (allDataCredits.length > 0) {
+                allDataCredits.forEach(function (credits) {
+                    records.selectNewLine({ sublistId: "line" });
 
-// ================================
-// INSERT CREDIT
-// ================================
-if (allDataCredits.length > 0) {
-    allDataCredits.forEach(function (credits) {
-        records.selectNewLine({ sublistId: "line" });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "account",
+                        value: credits.acc
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "credit",
+                        value: round2(credits.amt)
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "department",
+                        value: credits.costCenter
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "class",
+                        value: credits.projectCode
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "cseg_stc_sof",
+                        value: "57"
+                    });
 
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "account",
-            value: credits.acc
-        });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "credit",
-            value: round2(credits.amt)
-        });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "department",
-            value: credits.costCenter
-        });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "class",
-            value: credits.projectCode
-        });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "cseg_stc_sof",
-            value: "57"
-        });
-
-        records.commitLine({ sublistId: "line" });
-    });
-}
+                    records.commitLine({ sublistId: "line" });
+                });
+            }
 
 
-// ================================
-// INSERT DEBIT SISA
-// ================================
-if (dataSisa.length > 0) {
-    dataSisa.forEach(function (sisa) {
-        records.selectNewLine({ sublistId: "line" });
+            if (dataSisa.length > 0) {
+                dataSisa.forEach(function (sisa) {
+                    records.selectNewLine({ sublistId: "line" });
 
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "account",
-            value: accountHead
-        });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "debit",
-            value: round2(sisa.cekSisa)
-        });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "department",
-            value: sisa.costCenter
-        });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "class",
-            value: sisa.project
-        });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "cseg_stc_sof",
-            value: "80"
-        });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "account",
+                        value: accountHead
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "debit",
+                        value: round2(sisa.cekSisa)
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "department",
+                        value: sisa.costCenter
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "class",
+                        value: sisa.project
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "cseg_stc_sof",
+                        value: "80"
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "custcol_abj_remaining_budget_sof",
+                        value: sisa.remaining
+                    });
 
-        records.commitLine({ sublistId: "line" });
-    });
-}
+                    var prosentFix = Number(sisa.prosent).toFixed(2);
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "custcol_tar_percentage",
+                        value: prosentFix
+                    });
+                    records.commitLine({ sublistId: "line" });
+                });
+            }
 
+            var totalDebit = 0;
+            var totalCredit = 0;
+            var lineCount = records.getLineCount({ sublistId: "line" });
 
+            for (var i = 0; i < lineCount; i++) {
+                var d = Number(records.getSublistValue({
+                    sublistId: "line",
+                    fieldId: "debit",
+                    line: i
+                })) || 0;
 
-// ==========================================================
-// FIXER SELISIH (DEBIT vs CREDIT BALANCING)
-// ==========================================================
-var totalDebit = 0;
-var totalCredit = 0;
-var lineCount = records.getLineCount({ sublistId: "line" });
+                var c = Number(records.getSublistValue({
+                    sublistId: "line",
+                    fieldId: "credit",
+                    line: i
+                })) || 0;
 
-// hitung semua debit & credit
-for (var i = 0; i < lineCount; i++) {
-    var d = Number(records.getSublistValue({
-        sublistId: "line",
-        fieldId: "debit",
-        line: i
-    })) || 0;
+                totalDebit += d;
+                totalCredit += c;
+            }
 
-    var c = Number(records.getSublistValue({
-        sublistId: "line",
-        fieldId: "credit",
-        line: i
-    })) || 0;
+            totalDebit = round2(totalDebit);
+            totalCredit = round2(totalCredit);
 
-    totalDebit += d;
-    totalCredit += c;
-}
+            var selisih = round2(totalCredit - totalDebit);
 
-totalDebit = round2(totalDebit);
-totalCredit = round2(totalCredit);
+            if (selisih !== 0) {
+                var lastDebitLine = -1;
 
-var selisih = round2(totalCredit - totalDebit);
+                for (var i = lineCount - 1; i >= 0; i--) {
+                    var dVal = Number(records.getSublistValue({
+                        sublistId: "line",
+                        fieldId: "debit",
+                        line: i
+                    })) || 0;
 
-// Jika ada selisih (misal -0.02), kita adjust ke baris debit terakhir
-if (selisih !== 0) {
-    var lastDebitLine = -1;
+                    if (dVal > 0) {
+                        lastDebitLine = i;
+                        break;
+                    }
+                }
 
-    // cari baris debit terakhir
-    for (var i = lineCount - 1; i >= 0; i--) {
-        var dVal = Number(records.getSublistValue({
-            sublistId: "line",
-            fieldId: "debit",
-            line: i
-        })) || 0;
+                if (lastDebitLine >= 0) {
+                    var oldDebit = Number(records.getSublistValue({
+                        sublistId: "line",
+                        fieldId: "debit",
+                        line: lastDebitLine
+                    })) || 0;
 
-        if (dVal > 0) {
-            lastDebitLine = i;
-            break;
-        }
-    }
-
-    if (lastDebitLine >= 0) {
-        var oldDebit = Number(records.getSublistValue({
-            sublistId: "line",
-            fieldId: "debit",
-            line: lastDebitLine
-        })) || 0;
-
-        records.selectLine({ sublistId: "line", line: lastDebitLine });
-        records.setCurrentSublistValue({
-            sublistId: "line",
-            fieldId: "debit",
-            value: round2(oldDebit + selisih)
-        });
-        records.commitLine({ sublistId: "line" });
-    }
-}
+                    records.selectLine({ sublistId: "line", line: lastDebitLine });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "debit",
+                        value: round2(oldDebit + selisih)
+                    });
+                    records.commitLine({ sublistId: "line" });
+                }
+            }
 
 
 

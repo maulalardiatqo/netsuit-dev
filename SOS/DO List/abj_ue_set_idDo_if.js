@@ -2,9 +2,9 @@
  * @NApiVersion 2.1
  * @NScriptType UserEventScript
  */
-define(['N/record', 'N/log', 'N/error'],
+define(['N/record', 'N/log', 'N/error', 'N/task'],
 
-    (record, log, error) => {
+    (record, log, error, task) => {
 
         const afterSubmit = (context) => {
             const newRecord = context.newRecord;
@@ -51,24 +51,33 @@ define(['N/record', 'N/log', 'N/error'],
                         log.error('Error Update Item Fulfillment (Create)', `ID: ${ifId}, Error: ${e.message}`);
                     }
                 });
-                cartonIds.forEach((cartonId) =>{
-                    try{
-                        if(!cartonId) return;
-                        record.submitFields({
-                            type: 'customrecord_packship_carton',
-                            id: cartonId,
-                            values: {
-                                custrecord_sos_packing_list_number_pack: packingListId
-                            },
-                            options: {
-                                enableSourcing: false,
-                                ignoreMandatoryFields: true
-                            }
-                        });
-                    }catch (e) {
-                        log.error('Error Update Carton (Create)', `ID: ${cartonId}, Error: ${e.message}`);
-                    }
-                })
+                // cartonIds.forEach((cartonId) =>{
+                //     try{
+                //         if(!cartonId) return;
+                //         record.submitFields({
+                //             type: 'customrecord_packship_carton',
+                //             id: cartonId,
+                //             values: {
+                //                 custrecord_sos_packing_list_number_pack: packingListId
+                //             },
+                //             options: {
+                //                 enableSourcing: false,
+                //                 ignoreMandatoryFields: true
+                //             }
+                //         });
+                //     }catch (e) {
+                //         log.error('Error Update Carton (Create)', `ID: ${cartonId}, Error: ${e.message}`);
+                //     }
+                // })
+                const mrTask = task.create({
+                        taskType: task.TaskType.MAP_REDUCE,
+                        scriptId: 'customscript_abj_mr_validate_ship',
+                        params: {
+                            custscript_carton_ids: JSON.stringify(cartonIds),
+                            custscript_packing_list_id: packingListId
+                        }
+                    });
+                    mrTask.submit();
             }
 
             // Saat DELETE
@@ -150,20 +159,31 @@ define(['N/record', 'N/log', 'N/error'],
                 // ============================
                 //   JIKA ADA YANG DITAMBAHKAN
                 // ============================
-                added.forEach(function(cartonId){
-                    record.submitFields({
-                        type: 'customrecord_packship_carton',
-                        id: cartonId,
-                        values: {
-                            custrecord_sos_packing_list_number_pack: packingListId
-                        },
-                        options: {
-                            enableSourcing: false,
-                            ignoreMandatoryFields: true
+                if(added.length > 0){
+                    const mrTask = task.create({
+                        taskType: task.TaskType.MAP_REDUCE,
+                        scriptId: 'customscript_abj_mr_validate_ship',
+                        params: {
+                            custscript_carton_ids: JSON.stringify(added),
+                            custscript_packing_list_id: packingListId
                         }
                     });
-                    log.debug('Updated ADD carton', cartonId);
-                });
+                    mrTask.submit();
+                }
+                // added.forEach(function(cartonId){
+                //     record.submitFields({
+                //         type: 'customrecord_packship_carton',
+                //         id: cartonId,
+                //         values: {
+                //             custrecord_sos_packing_list_number_pack: packingListId
+                //         },
+                //         options: {
+                //             enableSourcing: false,
+                //             ignoreMandatoryFields: true
+                //         }
+                //     });
+                //     log.debug('Updated ADD carton', cartonId);
+                // });
 
                 // ============================
                 //     JIKA ADA YANG DIHAPUS

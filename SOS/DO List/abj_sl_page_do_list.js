@@ -300,7 +300,7 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
                             html += '<input style="border: none; color: rgb(255, 255, 255); padding: 8px 30px; margin-top: 15px; cursor: pointer; text-align: center; background-color: rgb(0, 106, 255); border-color: rgb(0, 106, 255); fill: rgb(255, 255, 255); border-radius: 3px; font-weight: bold;" ' +
                                     'type="button" onclick="window.history.go(-1)" value="OK" />';
                         
-                            html += '<br /><br /><a href="https://9484296.app.netsuite.com/app/accounting/transactions/custom.nl?id=' + saveCreate + '" ' +
+                            html += '<br /><br /><a href="https://9484296-sb1.app.netsuite.com/app/accounting/transactions/custom.nl?id=' + saveCreate + '" ' +
                                     'style="text-decoration:none; color:rgb(0, 106, 255); font-weight:bold;">Go to DO List</a>';
                         
                             html += "</body></html>";
