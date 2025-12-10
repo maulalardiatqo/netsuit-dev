@@ -125,7 +125,75 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/search'], (currentRecord, dialog, s
 
             }
         }
+        // if (
+        //     (context.sublistId === 'expense') &&
+        //     context.fieldId === 'custcol_4601_witaxcode_exp'
+        // ) {
+        //     var cekTaxCode = currentRec.getCurrentSublistValue({
+        //         sublistId : 'expense',
+        //         fieldId : 'custcol_4601_witaxcode_exp'
+        //     });
+        //     console.log('cekTaxCode', cekTaxCode)
+        //     console.log('tax changed')
+        // }
     };
+    const validateLine = (context) => {
+        var rec = context.currentRecord;
+        var sublistName = context.sublistId;
+        log.debug('sublistName', sublistName)
+        if (sublistName === 'expense' || sublistName === 'item')
+        {   
+            var taxCodeValue
+            if(sublistName === 'expense'){
+                log.debug('masuk exp')
+                taxCodeValue = rec.getCurrentSublistValue({
+                    sublistId : 'expense',
+                    fieldId : 'custcol_4601_witaxcode_exp'
+                });
+            }else{  
+                taxCodeValue = rec.getCurrentSublistValue({
+                    sublistId : 'item',
+                    fieldId : 'custpage_4601_witaxcode'
+                });
+            }
+             
+            log.debug('taxCodeValue', taxCodeValue)
+            if(taxCodeValue){
+                var isPPh23 = false;
+                var customrecord_4601_witaxcodeSearchObj = search.create({
+                type: "customrecord_4601_witaxcode",
+                filters:
+                [
+                    ["internalid","anyof",taxCodeValue]
+                ],
+                columns:
+                [
+                    search.createColumn({name: "custrecord_4601_wtc_witaxtype", label: "Withholding Tax Type"})
+                ]
+                });
+                var searchResultCount = customrecord_4601_witaxcodeSearchObj.runPaged().count;
+                log.debug("customrecord_4601_witaxcodeSearchObj result count",searchResultCount);
+                customrecord_4601_witaxcodeSearchObj.run().each(function(result){
+                    var cekData = result.getValue({
+                        name: "custrecord_4601_wtc_witaxtype", 
+                        label: "Withholding Tax Type"
+                    })
+                    if(cekData && cekData == 332){
+                        isPPh23 = true
+                    }
+                return true;
+                });
+                if(isPPh23){
+                    rec.setValue({
+                        fieldId : 'custbody_sos_fasilitas',
+                        value : '7'
+                    })
+                }
+
+            }
+        }
+        return true;
+    }
     const saveRecord = (context) => {
         const currentRec = currentRecord.get();
         const isAnyTrue = checkAnyTrueLine('item') || checkAnyTrueLine('expense');
@@ -170,6 +238,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/search'], (currentRecord, dialog, s
     return {
         pageInit,
         fieldChanged,
+        validateLine,
         saveRecord
     };
 

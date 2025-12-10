@@ -38,6 +38,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         'item',
                         'memomain',
                         'custcol2',
+                        'custbody5',
                         search.createColumn({
                             name: "vendorname",
                             join: "item",
@@ -108,6 +109,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var duedate = result.getValue('duedate')
                     var employId = result.getValue('custbody_fcn_sales_employee')
                     var entity = result.getValue('entity')
+                    var leadtime = result.getValue('custbody5')
+                    var memo = result.getValue('memomain')
                     var itemId = result.getValue({
                         name: 'formulatext1',
                         label: 'itemid'
@@ -152,6 +155,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         duedate: duedate,
                         employId: employId,
                         entity: entity,
+                        leadtime : leadtime,
                         itemid: itemId,
                         itemdesc: itemdesc,
                         itemrate: itemrate,
@@ -161,6 +165,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         itemstatus: itemstatus,
                         itemleadtime: itemLeadTime,
                         itempaymentterm: itemPaymentTerm,
+                        memo : memo
                     })
                     return true
                 });
@@ -176,7 +181,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var transDate = quotRec[0].trandate
                 var expireDate = quotRec[0].duedate
                 var transactionNumber = quotRec[0].tranid
-
                 var prepared = '';
                 var empId = quotRec[0].employId
                 // log.debug('empId',empId)
@@ -402,10 +406,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<tbody>";
                 body += "<tr>";
                 body += "<td style='width:40%'></td>"
+                body += "<td style='width:25%'></td>"
+                body += "<td style='width:15%'></td>"
                 body += "<td style='width:10%'></td>"
-                body += "<td style='width:20%'></td>"
-                body += "<td style='width:15%'></td>"
-                body += "<td style='width:15%'></td>"
+                body += "<td style='width:10%'></td>"
                 body += "</tr>";
                 body += "<tr>";
                 body += "<td style='font-weight:bold;' colspan='5'>We are pleased to quote you in the following :</td>"
@@ -509,6 +513,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
             function getPOItem(context, quotRec) {
                 var itemCount = quotRec.length
+                var leadtime = quotRec[0].leadtime
+                var memo = quotRec[0].memo
+                if(leadtime){
+                    leadtime = leadtime + ' ' + 'Month'
+                }
                 log.debug('itemcount', itemCount)
                 if (itemCount > 0) {
                     var body = "";
@@ -604,7 +613,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
                     body += "</tr>";
                     body += "<tr>";
-                    body += "<td style=' border: 1px solid #808080; border-top:none;'>Note:</td>";
+                    body += "<td style=' border: 1px solid #808080; border-top:none;'>Note: "+memo+"</td>";
                     body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
                     body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
                     body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
@@ -615,6 +624,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "</tr>";
 
                     body += "<tr>";
+                    body += "<td style=' border: 1px solid #808080; border-top:none;'>Lead Time : "+leadtime+"</td>";
+                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
+                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
+                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
+                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
+                    body += "</tr>";
+
+                     body += "<tr>";
                     body += "<td style=' border: 1px solid #808080; border-top:none;'>Payment term :  "+paymentTerms+"</td>";
                     body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
                     body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";

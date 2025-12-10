@@ -72,8 +72,66 @@ define(['N/record', 'N/search', 'N/ui/dialog', 'N/currentRecord', 'N/url'], func
         }
         return true
     }
+    function deleteRecord(){
+        var records = currentRecord.get();
+        var id = records.id;
+        var lineReq = records.getLineCount({
+            sublistId : 'recmachcustrecord_fund_head'
+        })
+        var allIdLine = [];
+        var allJournalLine =[];
+        if(lineReq > 0){
+            for(var i = 0; i < lineReq; i ++){
+                var idLine = records.getSublistValue({
+                    sublistId : 'recmachcustrecord_fund_head',
+                    fieldId : 'id',
+                    line : i
+                });
+                allIdLine.push(idLine)
+            }
+        }
+
+        var journalReq = records.getLineCount({
+            sublistId : 'recmachcustrecord_fund_journal'
+        })
+        if(journalReq > 0){
+            for(var j = 0; j < journalReq; j++){
+                var idJournal = records.getSublistValue({
+                    sublistId : 'recmachcustrecord_fund_journal',
+                    fieldId : 'id',
+                    line : i
+                });
+                allJournalLine.push(idJournal)
+            }
+        }
+        if (allIdLine.length > 0) {
+            allIdLine.forEach(function (childId) {
+                try {
+                    record.delete({
+                        type: 'customrecord_line_request_fund',
+                        id: childId
+                    });
+                } catch (e) {
+                    log.error("Delete Line Request Failed", e);
+                }
+            });
+        }
+        if (allJournalLine.length > 0) {
+            allJournalLine.forEach(function (jid) {
+                try {
+                    record.delete({
+                        type: 'customrecord_fund_journal_tab',
+                        id: jid
+                    });
+                } catch (e) {
+                    log.error("Delete Journal Line Failed", e);
+                }
+            });
+        }
+    }
     return{
         saveRecord : saveRecord,
-        printPengajuan : printPengajuan
+        printPengajuan : printPengajuan,
+        deleteRecord : deleteRecord
     }
 })
