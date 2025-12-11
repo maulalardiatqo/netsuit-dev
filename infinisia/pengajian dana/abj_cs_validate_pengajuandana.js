@@ -3,7 +3,7 @@
  * @NScriptType ClientScript
  */
 
-define(['N/record', 'N/search', 'N/ui/dialog', 'N/currentRecord', 'N/url'], function(record, search, dialog, currentRecord, url) {
+define(['N/record', 'N/search', 'N/ui/dialog', 'N/currentRecord', 'N/url', 'N/ui/message'], function(record, search, dialog, currentRecord, url, message) {
     function printPengajuan() {
         var records = currentRecord.get();
         console.log("test in function");
@@ -73,61 +73,121 @@ define(['N/record', 'N/search', 'N/ui/dialog', 'N/currentRecord', 'N/url'], func
         return true
     }
     function deleteRecord(){
-        var records = currentRecord.get();
-        var id = records.id;
-        var lineReq = records.getLineCount({
-            sublistId : 'recmachcustrecord_fund_head'
-        })
-        var allIdLine = [];
-        var allJournalLine =[];
-        if(lineReq > 0){
-            for(var i = 0; i < lineReq; i ++){
-                var idLine = records.getSublistValue({
-                    sublistId : 'recmachcustrecord_fund_head',
-                    fieldId : 'id',
-                    line : i
-                });
-                allIdLine.push(idLine)
-            }
+        var confirmDelete = confirm("Apakah Anda yakin ingin menghapus semua data ini?");
+        if (!confirmDelete) {
+            return; // user cancel
         }
+        console.log('triggered')
+        var processMsg = message.create({
+            title: "Processing",
+            message: "On Process. Please wait...",
+            type: message.Type.INFORMATION
+        });
+        processMsg.show();
 
-        var journalReq = records.getLineCount({
-            sublistId : 'recmachcustrecord_fund_journal'
-        })
-        if(journalReq > 0){
-            for(var j = 0; j < journalReq; j++){
-                var idJournal = records.getSublistValue({
-                    sublistId : 'recmachcustrecord_fund_journal',
-                    fieldId : 'id',
-                    line : i
+        setTimeout(function () {
+
+            try {
+                var recs = currentRecord.get();
+                var id = recs.id;
+
+                var records = record.load({
+                    type: 'customrecord_request_for_fund',
+                    id: id
                 });
-                allJournalLine.push(idJournal)
+
+                // Ambil child line
+                var allIdLine = [];
+                var lineReq = records.getLineCount({
+                    sublistId: 'recmachcustrecord_fund_head'
+                });
+
+                for (var i = 0; i < lineReq; i++) {
+                    var idLine = records.getSublistValue({
+                        sublistId: 'recmachcustrecord_fund_head',
+                        fieldId: 'id',
+                        line: i
+                    });
+                    allIdLine.push(idLine);
+                }
+
+                // Ambil journal line
+                var allJournalLine = [];
+                var journalReq = records.getLineCount({
+                    sublistId: 'recmachcustrecord_fund_journal'
+                });
+
+                for (var j = 0; j < journalReq; j++) {
+                    var idJournal = records.getSublistValue({
+                        sublistId: 'recmachcustrecord_fund_journal',
+                        fieldId: 'id',
+                        line: j
+                    });
+                    allJournalLine.push(idJournal);
+                }
+
+                // Delete anak line
+                allIdLine.forEach(function (cid) {
+                    try {
+                        record.delete({
+                            type: 'customrecord_line_request_fund',
+                            id: cid
+                        });
+                    } catch (e) {
+                        console.log("Error delete child: ", e);
+                    }
+                });
+
+                // Delete journal line
+                allJournalLine.forEach(function (jid) {
+                    try {
+                        record.delete({
+                            type: 'customrecord_fund_journal_tab',
+                            id: jid
+                        });
+                    } catch (e) {
+                        console.log("Error delete journal: ", e);
+                    }
+                });
+
+                // Delete parent record
+                record.delete({
+                    type: 'customrecord_request_for_fund',
+                    id: id
+                });
+
+                // --- HIDE PROCESSING AND SHOW SUCCESS ---
+                processMsg.hide();
+
+                var doneMsg = message.create({
+                    title: "Completed",
+                    message: "Selesai menghapus record!",
+                    type: message.Type.CONFIRMATION
+                });
+                doneMsg.show();
+
+                setTimeout(function () {
+                    doneMsg.hide();
+                    window.location.reload();
+                }, 2000);
+
+            } catch (err) {
+
+                processMsg.hide();
+
+                var errorMsg = message.create({
+                    title: "Error",
+                    message: "Terjadi error: " + err,
+                    type: message.Type.ERROR
+                });
+                errorMsg.show();
+
+                setTimeout(function () {
+                    errorMsg.hide();
+                }, 4000);
             }
-        }
-        if (allIdLine.length > 0) {
-            allIdLine.forEach(function (childId) {
-                try {
-                    record.delete({
-                        type: 'customrecord_line_request_fund',
-                        id: childId
-                    });
-                } catch (e) {
-                    log.error("Delete Line Request Failed", e);
-                }
-            });
-        }
-        if (allJournalLine.length > 0) {
-            allJournalLine.forEach(function (jid) {
-                try {
-                    record.delete({
-                        type: 'customrecord_fund_journal_tab',
-                        id: jid
-                    });
-                } catch (e) {
-                    log.error("Delete Journal Line Failed", e);
-                }
-            });
-        }
+
+        }, 300); 
     }
     return{
         saveRecord : saveRecord,
