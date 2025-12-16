@@ -74,7 +74,45 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var attachment = recLoad.getValue('custrecord_tor_attachment');
 
                     var activityFrom = recLoad.getText('custrecord_tor_timeline_p_from');
-                    var activityTo = recLoad.getText('custrecord_tor_timeline_period_to')
+                    var activityTo = recLoad.getText('custrecord_tor_timeline_period_to');
+                    var createdById = recLoad.getValue('custrecord_tor_create_by');
+                    var createdByName = ''
+                    if(createdById){
+                        var searchSvp = search.lookupFields({
+                            type: "employee",
+                            id: createdById,
+                            columns: ["altname"],
+                        });
+                        createdByName = searchSvp.altname;
+                    }
+                    var createdDate = '';
+
+                    var systemnoteSearchObj = search.create({
+                        type: "systemnote",
+                        filters: [
+                            ["recordtype", "anyof", "314"],
+                            "AND",
+                            ["type", "is", "T"],
+                            "AND",
+                            ["newvalue", "is", "4"]
+                        ],
+                        columns: [
+                            search.createColumn({
+                                name: "date",
+                                sort: search.Sort.DESC // ambil yang paling baru
+                            })
+                        ]
+                    });
+
+                    systemnoteSearchObj.run().each(function (result) {
+                        createdDate = result.getValue("date");
+                        return false; // ⛔ STOP → hanya 1 row
+                    });
+
+                    log.debug("Created Date", createdDate);
+                    log.debug('createdByName', createdByName);
+                    var cretedAt = recLoad.getValue('created');
+                    log.debug('cretedAt', cretedAt)
                     var dataActivity = [];
                     var lineActivity = recLoad.getLineCount({
                         sublistId : 'recmachcustrecord_ac_id_tor'
@@ -381,12 +419,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         footer += "</tr>"
 
                         footer += "<tr style='height:2%'>"
-                        footer += "<td style='border:1px solid black; border-top:none;'></td>"
+                        footer += "<td style='border:1px solid black; border-top:none;'>"+createdByName+"</td>"
                         footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
                         footer += "</tr>"
 
                         footer += "<tr style='height:2%'>"
-                        footer += "<td style='border:1px solid black; border-top:none;'></td>"
+                        footer += "<td style='border:1px solid black; border-top:none;'>"+createdDate+"</td>"
                         footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
                         footer += "</tr>"
 

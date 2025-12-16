@@ -202,14 +202,29 @@ define(["N/record", "N/search"], function(
                                 value : category,
                                 ignoreFieldChange: true,
                             })
+                            var d = new Date(startDate);
+
+                            var safeDate = new Date(
+                                d.getUTCFullYear(),
+                                d.getUTCMonth(),
+                                d.getUTCDate()
+                            );
+                            log.debug('safeDate', safeDate)
                             createRec.setValue({
                                 fieldId :"custrecord_start_date",
-                                value : startDate,
+                                value : safeDate,
                                 ignoreFieldChange: true,
                             })
+                             var dE = new Date(endDate);
+
+                            var safeDateE = new Date(
+                                dE.getUTCFullYear(),
+                                dE.getUTCMonth(),
+                                dE.getUTCDate()
+                            );
                             createRec.setValue({
                                 fieldId :"custrecord_end_date",
-                                value : endDate,
+                                value : safeDateE,
                                 ignoreFieldChange: true,
                             })
                             createRec.setValue({

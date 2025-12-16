@@ -47,13 +47,61 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type : 'customrecord_request_for_fund',
                         id : recid
                     });
-                    var empId = recLoad.getValue('custrecord_fund_employee')
-                    var searchName = search.lookupFields({
-                        type: "employee",
-                        id: empId,
-                        columns: ["altname"],
-                    });
-                    var nameEMp = searchName.altname;
+                    var empIds = {
+                        approveSPV: recLoad.getValue('custrecord19'),
+                        approveFinance: recLoad.getValue('custrecord20'),
+                        approveAccounting: recLoad.getValue('custrecord21'),
+                        approveFinal: recLoad.getValue('custrecord22'),
+                        knowledgeBy: recLoad.getValue('custrecord23'),
+                        requestor: recLoad.getValue('custrecord_fund_employee')
+                    };
+
+                    var employeeCache = {};
+
+                    function getEmployeeName(empId) {
+                        if (!empId) return '';
+
+                        if (!employeeCache[empId]) {
+                            var empData = search.lookupFields({
+                                type: search.Type.EMPLOYEE,
+                                id: empId,
+                                columns: ['altname', 'supervisor']
+                            });
+
+                            employeeCache[empId] = {
+                                name: empData.altname || '',
+                                supervisor: empData.supervisor && empData.supervisor.length
+                                    ? empData.supervisor[0].value
+                                    : ''
+                            };
+                        }
+
+                        return employeeCache[empId];
+                    }
+                    var approveSPV = getEmployeeName(empIds.approveSPV).name;
+                    var approveFinance = getEmployeeName(empIds.approveFinance).name;
+                    var approveAccounting = getEmployeeName(empIds.approveAccounting).name;
+                    var approveFinal = getEmployeeName(empIds.approveFinal).name;
+                    var knowledgeBy = getEmployeeName(empIds.knowledgeBy).name;
+
+                    var empData = getEmployeeName(empIds.requestor);
+                    var nameEmp = empData.name;
+                    var supervisorId = empData.supervisor;
+
+                    // var spv = searchName.supervisor;
+                    // log.debug('spv', spv)
+                    // var spvId = spv && spv.length > 0 ? spv[0].value : null;
+                    // log.debug('spvId', spvId)
+                    // var spvName = ''
+                    // if(spvId){
+                    //     var searchSvp = search.lookupFields({
+                    //         type: "employee",
+                    //         id: spvId,
+                    //         columns: ["altname"],
+                    //     });
+                    //     spvName = searchSvp.altname;
+                    //     log.debug('spvName', spvName)
+                    // }
                     var date = recLoad.getText('custrecord_fund_date');
                     var noForm = recLoad.getValue('custrecord_fund_docnumb');
                     var department = recLoad.getText('custrecord_fund_department');
@@ -174,7 +222,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tr>";
                     body += "<td style='font-weight:bold; align:right;'>NAMA</td>"
                     body += "<td style='' >:</td>"
-                    body += "<td style='border-bottom:1px solid black'>"+escapeXmlSymbols(nameEMp)+"</td>"
+                    body += "<td style='border-bottom:1px solid black'>"+escapeXmlSymbols(nameEmp)+"</td>"
                     body += "<td style='' colspan='4'></td>"
                     body += "</tr>";
                     body += "<tr>";
@@ -219,7 +267,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tr>";
                     body += "<td style='width:3%'></td>"
                     body += "<td style='width:12%'></td>"
-                    body += "<td style='width:15%'></td>"
+                    body += "<td style='width:3%'></td>"
+                    body += "<td style='width:14%'></td>"
                     body += "<td style='width:14%'></td>"
                     body += "<td style='width:14%'></td>"
                     body += "<td style='width:14%'></td>"
@@ -242,7 +291,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td>" + box(isTransfer) + "</td>"
                     body += "<td>TRANSFER</td>"
                     body += "<td></td>"
-                    body += "<td style='align:center; border: 1px solid black;'>DIBUAT OLEH</td>"
+                    body += "<td style='align:center; border: 1px solid black;' colspan='2'>DIBUAT OLEH</td>"
                     body += "<td style='align:center; border: 1px solid black; border-left:none;' colspan='2'>DIPERIKSA OLEH</td>"
                     body += "<td style='align:center; border: 1px solid black; border-left:none;'>DISETUJUI OLEH</td>"
                     body += "<td style='align:center; border: 1px solid black; border-left:none;'>MENGETAHUI</td>"
@@ -257,17 +306,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none; border-bottom:none;'></td>"
                     body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none; border-bottom:none;'></td>"
                     body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none; border-bottom:none;'></td>"
+                    body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none; border-bottom:none;'></td>"
                     body += "</tr>";
 
                     body += "<tr style=''>";
                     body += "<td></td>"
                     body += "<td></td>"
                     body += "<td></td>"
-                    body += "<td style='align:center; border: 1px solid black; border-top:none;'>"+escapeXmlSymbols(nameEMp)+"</td>"
-                    body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'></td>"
-                    body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'></td>"
-                    body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'></td>"
-                    body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'></td>"
+                    body += "<td style='align:center; border: 1px solid black; border-top:none;'>"+escapeXmlSymbols(nameEmp)+"</td>"
+                    body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(approveSPV)+"</td>"
+                    body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(approveFinance)+"</td>"
+                    body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(approveAccounting)+"</td>"
+                    body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(approveFinal)+"</td>"
+                    body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(knowledgeBy)+"</td>"
                     body += "</tr>";
 
                     body += "</tbody>"

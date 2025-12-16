@@ -41,9 +41,37 @@
                     var trandId = headRec.getValue({
                         name : "tranid"
                     });
-                    var jenisTransaksi = headRec.getText({
-                        name : "custbody_custom_jenis_transaksi"
+                    var customForm = headRec.getValue({
+                        name : "customform"
                     });
+                    log.debug('customform', customForm);
+
+                    var jenisTransaksi
+                    var paidName = ''
+                    if(customForm == '158'){
+                        jenisTransaksi = headRec.getValue({
+                            name : "custbody_custom_transaksi_list_bank"
+                        });
+                        log.debug('jenisTransaksi', jenisTransaksi)
+                        if(jenisTransaksi == '1'){
+                            jenisTransaksi = 'Bank In'
+                            paidName = 'Paid From'
+                        }else{
+                            jenisTransaksi = 'Bank Out'
+                            paidName = 'Paid To'
+                        }
+                    }else if(customForm == '159'){
+                        jenisTransaksi = headRec.getValue({
+                            name : "custbody_custom_transksi_list_cash"
+                        });
+                        if(jenisTransaksi == '1'){
+                            jenisTransaksi = 'Cash In'
+                            paidName = 'Paid From'
+                        }else{
+                            jenisTransaksi = 'Cash Out'
+                            paidName = 'Paid To'
+                        }
+                    }
                     var IdjenisTransaksi = headRec.getValue({
                         name : "custbody_custom_jenis_transaksi"
                     });
@@ -133,7 +161,7 @@
                     header += "<tbody>";
                     header += "<tr>"
                     header += "<td style='width:2%;font-weight:bold;'></td>"
-                    header += "<td style='width:15%;font-weight:bold;'>Paid To</td>"
+                    header += "<td style='width:15%;font-weight:bold;'>"+paidName+"</td>"
                     header += "<td style='width:1%; font-weight:bold;'>:</td>"
                     header += "<td style='width:34%; font-weight:bold;'></td>"
                     header += "<td style='width:10%; font-weight:bold;'></td>"

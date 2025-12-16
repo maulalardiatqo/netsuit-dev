@@ -43,12 +43,15 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                 type : 'customrecord_request_for_fund',
                 id : idFund
             });
+            
             var cekLine = recFund.getLineCount({
                 sublistId : 'recmachcustrecord_fund_journal'
             });
             if(cekLine > 0){
                 var dateFund = recFund.getValue('custrecord_fund_date');
                 var memoFund = recFund.getValue('custrecord_fund_memo');
+                var paymentType = recFund.getValue('custrecord_fund_payment_type');
+                log.debug('paymentType', paymentType)
                 var allDataLine = []
                 for(var i =0; i < cekLine; i++){
                     var acc = recFund.getSublistValue({
@@ -100,6 +103,38 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                         type : 'journalentry',
                         isDynamic: true
                     });
+                    
+                    if(paymentType == '1'){
+                        // transfer
+                        // jika transfer atau satu maka jenis transaksi bank keluar
+                        // customform
+                        recCreateJE.setValue({  
+                            fieldId : 'customform',
+                            value : '158'
+                        })
+                        recCreateJE.setValue({  
+                            fieldId : 'custbody13',
+                            value : '1'
+                        })
+                        recCreateJE.setValue({  
+                            fieldId : 'custbody_custom_transaksi_list_bank',
+                            value : '2'
+                        })
+                    }else{
+                        // jenis transaksi cash out
+                        recCreateJE.setValue({  
+                            fieldId : 'customform',
+                            value : '159'
+                        })
+                        recCreateJE.setValue({  
+                            fieldId : 'custbody13',
+                            value : '2'
+                        })
+                        recCreateJE.setValue({  
+                            fieldId : 'custbody_custom_transksi_list_cash',
+                            value : '2'
+                        })
+                    }
                     recCreateJE.setValue({  
                         fieldId : 'trandate',
                         value : dateFund

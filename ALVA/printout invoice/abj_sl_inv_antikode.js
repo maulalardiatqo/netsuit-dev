@@ -602,7 +602,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var quantity = data.quantity
                     var rate = data.rate
                     var taxRate = data.taxpph
-                    var qtyVat = Number(quantity) * (12/100)
+                    var qtyVat = 0.12
                     log.debug('taxRate', taxRate)
                     var amountVat = (11/12) * Number(amount);
                     var totalVat = Number(qtyVat) * Number(amountVat)

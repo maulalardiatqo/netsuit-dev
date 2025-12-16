@@ -125,7 +125,17 @@ define(['N/record', 'N/search', 'N/ui/dialog', 'N/currentRecord', 'N/url', 'N/ui
                     });
                     allJournalLine.push(idJournal);
                 }
-
+                 // Delete journal line
+                allJournalLine.forEach(function (jid) {
+                    try {
+                        record.delete({
+                            type: 'customrecord_fund_journal_tab',
+                            id: jid
+                        });
+                    } catch (e) {
+                        console.log("Error delete journal: ", e);
+                    }
+                });
                 // Delete anak line
                 allIdLine.forEach(function (cid) {
                     try {
@@ -138,18 +148,14 @@ define(['N/record', 'N/search', 'N/ui/dialog', 'N/currentRecord', 'N/url', 'N/ui
                     }
                 });
 
-                // Delete journal line
-                allJournalLine.forEach(function (jid) {
-                    try {
-                        record.delete({
-                            type: 'customrecord_fund_journal_tab',
-                            id: jid
-                        });
-                    } catch (e) {
-                        console.log("Error delete journal: ", e);
-                    }
-                });
-
+               
+                var idJe = records.getValue('custrecord_link_journal_entry');
+                if(idJe){
+                    record.delete({
+                        type: 'journalentry',
+                        id: idJe
+                    });
+                }
                 // Delete parent record
                 record.delete({
                     type: 'customrecord_request_for_fund',
