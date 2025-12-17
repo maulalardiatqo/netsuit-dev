@@ -274,7 +274,9 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 if((isAttach && isApprover && cekFlagApproval == false) || (isAttach && isApprover && isAdmin === true)){
                     log.debug('masuk kondisi cek')
                     var cekApprovStatus = rec.getValue('approvalstatus');
-                    if(cekApprovStatus == '3'){
+                    var oldStatus = oldRec.getValue('approvalstatus');
+                    log.debug('oldStatus', oldStatus)
+                    if(oldStatus == '3' && cekApprovStatus == '3'){
                         setReject(rec)
                     }
                     var result = callIntegrate(rec, isAdmin)

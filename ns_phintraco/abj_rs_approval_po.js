@@ -33,7 +33,6 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
             }
              if (status == '3' && approver) {
                 setSublist(recPo, 3, approver, reason || '');
-                log.debug('Update Header', 'Semua approver sudah approve, ubah approvalstatus ke Approved.');
                 recPo.setValue({
                     fieldId: 'approvalstatus',
                     value: 3, 
@@ -58,15 +57,6 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
             //     log.debug('after set header')
             //     setSublist(recPo, 2, approver, reason || '');
             // }
-            log.debug('VALIDATION', {
-                approvalStatus: recPo.getValue('approvalstatus'),
-                nextApprover: recPo.getValue('nextapprover'),
-                supervisor: recPo.getValue('supervisor'),
-                employee: recPo.getValue('employee'),
-                department: recPo.getValue('department'),
-                class: recPo.getValue('class'),
-                location: recPo.getValue('location'),
-            });
             log.debug('bfore save')
             const savePO = recPo.save({
                 enableSourcing: false,
@@ -110,11 +100,11 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
                 var idUser = lookCreated.custrecord_id_users_web;
                 if (idUser == approver) {
                     log.debug('Match Approver', `Line ${i} cocok dengan user ${approver}`);
-
+                    log.debug('statusLine', statusLine)
                     recPo.setSublistValue({
                         sublistId: 'recmachcustrecord_abj_a_id',
                         fieldId: 'custrecord_abj_status_approve',
-                        value: statusLine, // Approved
+                        value: statusLine, 
                         line: i
                     });
                     recPo.setSublistValue({

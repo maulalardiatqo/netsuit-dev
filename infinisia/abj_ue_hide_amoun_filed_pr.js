@@ -83,6 +83,22 @@ define(["N/runtime", "N/log", "N/ui/serverWidget"], (runtime, log, serverWidget)
                         displayType: serverWidget.FieldDisplayType.HIDDEN
                     });
                 }
+                const purchaseperKG = formSublist.getField({
+                    id : 'custcol_abj_purchase_price_per_kg'
+                })
+                if (purchaseperKG && typeof purchaseperKG !== 'undefined' && purchaseperKG !== null) {
+                    purchaseperKG.updateDisplayType({
+                        displayType: serverWidget.FieldDisplayType.HIDDEN
+                    });
+                }
+                const lastPurchase = formSublist.getField({
+                    id : 'lastpurchaseprice'
+                })
+                if (lastPurchase && typeof lastPurchase !== 'undefined' && lastPurchase !== null) {
+                    lastPurchase.updateDisplayType({
+                        displayType: serverWidget.FieldDisplayType.HIDDEN
+                    });
+                }
             }
         } catch(error) {
             log.error({

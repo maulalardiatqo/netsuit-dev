@@ -615,6 +615,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
             body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
             body += "<tbody>";
+            body += "<tr>"
+            body += "<td></td>"
+            body += "<td style='align:right;'>No.Form : 001/ISS-PC/FF</td>";
+            body += "</tr>";
+
             body += "<tr>";
             if (urlLogo) {
                 body += "<td class='tg-headerlogo' style='width:50%;vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
