@@ -5,20 +5,26 @@
 
 define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", "N/redirect", "N/format"], function (record, search, serverWidget, runtime, currency, redirect, format) {
     function formatDateDDMMYYYY(dateString) {
-    if (!dateString) return '';
+        if (!dateString) return '';
 
-    var date = new Date(dateString);
+        var date = new Date(dateString);
 
-    var day = String(date.getDate()).padStart(2, '0');
-    var month = String(date.getMonth() + 1).padStart(2, '0');
-    var year = date.getFullYear();
+        var day = String(date.getDate()).padStart(2, '0');
+        var month = String(date.getMonth() + 1).padStart(2, '0');
+        var year = date.getFullYear();
 
-    return day + '/' + month + '/' + year;
-}
+        return day + '/' + month + '/' + year;
+    }
     function transPO(data, transData){
             var createPO = transData
             log.debug('data', data)
 
+            createPO.setValue({
+                fieldId : 'customform',
+                value : '130'
+            });
+            var cekcfrom = createPO.getValue('customform');
+            log.debug('cekcform', cekcfrom)
             createPO.setValue({
                 fieldId : 'trandate',
                 value : formatDateDDMMYYYY(data[0].date)
@@ -26,6 +32,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             
             createPO.setValue({
                 fieldId : 'custbody_id_to',
+                value : data[0].idTor
+            });
+             createPO.setValue({
+                fieldId : 'custbody_stc_link_to_tor',
                 value : data[0].idTor
             });
             createPO.setValue({
@@ -61,11 +71,22 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 });
                 createPO.setSublistValue({
                     sublistId : 'item',
+                    fieldId   : 'quantity',
+                    line      : indexL,
+                    value     : '1'
+                });
+                createPO.setSublistValue({
+                    sublistId : 'item',
                     fieldId   : 'amount',
                     line      : indexL,
                     value     : data[i].amount
                 });
-
+                createPO.setSublistValue({
+                    sublistId : 'item',
+                    fieldId   : 'taxcode',
+                    line      : indexL,
+                    value     : '5'
+                });
                 createPO.setSublistValue({
                     sublistId : 'item',
                     fieldId   : 'department',
@@ -83,6 +104,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     fieldId   : 'currency',
                     line      : indexL,
                     value     : '1'
+                });
+                createPO.setSublistValue({
+                    sublistId : 'item',
+                    fieldId   : 'custrecord_tare_project_task',
+                    line      : indexL,
+                    value     : data[i].projectTask
                 });
                 createPO.setSublistValue({
                     sublistId : 'item',
@@ -144,6 +171,15 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 value : data[0].idTor
             });
             createExp.setValue({
+                fieldId : 'custbody_stc_link_to_tor',
+                value : data[0].idTor
+            });
+            createExp.setValue({
+                fieldId : 'custbody_stc_link_to_tor',
+                value : data[0].idTor
+            });
+            
+            createExp.setValue({
                 fieldId : 'custbody_stc_expense_report_type',
                 value : '2'
             });
@@ -152,6 +188,11 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 fieldId : 'entity',
                 value : data[0].emp
             });
+            createExp.setValue({
+                fieldId : 'expensereportcurrency',
+                value : '1'
+            });
+            
             createExp.setValue({
                 fieldId : 'advanceaccount',
                 value : '119'
@@ -236,6 +277,19 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     line      : indexL,
                     value     : data[i].sof
                 });
+                createExp.setSublistValue({
+                    sublistId : 'expense',
+                    fieldId   : 'custrecord_tare_project_task',
+                    line      : indexL,
+                    value     : data[i].projectTask
+                });
+                createExp.setSublistValue({
+                    sublistId : 'expense',
+                    fieldId   : 'customer',
+                    line      : indexL,
+                    value     : data[i].project
+                });
+                
                 indexL ++;
 
             }
@@ -291,13 +345,25 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     line : indexL,
                     value     : data[i].item
                 });
+                 createPr.setSublistValue({
+                    sublistId : 'item',
+                    fieldId   : 'quantity',
+                    line      : indexL,
+                    value     : '1'
+                });
+                
                 createPr.setSublistValue({
                     sublistId : 'item',
                     fieldId   : 'amount',
                     line : indexL,
                     value     : data[i].amount
                 });
-
+                createPr.setSublistValue({
+                    sublistId : 'item',
+                    fieldId   : 'taxcode',
+                    line      : indexL,
+                    value     : '5'
+                });
                 createPr.setSublistValue({
                     sublistId : 'item',
                     fieldId   : 'department',
@@ -339,6 +405,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     fieldId   : 'custcol_stc_approver_linetrx',
                     line : indexL,
                     value     : data[i].approver
+                });
+                createPr.setSublistValue({
+                    sublistId : 'item',
+                    fieldId   : 'projecttask',
+                    line      : indexL,
+                    value     : data[i].projectTask
                 });
                 createPr.setSublistValue({
                     sublistId : 'item',

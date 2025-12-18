@@ -129,7 +129,10 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
         var createURL = url.resolveRecord({
             recordType: "purchaseorder",
             isEditMode: true,
-            params: { dataParamsString },
+            params: {
+                    cf: 130,  
+                    dataParamsString : dataParamsString
+                },
         });
         window.open(createURL, "_blank");
     }
