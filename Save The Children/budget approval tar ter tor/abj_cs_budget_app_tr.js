@@ -142,17 +142,29 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url
 
             if (sofId) {
                 var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
-                if(typeRec == 'customrecord_tor'){
+                if(typeRec == 'customrecord_tor' || typeRec == 'customrecord_ter'){
+                    var fieldNameEmp
+                    var fieldNameStatus
+                    if(typeRec == 'customrecord_tor'){
+                        fieldNameEmp ='custrecord_tori_approver_fa'
+                        fieldNameStatus = 'custrecord_tori_approval_status_fa'
+                    }else{
+                        fieldNameEmp = 'custrecord_ter_approver_fa'
+                        fieldNameStatus = 'custrecord_ter_apprvl_sts_fa'
+                    }
+                    console.log('masuk app FA')
+                    console.log('data params fa', {sofId : sofId, grossamt : grossamt})
                     var emp = getFinanceMatric(sofId, grossamt)
+                    console.log('emp', emp)
                     if(emp){
                         currentRec.setCurrentSublistValue({
                             sublistId : sublistItem,
-                            fieldId : "custrecord_tori_approver_fa",
+                            fieldId : fieldNameEmp,
                             value : emp
                         })
                         currentRec.setCurrentSublistValue({
                             sublistId: sublistItem,
-                            fieldId: "custrecord_tori_approval_status_fa",
+                            fieldId: fieldNameStatus,
                             value: "1"
                         })
                     }
@@ -216,16 +228,16 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url
                 var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
                 console.log('cekEmp (expense)', cekEmp)
                 
-                if(cekType == 'vendbill' || cekType == 'exprept' || cekType == 'purchreq'){
+                if( cekType == 'customrecord_ter'){
                     var emp = getFinanceMatric(sofId, grossamt)
                     if(emp){
                         currentRec.setCurrentSublistValue({
-                            sublistId : "expense",
+                            sublistId : "recmachcustrecord_tar_id_ter",
                             fieldId : "custcol_stc_approver_fa",
                             value : emp
                         })
                         currentRec.setCurrentSublistValue({
-                            sublistId: "expense",
+                            sublistId: "recmachcustrecord_tar_id_ter",
                             fieldId: "custcol_stc_apprvl_sts_fa",
                             value: "1"
                         })

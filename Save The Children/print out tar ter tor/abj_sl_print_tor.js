@@ -5,7 +5,16 @@
 // This sample shows how to render search results into a PDF file.
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
     function(render, search, record, log, file, http, config, format, email, runtime) {
-
+        function getNameEmp(id){
+            var empName = ''
+            var searchSvp = search.lookupFields({
+                type: "employee",
+                id: id,
+                columns: ["altname"],
+            });
+            empName = searchSvp.altname;
+            return empName
+        }
         function escapeXmlSymbols(input) {
             if (!input || typeof input !== "string") {
                 return input;
@@ -78,15 +87,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var createdById = recLoad.getValue('custrecord_tor_create_by');
                     var createdByName = ''
                     if(createdById){
-                        var searchSvp = search.lookupFields({
-                            type: "employee",
-                            id: createdById,
-                            columns: ["altname"],
-                        });
-                        createdByName = searchSvp.altname;
+                        createdByName = getNameEmp(createdById)
                     }
                     var createdDate = '';
-
+                    var nextApprovId = recLoad.getValue('custrecord_tor_next_approver');
+                    var nextAppName = '';
+                    if(nextApprovId){
+                        nextAppName = getNameEmp(nextApprovId)
+                    }
+                    var lastAppManager = recLoad.getText('custrecord_tor_last_approve_line_mng')
+                    var lastAppFa = recLoad.getText('custrecord_tor_last_approve_finance')
+                    var lastAppBudget = recLoad.getText('custrecord_tor_last_approve_b_holder')
                     var systemnoteSearchObj = search.create({
                         type: "systemnote",
                         filters: [
@@ -99,14 +110,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         columns: [
                             search.createColumn({
                                 name: "date",
-                                sort: search.Sort.DESC // ambil yang paling baru
+                                sort: search.Sort.DESC 
                             })
                         ]
                     });
 
                     systemnoteSearchObj.run().each(function (result) {
                         createdDate = result.getValue("date");
-                        return false; // ⛔ STOP → hanya 1 row
+                        return false; 
                     });
 
                     log.debug("Created Date", createdDate);
@@ -136,6 +147,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         }
                     }
                     var dataBudget = [];
+                    var allAppBudget = []
+                    var allAppFa = []
                     var lineBudget = recLoad.getLineCount({
                         sublistId : 'recmachcustrecord_tori_id'
                     });
@@ -175,6 +188,39 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 fieldId : 'custrecord_tori_amount',
                                 line : k
                             })
+                            var appBudget = recLoad.getSublistValue({
+                                sublistId : 'recmachcustrecord_tori_id',
+                                fieldId : 'custrecord_tori_approver',
+                                line : k
+                            })
+                            if (appBudget) {
+                                var appBudgetName = getNameEmp(appBudget);
+
+                                var isExist = allAppBudget.some(function(name){
+                                    return name.toLowerCase() === appBudgetName.toLowerCase();
+                                });
+
+                                if (!isExist) {
+                                    allAppBudget.push(appBudgetName);
+                                }
+                            }
+
+                            var appFa = recLoad.getSublistValue({
+                                sublistId : 'recmachcustrecord_tori_id',
+                                fieldId : 'custrecord_tori_approver_fa',
+                                line : k
+                            })
+                            if (appFa) {
+                                var appFaName = getNameEmp(appFa);
+
+                                var isExistFa = allAppFa.some(function(name){
+                                    return name.toLowerCase() === appFaName.toLowerCase();
+                                });
+
+                                if (!isExistFa) {
+                                    allAppFa.push(appFaName);
+                                }
+                            }
                             dataBudget.push({
                                 costCenter : costCenter,
                                 projectCode : projectCode,
@@ -420,12 +466,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                         footer += "<tr style='height:2%'>"
                         footer += "<td style='border:1px solid black; border-top:none;'>"+createdByName+"</td>"
-                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+nextAppName+"</td>"
                         footer += "</tr>"
 
                         footer += "<tr style='height:2%'>"
                         footer += "<td style='border:1px solid black; border-top:none;'>"+createdDate+"</td>"
-                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+lastAppManager+"</td>"
                         footer += "</tr>"
 
                         footer += "<tr style='height:1%'>"
@@ -439,13 +485,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         footer += "</tr>"
 
                          footer += "<tr style='height:2%'>"
-                        footer += "<td style='border:1px solid black; border-top:none;'></td>"
-                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        footer += "<td style='border:1px solid black; border-top:none;'>"+allAppFa+"</td>"
+                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+allAppBudget+"</td>"
                         footer += "</tr>"
 
                         footer += "<tr style='height:2%'>"
-                        footer += "<td style='border:1px solid black; border-top:none;'></td>"
-                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        footer += "<td style='border:1px solid black; border-top:none;'>"+lastAppFa+"</td>"
+                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+lastAppBudget+"</td>"
                         footer += "</tr>"
 
                         footer += "</tbody>"
