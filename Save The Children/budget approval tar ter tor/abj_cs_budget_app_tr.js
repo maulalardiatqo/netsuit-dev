@@ -233,12 +233,12 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url
                     if(emp){
                         currentRec.setCurrentSublistValue({
                             sublistId : "recmachcustrecord_tar_id_ter",
-                            fieldId : "custcol_stc_approver_fa",
+                            fieldId : "custrecord_tar_approver_fa",
                             value : emp
                         })
                         currentRec.setCurrentSublistValue({
                             sublistId: "recmachcustrecord_tar_id_ter",
-                            fieldId: "custcol_stc_apprvl_sts_fa",
+                            fieldId: "custrecord_tar_apprvl_sts_fa",
                             value: "1"
                         })
                     }
