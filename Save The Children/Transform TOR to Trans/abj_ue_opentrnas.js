@@ -27,7 +27,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             log.debug('cekcform', cekcfrom)
             createPO.setValue({
                 fieldId : 'trandate',
-                value : formatDateDDMMYYYY(data[0].date)
+                value : data[0].date
             });
             
             createPO.setValue({
@@ -113,6 +113,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 });
                 createPO.setSublistValue({
                     sublistId : 'item',
+                    fieldId   : 'projecttask',
+                    line      : indexL,
+                    value     : data[i].projectTask
+                });
+                createPO.setSublistValue({
+                    sublistId : 'item',
                     fieldId   : 'cseg_stc_drc_segmen',
                     line      : indexL,
                     value     : data[i].drc
@@ -165,6 +171,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             }
     }
     function transExp(data, transData){
+            log.debug('masuk trans exp');
+            log.debug(' data[0].idTor',  data[0].idTor)
             var createExp = transData
              createExp.setValue({
                 fieldId : 'custbody_id_to',
@@ -193,17 +201,17 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 value : '1'
             });
             
-            createExp.setValue({
-                fieldId : 'advanceaccount',
-                value : '119'
-            });
-            createExp.setValue({
-                fieldId : 'account',
-                value : '118'
-            });
+            // createExp.setValue({
+            //     fieldId : 'advanceaccount',
+            //     value : '119'
+            // });
+            // createExp.setValue({
+            //     fieldId : 'account',
+            //     value : '118'
+            // });
             createExp.setValue({
                 fieldId : 'trandate',
-                value : formatDateDDMMYYYY(data[0].date)
+                value : data[0].date
             });
             createExp.setValue({
                 fieldId : 'department',
@@ -227,6 +235,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 createExp.insertLine({ 
                     sublistId: 'expense',
                     line :  indexL
+                });
+                createExp.setSublistValue({
+                    sublistId : 'expense',
+                    fieldId   : 'expensedate',
+                    line :  indexL,
+                    value     : data[0].date
                 });
                 createExp.setSublistValue({
                     sublistId : 'expense',
@@ -261,6 +275,18 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 });
                 createExp.setSublistValue({
                     sublistId : 'expense',
+                    fieldId   : 'customer',
+                    line      : indexL,
+                    value     : data[i].project
+                });
+                createExp.setSublistValue({
+                    sublistId : 'expense',
+                    fieldId   : 'projecttask',
+                    line      : indexL,
+                    value     : data[i].projectTask
+                });
+                createExp.setSublistValue({
+                    sublistId : 'expense',
                     fieldId   : 'cseg_stc_drc_segmen',
                     line      : indexL,
                     value     : data[i].drc
@@ -283,12 +309,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     line      : indexL,
                     value     : data[i].projectTask
                 });
-                createExp.setSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'customer',
-                    line      : indexL,
-                    value     : data[i].project
-                });
+                 
+                
                 
                 indexL ++;
 
@@ -315,7 +337,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             });
             createPr.setValue({
                 fieldId : 'trandate',
-                value : formatDateDDMMYYYY(data[0].date)
+                value : data[0].date
             });
             createPr.setValue({
                 fieldId : 'department',
@@ -456,6 +478,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                         log.debug('dataParsing', dataParsing);
                         var obj = dataParsing[0];
                         var transactionType = obj.transactionType;
+                        log.debug('transactionType', transactionType)
                         if(transactionType == '1'){
                             transPO(dataParsing, transData)
                         }else if(transactionType == '2'){

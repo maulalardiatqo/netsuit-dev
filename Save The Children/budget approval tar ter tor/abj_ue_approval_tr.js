@@ -477,7 +477,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             log.debug('count', count)
                             for (let i = 0; i < count; i++) {
                                 const approver = toInt(newRecLoad.getSublistValue({
-                                    sublistId, fieldId: 'custrecord_tar_approver_fa', line: i
+                                    sublistId, 
+                                    fieldId: 'custrecord_ter_approver_fa', 
+                                    line: i
                                 }));
                                 log.debug('approver', approver)
                                 log.debug('employeeId', employeeId)
@@ -485,7 +487,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                     log.debug('masuk kondisi app = emp')
                                     newRecLoad.setSublistValue({
                                         sublistId,
-                                        fieldId: 'custrecord_tar_apprvl_sts_fa',
+                                        fieldId: 'custrecord_ter_apprvl_sts_fa',
                                         line: i,
                                         value: statusValue
                                     });
@@ -501,6 +503,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             }
                             const count = newRecLoad.getLineCount({ sublistId: sublistName });
                             if(count > 0){
+                                
                                 for (let i = 0; i < count; i++) {
                                     const approver = toInt(newRecLoad.getSublistValue({
                                         sublistId : sublistName, 
@@ -536,10 +539,14 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                     if(sublistName == 'recmachcustrecord_tar_id_ter'){
                                         approverLine = 'custrecord_tare_approver'
                                         apprStatusLine = 'custrecord_tare_approval_status'
+                                    }else{
+                                        approverLine = 'custrecord_terd_approver'
+                                        apprStatusLine = 'custrecord_terd_approval_status'
                                     }
                                     const count = newRecLoad.getLineCount({ sublistId: sublistName });
                                     if(count > 0){
                                         for (let i = 0; i < count; i++) {
+                                            log.debug('data cek', {sublistName : sublistName, approverLine : approverLine, apprStatusLine : apprStatusLine})
                                             const approver = toInt(newRecLoad.getSublistValue({
                                                 sublistId : sublistName,
                                                 fieldId: approverLine, 
@@ -626,14 +633,18 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             resetLines(sublistExp, 1);
                         }
                         if(recType == 'customrecord_ter'){
-                            const valueBeforeFA = recOld.getValue('custrecord_ter_approved_by_finance');
-                            const cekTriggerFA = newRecLoad.getValue('custrecord_ter_approved_by_finance');
+                            const valueBeforeFA = recOld.getValue('custrecord_ter_apprvl_by_finance');
+                            const cekTriggerFA = newRecLoad.getValue('custrecord_ter_apprvl_by_finance');
 
                             const oldValFA = toInt(valueBeforeFA);
                             const newValFA = toInt(cekTriggerFA)
                             const cekIsHO = newRecLoad.getValue('custrecord_ter_approved_by_budget_h');
+                            log.debug('data approve FA TER', {
+                                newValFA : newValFA, oldValFA : oldValFA, employeeId : employeeId, cekIsHO : cekIsHO
+                            })
 
                             if(newValFA !== oldValFA && employeeId === newValFA && cekIsHO === true){
+                                log.debug('masuk kondisi approve ter FA')
                                 updateLinesForUserFA(sublistName, 2)
                                 updateLinesForUserFA(sublistExp, 2)
                                 const isAllApprovedFA = () => {
@@ -644,12 +655,13 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                         const count = newRecLoad.getLineCount({ sublistId });
                                         for (let i = 0; i < count; i++) {
                                             const approver = toInt(newRecLoad.getSublistValue({
-                                                sublistId, fieldId: 'custrecord_tori_approver_fa', line: i
+                                                sublistId, fieldId: 'custrecord_ter_approver_fa', 
+                                                line: i
                                             }));
                                             if (approver > 0) {
                                                 approverLines++;
                                                 const statusLineNow = toInt(newRecLoad.getSublistValue({
-                                                    sublistId, fieldId: 'custrecord_tori_approval_status_fa', line: i
+                                                    sublistId, fieldId: 'custrecord_ter_apprvl_sts_fa', line: i
                                                 }));
                                                 if (statusLineNow !== 2) notApproved++;
                                             }

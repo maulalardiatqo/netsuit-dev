@@ -5,7 +5,16 @@
 // This sample shows how to render search results into a PDF file.
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
     function(render, search, record, log, file, http, config, format, email, runtime) {
-
+         function getNameEmp(id){
+            var empName = ''
+            var searchSvp = search.lookupFields({
+                type: "employee",
+                id: id,
+                columns: ["altname"],
+            });
+            empName = searchSvp.altname;
+            return empName
+        }
         function escapeXmlSymbols(input) {
             if (!input || typeof input !== "string") {
                 return input;
@@ -25,6 +34,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
         }
         function onRequest(context) {
             try{
+				var logoUrl = '';
+				try {
+					var logoFile = file.load({
+						id: 4714
+					});
+					logoUrl = logoFile.url;
+				} catch(e) {
+					log.error('Logo Load Error', e);
+				}
+					
                 var recid = context.request.parameters.recid;
                 log.debug('recid', recid)
                 if(recid){
@@ -48,8 +67,62 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var numberOfDays = recLoad.getValue('custrecord_tar_number_of_days');
                     var advanceRequest = recLoad.getValue('custrecord_tar_advance_request_amount');
                     var createdby = recLoad.getText('custrecord_tar_created_by');
-                    var approvBudgetHolderBy = recLoad.getText('custrecord_tar_approval_by_budget_holder');
+                    var tarStatus = recLoad.getValue('custrecord_tar_status');
+                    
+                    var approveSupervisiorBy = recLoad.getText('custrecord_tar_next_approver');
+                    var lastApproveManager = recLoad.getText('custrecord_tar_last_apprv_mngr');
+                    
+                    var formattedDate = format.format({
+						value: lastApproveManager,
+						type: format.Type.DATETIMETZ,
+						timezone: format.Timezone.ASIA_JAKARTA
+					});
+                    var allDataPassenger = [];
+                    var countPassenger = recLoad.getLineCount({
+                        sublistId : 'recmachcustrecord_link_id_tar'
+                    });
+                    log.debug('countPassenger', countPassenger)
+                    if(countPassenger > 0){
+                        for(var j = 0; j< countPassenger; j++){
+                            var contactDetail = recLoad.getSublistValue({
+                                sublistId : 'recmachcustrecord_link_id_tar',
+                                fieldId : 'custrecord_tar_contact_details',
+                                line : j
+                            })
+                             var note = recLoad.getSublistValue({
+                                sublistId : 'recmachcustrecord_link_id_tar',
+                                fieldId : 'custrecord_tar_notes',
+                                line : j
+                            })
+                            var psNameId = recLoad.getSublistValue({
+                                sublistId : 'recmachcustrecord_link_id_tar',
+                                fieldId : 'custrecord_tar_passengers_name',
+                                line : j
+                            })
+                            var psName = getNameEmp(psNameId)
+                            var psStaffId = recLoad.getSublistValue({
+                                sublistId : 'recmachcustrecord_link_id_tar',
+                                fieldId : 'custrecord_tar_staff_id',
+                                line : j
+                            })
+                            var psType = recLoad.getSublistText({
+                                sublistId : 'recmachcustrecord_link_id_tar',
+                                fieldId : 'custrecord_tar_type',
+                                line : j
+                            })
+                            allDataPassenger.push({
+                                contactDetail : contactDetail,
+                                note : note,
+                                psName : psName,
+                                psType : psType,
+                                psStaffId : psStaffId
+                            })
+                        }
+                    }
+                    var allApprovalBy = [];
                     var approvBudgetHolderat = recLoad.getValue('custrecord_tar_approve_budget_holder')
+
+                    
                     var allDataLine = [];
                     function getInitialNumber(costCenter) {
                         var match = costCenter.match(/^\d+/);
@@ -105,6 +178,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 fieldId : 'custrecord_tare_amount',
                                 line : i
                             });
+                            var approvalBy = recLoad.getSublistText({
+								sublistId : 'recmachcustrecord_tar_e_id',
+								fieldId : 'custrecord_tare_approver',
+								line : i
+							});
+							
+							if(approvalBy && allApprovalBy.indexOf(approvalBy) === -1){
+								allApprovalBy.push(approvalBy);
+							}
+							
                             allDataLine.push({
                                 precentage : precentage,
                                 desc : desc,
@@ -116,13 +199,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 estimateCost : estimateCost
                             })
                         }
+                        var approvBudgetHolderBy = allApprovalBy.join(', ');
+
 
                         // page print
                         var response = context.response;
                         var xml = "";
                         var header = "";
                         var body = "";
-                        var headerHeight = '3%';
+                        var headerHeight = '8%';
                         var style = "";
                         var footer = "";
                         var pdfFile = null;
@@ -164,13 +249,31 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         style += "</style>";
                         
                         // header
-                        header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
-                        header += "<tbody>";
-                        header += "<tr>"
-                        header += "<td style='width:100%; align:center; font-weight:bold; font-size:16px;'>Travel Authorization Request</td>"
-                        header += "</tr>"
-                        header += "</tbody>";
-                        header += "</table>";
+						header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
+						header += "<tbody>";
+						
+						
+						// Baris 1: Logo di tengah
+						header += "<tr>";
+						header += "<td style='width:100%; align:right; vertical-align:middle;'>";
+						if(logoUrl) {
+							header += "<img src='" + logoUrl.replace(/&/g, '&amp;') + "' style='width:27%; height:27%;' />";
+						}
+						header += "</td>";
+						header += "</tr>";
+						
+						// Spacing
+						
+						
+						// Baris 2: Judul di tengah
+						header += "<tr>";
+						header += "<td style='width:100%; align:center; font-weight:bold; font-size:16px;'>Travel Authorization Request</td>";
+						header += "</tr>";
+						
+						
+						header += "</tbody>";
+						header += "</table>";
+						
 
                         body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
                         body += "<tbody>";
@@ -273,7 +376,53 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                         body += "</tbody>";
                         body += "</table>";
+                        log.debug('allDataPassenger', allDataPassenger)
+                        if(allDataPassenger.length > 0){
+                            body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
+                            body += "<tbody>";
+                            body += "<tr>"
+                            body += "<td style='width:5%;'></td>"
+                            body += "<td style='width:20%;'></td>"
+                            body += "<td style='width:15%;'></td>"
+                            body += "<td style='width:15%;'></td>"
+                            body += "<td style='width:20%;'></td>"
+                            body += "<td style='width:25%;'></td>"
+                            body += "</tr>"
 
+                            body += "<tr>"
+                            body += "<td colspan='6'>Passengers</td>"
+                            body += "</tr>"
+
+                            body += "<tr>"
+                            body += "<td style='border: 1px solid black; align:center;'>No</td>"
+                            body += "<td style='border: 1px solid black; border-left:none; align:center;'>Passenger Name</td>"
+                            body += "<td style='border: 1px solid black; border-left:none; align:center;'>Type</td>"
+                            body += "<td style='border: 1px solid black; border-left:none; align:center;'>Staff ID / ID Number</td>"
+                            body += "<td style='border: 1px solid black; border-left:none; align:center;'>Contact Details</td>"
+                            body += "<td style='border: 1px solid black; border-left:none; align:center;'>Notes</td>"
+                            body += "</tr>"
+                            var noPs = 1
+                            allDataPassenger.forEach((data)=>{
+                                var contactDetail = data.contactDetail
+                                var note  = data.note
+                                var psName = data.psName
+                                var psType = data.psType
+                                var psStaffId = data.psStaffId
+
+                                body += "<tr>"
+                                body += "<td style='border: 1px solid black; border-top:none; align:center;'>"+noPs+"</td>"
+                                body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+escapeXmlSymbols(psName)+"</td>"
+                                body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+escapeXmlSymbols(psType)+"</td>"
+                                body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+escapeXmlSymbols(psStaffId)+"</td>"
+                                body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+escapeXmlSymbols(contactDetail)+"</td>"
+                                body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+escapeXmlSymbols(note)+"</td>"
+                                body += "</tr>"
+                                noPs ++
+                            })
+
+                            body += "</tbody>";
+                            body += "</table>";
+                        }
                         body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
                         body += "<tbody>";
                         body += "<tr>"
@@ -336,25 +485,36 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "</table>";
 
                         body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
-                        body += "<tbody>";
-                        body += "<tr>"
-                        body += "<td><i>Created By :</i><b>"+createdby+"</b></td>";
-                        body += "</tr>"
-                        body += "<tr>"
-                        body += "<td><i>Approved Supervisor By :</i><b></b></td>";
-                        body += "</tr>"
-                         body += "<tr>"
-                        body += "<td><i>Approved Budget Holder By :</i><b>"+approvBudgetHolderBy+" at "+approvBudgetHolderat+"</b></td>";
-                        body += "</tr>"
+						body += "<tbody>";
+						body += "<tr>"
+						body += "<td><i>Created By :</i><b>"+createdby+"</b></td>";
+						body += "</tr>"
 
-                        body += "<tr>"
-                        body += "<td>Disclaimer:</td>"
-                        body += "</tr>"
-                        body += "<tr>"
-                        body += "<td>All processes are done by the system.</td>"
-                        body += "</tr>"
-                        body += "</tbody>";
-                        body += "</table>";
+						// status = 2 (approved)
+						if(tarStatus == 2 || tarStatus == '2'){
+							body += "<tr>"
+							body += "<td><i>Approved Supervisor By :</i><b>"+(approveSupervisiorBy || '')+" at "+(formattedDate || '')+"</b></td>";
+							body += "</tr>"
+							body += "<tr>"
+							body += "<td><i>Approved Budget Holder By :</i><b>"+approvBudgetHolderBy+" at "+formattedDate+"</b></td>";
+							body += "</tr>"
+						} else {
+							body += "<tr>"
+							body += "<td><i>Approved Supervisor By :</i><b></b></td>";
+							body += "</tr>"
+							body += "<tr>"
+							body += "<td><i>Approved Budget Holder By :</i><b></b></td>";
+							body += "</tr>"
+						}
+
+						body += "<tr>"
+						body += "<td>Disclaimer:</td>"
+						body += "</tr>"
+						body += "<tr>"
+						body += "<td>All processes are done by the system.</td>"
+						body += "</tr>"
+						body += "</tbody>";
+						body += "</table>";
 
                         // footer
                         footer += "<table class='tg' style='table-layout: fixed; width: 100%; font-size:8px'>";

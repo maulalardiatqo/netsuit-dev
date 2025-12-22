@@ -9,6 +9,167 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         if (!percentStr) return 0;
         return parseFloat(percentStr.replace('%', ''));
     }
+    function processLine(index, dataList) {
+        if (index >= dataList.length) {
+            console.log('ALL LINES SUCCESSFULLY COMMITTED');
+            return;
+        }
+
+        var curRec = currentRecord.get();
+        var data = dataList[index];
+
+        console.log('Processing line', index + 1);
+
+        // ==========================
+        // SELECT NEW LINE
+        // ==========================
+        curRec.selectNewLine({
+            sublistId: 'recmachcustrecord_tar_id_ter'
+        });
+
+        // ==========================
+        // SET NORMAL FIELDS
+        // ==========================
+        if (data.date) {
+            var d = data.date.split('/');
+            var dateSet = new Date(d[2], d[1] - 1, d[0]);
+            curRec.setCurrentSublistValue({
+                sublistId: 'recmachcustrecord_tar_id_ter',
+                fieldId: 'custrecord_tar_expense_date',
+                value: dateSet
+            });
+        }
+
+        if (data.receiptNo) {
+            curRec.setCurrentSublistValue({
+                sublistId: 'recmachcustrecord_tar_id_ter',
+                fieldId: 'custrecord_tar_expense_receipt_no',
+                value: data.receiptNo
+            });
+        }
+
+        if (data.percentage) {
+            curRec.setCurrentSublistValue({
+                sublistId: 'recmachcustrecord_tar_id_ter',
+                fieldId: 'custrecord_tare_percentage',
+                value: percentToNumber(data.percentage)
+            });
+        }
+
+        if (data.categoryId) {
+            curRec.setCurrentSublistValue({
+                sublistId: 'recmachcustrecord_tar_id_ter',
+                fieldId: 'custrecord_tare_category',
+                value: data.categoryId
+            });
+        }
+
+        if (data.accountId) {
+            curRec.setCurrentSublistValue({
+                sublistId: 'recmachcustrecord_tar_id_ter',
+                fieldId: 'custrecord_tare_account',
+                value: data.accountId
+            });
+        }
+
+        if (data.memo) {
+            curRec.setCurrentSublistValue({
+                sublistId: 'recmachcustrecord_tar_id_ter',
+                fieldId: 'custrecord_tare_memo',
+                value: data.memo
+            });
+        }
+
+        if (data.amount) {
+            curRec.setCurrentSublistValue({
+                sublistId: 'recmachcustrecord_tar_id_ter',
+                fieldId: 'custrecord_tare_amount',
+                value: data.amount
+            });
+        }
+
+        if (data.costCenterId) {
+            curRec.setCurrentSublistValue({
+                sublistId: 'recmachcustrecord_tar_id_ter',
+                fieldId: 'custrecord_tare_cost_center',
+                value: data.costCenterId
+            });
+        }
+
+        if (data.projectCode) {
+            curRec.setCurrentSublistValue({
+                sublistId: 'recmachcustrecord_tar_id_ter',
+                fieldId: 'custrecord_tare_project_code',
+                value: data.projectCode
+            });
+        }
+
+        // ==========================
+        // SET FILTER DEPENDENCY FIRST
+        // ==========================
+        if (data.donorId) {
+            curRec.setCurrentSublistValue({
+                sublistId: 'recmachcustrecord_tar_id_ter',
+                fieldId: 'custrecord_tare_donor',
+                value: data.donorId
+            });
+        }
+
+        if (data.sourceOfFundingId) {
+            curRec.setCurrentSublistValue({
+                sublistId: 'recmachcustrecord_tar_id_ter',
+                fieldId: 'custrecord_tare_source_of_funding',
+                value: data.sourceOfFundingId
+            });
+        }
+        setTimeout(function () {
+
+            if (data.projectTaskId) {
+                curRec.setCurrentSublistValue({
+                    sublistId: 'recmachcustrecord_tar_id_ter',
+                    fieldId: 'custrecord_tare_project_task',
+                    value: Number(data.projectTaskId),
+                    ignoreFieldChange: true
+                });
+            }
+            if(data.drc){ 
+                curRec.setCurrentSublistValue({ 
+                    sublistId : 'recmachcustrecord_tar_id_ter', 
+                    fieldId : 'custrecord_tar_drc', 
+                    value : data.drc 
+                }) 
+            } 
+            if(data.dea){ 
+                curRec.setCurrentSublistValue({ 
+                    sublistId : 'recmachcustrecord_tar_id_ter', 
+                    fieldId : 'custrecord_tar_dea',
+                     value : data.dea 
+                }) 
+            }
+            curRec.setCurrentSublistValue({
+                sublistId: 'recmachcustrecord_tar_id_ter',
+                fieldId: 'custrecord_set_by_script',
+                value: true
+            });
+
+            curRec.commitLine({
+                sublistId: 'recmachcustrecord_tar_id_ter'
+            });
+
+            console.log('Line committed:', index + 1);
+
+            // ==========================
+            // NEXT LINE (SERIAL)
+            // ==========================
+            processLine(index + 1, dataList);
+
+        }, 250); // jangan < 150ms
+    }
+    function addLines(allData) {
+        processLine(0, allData);
+    }
+
+
     function fieldChanged(context){
         try{
             var curRec = context.currentRecord;
@@ -161,195 +322,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             }
                         }
                         console.log('allData', allData)
-                        allData.forEach((data)=>{
-                            var date = data.date;
-                            console.log('date', date)
-                            var receiptNo = data.receiptNo;
-                            var percentage = data.percentage;
-
-                            var categoryId = data.categoryId;
-                            var categoryText = data.categoryText;
-
-                            var accountId = data.accountId;
-                            var accountText = data.accountText;
-
-                            var memo = data.memo;
-                            var amount = data.amount;
-
-                            var costCenterId = data.costCenterId;
-                            var costCenterText = data.costCenterText;
-
-                            var projectCode = data.projectCode;
-
-                            var donorId = data.donorId;
-                            var donorText = data.donorText;
-
-                            var projectTaskId = data.projectTaskId;
-                            var projectTaskText = data.projectTaskText;
-
-                            var sourceOfFundingId = data.sourceOfFundingId;
-                            var sourceOfFundingText = data.sourceOfFundingText;
-
-                            var drc = data.drc;
-                            var dea = data.dea;
-
-                            var approverId = data.approverId;
-                            var approverText = data.approverText;
-
-                            var approvalStatus = data.approvalStatus;
-
-                            var approverFaId = data.approverFaId;
-                            var approverFaText = data.approverFaText;
-
-                            var approvalStatusFa = data.approvalStatusFa;
-                            curRec.selectNewLine({
-                                sublistId: "recmachcustrecord_tar_id_ter",
-                            });
-                            if (date) {
-                                var dateParts = date.split('/'); 
-
-                                var dateSet = new Date(
-                                    parseInt(dateParts[2], 10),   
-                                    parseInt(dateParts[1], 10) - 1,
-                                    parseInt(dateParts[0], 10)    
-                                );
-
-                                log.debug('dateSet', dateSet);
-
-                                curRec.setCurrentSublistValue({
-                                    sublistId: 'recmachcustrecord_tar_id_ter',
-                                    fieldId: 'custrecord_tar_expense_date',
-                                    value: dateSet
-                                });
-                            }
-                            if(receiptNo){
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tar_expense_receipt_no',
-                                    value : receiptNo
-                                })
-                            }
-                            if(percentage){
-                                console.log('percentage', percentage)
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tare_percentage',
-                                    value : percentToNumber(percentage)
-                                })
-                            }
-                            if(categoryId){
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tare_category',
-                                    value : categoryId
-                                })
-                            }
-                            if(accountId){
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tare_account',
-                                    value : accountId
-                                })
-                            }
-                            if(memo){
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tare_memo',
-                                    value : memo
-                                })
-                            }
-                            if(amount){
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tare_amount',
-                                    value : amount
-                                })
-                            }
-                            if(costCenterId){
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tare_cost_center',
-                                    value : costCenterId
-                                })
-                            }
-                            if(projectCode){
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tare_project_code',
-                                    value : projectCode
-                                })
-                            }
-                            if(donorId){
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tare_donor',
-                                    value : donorId
-                                })
-                            }
-                            if(sourceOfFundingId){
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tare_source_of_funding',
-                                    value : sourceOfFundingId
-                                })
-                            }
-                            if(drc){
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tar_drc',
-                                    value : drc
-                                })
-                            }
-                            if(dea){
-                                
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tar_dea',
-                                    value : dea
-                                })
-                            }
-                            if(projectTaskId){
-                                console.log('projectTaskId', projectTaskId)
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tare_project_task',
-                                    value : projectTaskId
-                                })
-                            }
-                            if(approverId){
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tare_approver',
-                                    value : approverId
-                                })
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tare_approval_status',
-                                    value : '1'
-                                })
-                            }
-                            if(approverFaId){
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tar_approver_fa',
-                                    value : approverFaId
-                                })
-                                curRec.setCurrentSublistValue({
-                                    sublistId : 'recmachcustrecord_tar_id_ter',
-                                    fieldId : 'custrecord_tar_apprvl_sts_fa',
-                                    value : '1'
-                                })
-                            }
-                            
-                            curRec.setCurrentSublistValue({
-                                sublistId : 'recmachcustrecord_tar_id_ter',
-                                fieldId : 'custrecord_set_by_script',
-                                value : true
-                            })
-                            curRec.commitLine({ sublistId: 'recmachcustrecord_tar_id_ter' });
-                            console.log('afterCommit')
-                        })
-                        
+                        addLines(allData);
 
                     }
                 }

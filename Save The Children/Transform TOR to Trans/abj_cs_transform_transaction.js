@@ -406,7 +406,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                 id : recId
             });
 
-            var date = recLoad.getValue('custrecord_tor_date');
+            var date = recLoad.getText('custrecord_tor_date');
             var emp  = recLoad.getValue('custrecord_tor_create_by');
 
             var cekLine = recLoad.getLineCount({
