@@ -140,48 +140,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         if (accountHeader && sofResult.length > 0) {
             console.log('masuk search DEA Promise');
 
-            var searchDea = search.load({ id: 'customsearch_dea_promise' });
-            var filters = searchDea.filters || [];
-
-            filters.push(search.createFilter({
-                name: 'cseg_stc_segmentdea_filterby_cseg_stc_sof',
-                operator: search.Operator.ANYOF,
-                values: sofResult.map(s => s.sofId)
-            }));
-
-            filters.push(search.createFilter({
-                name: 'custrecord_stc_dea_account_relation',
-                operator: search.Operator.IS,
-                values: accountHeader
-            }));
-
-            searchDea.filters = filters;
-
-            var deaPaged = searchDea.runPaged({ pageSize: 1000 });
-            deaPaged.pageRanges.forEach(function (pageRange) {
-                var page = deaPaged.fetch({ index: pageRange.index });
-                page.data.forEach(function (res) {
-                    var sofLinked = res.getValue({
-                        name: 'cseg_stc_segmentdea_filterby_cseg_stc_sof'
-                    });
-
-                    var drcSegmen = res.getValue({
-                        name: 'cseg_stc_segmentdea_filterby_cseg_stc_drc_segmen'
-                    });
-
-                    var target = sofResult.find(s => s.sofId == sofLinked);
-                    if (target) {
-                        target.deaPromise.push({
-                            deaId: res.getValue({ name: 'internalid' }),
-                            deaName: res.getValue({ name: 'name' }),
-                            drcSegmen: drcSegmen || null
-                        });
-                    }
-                });
-            });
-
-            console.log('sofResult mapped:', JSON.stringify(sofResult));
-
             var lineCount = records.getLineCount({
                 sublistId: 'line'
             });
@@ -204,12 +162,12 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 totalAmountTemp = Number(totalAmountTemp) + Number(amountTempt)
                 var dea
                 var drc
-                if(item.deaPromise.length > 0){
-                    dea = dea.deaId
-                    drc = dea.drcSegmen
+                if (item.deaPromise?.length) {
+                    var dea = item.deaPromise[0].deaId;
+                    console.log('dea', dea)
+                    var drc = item.deaPromise[0].drcSegmen;
                 }
                 
-                if (item.deaPromise.length === 0) {
                     records.selectNewLine({ sublistId: 'line' });
                     records.setCurrentSublistValue({
                         sublistId: 'line',
@@ -242,6 +200,17 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: 'cseg_stc_sof',
                         value: sofId
                     });
+                    
+                    if(dea){
+                        console.log('dea', dea)
+                        records.setCurrentSublistValue({
+                            sublistId: 'line',
+                            fieldId: 'cseg_stc_segmentdea',
+                            value: dea,
+                            enableSourcing : false,
+                            ignoreFieldChange : true
+                        });
+                    }
                     if(drc){
                         records.setCurrentSublistValue({
                             sublistId: 'line',
@@ -249,30 +218,22 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             value: drc
                         });
                     }
-                    if(dea){
-                        records.setCurrentSublistValue({
-                            sublistId: 'line',
-                            fieldId: 'cseg_stc_segmentdea',
-                            value: dea
-                        });
-                    }
-                    
                     records.commitLine({ sublistId: 'line' });
-                }
+                
             });
             var idDea = ''
             var idDrc = ''
             var deaSearch = search.load({
-                id : 'customsearch_dea_promise'
+                id : 'customsearch_mapping_dea_je_premise'
             });
             var filters = deaSearch.filters;
             filters.push(search.createFilter({
-                name: 'custrecord_stc_dea_account_relation',
+                name: 'custrecord_stc_account_allocation',
                 operator: search.Operator.IS,
                 values: accountHeader
             }));
             filters.push(search.createFilter({
-                name: 'cseg_stc_segmentdea_filterby_cseg_stc_sof',
+                name: 'custrecord_stc_account_allocation',
                 operator: search.Operator.IS,
                 values: sofIdHead
             }));
@@ -283,13 +244,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             if (result && result.length > 0) {
                 var firstResult = result[0];
                 idDea = firstResult.getValue({
-                    name: "internalid"
+                    name: "custrecord_dea_allocation"
                 });
                 console.log('idDea', idDea)
-                idDrc = firstResult.getValue({
-                    name: "cseg_stc_segmentdea_filterby_cseg_stc_drc_segmen"
-                });
-                console.log('idDrc', idDrc)
+                
                 
             }
             records.selectNewLine({ sublistId: 'line' });
@@ -329,7 +287,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             records.setCurrentSublistValue({
                 sublistId: 'line',
                 fieldId: 'cseg_stc_segmentdea',
-                value: 2,
+                value: idDea,
                  enableSourcing : false,
                 ignoreFieldChange : true
             });
@@ -366,12 +324,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     line: i
                 });
 
-                // Deteksi line yang memiliki credit
                 if (credit && credit !== 0) {
                     creditLineIndex = i;
                 }
 
-                // Jika bukan line terakhir, tambahkan debit
                 if (i < lineCount - 1) {
                     totalDebit += debit;
                 }
@@ -379,12 +335,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
             console.log('totalDebit:', totalDebit);
 
-            // Jika tidak ada line dengan credit, gunakan line terakhir
             if (creditLineIndex === -1) {
                 creditLineIndex = lineCount - 1;
             }
 
-            // Set nilai credit dengan totalDebit
             rec.selectLine({
                 sublistId: 'line',
                 line: creditLineIndex

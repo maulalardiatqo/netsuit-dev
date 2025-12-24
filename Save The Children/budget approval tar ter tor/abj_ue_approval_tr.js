@@ -472,7 +472,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
 
                         var newApprovalStatus = newRecLoad.getValue(apprStatusHeader)
                         var oldApprovalStatus = recOld.getValue(apprStatusHeader)
-                         const updateLinesForUserFA = (sublistId, statusValue) => {
+                        const updateLinesForUserFA = (sublistId, statusValue) => {
                             const count = newRecLoad.getLineCount({ sublistId });
                             log.debug('count', count)
                             for (let i = 0; i < count; i++) {
@@ -497,30 +497,33 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         };
                         const updateLinesForUser = (sublistName, statusValue) => {
                             log.debug('sublistName', sublistName)
-                            if(sublistName == 'recmachcustrecord_tar_id_ter'){
-                                approverLine = 'custrecord_tare_approver'
-                                apprStatusLine = 'custrecord_tare_approval_status'
-                            }
-                            const count = newRecLoad.getLineCount({ sublistId: sublistName });
-                            if(count > 0){
-                                
-                                for (let i = 0; i < count; i++) {
-                                    const approver = toInt(newRecLoad.getSublistValue({
-                                        sublistId : sublistName, 
-                                        fieldId: approverLine, 
-                                        line: i
-                                    }));
-                                    if (approver === employeeId) {
-                                        newRecLoad.setSublistValue({
+                            if(sublistName){
+                                if(sublistName == 'recmachcustrecord_tar_id_ter'){
+                                    approverLine = 'custrecord_tare_approver'
+                                    apprStatusLine = 'custrecord_tare_approval_status'
+                                }
+                                const count = newRecLoad.getLineCount({ sublistId: sublistName });
+                                if(count > 0){
+                                    
+                                    for (let i = 0; i < count; i++) {
+                                        const approver = toInt(newRecLoad.getSublistValue({
                                             sublistId : sublistName, 
-                                            fieldId: apprStatusLine,
-                                            line: i,
-                                            value: statusValue
-                                        });
-                                        log.debug(`Update ${sublistName}`, `Line ${i} set status -> ${statusValue}`);
+                                            fieldId: approverLine, 
+                                            line: i
+                                        }));
+                                        if (approver === employeeId) {
+                                            newRecLoad.setSublistValue({
+                                                sublistId : sublistName, 
+                                                fieldId: apprStatusLine,
+                                                line: i,
+                                                value: statusValue
+                                            });
+                                            log.debug(`Update ${sublistName}`, `Line ${i} set status -> ${statusValue}`);
+                                        }
                                     }
                                 }
                             }
+                            
                             
                         };
                         // approve condition
@@ -536,46 +539,46 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
 
                                 const scan = (sublistName) => {
                                     log.debug('sublistName', sublistName)
-                                    if(sublistName == 'recmachcustrecord_tar_id_ter'){
-                                        approverLine = 'custrecord_tare_approver'
-                                        apprStatusLine = 'custrecord_tare_approval_status'
-                                    }else{
-                                        approverLine = 'custrecord_terd_approver'
-                                        apprStatusLine = 'custrecord_terd_approval_status'
-                                    }
-                                    const count = newRecLoad.getLineCount({ sublistId: sublistName });
-                                    if(count > 0){
-                                        for (let i = 0; i < count; i++) {
-                                            log.debug('data cek', {sublistName : sublistName, approverLine : approverLine, apprStatusLine : apprStatusLine})
-                                            const approver = toInt(newRecLoad.getSublistValue({
-                                                sublistId : sublistName,
-                                                fieldId: approverLine, 
-                                                line: i
-                                            }));
-                                            log.debug('approver', approver)
-                                            if (approver > 0) {
-                                                approverLines++;
-                                                const statusLineNow = toInt(newRecLoad.getSublistValue({
+                                    if(sublistName){
+                                        if(sublistName == 'recmachcustrecord_tar_id_ter'){
+                                            approverLine = 'custrecord_tare_approver'
+                                            apprStatusLine = 'custrecord_tare_approval_status'
+                                        }else if(sublistName == 'recmachcustrecord_terd_id'){
+                                            approverLine = 'custrecord_terd_approver'
+                                            apprStatusLine = 'custrecord_terd_approval_status'
+                                        }else{
+                                            approverLine = "custrecord_tare_approver";
+                                            apprStatusLine = "custrecord_tare_approval_status"
+                                        }
+                                        const count = newRecLoad.getLineCount({ sublistId: sublistName });
+                                        if(count > 0){
+                                            for (let i = 0; i < count; i++) {
+                                                log.debug('data cek', {sublistName : sublistName, approverLine : approverLine, apprStatusLine : apprStatusLine})
+                                                const approver = toInt(newRecLoad.getSublistValue({
                                                     sublistId : sublistName,
-                                                    fieldId: apprStatusLine, 
+                                                    fieldId: approverLine, 
                                                     line: i
                                                 }));
-                                                if (statusLineNow !== 2) notApproved++;
+                                                log.debug('approver', approver)
+                                                if (approver > 0) {
+                                                    approverLines++;
+                                                    const statusLineNow = toInt(newRecLoad.getSublistValue({
+                                                        sublistId : sublistName,
+                                                        fieldId: apprStatusLine, 
+                                                        line: i
+                                                    }));
+                                                    if (statusLineNow !== 2) notApproved++;
+                                                }
                                             }
                                         }
                                     }
                                     
+                                    
                                 };
-
+                                
                                 scan(sublistName);
-                                var cekLineExp = newRecLoad.getLineCount({
-                                    sublistId : sublistExp
-                                })
-                                log.debug('cekLineExp', cekLineExp)
-                                if(cekLineExp > 0){
-                                    log.debug('masuk kondisi cekLineExp')
-                                    scan(sublistExp);
-                                }
+                                scan(sublistExp);
+                                
 
                                 log.debug('Approval scan result', { approverLines, notApproved });
                                 if (approverLines === 0) return false;
