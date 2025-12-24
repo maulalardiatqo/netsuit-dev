@@ -43,12 +43,13 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format', 'N/config'], fun
 
     function map(context) {
         const result = JSON.parse(context.value);
+        log.debug('result', result)
         const values = result.values;
+        log.debug('values', values)
         var companyInfo = config.load({
             type: config.Type.COMPANY_INFORMATION
         });
         var tkuPemotong = companyInfo.getValue('custrecord_sos_id_tku_penjual');
-        log.debug('tkuPemotong', tkuPemotong)
         let dppValue = Number(values.amount);
         if (!isNaN(dppValue)) {
             let decimalPart = dppValue % 1;
@@ -101,25 +102,50 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format', 'N/config'], fun
         }
 
         log.debug('tanggalDok hasil', tanggalDok);
+        function pickValue(bodyVal, lineVal) {
+            if (Array.isArray(bodyVal)) {
+                return bodyVal.length ? bodyVal : lineVal;
+            }
+            return bodyVal ? bodyVal : lineVal;
+        }
 
+
+        // const rowData = {
+        //     masaPajak: values.custbody_stc_masa_pajak || values.custcol_stc_masa_pajak_line,
+        //     tahunPajak: values.custbody_stc_tahun_pajak || values.custcol_stc_tahun_pajak_line,
+        //     npwp: values.custbody_stc_npwp_vendor || values.custcol_stc_npwp_line,
+        //     idTkuPenerima: values.custbody_stc_id_tku_penerima_penghasil || values.custcol_stc_id_tku_penerima_penghasil,
+        //     fasilitas: values.custbody_stc_fasilitas || values.custcol_stc_fasilitas_line,
+        //     kodeObj: values.custbody_stc_kode_obj_pajak || values.custcol_stc_kode_obj_pjk_line,
+        //     dpp: dppValue,
+        //     tarif: values.custbody_stc_tarif || values.custcol_stc_tarif_line,
+        //     jenisDokRef: values.custbody_stc_jenis_dok_ref || values.custcol_stc_jenis_dok_line,
+        //     nomorDokRef: values.custbody_stc_no_sp2d || values.custcol_stc_nomor_sp2d_line,   
+        //     tanggalDok: tanggalDok,
+        //     idTkuPemotong: tkuPemotong,
+        //     opsiPembayaran: values.custbody_stc_opsi_pembayaran || values.custcol_stc_opsi_pembayaran_line,
+        //     nomorSP2D: values.custbody_stc_no_sp2d || values.custcol_stc_nomor_sp2d_line,
+        //     tanggalPemotongan: tanggalDok
+        // };
         const rowData = {
-            masaPajak: values.custbody_stc_masa_pajak,
-            tahunPajak: values.custbody_stc_tahun_pajak,
-            npwp: values.custbody_stc_npwp_vendor,
-            idTkuPenerima: values.custbody_stc_id_tku_penerima_penghasil,
-            fasilitas: values.custbody_stc_fasilitas,
-            kodeObj: values.custbody_stc_kode_obj_pajak,
+            masaPajak: pickValue(values.custbody_stc_masa_pajak, values.custcol_stc_masa_pajak_line),
+            tahunPajak: pickValue(values.custbody_stc_tahun_pajak, values.custcol_stc_tahun_pajak_line),
+            fasilitas: pickValue(values.custbody_stc_fasilitas, values.custcol_stc_fasilitas_line),
+            kodeObj: pickValue(values.custbody_stc_kode_obj_pajak, values.custcol_stc_kode_obj_pjk_line),
+            jenisDokRef: pickValue(values.custbody_stc_jenis_dok_ref, values.custcol_stc_jenis_dok_line),
+            opsiPembayaran: pickValue(values.custbody_stc_opsi_pembayaran, values.custcol_stc_opsi_pembayaran_line),
+
+            npwp: values.custbody_stc_npwp_vendor || values.custcol_stc_npwp_line,
+            tarif: values.custbody_stc_tarif || values.custcol_stc_tarif_line,
+
             dpp: dppValue,
-            tarif: values.custbody_stc_tarif,
-            jenisDokRef: values.custbody_stc_jenis_dok_ref,
-            nomorDokRef: values.custbody_stc_no_sp2d,   
             tanggalDok: tanggalDok,
             idTkuPemotong: tkuPemotong,
-            opsiPembayaran: values.custbody_stc_opsi_pembayaran,
-            nomorSP2D: values.custbody_stc_no_sp2d,
+            nomorSP2D: values.custbody_stc_no_sp2d || values.custcol_stc_nomor_sp2d_line,
             tanggalPemotongan: tanggalDok
         };
 
+        log.debug('rowData', rowData)
         context.write({ key: 'bpu_group', value: JSON.stringify(rowData) });
     }
 
@@ -241,6 +267,8 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format', 'N/config'], fun
 
             // Data rows
             let rowIndex = 0;
+            var dataContex = context.values;
+            log.debug('dataContex', dataContex)
             context.values.forEach(function (row) {
                 const data = JSON.parse(row);
                 log.debug('data', data)
