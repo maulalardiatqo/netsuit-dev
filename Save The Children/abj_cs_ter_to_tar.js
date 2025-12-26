@@ -163,7 +163,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             // ==========================
             processLine(index + 1, dataList);
 
-        }, 250); // jangan < 150ms
+        }, 450); // jangan < 150ms
     }
     function addLines(allData) {
         processLine(0, allData);
