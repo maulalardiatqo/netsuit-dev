@@ -194,24 +194,34 @@ define(["N/runtime", "N/log", "N/record", "N/search"], (runtime, log, record, se
 
                             lineIndexes.forEach(function (lineIndex) {
                                 if (deaBySof[sofId].drc) {
-                                    rec.setSublistValue({
-                                        sublistId: 'line',
-                                        fieldId: 'cseg_stc_drc_segmen',
-                                        line: lineIndex,
-                                        value: deaBySof[sofId].drc,
-                                        enableSourcing : false,
-                                        ignoreFieldChange : true
-                                    });
+                                    try{
+                                        rec.setSublistValue({
+                                            sublistId: 'line',
+                                            fieldId: 'cseg_stc_drc_segmen',
+                                            line: lineIndex,
+                                            value: deaBySof[sofId].drc,
+                                            enableSourcing : false,
+                                            ignoreFieldChange : true
+                                        });
+                                    }catch(e){
+                                        log.debug('error',e)
+                                    }
+                                    
                                 }
                                 if (deaBySof[sofId].dea) {
-                                    rec.setSublistValue({
-                                        sublistId: 'line',
-                                        fieldId: 'cseg_stc_segmentdea',
-                                        line: lineIndex,
-                                        value: deaBySof[sofId].dea,
-                                        enableSourcing : false,
-                                        ignoreFieldChange : true
-                                    });
+                                    try{
+                                        rec.setSublistValue({
+                                            sublistId: 'line',
+                                            fieldId: 'cseg_stc_segmentdea',
+                                            line: lineIndex,
+                                            value: deaBySof[sofId].dea,
+                                            enableSourcing : false,
+                                            ignoreFieldChange : true
+                                        });
+                                    }catch(e){
+                                        log.debug('error',e)
+                                    }
+                                    
                                 }
 
                                 

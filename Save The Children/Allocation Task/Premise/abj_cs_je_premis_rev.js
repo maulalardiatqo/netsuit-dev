@@ -356,11 +356,69 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         }
     }
 
+    function saveRecord(context) {
+        var rec = context.currentRecord;
 
+        var lineCount = rec.getLineCount({
+            sublistId: 'line'
+        });
+
+        if (lineCount <= 0) {
+            return true;
+        }
+
+        var totalDebit = 0;
+        var creditLineIndex = null;
+
+        for (var i = 0; i < lineCount; i++) {
+
+            var debit = parseFloat(rec.getSublistValue({
+                sublistId: 'line',
+                fieldId: 'debit',
+                line: i
+            })) || 0;
+
+            var credit = rec.getSublistValue({
+                sublistId: 'line',
+                fieldId: 'credit',
+                line: i
+            });
+
+            if (debit !== 0) {
+                totalDebit += debit;
+            }
+
+            if (credit !== null && credit !== '') {
+                creditLineIndex = i;
+            }
+        }
+        if (creditLineIndex !== null) {
+            console.log('creditLineIndex', creditLineIndex)
+            console.log('totalDebit', totalDebit)
+            rec.selectLine({
+                sublistId: 'line',
+                line: creditLineIndex
+            });
+
+            rec.setCurrentSublistValue({
+                sublistId: 'line',
+                fieldId: 'credit',
+                value: totalDebit,
+                ignoreFieldChange: true
+            });
+
+            rec.commitLine({
+                sublistId: 'line'
+            });
+        }
+
+        return true;
+    }
     return {
         pageInit: pageInit,
         calculate: calculate,
         generate : generate,
-        fieldChanged : fieldChanged
+        fieldChanged : fieldChanged,
+        saveRecord : saveRecord
     };
 });

@@ -173,6 +173,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
     function transExp(data, transData){
             log.debug('masuk trans exp');
             log.debug(' data[0].idTor',  data[0].idTor)
+            
             var createExp = transData
              createExp.setValue({
                 fieldId : 'custbody_id_to',
@@ -236,12 +237,92 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     sublistId: 'expense',
                     line :  indexL
                 });
+                 var itemId = data[i].item
+                log.debug('itemId', itemId)
+                var expAcc = ''
+                if(itemId){
+                    var itemSearchObj = search.create({
+                            type: "item",
+                            filters:
+                            [
+                                ["internalid","anyof",itemId]
+                            ],
+                            columns:
+                            [
+                                search.createColumn({name: "expenseaccount", label: "Expense/COGS Account"})
+                            ]
+                            });
+                            var searchResultCount = itemSearchObj.runPaged().count;
+                            log.debug("itemSearchObj result count",searchResultCount);
+                            itemSearchObj.run().each(function(result){
+                                expAcc = result.getValue({
+                                    name : 'expenseaccount'
+                                })
+                            return true;
+                        });
+                    }
+                log.debug('expAcc', expAcc)
+                var category = ''
+                if(expAcc){
+                    var expensecategorySearchObj = search.create({
+                    type: "expensecategory",
+                    filters:
+                    [
+                        ["account","anyof",expAcc]
+                    ],
+                    columns:
+                    [
+                        search.createColumn({name: "name", label: "Name"}),
+                        search.createColumn({name: "description", label: "Description"}),
+                        search.createColumn({name: "internalid", label: "Internal ID"})
+                    ]
+                    });
+                    var searchResultCount = expensecategorySearchObj.runPaged().count;
+                    log.debug("expensecategorySearchObj result count",searchResultCount);
+                    expensecategorySearchObj.run().each(function(result){
+                        
+                        return true;
+                    });
+                }
+                var category = '';
+
+                if (expAcc) {
+                    var expensecategorySearchObj = search.create({
+                        type: "expensecategory",
+                        filters: [
+                            ["account", "anyof", expAcc]
+                        ],
+                        columns: [
+                            search.createColumn({ name: "internalid" })
+                        ]
+                    });
+
+                    var searchResultCount = expensecategorySearchObj.runPaged().count;
+                    log.debug("expensecategorySearchObj result count", searchResultCount);
+
+                    if (searchResultCount === 1) {
+                        expensecategorySearchObj.run().each(function (result) {
+                            category = result.getValue({ name: 'internalid' });
+                            return false;
+                        });
+                    }
+                }
+                log.debug('category', category)
+                
                 createExp.setSublistValue({
                     sublistId : 'expense',
                     fieldId   : 'expensedate',
                     line :  indexL,
                     value     : data[0].date
                 });
+                if(category){
+                    createExp.setSublistValue({
+                        sublistId : 'expense',
+                        fieldId   : 'category',
+                        line :  indexL,
+                        value     : category
+                    });
+                }
                 createExp.setSublistValue({
                     sublistId : 'expense',
                     fieldId   : 'amount',
