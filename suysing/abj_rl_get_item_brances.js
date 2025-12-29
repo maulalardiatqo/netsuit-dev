@@ -9,8 +9,8 @@
 /*******************************************************************************
  * **Copyright (c) 2025 ABJ Cloud Solutions, Inc.
  * @Client        :  Suy Sing
- * @Script Name   :  - SSCC | RL | Get Item UoM
- * @script File   :  abj_rl_get_item_uom.js
+ * @Script Name   :  - SSCC | RL | Get Item Brances
+ * @script File   :  abj_rl_get_item_brances.js
  * @Trigger Type  :  Integration
  * @Release Date  :  Dec 28, 2025
  * @Author        :  Maulal Ardi Atqo
@@ -40,10 +40,10 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
             pageSize = (pageSize && pageSize > 0) ? pageSize : 10;
             pageIndex = (pageIndex && pageIndex >= 0) ? pageIndex : 0;
 
-            var itemUomSearch = search.load({
-                id: 'customsearchwebsite_item_uom_get'
+            var itemBrancesSearch = search.load({
+                id: 'customsearchwebsite_item_branches_get'
             });
-            var pagedData = itemUomSearch.runPaged({
+            var pagedData = itemBrancesSearch.runPaged({
                 pageSize: pageSize
             });
             var totalPages = pagedData.pageRanges.length;
@@ -67,73 +67,22 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
             
 
             page.data.forEach(function (result) {
-                var primaryUnits = result.getValue({
-                    name: "unitstype"
+                var itemName = result.getValue({
+                    name: "itemid"
                 });
-                var unitType = result.getValue({
-                    name: "custrecord_abj_uomsub_uom",
-                    join: "CUSTRECORD_ABJ_UOMSUB_ITEM"
+                var itemId = result.getValue({
+                    name: "custrecord_abj_uomsub_item",
+                    join: "CUSTRECORD_ABJ_UOMSUB_ITEM",
                 });
-                var caseBarcode = result.getValue({
-                    name: "custitem_abj_case_barcode"
-                });
-                var caseHeight = result.getValue({
-                    name: "custitem_abj_case_height"
-                });
-                var caseWidth = result.getValue({
-                    name: "custitem_abj_case_width"
-                });
-                var caseLength = result.getValue({
-                    name: "custitem_abj_case_length"
-                });
-                var packBarcode = result.getValue({
-                    name: "custitem_abj_pack_barcode"
-                });
-                var packHeight = result.getValue({
-                    name: "custitem_abj_pack_height"
-                });
-                var packWidth = result.getValue({
-                    name: "custitem_abj_pack_width"
-                });
-                var packLength = result.getValue({
-                    name: "custitem_abj_pack_length"
-                });
-                var pieceBarcode = result.getValue({
-                    name: "custitem_abj_piece_barcode"
-                });
-                var pieceHeight = result.getValue({
-                    name: "custitem_abj_piece_height"
-                });
-                var pieceWidth = result.getValue({
-                    name: "custitem_abj_piece_width"
-                });
-                var pieceLength = result.getValue({
-                    name: "custitem_abj_piece_length"
-                });
-                var displayImg = result.getValue({
-                    name: "custitem_abj_display_image"
+                var itemText = result.getText({
+                    name: "custrecord_abj_uomsub_item",
+                    join: "CUSTRECORD_ABJ_UOMSUB_ITEM",
                 });
                 
                 results.push({
-                    primaryUnits: primaryUnits || '',
-                    unitType: unitType || '',
-
-                    caseBarcode: caseBarcode || '',
-                    caseHeight: caseHeight || '',
-                    caseWidth: caseWidth || '',
-                    caseLength: caseLength || '',
-
-                    packBarcode: packBarcode || '',
-                    packHeight: packHeight || '',
-                    packWidth: packWidth || '',
-                    packLength: packLength || '',
-
-                    pieceBarcode: pieceBarcode || '',
-                    pieceHeight: pieceHeight || '',
-                    pieceWidth: pieceWidth || '',
-                    pieceLength: pieceLength || '',
-
-                    displayImg: displayImg || ''
+                    itemName: itemName || '',
+                    itemId : itemId || '',
+                    itemText : itemText || ''
                 });
             });
             log.debug('results', results)
