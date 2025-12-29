@@ -151,7 +151,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 fieldId: 'custrecord_set_by_script',
                 value: true
             });
-
+            var cekSetByScript = curRec.getCurrentSublistValue({
+                sublistId: 'recmachcustrecord_tar_id_ter',
+                fieldId: 'custrecord_set_by_script',
+            })
+            console.log('cekSetByScript', cekSetByScript)
             curRec.commitLine({
                 sublistId: 'recmachcustrecord_tar_id_ter'
             });

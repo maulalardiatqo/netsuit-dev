@@ -43,6 +43,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url
         return approval;
     }
     function getFinanceMatric(sofId, amount){
+        console.log('finance matrix')
         var approvalFinance
         var customrecord_stc_apprvl_mtrix_financeSearchObj = search.create({
             type: "customrecord_stc_apprvl_mtrix_finance",
@@ -228,7 +229,8 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url
                 var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
                 console.log('cekEmp (expense)', cekEmp)
                 
-                if( cekType == 'customrecord_ter'){
+                if( typeRec == 'customrecord_ter'){
+                    console.log('ter caaled', sublistExpens)
                     var emp = getFinanceMatric(sofId, grossamt)
                     if(emp){
                         currentRec.setCurrentSublistValue({
