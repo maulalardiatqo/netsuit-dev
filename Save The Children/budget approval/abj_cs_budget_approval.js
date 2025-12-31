@@ -113,40 +113,40 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
             console.log('parameterSearch', { itemId: itemId, account: account, sofId: sofId, grossamt: grossamt })
             console.log('cekCurrentMode', currentMode)
 
-        if (sofId) {
-            var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
-            if(cekType == 'vendbill' || cekType == 'purchreq'){
-                var emp = getFinanceMatric(sofId)
-                if(emp){
-                    currentRec.setCurrentSublistValue({
-                        sublistId : "item",
-                        fieldId : "custcol_stc_approver_fa",
-                        value : emp
-                    })
+            if (sofId) {
+                var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+                if(cekType == 'vendbill' || cekType == 'purchreq' || cekType == 'purchord'){
+                    var emp = getFinanceMatric(sofId, grossamt)
+                    if(emp){
+                        currentRec.setCurrentSublistValue({
+                            sublistId : "item",
+                            fieldId : "custcol_stc_approver_fa",
+                            value : emp
+                        })
+                        currentRec.setCurrentSublistValue({
+                            sublistId: "item",
+                            fieldId: "custcol_stc_apprvl_sts_fa",
+                            value: "1"
+                        })
+                    }
+                }
+                console.log('cekEmp', cekEmp)
+                if (cekEmp) {
                     currentRec.setCurrentSublistValue({
                         sublistId: "item",
-                        fieldId: "custcol_stc_apprvl_sts_fa",
-                        value: "1"
+                        fieldId: "custcol_stc_approver_linetrx",
+                        value: cekEmp
                     })
                 }
-            }
-            console.log('cekEmp', cekEmp)
-            if (cekEmp) {
                 currentRec.setCurrentSublistValue({
                     sublistId: "item",
-                    fieldId: "custcol_stc_approver_linetrx",
-                    value: cekEmp
+                    fieldId: "custcol_stc_approval_status_line",
+                    value: "1"
                 })
+            } else {
+                return true
             }
-            currentRec.setCurrentSublistValue({
-                sublistId: "item",
-                fieldId: "custcol_stc_approval_status_line",
-                value: "1"
-            })
-        } else {
-            return true
         }
-    }
 
         // ==== KONDISI SUBLIST EXPENSE ====
         if (context.sublistId === 'expense') {
@@ -179,41 +179,41 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
             console.log('parameterSearch (expense)', { account: account, sofId: sofId, grossamt: grossamt })
             console.log('cekCurrentMode', currentMode)
 
-        if (sofId) {
-            var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
-            console.log('cekEmp (expense)', cekEmp)
-            
-            if(cekType == 'vendbill' || cekType == 'exprept' || cekType == 'purchreq'){
-                var emp = getFinanceMatric(sofId)
-                if(emp){
-                    currentRec.setCurrentSublistValue({
-                        sublistId : "expense",
-                        fieldId : "custcol_stc_approver_fa",
-                        value : emp
-                    })
+            if (sofId) {
+                var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+                console.log('cekEmp (expense)', cekEmp)
+                
+                if(cekType == 'vendbill' || cekType == 'exprept' || cekType == 'purchreq' || cekType == 'purchord'){
+                    var emp = getFinanceMatric(sofId, grossamt)
+                    if(emp){
+                        currentRec.setCurrentSublistValue({
+                            sublistId : "expense",
+                            fieldId : "custcol_stc_approver_fa",
+                            value : emp
+                        })
+                        currentRec.setCurrentSublistValue({
+                            sublistId: "expense",
+                            fieldId: "custcol_stc_apprvl_sts_fa",
+                            value: "1"
+                        })
+                    }
+                }
+                if (cekEmp) {
                     currentRec.setCurrentSublistValue({
                         sublistId: "expense",
-                        fieldId: "custcol_stc_apprvl_sts_fa",
-                        value: "1"
+                        fieldId: "custcol_stc_approver_linetrx",
+                        value: cekEmp
                     })
                 }
-            }
-            if (cekEmp) {
                 currentRec.setCurrentSublistValue({
                     sublistId: "expense",
-                    fieldId: "custcol_stc_approver_linetrx",
-                    value: cekEmp
+                    fieldId: "custcol_stc_approval_status_line",
+                    value: "1"
                 })
+            } else {
+                return true
             }
-            currentRec.setCurrentSublistValue({
-                sublistId: "expense",
-                fieldId: "custcol_stc_approval_status_line",
-                value: "1"
-            })
-        } else {
-            return true
         }
-    }
 
         return true;
     }

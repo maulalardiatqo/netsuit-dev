@@ -57,6 +57,17 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 fieldId: approverField,
                                 line: i
                             });
+                            var appSubtitue
+                            if(approver){
+                                log.debug('approver', approver)
+                                var empLook = search.lookupFields({
+                                    type: "employee",
+                                    id: approver,
+                                    columns: ["custentity_stc_subtitute_apprvl"],
+                                });
+                                appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
+                                log.debug('appSubtitue', appSubtitue)
+                            }
                             const approvalStatus = recBefLoad.getSublistValue({
                                 sublistId: sublistItem,
                                 fieldId: approvalStatusField,
@@ -67,6 +78,17 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 fieldId: 'custrecord_tori_approver_fa',
                                 line: i
                             });
+                            var appFASubtitue
+                            if(approverFA){
+                                log.debug('approverFA', approverFA)
+                                var appFALook = search.lookupFields({
+                                    type: "employee",
+                                    id: approverFA,
+                                    columns: ["custentity_stc_subtitute_apprvl"],
+                                });
+                                appFASubtitue = appFALook.custentity_stc_subtitute_apprvl[0].value;
+                                log.debug('appFASubtitue', appFASubtitue)
+                            }
                             const approverSatatusFA = recBefLoad.getSublistValue({
                                 sublistId: sublistItem,
                                 fieldId: 'custrecord_tori_approval_status_fa',
@@ -76,14 +98,15 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             log.debug('approverSatatusFA', approverSatatusFA)
                             log.debug('i', i)
                             if(recType == 'customrecord_tor'){
-                                if(Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1){
+                                if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) || (Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
                                     log.debug('masuk kondisi approve FA')
                                     allowButton = true;
                                     break;
                                 }
                                 if(cekIsAPpFA){
-                                    if (Number(approver) === Number(employeeId) &&
-                                        Number(approvalStatus) === 1) {
+                                    if ((Number(approver) === Number(employeeId) &&
+                                        Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) &&
+                                        Number(approvalStatus) === 1)) {
                                             log.debug('masuk allow')
                                         allowButton = true;
                                         break;
@@ -91,8 +114,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 }
                                 
                             }else{
-                                if (Number(approver) === Number(employeeId) &&
-                                    Number(approvalStatus) === 1) {
+                                if ((Number(approver) === Number(employeeId) &&
+                                    Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) &&
+                                    Number(approvalStatus) === 1)) {
                                     allowButton = true;
                                     break;
                                 }
@@ -132,9 +156,31 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
 
                                 const row = results[e];
                                 const approver = row.getValue(approverField);
+                                var appSubtitue
+                                if(approver){
+                                    log.debug('approver', approver)
+                                    var empLook = search.lookupFields({
+                                        type: "employee",
+                                        id: approver,
+                                        columns: ["custentity_stc_subtitute_apprvl"],
+                                    });
+                                    appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
+                                    log.debug('appSubtitue', appSubtitue)
+                                }
                                 const approvalStatus = row.getValue(approvalStatusField);
                                 if(approvalFaField){
                                     var approverFA = row.getValue(approvalFaField);
+                                    var appFASubtitue
+                                    if(approverFA){
+                                        log.debug('approverFA', approverFA)
+                                        var appFALook = search.lookupFields({
+                                            type: "employee",
+                                            id: approverFA,
+                                            columns: ["custentity_stc_subtitute_apprvl"],
+                                        });
+                                        appFASubtitue = appFALook.custentity_stc_subtitute_apprvl[0].value;
+                                        log.debug('appFASubtitue', appFASubtitue)
+                                    }
                                 }
                                 if(approvalStatusFAField){
                                     var approverStatusFA = row.getValue(approvalStatusFAField);
@@ -151,8 +197,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 // });
 
                                 if (
-                                    Number(approver) === Number(employeeId) &&
-                                    Number(approvalStatus) === 1
+                                    (Number(approver) === Number(employeeId) &&
+                                    Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) &&
+                                    Number(approvalStatus) === 1)
                                 ) {
                                     // log.debug('masuk kondisi approve regular');
                                     allowButton = true;
@@ -160,8 +207,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 }
 
                                 if (
-                                    Number(approverFA) === Number(employeeId) &&
-                                    Number(approverStatusFA) === 1
+                                    (Number(approverFA) === Number(employeeId) &&
+                                    Number(approverStatusFA) === 1) || (Number(appFASubtitue) === Number(employeeId) &&
+                                    Number(approverStatusFA) === 1)
                                 ) {
                                     // log.debug('masuk kondisi approve FA');
                                     allowButton = true;
@@ -180,14 +228,26 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 fieldId: 'custrecord_tare_approver',
                                 line: j
                             });
+                             var appSubtitue
+                            if(approver){
+                                log.debug('approver', approver)
+                                var empLook = search.lookupFields({
+                                    type: "employee",
+                                    id: approver,
+                                    columns: ["custentity_stc_subtitute_apprvl"],
+                                });
+                                appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
+                                log.debug('appSubtitue', appSubtitue)
+                            }
                             const approvalStatus = recBefLoad.getSublistValue({
                                 sublistId: 'recmachcustrecord_tar_id_ter',
                                 fieldId: 'custrecord_tare_approval_status',
                                 line: j
                             });
                             log.debug('approvalStatus', approvalStatus)
-                            if (Number(approver) === Number(employeeId) &&
-                                Number(approvalStatus) === 1) {
+                            if ((Number(approver) === Number(employeeId) &&
+                                Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) &&
+                                Number(approvalStatus) === 1)) {
                                     log.debug('kondisi approver')
                                 allowButton = true;
                                 break;
@@ -222,6 +282,16 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
     };
 
     function afterSubmit(context) {
+        function getSubtitue(empId){
+            var appSubtitue
+            var empLook = search.lookupFields({
+                type: "employee",
+                id: empId,
+                columns: ["custentity_stc_subtitute_apprvl"],
+            });
+            appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
+            return appSubtitue
+        }
         try {
             if(context.type === context.UserEventType.EDIT){
                 const rec = context.newRecord;
@@ -243,6 +313,19 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             const approver = toInt(newRecLoad.getSublistValue({
                                 sublistId, fieldId: 'custrecord_tori_approver', line: i
                             }));
+                            var subtitue = getSubtitue(approver);
+                            log.debug('subtitue', subtitue)
+                            if(subtitue){
+                                if(subtitue == employeeId){
+                                    newRecLoad.setSublistValue({
+                                        sublistId,
+                                        fieldId: 'custrecord_tori_approval_status',
+                                        line: i,
+                                        value: statusValue
+                                    });
+                                    log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
+                                }
+                            }
                             if (approver === employeeId) {
                                 newRecLoad.setSublistValue({
                                     sublistId,
@@ -263,6 +346,19 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             }));
                             log.debug('approver', approver)
                             log.debug('employeeId', employeeId)
+                            var subtitue = getSubtitue(approver);
+                            log.debug('subtitue', subtitue)
+                            if(subtitue){
+                                if(subtitue == employeeId){
+                                    newRecLoad.setSublistValue({
+                                        sublistId,
+                                        fieldId: 'custrecord_tori_approval_status_fa',
+                                        line: i,
+                                        value: statusValue
+                                    });
+                                    log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
+                                }
+                            }
                             if (approver === employeeId) {
                                 log.debug('masuk kondisi app = emp')
                                 newRecLoad.setSublistValue({
@@ -481,6 +577,20 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                     fieldId: 'custrecord_ter_approver_fa', 
                                     line: i
                                 }));
+                                var subtitue = getSubtitue(approver);
+                                log.debug('subtitue', subtitue)
+                                if(subtitue){
+                                    if(subtitue == employeeId){
+                                        log.debug('subtitue is employee will set')
+                                        newRecLoad.setSublistValue({
+                                            sublistId,
+                                            fieldId: 'custrecord_ter_apprvl_sts_fa',
+                                            line: i,
+                                            value: statusValue
+                                        });
+                                        log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
+                                    }
+                                }
                                 log.debug('approver', approver)
                                 log.debug('employeeId', employeeId)
                                 if (approver === employeeId) {
@@ -511,6 +621,20 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                             fieldId: approverLine, 
                                             line: i
                                         }));
+                                        var subtitue = getSubtitue(approver);
+                                        log.debug('subtitue', subtitue)
+                                        if(subtitue){
+                                            if(subtitue == employeeId){
+                                                log.debug('subtitue is employee will set')
+                                                newRecLoad.setSublistValue({
+                                                    sublistId : sublistName, 
+                                                    fieldId: apprStatusLine,
+                                                    line: i,
+                                                    value: statusValue
+                                                });
+                                                log.debug(`Update ${sublistName}`, `Line ${i} set status -> ${statusValue}`);
+                                            }
+                                        }
                                         if (approver === employeeId) {
                                             newRecLoad.setSublistValue({
                                                 sublistId : sublistName, 

@@ -88,6 +88,17 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             fieldId: 'custcol_stc_approver_linetrx',
                             line: j
                         });
+                        var appSubtitue
+                        if(approver){
+                            log.debug('approver', approver)
+                            var empLook = search.lookupFields({
+                                type: "employee",
+                                id: approver,
+                                columns: ["custentity_stc_subtitute_apprvl"],
+                            });
+                            appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
+                            log.debug('appSubtitue', appSubtitue)
+                        }
                         const approvalStatus = rec.getSublistValue({
                             sublistId: 'expense',
                             fieldId: 'custcol_stc_approval_status_line',
@@ -98,19 +109,30 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             fieldId: 'custcol_stc_approver_fa',
                             line: j
                         });
+                        var appFASubtitue
+                        if(approverFA){
+                            log.debug('approver', approver)
+                            var appFALook = search.lookupFields({
+                                type: "employee",
+                                id: approverFA,
+                                columns: ["custentity_stc_subtitute_apprvl"],
+                            });
+                            appFASubtitue = appFALook.custentity_stc_subtitute_apprvl[0].value;
+                            log.debug('appFASubtitue', appFASubtitue)
+                        }
                         const approverSatatusFA = rec.getSublistValue({
                             sublistId: 'expense',
                             fieldId: 'custcol_stc_apprvl_sts_fa',
                             line: j
                         });
                         log.debug('approvalStatus', approvalStatus)
-                        if (Number(approver) === Number(employeeId) &&
-                            Number(approvalStatus) === 1) {
+                        if ((Number(approver) === Number(employeeId) &&
+                            Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) && Number(approvalStatus) === 1)) {
                                 log.debug('kondisi approver')
                             allowButton = true;
                             break;
                         }
-                        if(Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1){
+                        if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) || (Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
                             log.debug('masuk kondisi2')
                             allowButton = true;
                             break;
@@ -141,6 +163,75 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
     };
 
     function afterSubmit(context) {
+        function getSubtitue(empId){
+            var appSubtitue
+            var empLook = search.lookupFields({
+                type: "employee",
+                id: empId,
+                columns: ["custentity_stc_subtitute_apprvl"],
+            });
+            appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
+            return appSubtitue
+        }
+        function getBudgetHolderApproval(paramSof, paramAccount, paramAmount) {
+            function runSearch(useAccount) {
+                var filters = [];
+                filters.push(["custrecord_stc_sof", "is", paramSof]);
+
+                if (useAccount && paramAccount) {
+                    filters.push("AND", ["custrecord_stc_account", "is", paramAccount]);
+                }
+
+                filters.push("AND", ["custrecord_stc_max_limit_amnt", "greaterthanorequalto", paramAmount]);
+                filters.push("AND", ["isinactive", "is", "F"]);
+
+                var searchObj = search.create({
+                    type: "customrecord_stc_apprv_matrix_bdgt_holdr",
+                    filters: filters,
+                    columns: [
+                        search.createColumn({ name: "custrecord_stc_max_limit_amnt", sort: search.Sort.ASC }),
+                        search.createColumn({ name: "custrecord_stc_bdgt_hldr_approval" })
+                    ]
+                });
+
+                var result = searchObj.run().getRange({ start: 0, end: 1 });
+                if (result && result.length > 0) {
+                    return result[0].getValue("custrecord_stc_bdgt_hldr_approval");
+                }
+                return null;
+            }
+            var approval = runSearch(true);
+            if (!approval) {
+                approval = runSearch(false);
+            }
+
+            return approval;
+        }
+        function getFinanceMatric(sofId, amount){
+            log.debug('finance matric loaded', {sofId : sofId, amount : amount})
+            var approvalFinance
+            var customrecord_stc_apprvl_mtrix_financeSearchObj = search.create({
+                type: "customrecord_stc_apprvl_mtrix_finance",
+                filters: [
+                    ["custrecord_stc_sof_mtrx_finance","anyof",sofId], 
+                    "AND", 
+                    ["custrecord_finance_max_amnt","greaterthanorequalto",amount]
+                ],
+                columns: [
+                    search.createColumn({ name: "custrecord_stc_apprvl_finance", label: "Approval Finance" })
+                ]
+            });
+
+            var results = customrecord_stc_apprvl_mtrix_financeSearchObj.run().getRange({
+                start: 0,
+                end: 1
+            });
+
+            if (results.length > 0) {
+                approvalFinance = results[0].getValue("custrecord_stc_apprvl_finance");
+            }
+            return approvalFinance
+        }
         try {
             if (context.type === context.UserEventType.EDIT){
                 const currentUser = runtime.getCurrentUser();
@@ -186,6 +277,20 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         const approver = toInt(recLoad.getSublistValue({
                             sublistId, fieldId: 'custcol_stc_approver_linetrx', line: i
                         }));
+                        var subtitue = getSubtitue(approver);
+                        log.debug('subtitue', subtitue)
+                        if(subtitue){
+                            if(subtitue == employeeId){
+                                log.debug('subtitue is employee will set')
+                                recLoad.setSublistValue({
+                                    sublistId,
+                                    fieldId: 'custcol_stc_approval_status_line',
+                                    line: i,
+                                    value: statusValue
+                                });
+                                log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
+                            }
+                        }
                         if (approver === employeeId) {
                             recLoad.setSublistValue({
                                 sublistId,
@@ -203,6 +308,20 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         const approver = toInt(recLoad.getSublistValue({
                             sublistId, fieldId: 'custcol_stc_approver_fa', line: i
                         }));
+                        var subtitue = getSubtitue(approver);
+                        log.debug('subtitue', subtitue)
+                        if(subtitue){
+                            if(subtitue == employeeId){
+                                log.debug('subtitue is employee will set')
+                                recLoad.setSublistValue({
+                                    sublistId,
+                                    fieldId: 'custcol_stc_apprvl_sts_fa',
+                                    line: i,
+                                    value: statusValue
+                                });
+                                log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
+                            }
+                        }
                         if (approver === employeeId) {
                             recLoad.setSublistValue({
                                 sublistId,
@@ -384,84 +503,110 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 const newRec = record.load({
                     type: context.newRecord.type,
                     id: context.newRecord.id,
-                    isDynamic: true
+                    isDynamic: false
                 });
+                var cekType = context.newRecord.type
+                log.debug('cekType', cekType)
                 newRec.setValue({
                     fieldId : "custbody_stc_approved_by_finance",
                     value : false
                 })
                 // ==== LOOP SUBLIST ITEM ====
                 const lineCountItem = newRec.getLineCount({ sublistId: 'item' });
-                for (let i = 0; i < lineCountItem; i++) {
-                    let itemId = newRec.getSublistValue({ sublistId: 'item', fieldId: 'item', line: i });
-                    let sofId = newRec.getSublistValue({ sublistId: 'item', fieldId: 'cseg_stc_sof', line: i });
-                    let grossamt = newRec.getSublistValue({ sublistId: 'item', fieldId: 'grossamt', line: i });
+                if(lineCountItem > 0){
+                    for (let i = 0; i < lineCountItem; i++) {
+                        let itemId = newRec.getSublistValue({ sublistId: 'item', fieldId: 'item', line: i });
+                        let sofId = newRec.getSublistValue({ sublistId: 'item', fieldId: 'cseg_stc_sof', line: i });
+                        let grossamt = newRec.getSublistValue({ sublistId: 'item', fieldId: 'grossamt', line: i });
 
-                    let account;
-                    if (itemId) {
-                        let itemSearchObj = search.create({
-                            type: "item",
-                            filters: [["internalid", "anyof", itemId]],
-                            columns: [
-                                search.createColumn({ name: "type" }),
-                                search.createColumn({ name: "assetaccount" }),
-                                search.createColumn({ name: "expenseaccount" })
-                            ]
-                        });
-                        let results = itemSearchObj.run().getRange({ start: 0, end: 1 });
-                        if (results.length > 0) {
-                            let type = results[0].getValue({ name: "type" });
-                            let assetAccount = results[0].getValue({ name: "assetaccount" });
-                            let expenseAccount = results[0].getValue({ name: "expenseaccount" });
+                        let account;
+                        if (itemId) {
+                            let itemSearchObj = search.create({
+                                type: "item",
+                                filters: [["internalid", "anyof", itemId]],
+                                columns: [
+                                    search.createColumn({ name: "type" }),
+                                    search.createColumn({ name: "assetaccount" }),
+                                    search.createColumn({ name: "expenseaccount" })
+                                ]
+                            });
+                            let results = itemSearchObj.run().getRange({ start: 0, end: 1 });
+                            if (results.length > 0) {
+                                let type = results[0].getValue({ name: "type" });
+                                let assetAccount = results[0].getValue({ name: "assetaccount" });
+                                let expenseAccount = results[0].getValue({ name: "expenseaccount" });
 
-                            account = (type === 'InvtPart') ? assetAccount : expenseAccount;
+                                account = (type === 'InvtPart') ? assetAccount : expenseAccount;
+                            }
                         }
-                    }
 
-                    if (sofId) {
-                        let cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
-                        if (cekEmp) {
+                        if (sofId) {
+                            let cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+                            if (cekEmp) {
+                                newRec.setSublistValue({
+                                    sublistId: "item",
+                                    fieldId: "custcol_stc_approver_linetrx",
+                                    line: i,
+                                    value: cekEmp
+                                });
+                            }
                             newRec.setSublistValue({
                                 sublistId: "item",
-                                fieldId: "custcol_stc_approver_linetrx",
+                                fieldId: "custcol_stc_approval_status_line",
                                 line: i,
-                                value: cekEmp
+                                value: "1"
                             });
+                            if(cekType == 'vendbill' || cekType == 'purchreq' ||  cekType == 'purchaseorder'){
+                                var emp = getFinanceMatric(sofId, grossamt)
+                                log.debug('emp', emp)
+                                if(emp){
+                                    newRec.setSublistValue({
+                                        sublistId : "item",
+                                        fieldId : "custcol_stc_approver_fa",
+                                        line: i,
+                                        value : emp
+                                    })
+                                    newRec.setSublistValue({
+                                        sublistId: "item",
+                                        fieldId: "custcol_stc_apprvl_sts_fa",
+                                        line: i,
+                                        value: "1"
+                                    })
+                                }
+                            }
                         }
-                        newRec.setSublistValue({
-                            sublistId: "item",
-                            fieldId: "custcol_stc_approval_status_line",
-                            line: i,
-                            value: "1"
-                        });
                     }
                 }
+                
 
                 // ==== LOOP SUBLIST EXPENSE ====
                 const lineCountExp = newRec.getLineCount({ sublistId: 'expense' });
-                for (let i = 0; i < lineCountExp; i++) {
-                    let account = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'account', line: i });
-                    let sofId = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'cseg_stc_sof', line: i });
-                    let grossamt = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'grossamt', line: i });
+                if(lineCountExp > 0){
+                    for (let i = 0; i < lineCountExp; i++) {
+                        let account = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'account', line: i });
+                        let sofId = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'cseg_stc_sof', line: i });
+                        let grossamt = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'grossamt', line: i });
 
-                    if (sofId) {
-                        let cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
-                        if (cekEmp) {
+                        if (sofId) {
+                            let cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+                            if (cekEmp) {
+                                newRec.setSublistValue({
+                                    sublistId: "expense",
+                                    fieldId: "custcol_stc_approver_linetrx",
+                                    line: i,
+                                    value: cekEmp
+                                });
+                            }
                             newRec.setSublistValue({
                                 sublistId: "expense",
-                                fieldId: "custcol_stc_approver_linetrx",
+                                fieldId: "custcol_stc_approval_status_line",
                                 line: i,
-                                value: cekEmp
+                                value: "1"
                             });
                         }
-                        newRec.setSublistValue({
-                            sublistId: "expense",
-                            fieldId: "custcol_stc_approval_status_line",
-                            line: i,
-                            value: "1"
-                        });
                     }
                 }
+                
 
                 // simpan perubahan
                 newRec.save({ ignoreMandatoryFields: true });

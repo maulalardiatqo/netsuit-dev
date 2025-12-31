@@ -146,6 +146,7 @@ define(["N/runtime", "N/log", "N/record", "N/search"], (runtime, log, record, se
                             idSearch = 'customsearch_mapping_dea_je_premise'
                         }else{
                             idSearch = 'customsearch_mapping_dea_je_premise_2'
+                            accountHeader = rec.getValue('custbody_abj_destination_account')
                         }
                         log.debug('idSearch', idSearch)
                         var searchDea = search.load({

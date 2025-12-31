@@ -508,6 +508,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     });
 
                     var prosentFix = Number(prosent).toFixed(2);
+                    console .log('prosentFix', prosentFix)
                     records.setCurrentSublistValue({
                         sublistId: "line",
                         fieldId: "custcol_tar_percentage",

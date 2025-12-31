@@ -16,7 +16,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format', 'N/config'], fun
             type: config.Type.COMPANY_INFORMATION
         });
         var tkuPemotong = companyInfo.getValue('custrecord_sos_id_tku_penjual');
-        const searchLoad = search.load({ id: 'customsearch_stc_wht_' });
+        const searchLoad = search.load({ id: 'customsearch_stc_wht__2' });
 
         if (dateFrom && dateTo) {
             searchLoad.filters.push(search.createFilter({
