@@ -75,7 +75,7 @@ define(["N/runtime", "N/log", "N/record", "N/search"], (runtime, log, record, se
                 });
                 var cForm = rec.getValue('customform');
                 log.debug('cForm', cForm)
-                if(cForm == 140){
+                if(cForm == 140 || cForm == 141){
                     var lineCount = rec.getLineCount({
                         sublistId: 'line'
                     });
@@ -141,8 +141,15 @@ define(["N/runtime", "N/log", "N/record", "N/search"], (runtime, log, record, se
                             return;
                         }
                         log.debug('allSOFid', allSOFId)
+                        var idSearch
+                        if(cForm == 140){
+                            idSearch = 'customsearch_mapping_dea_je_premise'
+                        }else{
+                            idSearch = 'customsearch_mapping_dea_je_premise_2'
+                        }
+                        log.debug('idSearch', idSearch)
                         var searchDea = search.load({
-                            id: 'customsearch_mapping_dea_je_premise'
+                            id: idSearch
                         });
 
                         var filters = searchDea.filters || [];

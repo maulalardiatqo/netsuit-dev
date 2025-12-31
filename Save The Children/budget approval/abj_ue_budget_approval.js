@@ -15,7 +15,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
             try {
                 const currentUser = runtime.getCurrentUser();
                 const employeeId = currentUser.id;
-
+                
                 const rec = context.newRecord;
                 let allowButton = false;
                 const itemCount = rec.getLineCount({ sublistId: 'item' });
@@ -26,27 +26,53 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             fieldId: 'custcol_stc_approver_linetrx',
                             line: i
                         });
+                        var appSubtitue
+                        if(approver){
+                            log.debug('approver', approver)
+                            var empLook = search.lookupFields({
+                                type: "employee",
+                                id: approver,
+                                columns: ["custentity_stc_subtitute_apprvl"],
+                            });
+                            appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
+                            log.debug('appSubtitue', appSubtitue)
+                        }
                         const approvalStatus = rec.getSublistValue({
                             sublistId: 'item',
                             fieldId: 'custcol_stc_approval_status_line',
                             line: i
                         });
+                        var appFASubtitue
                         const approverFA = rec.getSublistValue({
                             sublistId: 'item',
                             fieldId: 'custcol_stc_approver_fa',
                             line: i
                         });
+                        if(approverFA){
+                            log.debug('approver', approver)
+                            var appFALook = search.lookupFields({
+                                type: "employee",
+                                id: approverFA,
+                                columns: ["custentity_stc_subtitute_apprvl"],
+                            });
+                            appFASubtitue = appFALook.custentity_stc_subtitute_apprvl[0].value;
+                            log.debug('appFASubtitue', appFASubtitue)
+                        }
                         const approverSatatusFA = rec.getSublistValue({
                             sublistId: 'item',
                             fieldId: 'custcol_stc_apprvl_sts_fa',
                             line: i
                         });
-                        if (Number(approver) === Number(employeeId) &&
-                            Number(approvalStatus) === 1) {
+                        log.debug('beforCondition cek', {
+                             employeeId : employeeId, appSubtitue : Number(appSubtitue), approvalStatus : approvalStatus
+                        })
+                        if ((Number(approver) === Number(employeeId) &&
+                            Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) && Number(approvalStatus) === 1)) {
+                                log.debug('masuk kondisi allowButton')
                             allowButton = true;
                             break;
                         }
-                        if(Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1){
+                        if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) ||(Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
                             log.debug('masuk kondisi approve FA')
                             allowButton = true;
                             break;
@@ -354,6 +380,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 }
             }
             if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.COPY) {
+                log.debug('triggered')
                 const newRec = record.load({
                     type: context.newRecord.type,
                     id: context.newRecord.id,

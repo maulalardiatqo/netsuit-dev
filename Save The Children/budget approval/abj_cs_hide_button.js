@@ -136,6 +136,7 @@ define([], () => {
 
         // PR
         const btnAppPR = document.getElementById('custpageworkflow879');
+        console.log('btnAppPR', btnAppPR)
         if(btnAppPR){
             btnAppPR.style.display = 'none';
         }

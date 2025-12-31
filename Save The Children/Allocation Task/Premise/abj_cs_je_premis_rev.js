@@ -274,7 +274,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             records.setCurrentSublistValue({
                 sublistId: 'line',
                 fieldId: 'cseg_stc_sof',
-                value: sofIdHead,
+                value: '58',
             });
             records.setCurrentSublistValue({
                 sublistId: 'line',
