@@ -114,6 +114,11 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 }
                                 
                             }else{
+                                log.debug('kondisi else tor', {
+                                    appSubtitue : appFASubtitue,
+                                    employeeId : employeeId,
+                                    approvalStatus : approvalStatus
+                                })
                                 if ((Number(approver) === Number(employeeId) &&
                                     Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) &&
                                     Number(approvalStatus) === 1)) {
@@ -195,13 +200,17 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 //     approverStatusFA,
                                 //     employeeId
                                 // });
-
+                                log.debug('cek data app TAR', {
+                                    appSubtitue : Number(appSubtitue),
+                                    employeeId : employeeId,
+                                    approvalStatus : approvalStatus
+                                })
                                 if (
                                     (Number(approver) === Number(employeeId) &&
-                                    Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) &&
+                                    Number(approvalStatus) === 1) || (Number(appSubtitue) == Number(employeeId) &&
                                     Number(approvalStatus) === 1)
                                 ) {
-                                    // log.debug('masuk kondisi approve regular');
+                                    log.debug('masuk kondisi approve regular');
                                     allowButton = true;
                                     break;
                                 }

@@ -25,7 +25,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 console.log('periodId', periodId)
                 var totalAmt = 0
                 var searchAmt = search.load({
-                    id: 'customsearch_abj_premise_allocate_amou_4'
+                    id: 'customsearch_abj_premise_allocate_amou_3'
                 });
 
                 var filters = searchAmt.filters;
@@ -129,7 +129,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             return false
         }
         if(allSofId.length > 0){
-            
             var periodId = records.getValue('postingperiod');
             var allDataCredits = []
             var transactionSearchObj = search.create({
@@ -140,9 +139,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 "AND", 
                 ["amount","greaterthan","0.00"], 
                 "AND", 
-                ["formulatext: {account.custrecord_stc_account_cam_mapping}","isnotempty",""], 
+                ["postingperiod","abs",periodId],
+                "AND",
+                ["account.custrecord_stc_account_cam_mapping","noneof","@NONE@"], 
                 "AND", 
-                ["postingperiod","abs",periodId]
+                ["account.custrecord_stc_account_cam_mapping","anyof",accountHead]
             ],
             columns:
             [
@@ -186,6 +187,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     name: "amount",
                     summary: "SUM",
                     label: "Amount"
+                }), 
+                search.createColumn({
+                    name: "line.cseg_stc_sof",
+                    summary: "GROUP",
+                    label: "Source of Funding"
                 })
             ]
             });
@@ -216,13 +222,18 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     name: "amount",
                     summary: "SUM",
                 });
+                var sof = dataRes.getValue({
+                    name: "line.cseg_stc_sof",
+                    summary: "GROUP",
+                })
                 allDataCredits.push({
                     acc : acc,
                     costCenter : costCenter,
                     projectCode : projectCode,
                     drc : drc,
                     dea : dea,
-                    amt : amt
+                    amt : amt,
+                    sof : sof
                 })
                 return true;
             });
@@ -508,7 +519,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     });
 
                     var prosentFix = Number(prosent).toFixed(2);
-                    console .log('prosentFix', prosentFix)
                     records.setCurrentSublistValue({
                         sublistId: "line",
                         fieldId: "custcol_tar_percentage",
@@ -546,7 +556,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     records.setCurrentSublistValue({
                         sublistId: "line",
                         fieldId: "cseg_stc_sof",
-                        value: "57"
+                        value: credits.sof
                     });
 
                     records.commitLine({ sublistId: "line" });
