@@ -44,7 +44,9 @@ define(['N/record', 'N/log'], function (record, log) {
                 fieldId: 'custcol_stc_budget_consumed',
                 line: i
             });
-
+            log.debug('compare amount', {
+                budget : budget, consumed : consumed
+            })
             if (budget && consumed) {
                 if (Number(consumed) > Number(budget)) {
                     newRec.setValue({
@@ -74,7 +76,10 @@ define(['N/record', 'N/log'], function (record, log) {
                 fieldId: 'custcol_stc_budget_consumed',
                 line: j
             });
-
+            log.debug('compare amount item', {
+                budget : budget,
+                consumed : consumed
+            })
             if (budget && consumed) {
                 if (Number(consumed) > Number(budget)) {
                     log.debug('msgGlobal', msgGlobal)

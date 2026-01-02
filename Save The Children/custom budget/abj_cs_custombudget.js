@@ -123,6 +123,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 });
             }
             var dataBudget = 0
+            console.log('account & depart', {
+                account : account,
+                department : department
+            })
             if(account && department){
                 dataBudget = getBudget(account, department, classId, sofId, yearId, periodId, monthIndex)
             }
@@ -137,7 +141,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 }else{
                     statLine = "Amount in all transaction lines is within budget."
                 }
-            
+                console.log('statLine', statLine)
+                log.debug('statLine', statLine)
                 currentRecordObj.setCurrentSublistValue({
                     sublistId: sblsId,
                     fieldId: "custcolstc_budget_warning",
@@ -149,6 +154,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     value: budgetAmt,
                 });
             }else{
+                console.log('masuk els data budget')
+                log.debug('masuk els data budget')
                 currentRecordObj.setCurrentSublistValue({
                     sublistId: sblsId,
                     fieldId: "custcolstc_budget_warning",
@@ -177,11 +184,25 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 fieldId: "cseg_stc_sof",
             });
             var account = ''
+            console.log('sblsId cek before', sblsId);
+
                 if(sblsId == "expense"){
-                    account = currentRecordObj.getCurrentSublistValue({  
-                    sublistId: sblsId,
-                    fieldId: 'account',
-                });
+                    console.log('masuk expense')
+                    if(cekType == 'exprept'){
+                        log.debug('masuk expenreport')
+                        console.log('masuk expenreport')
+                        account = currentRecordObj.getCurrentSublistValue({  
+                            sublistId: sblsId,
+                            fieldId: 'expenseaccount',
+                        });
+                        console.log('account', account)
+                    }else{
+                        account = currentRecordObj.getCurrentSublistValue({  
+                            sublistId: sblsId,
+                            fieldId: 'account',
+                        });
+                    }
+                    
             }else{
                 var itemId = currentRecordObj.getCurrentSublistValue({  
                     sublistId: sblsId,
@@ -266,13 +287,27 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             fieldId: "cseg_stc_sof",
                             line: i
                         });
+                        console.log('cekType', cekType)
+                        log.debug('cekType', cekType)
                         var accountCek 
                         if(sblsId == 'expense'){
-                            accountCek = currentRecordObj.getSublistValue({  
-                                sublistId: sblsId,
-                                fieldId: 'account',
-                                line: i
-                            });
+                            console.log('sunlisId cek expense', sblsId)
+                            if(cekType == 'exprept'){
+                                log.debug('masuk expenreport')
+                                console.log('masuk expenreport')
+                                accountCek = currentRecordObj.getSublistValue({  
+                                    sublistId: sblsId,
+                                    fieldId: 'expenseaccount',
+                                    line: i
+                                });
+                            }else{
+                                accountCek = currentRecordObj.getSublistValue({  
+                                    sublistId: sblsId,
+                                    fieldId: 'account',
+                                    line: i
+                                });
+                            }   
+                            
                         }else{
                             var itemCek = currentRecordObj.getSublistValue({  
                                 sublistId: sblsId,
