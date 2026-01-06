@@ -34,8 +34,13 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 id: approver,
                                 columns: ["custentity_stc_subtitute_apprvl"],
                             });
-                            appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
-                            log.debug('appSubtitue', appSubtitue)
+                            var firstCek = empLook.custentity_stc_subtitute_apprvl
+                            log.debug('firstCek', firstCek)
+                            if(firstCek.length > 0){
+                                appSubtitue = [0].value;
+                                log.debug('appSubtitue', appSubtitue)
+                            }
+                            
                         }
                         const approvalStatus = rec.getSublistValue({
                             sublistId: 'item',
@@ -55,8 +60,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 id: approverFA,
                                 columns: ["custentity_stc_subtitute_apprvl"],
                             });
-                            appFASubtitue = appFALook.custentity_stc_subtitute_apprvl[0].value;
-                            log.debug('appFASubtitue', appFASubtitue)
+                            var firstCekFa = appFALook.custentity_stc_subtitute_apprvl
+                            if(firstCekFa.length > 0){
+                                appFASubtitue = [0].value;
+                                log.debug('appFASubtitue', appFASubtitue)
+                            }
+                            
                         }
                         const approverSatatusFA = rec.getSublistValue({
                             sublistId: 'item',
@@ -96,8 +105,14 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 id: approver,
                                 columns: ["custentity_stc_subtitute_apprvl"],
                             });
-                            appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
-                            log.debug('appSubtitue', appSubtitue)
+                            var firstCek = empLook.custentity_stc_subtitute_apprvl
+                            log.debug('firstCek', firstCek)
+                            if(firstCek.length > 0){
+                                log.debug('masuk kondisi first cek')
+                                appSubtitue = firstCek[0].value;
+                                log.debug('appSubtitue', appSubtitue)
+                            }
+                            
                         }
                         const approvalStatus = rec.getSublistValue({
                             sublistId: 'expense',
@@ -117,8 +132,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 id: approverFA,
                                 columns: ["custentity_stc_subtitute_apprvl"],
                             });
-                            appFASubtitue = appFALook.custentity_stc_subtitute_apprvl[0].value;
-                            log.debug('appFASubtitue', appFASubtitue)
+                            var firscekFA = appFALook.custentity_stc_subtitute_apprvl
+                            if(firscekFA){
+                                appFASubtitue = [0].value;
+                                log.debug('appFASubtitue', appFASubtitue)
+                            }
+                            
                         }
                         const approverSatatusFA = rec.getSublistValue({
                             sublistId: 'expense',
@@ -170,7 +189,11 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 id: empId,
                 columns: ["custentity_stc_subtitute_apprvl"],
             });
-            appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
+            var firstCek = empLook.custentity_stc_subtitute_apprvl
+            if(firstCek.length > 0){
+                appSubtitue = [0].value;
+            }
+            
             return appSubtitue
         }
         function getBudgetHolderApproval(paramSof, paramAccount, paramAmount) {

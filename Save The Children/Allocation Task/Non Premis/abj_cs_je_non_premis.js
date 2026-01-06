@@ -241,7 +241,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
             var dataInclude = [];
             var searchInclude = search.load({
-                id : 'customsearch_abj_premise_allocate_amou_4'
+                id : 'customsearch_abj_premise_allocate_amou_3'
             });
             var filters = searchInclude.filters;
             // filters.push(search.createFilter({
@@ -287,12 +287,18 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     name: "line.cseg_stc_segmentdea",
                     summary: "GROUP",
                 });
+                var sof = firstResult.getValue({
+                    name: "line.cseg_stc_sof",
+                    summary: "GROUP",
+                    label: "Source of Funding"
+                });
                 dataInclude.push({
                     costCenter : costCenter,
                     project : project,
                     drc : drc,
                     dea : dea,
-                    account : account
+                    account : account,
+                    sof : sof
                 })
                 
             }
@@ -391,29 +397,30 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 project : "",
                 drc : "",
                 dea : "",
-                account : ""
+                account : "",
+                sof : "",
             };
 
             var finalData = [];
-
+            console.log('remainingMap', remainingMap)
             Object.keys(spendMap).forEach(function (key) {
-
+                console.log('key', key)
                 var row = spendMap[key];
-                var sof = row.sofId;
-
-                var remaining = remainingMap[sof] || 0;
+                var sofIdRow = row.sofId
+                console.log('sofIdRow', sofIdRow)
+                var remaining = remainingMap[sofIdRow] || 0;
 
                 if (row.amtSpend > 0) {
                     totalSpendAmt += row.amtSpend;
 
                     finalData.push({
-                        sofId: sof,
                         amtSpend: row.amtSpend,
                         amtRemaining: remaining,
                         costCenter: row.costCenter,
                         project: row.projectCode,
                         drc: includeData.drc,
-                        dea: includeData.dea
+                        dea: includeData.dea,
+                        sof : sofIdRow
                     });
                 }
             });
@@ -441,13 +448,15 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var dataSisa = [];
 
             finalData.forEach(function (row) {
-                var sofId = row.sofId;
+                console.log('row', row)
+                var sofId = row.sof;
                 var spend = Number(row.amtSpend);
                 var remaining = Number(row.amtRemaining);
                 var costCenter = row.costCenter;
                 var project = row.project;
                 var drc = row.drc;
                 var dea = row.dea;
+                
 
                 // ==========================
                 // Perhitungan bobot + allocation (dibulatkan!)
@@ -475,7 +484,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         project: project,
                         prosent : prosent,
                         bobotPerMonth : bobotPerMonth,
-                        remaining : remaining
+                        remaining : remaining,
+                        sofId : sofId
                     });
                 }
 
@@ -556,7 +566,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     records.setCurrentSublistValue({
                         sublistId: "line",
                         fieldId: "cseg_stc_sof",
-                        value: credits.sof
+                        value: "57"
                     });
 
                     records.commitLine({ sublistId: "line" });
@@ -591,7 +601,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     records.setCurrentSublistValue({
                         sublistId: "line",
                         fieldId: "cseg_stc_sof",
-                        value: "57"
+                        value: sisa.sofId
                     });
                     records.setCurrentSublistValue({
                         sublistId: "line",

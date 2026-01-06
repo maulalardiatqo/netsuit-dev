@@ -6,6 +6,22 @@
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
     function (render, search, record, log, file, http, config, format, email, runtime) {
         try {
+            function removeDuplicateLeadTime(allLeadTime) {
+                var uniqueMap = {};
+                var result = [];
+
+                for (var i = 0; i < allLeadTime.length; i++) {
+                    var ldt = allLeadTime[i].ldt;
+                    if (ldt && !uniqueMap[ldt]) {
+                        uniqueMap[ldt] = true;
+                        result.push(ldt);
+                    }
+                }
+
+                return result.join(', ');
+            }
+
+
             function removeDecimalFormat(number) {
                 return number.toString().substring(0, number.toString().length - 3);
             }
@@ -39,6 +55,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         'memomain',
                         'custcol2',
                         'custbody5',
+                        'custbody_abj_custom_jobnumber',
                         search.createColumn({
                             name: "vendorname",
                             join: "item",
@@ -111,6 +128,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var entity = result.getValue('entity')
                     var leadtime = result.getValue('custbody5')
                     var memo = result.getValue('memomain')
+                    var kurs = result.getValue('custbody_abj_custom_jobnumber');
                     var itemId = result.getValue({
                         name: 'formulatext1',
                         label: 'itemid'
@@ -165,7 +183,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         itemstatus: itemstatus,
                         itemleadtime: itemLeadTime,
                         itempaymentterm: itemPaymentTerm,
-                        memo : memo
+                        memo : memo,
+                        kurs : kurs
                     })
                     return true
                 });
@@ -181,6 +200,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var transDate = quotRec[0].trandate
                 var expireDate = quotRec[0].duedate
                 var transactionNumber = quotRec[0].tranid
+                var kurs = quotRec[0].kurs
                 var prepared = '';
                 var empId = quotRec[0].employId
                 // log.debug('empId',empId)
@@ -514,6 +534,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             function getPOItem(context, quotRec) {
                 var itemCount = quotRec.length
                 var leadtime = quotRec[0].leadtime
+                var kurs = quotRec[0].kurs
                 var memo = quotRec[0].memo
                 if(leadtime){
                     leadtime = leadtime + ' ' + 'Month'
@@ -522,13 +543,28 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if (itemCount > 0) {
                     var body = "";
                     var paymentTerms 
-                    var leadTime
+                    var allLeadTime = []
                     for (var index = 0; index < itemCount; index++) {
                         // var description = quotRec.getSublistValue({
                         //     sublistId: 'item',
                         //     fieldId: 'description',
                         //     line: index
                         // });
+                        var itemid = quotRec[index].itemid
+                        if(itemid){
+                            var itemSearch = search.lookupFields({
+                            type: search.Type.ITEM,
+                            id: itemid,
+                            columns: ['leadtime']
+                            });
+                            ldt = itemSearch.leadtime;
+                            log.debug('ldt', ldt)
+                            if(ldt){
+                                allLeadTime.push({
+                                    ldt : ldt + ' Days'
+                                })
+                            }
+                        }
                         var description = quotRec[index].itemdesc
                         // var principal = quotRec.getSublistText({
                         //     sublistId: 'item',
@@ -571,7 +607,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         //     fieldId: 'custcol3',
                         //     line: index
                         // })
-                        leadTime = quotRec[index].itemleadtime
 
                         // var paymentTerms = quotRec.getSublistText({
                         //     sublistId: 'item',
@@ -624,11 +659,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "</tr>";
 
                     body += "<tr>";
-                    body += "<td style=' border: 1px solid #808080; border-top:none;'>Lead Time : "+leadtime+"</td>";
-                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
-                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
-                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
-                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
+                    body += "<td style=' border: 1px solid #808080; border-top:none;' colspan='5'>Lead Time : "+removeDuplicateLeadTime(allLeadTime)+"</td>";
+                    
                     body += "</tr>";
 
                      body += "<tr>";
@@ -640,11 +672,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "</tr>";
 
                     body += "<tr>";
-                    body += "<td style=' border: 1px solid #808080; border-top:none;'>Kurs : TT Counter Sell BCA</td>";
-                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
-                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
-                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
-                    body += "<td style='align:center; border: 1px solid #808080; border-left:none; border-top:none;'></td>";
+                    body += "<td style=' border: 1px solid #808080; border-top:none;' colspan='5'>Kurs : "+kurs+"</td>";
                     body += "</tr>"; 
                     return body;
                 }

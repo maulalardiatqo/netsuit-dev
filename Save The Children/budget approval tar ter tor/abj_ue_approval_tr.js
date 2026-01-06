@@ -65,8 +65,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                     id: approver,
                                     columns: ["custentity_stc_subtitute_apprvl"],
                                 });
-                                appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
-                                log.debug('appSubtitue', appSubtitue)
+                                var firstCek = empLook.custentity_stc_subtitute_apprvl
+                                if(firstCek.length > 0){
+                                    appSubtitue = firstCek[0].value;
+                                    log.debug('appSubtitue', appSubtitue)
+                                }
+                                
                             }
                             const approvalStatus = recBefLoad.getSublistValue({
                                 sublistId: sublistItem,
@@ -86,8 +90,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                     id: approverFA,
                                     columns: ["custentity_stc_subtitute_apprvl"],
                                 });
-                                appFASubtitue = appFALook.custentity_stc_subtitute_apprvl[0].value;
-                                log.debug('appFASubtitue', appFASubtitue)
+                                var firstCekFa = appFALook.custentity_stc_subtitute_apprvl
+                                if(firstCekFa.length > 0){
+                                    appFASubtitue = firstCekFa[0].value;
+                                    log.debug('appFASubtitue', appFASubtitue)
+                                }
+                                
                             }
                             const approverSatatusFA = recBefLoad.getSublistValue({
                                 sublistId: sublistItem,
@@ -169,8 +177,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                         id: approver,
                                         columns: ["custentity_stc_subtitute_apprvl"],
                                     });
-                                    appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
-                                    log.debug('appSubtitue', appSubtitue)
+                                    var firstCek = empLook.custentity_stc_subtitute_apprvl
+                                    if(firstCek.length> 0){
+                                        appSubtitue = firstCek[0].value;
+                                        log.debug('appSubtitue', appSubtitue)
+                                    }
+                                    
                                 }
                                 const approvalStatus = row.getValue(approvalStatusField);
                                 if(approvalFaField){
@@ -183,8 +195,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                             id: approverFA,
                                             columns: ["custentity_stc_subtitute_apprvl"],
                                         });
-                                        appFASubtitue = appFALook.custentity_stc_subtitute_apprvl[0].value;
-                                        log.debug('appFASubtitue', appFASubtitue)
+                                        var firscekFA = appFALook.custentity_stc_subtitute_apprvl
+                                        if(firscekFA.length > 0){
+                                            appFASubtitue = firscekFA[0].value;
+                                            log.debug('appFASubtitue', appFASubtitue)
+                                        }
+                                        
                                     }
                                 }
                                 if(approvalStatusFAField){
@@ -245,8 +261,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                     id: approver,
                                     columns: ["custentity_stc_subtitute_apprvl"],
                                 });
-                                appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
-                                log.debug('appSubtitue', appSubtitue)
+                                var firstCek = empLook.custentity_stc_subtitute_apprvl
+                                if(firstCek.length > 0){
+                                    appSubtitue = firstCek[0].value;
+                                    log.debug('appSubtitue', appSubtitue)
+                                }
+                                
                             }
                             const approvalStatus = recBefLoad.getSublistValue({
                                 sublistId: 'recmachcustrecord_tar_id_ter',
@@ -298,7 +318,11 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 id: empId,
                 columns: ["custentity_stc_subtitute_apprvl"],
             });
-            appSubtitue = empLook.custentity_stc_subtitute_apprvl[0].value;
+            var firstCek = empLook.custentity_stc_subtitute_apprvl
+            if(firstCek.length > 0){
+                appSubtitue = firstCek[0].value;
+            }
+            
             return appSubtitue
         }
         try {

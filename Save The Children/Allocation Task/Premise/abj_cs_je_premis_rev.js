@@ -107,6 +107,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
         var sofIdHead = records.getValue('cseg_stc_sof');
         var accountHeader = records.getValue('custbody_stc_source_account_allocation');
+        var accountHeaderText = records.getText('custbody_stc_source_account_allocation');
         var amountAllocated = records.getValue('custbody_abj_amount_to_allocate');
         var costCenterIdDepartment = 17;
         var projectCodeIdClass = 12;
@@ -155,7 +156,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 console.log('All existing lines removed.');
             }
             var totalAmountTemp = 0
-            var memoSet = 'Allocation Premise Office Rental ' + periodText;
+            var memoSet = 'Allocation Premise '  + accountHeaderText + ' ' + periodText;
             sofResult.forEach(function (item) {
                 var sofId = item.sofId;
                 var amountTempt = 0

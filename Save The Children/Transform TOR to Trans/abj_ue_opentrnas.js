@@ -174,228 +174,217 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             log.debug('masuk trans exp');
             log.debug(' data[0].idTor',  data[0].idTor)
             
-            var createExp = transData
-             createExp.setValue({
-                fieldId : 'custbody_id_to',
-                value : data[0].idTor
-            });
-            createExp.setValue({
-                fieldId : 'custbody_stc_link_to_tor',
-                value : data[0].idTor
-            });
-            createExp.setValue({
-                fieldId : 'custbody_stc_link_to_tor',
-                value : data[0].idTor
-            });
-            
-            createExp.setValue({
-                fieldId : 'custbody_stc_expense_report_type',
-                value : '2'
-            });
-            
-            createExp.setValue({
-                fieldId : 'entity',
-                value : data[0].emp
-            });
-            createExp.setValue({
-                fieldId : 'expensereportcurrency',
-                value : '1'
-            });
-            
+            // var createExp = transData
             // createExp.setValue({
-            //     fieldId : 'advanceaccount',
-            //     value : '119'
+            //     fieldId : 'custbody_id_to',
+            //     value : data[0].idTor
             // });
             // createExp.setValue({
-            //     fieldId : 'account',
-            //     value : '118'
+            //     fieldId : 'custbody_stc_link_to_tor',
+            //     value : data[0].idTor
             // });
-            createExp.setValue({
-                fieldId : 'trandate',
-                value : data[0].date
-            });
-            createExp.setValue({
-                fieldId : 'department',
-                value : data[0].costCenter
-            });
-            createExp.setValue({
-                fieldId : 'class',
-                value : data[0].projectCode || '114'
-            });
-            createExp.setValue({
-                fieldId : 'location',
-                value : '3'
-            });
-            createExp.setValue({
-                fieldId : 'cseg_stc_sof',
-                value : data[0].sof || '66'
-            });
-            var cekAccountafter = createExp.getValue('account');
-            var indexL = 0;
-            for(var i = 0; i < data.length; i++){
-                createExp.insertLine({ 
-                    sublistId: 'expense',
-                    line :  indexL
-                });
-                 var itemId = data[i].item
-                log.debug('itemId', itemId)
-                var expAcc = ''
-                if(itemId){
-                    var itemSearchObj = search.create({
-                            type: "item",
-                            filters:
-                            [
-                                ["internalid","anyof",itemId]
-                            ],
-                            columns:
-                            [
-                                search.createColumn({name: "expenseaccount", label: "Expense/COGS Account"})
-                            ]
-                            });
-                            var searchResultCount = itemSearchObj.runPaged().count;
-                            log.debug("itemSearchObj result count",searchResultCount);
-                            itemSearchObj.run().each(function(result){
-                                expAcc = result.getValue({
-                                    name : 'expenseaccount'
-                                })
-                            return true;
-                        });
-                    }
-                log.debug('expAcc', expAcc)
-                var category = ''
-                if(expAcc){
-                    var expensecategorySearchObj = search.create({
-                    type: "expensecategory",
-                    filters:
-                    [
-                        ["account","anyof",expAcc]
-                    ],
-                    columns:
-                    [
-                        search.createColumn({name: "name", label: "Name"}),
-                        search.createColumn({name: "description", label: "Description"}),
-                        search.createColumn({name: "internalid", label: "Internal ID"})
-                    ]
-                    });
-                    var searchResultCount = expensecategorySearchObj.runPaged().count;
-                    log.debug("expensecategorySearchObj result count",searchResultCount);
-                    expensecategorySearchObj.run().each(function(result){
-                        
-                        return true;
-                    });
-                }
-                var category = '';
+            
+            // createExp.setValue({
+            //     fieldId : 'custbody_stc_expense_report_type',
+            //     value : '2'
+            // });
+            
+            // createExp.setValue({
+            //     fieldId : 'entity',
+            //     value : data[0].emp
+            // });
+            // createExp.setValue({
+            //     fieldId : 'expensereportcurrency',
+            //     value : '1'
+            // });
 
-                if (expAcc) {
-                    var expensecategorySearchObj = search.create({
-                        type: "expensecategory",
-                        filters: [
-                            ["account", "anyof", expAcc]
-                        ],
-                        columns: [
-                            search.createColumn({ name: "internalid" })
-                        ]
-                    });
+            // createExp.setValue({
+            //     fieldId : 'trandate',
+            //     value : data[0].date
+            // });
+            // createExp.setValue({
+            //     fieldId : 'department',
+            //     value : data[0].costCenter
+            // });
+            // createExp.setValue({
+            //     fieldId : 'class',
+            //     value : data[0].projectCode || '114'
+            // });
+            // createExp.setValue({
+            //     fieldId : 'location',
+            //     value : '3'
+            // });
+            // createExp.setValue({
+            //     fieldId : 'cseg_stc_sof',
+            //     value : data[0].sof || '66'
+            // });
+            // var cekAccountafter = createExp.getValue('account');
+            // var indexL = 0;
+            // for(var i = 0; i < data.length; i++){
+            //     log.debug('indexL', indexL)
+            //     createExp.insertLine({ 
+            //         sublistId: 'expense',
+            //         line :  indexL
+            //     });
+            //      var itemId = data[i].item
+            //     log.debug('itemId', itemId)
+            //     var expAcc = ''
+            //     if(itemId){
+            //         var itemSearchObj = search.create({
+            //                 type: "item",
+            //                 filters:
+            //                 [
+            //                     ["internalid","anyof",itemId]
+            //                 ],
+            //                 columns:
+            //                 [
+            //                     search.createColumn({name: "expenseaccount", label: "Expense/COGS Account"})
+            //                 ]
+            //                 });
+            //                 var searchResultCount = itemSearchObj.runPaged().count;
+            //                 log.debug("itemSearchObj result count",searchResultCount);
+            //                 itemSearchObj.run().each(function(result){
+            //                     expAcc = result.getValue({
+            //                         name : 'expenseaccount'
+            //                     })
+            //                 return true;
+            //             });
+            //         }
+            //     log.debug('expAcc', expAcc)
+            //     var category = '';
 
-                    var searchResultCount = expensecategorySearchObj.runPaged().count;
-                    log.debug("expensecategorySearchObj result count", searchResultCount);
+            //     if (expAcc) {
+            //         var expensecategorySearchObj = search.create({
+            //             type: "expensecategory",
+            //             filters: [
+            //                 ["account", "anyof", expAcc]
+            //             ],
+            //             columns: [
+            //                 search.createColumn({ name: "internalid" })
+            //             ]
+            //         });
 
-                    if (searchResultCount === 1) {
-                        expensecategorySearchObj.run().each(function (result) {
-                            category = result.getValue({ name: 'internalid' });
-                            return false;
-                        });
-                    }
-                }
-                log.debug('category', category)
+            //         var searchResultCount = expensecategorySearchObj.runPaged().count;
+            //         log.debug("expensecategorySearchObj result count", searchResultCount);
+
+            //         if (searchResultCount === 1) {
+            //             expensecategorySearchObj.run().each(function (result) {
+            //                 category = result.getValue({ name: 'internalid' });
+            //                 return false;
+            //             });
+            //         }
+            //     }
+            //     log.debug('category', category)
                 
-                createExp.setSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'expensedate',
-                    line :  indexL,
-                    value     : data[0].date
-                });
-                if(category){
-                    createExp.setSublistValue({
-                        sublistId : 'expense',
-                        fieldId   : 'category',
-                        line :  indexL,
-                        value     : category
-                    });
-                }
-                createExp.setSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'amount',
-                    line :  indexL,
-                    value     : data[i].amount
-                });
-
-                createExp.setSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'department',
-                    line :  indexL,
-                    value     : data[i].costCenter
-                });
-                createExp.setSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'class',
-                    line :  indexL,
-                    value     : data[i].projectCode
-                });
-                createExp.setSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'currency',
-                    line :  indexL,
-                    value     : '1'
-                });
-                createExp.setSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'expenseaccount',
-                    line :  indexL,
-                    value     : '488'
-                });
-                createExp.setSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'customer',
-                    line      : indexL,
-                    value     : data[i].project
-                });
-                createExp.setSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'projecttask',
-                    line      : indexL,
-                    value     : data[i].projectTask
-                });
-                createExp.setSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'cseg_stc_drc_segmen',
-                    line      : indexL,
-                    value     : data[i].drc
-                });
-                createExp.setSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'cseg_stc_segmentdea',
-                    line      : indexL,
-                    value     : data[i].dea
-                });
-                createExp.setSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'cseg_stc_sof',
-                    line      : indexL,
-                    value     : data[i].sof
-                });
-                createExp.setSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'custrecord_tare_project_task',
-                    line      : indexL,
-                    value     : data[i].projectTask
-                });
-                 
+            //     createExp.setSublistValue({
+            //         sublistId : 'expense',
+            //         fieldId   : 'expensedate',
+            //         line :  indexL,
+            //         value     : data[0].date
+            //     });
+            //     if(category){
+            //         createExp.setSublistValue({
+            //             sublistId : 'expense',
+            //             fieldId   : 'category',
+            //             line :  indexL,
+            //             value     : category
+            //         });
+            //     }
+            //     createExp.setSublistValue({
+            //         sublistId : 'expense',
+            //         fieldId   : 'amount',
+            //         line :  indexL,
+            //         value     : data[i].amount
+            //     });
+            //     if(data[i].costCenter){
+            //         createExp.setSublistValue({
+            //             sublistId : 'expense',
+            //             fieldId   : 'department',
+            //             line :  indexL,
+            //             value     : data[i].costCenter
+            //         });
+            //     }
                 
+            //     if(data[i].projectCode){
+            //         createExp.setSublistValue({
+            //             sublistId : 'expense',
+            //             fieldId   : 'class',
+            //             line :  indexL,
+            //             value     : data[i].projectCode
+            //         });
+            //     }
                 
-                indexL ++;
+            //     createExp.setSublistValue({
+            //         sublistId : 'expense',
+            //         fieldId   : 'currency',
+            //         line :  indexL,
+            //         value     : '1'
+            //     });
+            //     createExp.setSublistValue({
+            //         sublistId : 'expense',
+            //         fieldId   : 'expenseaccount',
+            //         line :  indexL,
+            //         value     : '488'
+            //     });
+            //     if(data[i].project){
+            //         createExp.setSublistValue({
+            //             sublistId : 'expense',
+            //             fieldId   : 'customer',
+            //             line      : indexL,
+            //             value     : data[i].project
+            //         });
+            //     }
+            //     if(data[i].projectTask){
+            //         createExp.setSublistValue({
+            //             sublistId : 'expense',
+            //             fieldId   : 'projecttask',
+            //             line      : indexL,
+            //             value     : data[i].projectTask
+            //         });
+            //     }
+            //     if(data[i].drc){
+            //         createExp.setSublistValue({
+            //             sublistId : 'expense',
+            //             fieldId   : 'cseg_stc_drc_segmen',
+            //             line      : indexL,
+            //             value     : data[i].drc
+            //         });
+            //     }
+            //     if(data[i].dea){
+            //         createExp.setSublistValue({
+            //             sublistId : 'expense',
+            //             fieldId   : 'cseg_stc_segmentdea',
+            //             line      : indexL,
+            //             value     : data[i].dea
+            //         });
+            //     }
+            //     if(data[i].sof){
+            //         createExp.setSublistValue({
+            //             sublistId : 'expense',
+            //             fieldId   : 'cseg_stc_sof',
+            //             line      : indexL,
+            //             value     : data[i].sof
+            //         });
+            //     }
+            //     if(data[i].projectTask){
+            //         createExp.setSublistValue({
+            //             sublistId : 'expense',
+            //             fieldId   : 'custrecord_tare_project_task',
+            //             line      : indexL,
+            //             value     : data[i].projectTask,
+            //         });
+            //         var cekValue = createExp.getSublistValue({
+            //             sublistId : 'expense',
+            //             fieldId : 'custrecord_tare_project_task',
+            //             line : indexL
+            //         });
+            //         log.debug('cekValue', cekValue)
+            //     }
+            //     log.debug('before last', indexL)
+                
+            //     indexL ++;
 
-            }
+            // }
     }
     function transPR(data, transData){
             var createPr = transData
