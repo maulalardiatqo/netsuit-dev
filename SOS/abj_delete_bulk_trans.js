@@ -8,7 +8,7 @@ define(['N/search', 'N/record', 'N/log', 'N/runtime'], function (search, record,
     function getInputData() {
         const script = runtime.getCurrentScript();
         const searchId = script.getParameter({
-            name: 'custscript_saved_search_id'
+            name: 'custscript_saved_search_id_2'
         });
 
         if (!searchId) {

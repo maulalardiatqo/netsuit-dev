@@ -2,12 +2,12 @@
  *@NApiVersion 2.1
  *@NScriptType ClientScript
  */
-define(['N/currentRecord', 'N/ui/dialog'], (currentRecord, dialog) => {
+define(['N/currentRecord', 'N/ui/dialog', 'N/https', 'N/url'], (currentRecord, dialog, https, url) => {
 
     const pageInit = (context) => {
         console.log('pageInit call');
         const currentRec = currentRecord.get();
-        const customLink = document.getElementById('custom152lnk');
+        const customLink = document.getElementById('custom188lnk');
         console.log('customLink', customLink);
 
         if (customLink) {
@@ -49,9 +49,25 @@ define(['N/currentRecord', 'N/ui/dialog'], (currentRecord, dialog) => {
         });
         console.log(`CekValue ${sublistId}:`, value);
 
-        const customLink = document.getElementById('custom152lnk');
+        const customLink = document.getElementById('custom188lnk');
         if (customLink) {
             customLink.style.display = (value === true || value === 'T') ? 'block' : 'none';
+           const suiteletUrl = url.resolveScript({
+                scriptId: "customscript_abj_sl_get_company_info",
+                deploymentId: "customdeploy_abj_sl_get_company_info",
+                params: {
+                }
+            });
+            console.log('suiteletUrl', suiteletUrl)
+            const response = https.get({ url: suiteletUrl });
+            console.log('response', response)
+            var idTkuPenjual = response.body;
+            if(idTkuPenjual){
+                currentRec.setValue({
+                    fieldId : 'custbody_id_tku_pemotong',
+                    value : idTkuPenjual
+                })
+            }
         }
     };
 

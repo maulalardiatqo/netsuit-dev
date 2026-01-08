@@ -113,6 +113,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     fieldId : 'custcol_abj_rate_units_decimal',
                     line : index
                 })
+                var noteItem = currentRecordObj.getSublistValue({
+                    sublistId: 'item',
+                    fieldId : 'custcol13',
+                    line : index
+                })
                 log.debug('ratePackSize 1', ratePackSize)
                 allData.push({
                     soNo : soNo,
@@ -132,7 +137,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     leadTimeKirim : leadTimeKirim,
                     totalPackaging : totalPackaging,
                     packSizeOrderText : packSizeOrderText,
-                    ratePackSize : ratePackSize
+                    ratePackSize : ratePackSize,
+                    noteItem : noteItem
                 });
             }
 
@@ -160,6 +166,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         osPo: 0,
                         foreCastBuffer: 0,
                         totalOrder: 0,
+                        noteItem: data.noteItem,
                         poCustomer: []
                     };
                 }
@@ -232,6 +239,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     var packSizeOrder = data.packSizeOrder
                     var packSizeOrderText = data.packSizeOrderText
                     var item = data.item;
+                    var noteItem = data.noteItem
                     var salesRep = data.salesRep;
                     var customerId = data.customerId;
                     var onHand = data.onHand;
@@ -315,18 +323,18 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     currentRecordObj.setCurrentSublistValue({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
                         fieldId: 'custrecord_iss_rumus_perhitungan',
-                        value: rumusPerhitungan
+                        value: (Number(rumusPerhitungan) || 0).toFixed(2)
                     });
                     currentRecordObj.setCurrentSublistValue({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
                         fieldId: 'custrecord_iss_avg_busdev',
-                        value: avgPengBusdev
+                        value: (Number(avgPengBusdev) || 0).toFixed(2)
                     });
-                    // currentRecordObj.setCurrentSublistValue({
-                    //     sublistId: 'recmachcustrecord_iss_pr_parent',
-                    //     fieldId: 'custrecord_iss_total_order_formula',
-                    //     value: totalPackaging
-                    // });
+                    currentRecordObj.setCurrentSublistValue({
+                        sublistId: 'recmachcustrecord_iss_pr_parent',
+                        fieldId: 'custrecord_iss_note',
+                        value: noteItem
+                    });
                     currentRecordObj.setCurrentSublistValue({
                         sublistId: 'recmachcustrecord_iss_pr_parent',
                         fieldId: 'custrecord_iss_tgl_kirim',

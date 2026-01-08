@@ -517,6 +517,23 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: "class",
                         value: project
                     });
+                    if(sofId){
+                        console.log('sofId', sofId)
+                        var sofSearch = search.lookupFields({
+                            type: "customrecord_cseg_stc_sof",
+                            id: sofId,
+                            columns: ["custrecord_stc_subtitute_sof"],
+                        });
+                        var cekBf = sofSearch.custrecord_stc_subtitute_sof
+                        if(cekBf.length >0){
+                            var sofSubtitue = cekBf[0].value;
+                            console.log("sofSubtitue", sofSubtitue);
+                            if(sofSubtitue){
+                                sofId = sofSubtitue 
+                            }
+                        }
+                    }
+                   
                     records.setCurrentSublistValue({
                         sublistId: "line",
                         fieldId: "cseg_stc_sof",
@@ -598,10 +615,28 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: "class",
                         value: sisa.project
                     });
+                    var sofSisa = sisa.sofId
+                    if(sofSisa){
+                         console.log('sofSisa', sofSisa)
+                        var sofSearch = search.lookupFields({
+                            type: "customrecord_cseg_stc_sof",
+                            id: sofSisa,
+                            columns: ["custrecord_stc_subtitute_sof"],
+                        });
+                        var cekSOf = sofSearch.custrecord_stc_subtitute_sof
+                        if(cekSOf.length > 0){
+                            var sofSubtitue = cekSOf[0].value;
+                            console.log("sofSubtitue", sofSubtitue);
+                            if(sofSubtitue){
+                                sofSisa = sofSubtitue 
+                            }
+                        }
+                        
+                    }
                     records.setCurrentSublistValue({
                         sublistId: "line",
                         fieldId: "cseg_stc_sof",
-                        value: sisa.sofId
+                        value: sofSisa
                     });
                     records.setCurrentSublistValue({
                         sublistId: "line",

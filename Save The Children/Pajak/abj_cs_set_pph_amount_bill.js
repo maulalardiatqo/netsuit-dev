@@ -9,10 +9,17 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         var currentRecordObj = context.currentRecord;
         var sublistName = context.sublistId;
         if(sublistName == 'item' || sublistName == 'expense'){
+            var fieldName 
+            if(sublistName == 'item'){
+                fieldName = 'custcol_4601_witaxamount'
+            }else{
+                fieldName = 'custcol_4601_witaxamt_exp'
+            }
             var amountTax = currentRecordObj.getCurrentSublistValue({
                 sublistId : sublistName,
-                fieldId : 'custcol_4601_witaxamount'
+                fieldId : fieldName
             });
+            console.log('amountTax', amountTax)
             if(amountTax){
                 amountTax = parseFloat(amountTax) || 0;
                 currentRecordObj.setCurrentSublistValue({

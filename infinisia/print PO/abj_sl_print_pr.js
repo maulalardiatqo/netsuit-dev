@@ -384,8 +384,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.noSO}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.tglKirim}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalForecase}</td>
-                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${firstItem.leadTimeKirim}</td>
-                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;" colspan="2">${firstItem.avgpengBusdev}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${(Number(firstItem.leadTimeKirim)).toFixed(2)}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;" colspan="2">${(Number(firstItem.avgpengBusdev)).toFixed(2)}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; border-right:none;">${dataItem.totalQty}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black;">${dataItem.lastNotes}</td>
             </tr>`;
@@ -406,8 +406,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalForecase}</td>
-                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;"></td>
-                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;" colspan="2"></td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;">${(Number(dataItem.totalRumus)).toFixed(2)}</td>
+                <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; border-right:none;" colspan="2">${(Number(dataItem.totalBusdev)).toFixed(2)}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold; border-right:none;">${dataItem.totalQty}</td>
                 <td class='tg-b_body' style="border-right: 1px solid black; background-color:yellow; font-weight:bold;"></td>
             </tr>`;
@@ -529,18 +529,21 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             totalInComingStock: 0,
                             totalOsPO: 0,
                             totalForecase: 0,
+                            totalRumus: 0,
                             totalQty: 0,
+                            totalBusdev: 0,
                             lastNotes: '',
                             customers: {}
                         };
                     }
+
                     groupedItems[item.itemId].totalOnHand += item.onHand;
                     groupedItems[item.itemId].totalInComingStock += item.inComingStock;
                     groupedItems[item.itemId].totalOsPO += item.osPO;
                     groupedItems[item.itemId].totalForecase += item.forecase;
                     groupedItems[item.itemId].totalQty += item.qty;
                     groupedItems[item.itemId].lastNotes = item.notes;
-                
+
                     if (!groupedItems[item.itemId].customers[item.customerId]) {
                         groupedItems[item.itemId].customers[item.customerId] = {
                             items: [],
@@ -548,30 +551,53 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             totalInComingStock: 0,
                             totalOsPO: 0,
                             totalForecase: 0,
+                            totalRumus: 0,
                             totalQty: 0,
+                            totalBusdev: 0,
                             lastNotes: '',
-                            noSO: []
+                            noSO: [],
+                            rumusCounted: false,     // 🔑 leadTimeKirim
+                            busdevCounted: false     // 🔑 busdev
                         };
                     }
-                
-                    const existingCustomerData = groupedItems[item.itemId].customers[item.customerId];
-                    
+
+                    const customerData = groupedItems[item.itemId].customers[item.customerId];
+
+                    // ===== NO SO =====
                     let noSOArray = item.noSO ? item.noSO.split(',').map(n => n.trim()) : [];
-                    
-                    existingCustomerData.noSO = [...existingCustomerData.noSO, ...noSOArray];
-                    
-                    existingCustomerData.noSO = [...new Set(existingCustomerData.noSO)];
-                
-                    groupedItems[item.itemId].customers[item.customerId].totalOnHand += item.onHand;
-                    groupedItems[item.itemId].customers[item.customerId].totalInComingStock += item.inComingStock;
-                    groupedItems[item.itemId].customers[item.customerId].totalOsPO += item.osPO;
-                    groupedItems[item.itemId].customers[item.customerId].totalForecase += item.forecase;
-                    groupedItems[item.itemId].customers[item.customerId].totalQty += item.qty;
-                    groupedItems[item.itemId].customers[item.customerId].lastNotes = item.notes;
-                    
-                    groupedItems[item.itemId].customers[item.customerId].items = [item];
+                    customerData.noSO = [...new Set([...customerData.noSO, ...noSOArray])];
+
+                    // ===== TOTAL NORMAL =====
+                    customerData.totalOnHand += item.onHand;
+                    customerData.totalInComingStock += item.inComingStock;
+                    customerData.totalOsPO += item.osPO;
+                    customerData.totalForecase += item.forecase;
+                    customerData.totalQty += item.qty;
+                    customerData.lastNotes = item.notes;
+
+                    // ===== RUMUS: 1x PER CUSTOMER =====
+                    if (!customerData.rumusCounted) {
+                        const rumus = Number(item.leadTimeKirim) || 0;
+
+                        customerData.totalRumus += rumus;
+                        groupedItems[item.itemId].totalRumus += rumus;
+
+                        customerData.rumusCounted = true;
+                    }
+
+                    // ===== BUSDEV: 1x PER CUSTOMER =====
+                    if (!customerData.busdevCounted) {
+                        const busdev = Number(item.avgpengBusdev) || 0;
+
+                        customerData.totalBusdev += busdev;
+                        groupedItems[item.itemId].totalBusdev += busdev;
+
+                        customerData.busdevCounted = true;
+                    }
+
+                    customerData.items = [item];
                 });
-                
+
                 for (let itemId in groupedItems) {
                     for (let customerId in groupedItems[itemId].customers) {
                         groupedItems[itemId].customers[customerId].noSO = groupedItems[itemId].customers[customerId].noSO.join(',<br/>');
