@@ -3,7 +3,7 @@
  * @NScriptType UserEventScript
  */
 
-define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", "N/redirect", "N/format"], function (record, search, serverWidget, runtime, currency, redirect, format) {
+define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", "N/redirect", "N/format", "N/runtime"], function (record, search, serverWidget, runtime, currency, redirect, format, runtime) {
     function formatDateDDMMYYYY(dateString) {
         if (!dateString) return '';
 
@@ -536,6 +536,116 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
 
             }
     }
+    function transTar(data, createTar) {
+    // 1. SET HEADER
+    log.debug('Processing Header', data[0]);
+    
+    // Link to TOR
+    if (data[0].idTor) {
+        createTar.setValue({
+            fieldId: 'custrecord_tar_link_to_tor',
+            value: data[0].idTor
+        });
+    }
+
+    // Staff Name
+    // Pastikan 'currentEmployee' adalah ID (integer), bukan object User
+    var currentEmployeeId = runtime.getCurrentUser().id; 
+    createTar.setValue({
+        fieldId: 'custrecord_tar_staf_name',
+        value: currentEmployeeId
+    });
+
+    // Date
+    if (data[0].date) {
+        // Asumsi data[0].date sudah berupa Date Object. 
+        // Jika masih string DD/MM/YYYY, gunakan parser tanggal seperti diskusi sebelumnya.
+        createTar.setValue({
+            fieldId: 'custrecord_tar_date',
+            value: data[0].date 
+        });
+    }
+
+    // 2. PROCESS SUBLIST
+    var sublistId = 'recmachcustrecord_tar_e_id';
+
+    for (var i = 0; i < data.length; i++) {
+        var rowData = data[i];
+
+        // --- SEARCH LOGIC (Server Side) ---
+        // Catatan: Search di dalam loop kurang efisien untuk data banyak, 
+        // tapi untuk jumlah baris sedikit ini masih oke.
+        var category = '';
+        var expAcc = null;
+
+        if (rowData.item) {
+            // Search Expense Account
+            var itemSearchObj = search.create({
+                type: "item",
+                filters: [["internalid", "anyof", rowData.item]],
+                columns: ["expenseaccount"]
+            });
+            itemSearchObj.run().each(function (result) {
+                expAcc = result.getValue({ name: 'expenseaccount' });
+                return false;
+            });
+
+            // Search Category
+            if (expAcc) {
+                var catSearch = search.create({
+                    type: "expensecategory",
+                    filters: [["account", "anyof", expAcc]],
+                    columns: ["internalid"]
+                });
+                if (catSearch.runPaged().count === 1) {
+                    catSearch.run().each(function (result) {
+                        category = result.getValue({ name: 'internalid' });
+                        return false;
+                    });
+                }
+            }
+        }
+        
+        // --- SET SUBLIST VALUES ---
+        // HAPUS createTar.insertLine(...) -> Tidak perlu di Standard Mode record.create
+        // Kita langsung tembak index baris menggunakan 'i'
+        
+        // 1. Expense Date
+        if (rowData.date) {
+            createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_expense_date', line: i, value: rowData.date });
+        }
+        
+        // 2. Category
+        if (category) {
+            createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_category', line: i, value: category });
+        }
+
+        // 3. Project / Donor (PENTING: Set ini agar Project Task valid)
+        if (rowData.project) {
+            createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_donor', line: i, value: rowData.project });
+        }
+
+        // 4. Project Task
+        if (rowData.projectTask) {
+            createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_project_task', line: i, value: rowData.projectTask });
+        }
+
+        // 5. Business Unit (Langsung set, tidak perlu sourcing delay di server side)
+        if (rowData.bussinessUnit) {
+            createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_ter_business_unit', line: i, value: rowData.bussinessUnit });
+        }
+
+        // 6. Field Lainnya
+        if (rowData.sof) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_source_of_funding', line: i, value: rowData.sof });
+        if (rowData.drc) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_drc', line: i, value: rowData.drc });
+        if (rowData.dea) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_dea', line: i, value: rowData.dea });
+        if (rowData.amount) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_amount', line: i, value: rowData.amount });
+        if (rowData.costCenter) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_cost_center', line: i, value: rowData.costCenter });
+        if (rowData.projectCode) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_project_code', line: i, value: rowData.projectCode });
+        
+        // Tidak perlu increment indexL manual, pakai 'i' dari loop saja
+    }
+}
     function beforeLoad(context) {
         try{
             if (context.type == context.UserEventType.CREATE) {
@@ -555,6 +665,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                             transExp(dataParsing, transData)
                         }else if(transactionType == '3'){
                             transPR(dataParsing, transData)
+                        }else if(transactionType == '4'){
+                            transTar(dataParsing, transData)
                         }
 
                     }

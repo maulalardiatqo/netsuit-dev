@@ -12,9 +12,7 @@ define(["N/search"], (search) => {
             [
                 ["formulatext: {status}","doesnotcontain","reject"], 
                 "AND", 
-                ["accounttype","anyof","Expense","OthExpense","DeferExpense"], 
-                "AND", 
-                ["account.custrecord_bm_budgetaccount","is","F"], 
+                ["accounttype","anyof","Expense","OthExpense","DeferExpense"],
                 "AND", 
                 ["status","noneof","PurchOrd:P","PurchOrd:A"], 
                 "AND", 

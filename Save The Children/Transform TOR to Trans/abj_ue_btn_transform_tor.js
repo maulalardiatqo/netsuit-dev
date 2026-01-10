@@ -16,6 +16,7 @@ define(["N/runtime", "N/log", "N/record"], (runtime, log, record) => {
             var showBtnPR = false
             var showBtnExp = false
             var showBtnPO = false
+            var showBtnTar = false
             var status = recLoad.getValue('custrecord_tor_status');
             if(status == '2'){
                 var allLine = recLoad.getLineCount({
@@ -45,6 +46,9 @@ define(["N/runtime", "N/log", "N/record"], (runtime, log, record) => {
                         if(cekTransType == '3' && (createdTrans == '' || createdTrans == null)){
                             showBtnPR = true
                         }
+                        if(cekTransType == '4' && (createdTrans == '' || createdTrans == null)){
+                            showBtnTar = true
+                        }
                     }
                 }
                 if(showBtnPR){
@@ -66,8 +70,16 @@ define(["N/runtime", "N/log", "N/record"], (runtime, log, record) => {
                 if(showBtnExp){
                     form.addButton({
                         id: 'custpage_btn_transform_exp',
-                        label: "Transform Expense Managmenent",
+                        label: "Transform Expense Management",
                         functionName: "transformExp()"
+                    });
+                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_transform_transaction.js"
+                }
+                if(showBtnTar){
+                    form.addButton({
+                        id: 'custpage_btn_transform_tar',
+                        label: "Transform TAR",
+                        functionName: "transformTar()"
                     });
                     context.form.clientScriptModulePath = "SuiteScripts/abj_cs_transform_transaction.js"
                 }

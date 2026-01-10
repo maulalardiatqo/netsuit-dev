@@ -62,12 +62,60 @@ define(['N/currentRecord'], function (currentRecord) {
                 value: formatDateDDMMYYYY(data[0].date),
                 ignoreFieldChange: true
             });
+             var itemId = line.item
+            console.log('itemId', itemId)
+            var expAcc = ''
+            if(itemId){
+                var itemSearchObj = search.create({
+                        type: "item",
+                        filters:
+                        [
+                            ["internalid","anyof",itemId]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({name: "expenseaccount", label: "Expense/COGS Account"})
+                        ]
+                        });
+                        var searchResultCount = itemSearchObj.runPaged().count;
+                        console.log("itemSearchObj result count",searchResultCount);
+                        itemSearchObj.run().each(function(result){
+                            expAcc = result.getValue({
+                                name : 'expenseaccount'
+                            })
+                        return true;
+                    });
+                }
+            console.log('expAcc', expAcc)
+            var category = '';
 
-            if (line.category) {
+            if (expAcc) {
+                var expensecategorySearchObj = search.create({
+                    type: "expensecategory",
+                    filters: [
+                        ["account", "anyof", expAcc]
+                    ],
+                    columns: [
+                        search.createColumn({ name: "internalid" })
+                    ]
+                });
+
+                var searchResultCount = expensecategorySearchObj.runPaged().count;
+                console.log("expensecategorySearchObj result count", searchResultCount);
+
+                if (searchResultCount === 1) {
+                    expensecategorySearchObj.run().each(function (result) {
+                        category = result.getValue({ name: 'internalid' });
+                        return false;
+                    });
+                }
+            }
+            console.log('category', category)
+            if (category) {
                 rec.setCurrentSublistValue({
                     sublistId: 'expense',
                     fieldId: 'category',
-                    value: line.category,
+                    value: category,
                     ignoreFieldChange: true
                 });
             }
