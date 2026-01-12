@@ -3,7 +3,7 @@
  * @NScriptType ClientScript
  */
 
-define(['N/currentRecord'], function (currentRecord) {
+define(['N/currentRecord', 'N/search', 'N/runtime'], function (currentRecord, search, runtime) {
     function formatDateDDMMYYYY(dateStr) {
         if (!dateStr) return null;
 
@@ -38,16 +38,21 @@ define(['N/currentRecord'], function (currentRecord) {
         /** =========================
          * HEADER (setValue)
          * ========================= */
+        var currentUser = runtime.getCurrentUser();
+        var empId = currentUser.id
+        console.log('empId', empId)
         rec.setValue({ fieldId: 'custbody_id_to', value: data[0].idTor });
         rec.setValue({ fieldId: 'custbody_stc_link_to_tor', value: data[0].idTor });
-        rec.setValue({ fieldId: 'custbody_stc_expense_report_type', value: '2' });
-        rec.setValue({ fieldId: 'entity', value: data[0].emp });
+        rec.setValue({ fieldId: 'custbody_stc_expense_report_type', value: '1' });
+        rec.setValue({ fieldId: 'entity', value: empId });
         rec.setValue({ fieldId: 'expensereportcurrency', value: '1' });
         rec.setValue({ fieldId: 'trandate', value: formatDateDDMMYYYY(data[0].date) });
         rec.setValue({ fieldId: 'department', value: data[0].costCenter });
         rec.setValue({ fieldId: 'class', value: data[0].projectCode || '114' });
         rec.setValue({ fieldId: 'location', value: '3' });
         rec.setValue({ fieldId: 'cseg_stc_sof', value: data[0].sof || '66' });
+        rec.setValue({ fieldId: 'custbody_stc_activity_date_from', value: formatDateDDMMYYYY(data[0].timeFrom)})
+        rec.setValue({ fieldId: 'custbody_stc_activity_date_to', value: formatDateDDMMYYYY(data[0].timeTo)})
 
         /** =========================
          * LINES (expense sublist)

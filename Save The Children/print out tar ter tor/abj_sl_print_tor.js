@@ -436,6 +436,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                         body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
                         body += "<tbody>";
+                        body += "<tr><td></td></tr>"
                         body += "<tr>"
                         body += "<td style='color:red; font-size:14px; font-weight:bold;'>ATTACHMENT</td>"
                         body += "</tr>"
@@ -455,8 +456,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         footer += "</tr>"
 
                         footer += "<tr>"
-                        footer += "<td style='border:1px solid black;'>Disiapkan oleh,</td>"
-                        footer += "<td style='border:1px solid black; border-left:none'>Diperiksa oleh, </td>"
+                        footer += "<td style='border:1px solid black;'>Prepared By,</td>"
+                        footer += "<td style='border:1px solid black; border-left:none'>Reviewed By (FInance), </td>"
                         footer += "</tr>"
 
                         footer += "<tr style='height:5%'>"
@@ -475,8 +476,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         footer += "</tr>"
 
                         footer += "<tr style='height:1%'>"
-                        footer += "<td style='border:1px solid black; border-top:none;'>Disetujui oleh,  (Finance)</td>"
-                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>Disetujui oleh,  (Budget Holder – can be various/multiple according to SOF)</td>"
+                        footer += "<td style='border:1px solid black; border-top:none;'>Approved By,  (Finance)</td>"
+                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>Approved By,  (Budget Holder – can be various/multiple according to SOF)</td>"
                         footer += "</tr>"
 
                         footer += "<tr style='height:5%'>"

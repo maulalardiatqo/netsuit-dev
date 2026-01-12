@@ -11,7 +11,7 @@ define(["N/record", "N/search"], function(
     function afterSubmit(context) {
         try {
             log.debug('context.type', context.type)
-            if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.PAYBILLS) {
+            if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.PAYBILLS || context.type == context.UserEventType.EDIT) {
                 log.debug('triggerred')
                 function formatDateToDDMMYYYY(dateStr) {
                     var date = new Date(dateStr);
@@ -60,6 +60,13 @@ define(["N/record", "N/search"], function(
                 var TransType = recordLoad.getValue("ntype");
                 log.debug('transType', TransType)
                 if(TransType){
+                   if (context.type === context.UserEventType.EDIT) {
+                        const currentTranId = recordLoad.getValue('tranid') || ''; // Handle jika null
+                        if (currentTranId.includes('CRV') || currentTranId.includes('CDV')) {
+                            log.debug('Validation', 'Document already has CRV/CDV format. Script stopped.');
+                            return; 
+                        }
+                    }
                     var searchSetup = search.load({
                         id : "customsearch_setup_bank"
                     });

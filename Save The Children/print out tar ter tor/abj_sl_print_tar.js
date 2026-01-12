@@ -94,22 +94,40 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 fieldId : 'custrecord_tar_notes',
                                 line : j
                             })
+                             var psType = recLoad.getSublistText({
+                                sublistId : 'recmachcustrecord_link_id_tar',
+                                fieldId : 'custrecord_tar_type',
+                                line : j
+                            })
+                            var psTypeV = recLoad.getSublistValue({
+                                sublistId : 'recmachcustrecord_link_id_tar',
+                                fieldId : 'custrecord_tar_type',
+                                line : j
+                            })
                             var psNameId = recLoad.getSublistValue({
                                 sublistId : 'recmachcustrecord_link_id_tar',
                                 fieldId : 'custrecord_tar_passengers_name',
                                 line : j
                             })
-                            var psName = getNameEmp(psNameId)
+                            var psName
+                            log.debug('psTypeV', psTypeV)
+                            if(psTypeV == '1'){
+                                psName = getNameEmp(psNameId)
+                                log.debug('psName', psName)
+                            }else{
+                                psName = recLoad.getSublistValue({
+                                    sublistId : 'recmachcustrecord_link_id_tar',
+                                    fieldId : 'custrecord_ter_pssngr_non_staff',
+                                    line : j
+                                })
+                            }
+                            
                             var psStaffId = recLoad.getSublistValue({
                                 sublistId : 'recmachcustrecord_link_id_tar',
                                 fieldId : 'custrecord_tar_staff_id',
                                 line : j
                             })
-                            var psType = recLoad.getSublistText({
-                                sublistId : 'recmachcustrecord_link_id_tar',
-                                fieldId : 'custrecord_tar_type',
-                                line : j
-                            })
+                           
                             allDataPassenger.push({
                                 contactDetail : contactDetail,
                                 note : note,
@@ -426,21 +444,19 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
                         body += "<tbody>";
                         body += "<tr>"
-                        body += "<td style='width:11%;'></td>"
+                        body += "<td style='width:15%;'></td>"
+                        body += "<td style='width:15%;'></td>"
                         body += "<td style='width:15%;'></td>"
                         body += "<td style='width:10%;'></td>"
                         body += "<td style='width:10%;'></td>"
                         body += "<td style='width:10%;'></td>"
-                        body += "<td style='width:10%;'></td>"
-                        body += "<td style='width:10%;'></td>"
-                        body += "<td style='width:24%;'></td>"
+                        body += "<td style='width:25%;'></td>"
                         body += "</tr>"
                         body += "<tr>"
                         body += "<td colspan='8'>Budget Code and Estimation Cost Information</td>"
                         body += "</tr>"
                         body += "<tr>"
-                        body += "<td style='border: 1px solid black; align:center;'>Percentage %</td>"
-                        body += "<td style='border: 1px solid black; border-left:none; align:center;'>Description</td>"
+                        body += "<td style='border: 1px solid black; align:center;'>Description</td>"
                         body += "<td style='border: 1px solid black; border-left:none; align:center;'>Account Code</td>"
                         body += "<td style='border: 1px solid black; border-left:none; align:center;'>Cost Centre</td>"
                         body += "<td style='border: 1px solid black; border-left:none; align:center;'>Project Code</td>"
@@ -462,8 +478,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 totalEstimate = Number(totalEstimate) + (estimateCost)
                                 log.debug('data', data)
                                 body += "<tr>"
-                                body += "<td style='border: 1px solid black; border-top:none; align:center;'>"+perctg+"%</td>"
-                                body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+escapeXmlSymbols(desc)+"</td>"
+                                body += "<td style='border: 1px solid black; border-top:none; align:center;'>"+escapeXmlSymbols(desc)+"</td>"
                                 body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+escapeXmlSymbols(accountCode)+"</td>"
                                 body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+escapeXmlSymbols(costCountry)+"</td>"
                                 body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+escapeXmlSymbols(projectCode)+"</td>"
@@ -474,11 +489,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             })
                         }
                         body += "<tr>"
-                        body += "<td style='border: 1px solid black; border-top:none; align:center;' colspan='7'>Total</td>"
+                        body += "<td style='border: 1px solid black; border-top:none; align:center;' colspan='6'>Total</td>"
                         body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+formatNumber(totalEstimate)+"</td>"
                         body += "</tr>"
                          body += "<tr>"
-                        body += "<td style='border: 1px solid black; border-top:none; align:center;' colspan='7'>Advance Request</td>"
+                        body += "<td style='border: 1px solid black; border-top:none; align:center;' colspan='6'>Advance Request</td>"
                         body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+formatNumber(advanceRequest)+"</td>"
                         body += "</tr>"
                         body += "</tbody>";

@@ -426,6 +426,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 value : data[0].sof || '66'
             });
             var indexL = 0;
+            var totalEstimate = 0
             for(var i = 0; i < data.length; i++){
                 createPr.insertLine({ 
                     sublistId: 'item',
@@ -450,6 +451,13 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     line : indexL,
                     value     : data[i].amount
                 });
+                totalEstimate = Number(totalEstimate) + Number(data[i].amount)
+                createPr.setSublistValue({
+                    sublistId : 'item',
+                    fieldId : 'estimatedamount',
+                    line : indexL,
+                    value : data[i].amount
+                })
                 createPr.setSublistValue({
                     sublistId : 'item',
                     fieldId   : 'taxcode',
@@ -535,12 +543,15 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 indexL ++;
 
             }
+            createPr.setValue({
+                fieldId : 'estimatedtotal',
+                value : totalEstimate
+            })
     }
     function transTar(data, createTar) {
-    // 1. SET HEADER
+
     log.debug('Processing Header', data[0]);
     
-    // Link to TOR
     if (data[0].idTor) {
         createTar.setValue({
             fieldId: 'custrecord_tar_link_to_tor',
@@ -548,8 +559,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         });
     }
 
-    // Staff Name
-    // Pastikan 'currentEmployee' adalah ID (integer), bukan object User
     var currentEmployeeId = runtime.getCurrentUser().id; 
     createTar.setValue({
         fieldId: 'custrecord_tar_staf_name',
@@ -558,28 +567,21 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
 
     // Date
     if (data[0].date) {
-        // Asumsi data[0].date sudah berupa Date Object. 
-        // Jika masih string DD/MM/YYYY, gunakan parser tanggal seperti diskusi sebelumnya.
         createTar.setValue({
             fieldId: 'custrecord_tar_date',
             value: data[0].date 
         });
     }
 
-    // 2. PROCESS SUBLIST
     var sublistId = 'recmachcustrecord_tar_e_id';
 
     for (var i = 0; i < data.length; i++) {
         var rowData = data[i];
 
-        // --- SEARCH LOGIC (Server Side) ---
-        // Catatan: Search di dalam loop kurang efisien untuk data banyak, 
-        // tapi untuk jumlah baris sedikit ini masih oke.
         var category = '';
         var expAcc = null;
 
         if (rowData.item) {
-            // Search Expense Account
             var itemSearchObj = search.create({
                 type: "item",
                 filters: [["internalid", "anyof", rowData.item]],
@@ -605,27 +607,23 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 }
             }
         }
-        
-        // --- SET SUBLIST VALUES ---
-        // HAPUS createTar.insertLine(...) -> Tidak perlu di Standard Mode record.create
-        // Kita langsung tembak index baris menggunakan 'i'
-        
-        // 1. Expense Date
         if (rowData.date) {
             createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_expense_date', line: i, value: rowData.date });
         }
-        
-        // 2. Category
+        if(expAcc){
+            createTar.setSublistValue({ sublistId : sublistId, fieldId: 'custrecord_tare_account', line : i, value: expAcc})
+        }
         if (category) {
             createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_category', line: i, value: category });
         }
-
-        // 3. Project / Donor (PENTING: Set ini agar Project Task valid)
+        createTar.setSublistValue({sublistId : sublistId, fieldId : 'custrecord_tare_memo', line : i, value : '-'})
         if (rowData.project) {
             createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_donor', line: i, value: rowData.project });
         }
-
-        // 4. Project Task
+        if(rowData.approver){
+            createTar.setSublistValue({sublistId: sublistId, fieldId : 'custrecord_tare_approver', line: i, value: rowData.approver})
+            createTar.setSublistValue({sublistId : sublistId, fieldId : 'custrecord_tare_approval_status', line : i, value : '1'})
+        }
         if (rowData.projectTask) {
             createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_project_task', line: i, value: rowData.projectTask });
         }
