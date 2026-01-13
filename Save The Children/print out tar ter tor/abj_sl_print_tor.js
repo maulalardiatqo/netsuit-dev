@@ -15,6 +15,27 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             empName = searchSvp.altname;
             return empName
         }
+        function repairRichText(input) {
+            if (!input || typeof input !== "string") {
+                return "";
+            }
+
+            return input
+                // 1. AMANKAN AMPERSAND (&)
+                // Regex ini mencari '&' yang TIDAK diikuti oleh kode entity (seperti &nbsp; atau &lt;)
+                // Jadi "Tom & Jerry" berubah jadi "Tom &amp; Jerry", tapi "&nbsp;" tetap "&nbsp;"
+                .replace(/&(?![a-zA-Z0-9#]+;)/g, "&amp;")
+
+                // 2. PERBAIKI TAG <br> (HTML biasa <br>, XML butuh <br/>)
+                .replace(/<br\s*\/?>/gi, "<br/>")
+
+                // 3. PERBAIKI TAG <img> (jika ada gambar, harus ditutup slash)
+                .replace(/<img([^>]+)>/gi, "<img$1 />")
+                
+                // 4. (Opsional) Hapus atribut class/style jika sering bikin error
+                // .replace(/\sclass="[^"]*"/g, "") 
+                ;
+        }
         function escapeXmlSymbols(input) {
             if (!input || typeof input !== "string") {
                 return input;
@@ -79,6 +100,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var nameActivity = recLoad.getValue('custrecord_tor_name_of_activity');
                     var background = recLoad.getValue('custrecord_tor_background');
                     var objective = recLoad.getValue('custrecord_tor_objectives');
+                    log.debug('objective', objective)
                     var expectedOutput = recLoad.getValue('custrecord_tor_expected_output');
                     var attachment = recLoad.getValue('custrecord_tor_attachment');
 
@@ -317,7 +339,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "</tr>"
 
                         body += "<tr>"
-                        body += "<td style=''>"+escapeXmlSymbols(objective)+"</td>"
+                        body += "<td style=''>"+repairRichText(objective)+"</td>"
                         body += "</tr>"
 
                         body += "<tr>"
@@ -457,7 +479,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                         footer += "<tr>"
                         footer += "<td style='border:1px solid black;'>Prepared By,</td>"
-                        footer += "<td style='border:1px solid black; border-left:none'>Reviewed By (FInance), </td>"
+                        footer += "<td style='border:1px solid black; border-left:none'>Approved By (Line Manager)</td>"
                         footer += "</tr>"
 
                         footer += "<tr style='height:5%'>"
@@ -476,8 +498,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         footer += "</tr>"
 
                         footer += "<tr style='height:1%'>"
-                        footer += "<td style='border:1px solid black; border-top:none;'>Approved By,  (Finance)</td>"
-                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>Approved By,  (Budget Holder – can be various/multiple according to SOF)</td>"
+                        footer += "<td style='border:1px solid black; border-top:none;'>Reviewed By (FInance)</td>"
+                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>Approved By (Budget Holder – can be various/multiple according to SOF)</td>"
                         footer += "</tr>"
 
                         footer += "<tr style='height:5%'>"

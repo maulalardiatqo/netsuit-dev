@@ -2,39 +2,51 @@
  * @NApiVersion 2.1
  * @NScriptType clientscript
  */
-define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url'], function(currentRecord, dialog, log, search, https, url) {
+define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url', 'N/runtime'], function(currentRecord, dialog, log, search, https, url, runtime) {
     let currentMode = '';
 
     function pageInit(context) {
         currentMode = context.mode;
     }
-    function getBudgetHolderApproval(paramSof, paramAccount, paramAmount) {
-        function runSearch(useAccount) {
-            var filters = [];
-            filters.push(["custrecord_stc_sof", "is", paramSof]);
+    function getBudgetHolderApproval(paramSof, paramAccount, paramAmount, createdBy) {
+    
+            function runSearch(useAccount) {
+                var filters = [];
+                filters.push(["custrecord_stc_sof", "is", paramSof]);
 
-            if (useAccount && paramAccount) {
-                filters.push("AND", ["custrecord_stc_account", "is", paramAccount]);
+                if (useAccount && paramAccount) {
+                    filters.push("AND", ["custrecord_stc_account", "is", paramAccount]);
+                }
+
+                filters.push("AND", ["custrecord_stc_max_limit_amnt", "greaterthanorequalto", paramAmount]);
+                filters.push("AND", ["isinactive", "is", "F"]);
+
+                var searchObj = search.create({
+                    type: "customrecord_stc_apprv_matrix_bdgt_holdr",
+                    filters: filters,
+                    columns: [
+                        search.createColumn({ name: "custrecord_stc_max_limit_amnt", sort: search.Sort.ASC }),
+                        search.createColumn({ name: "custrecord_stc_bdgt_hldr_approval" })
+                    ]
+                });
+
+                var results = searchObj.run().getRange({ start: 0, end: 100 }); 
+                
+                if (results && results.length > 0) {
+                    for (var i = 0; i < results.length; i++) {
+                        var approverId = results[i].getValue("custrecord_stc_bdgt_hldr_approval");
+                        
+                        if (approverId != createdBy) {
+                            return approverId;
+                        }
+                        
+                        log.debug('Skip Self Approval', 'Approver ' + approverId + ' is the creator. Skipping to next tier.');
+                    }
+                }
+                
+                return null;
             }
 
-            filters.push("AND", ["custrecord_stc_max_limit_amnt", "greaterthanorequalto", paramAmount]);
-            filters.push("AND", ["isinactive", "is", "F"]);
-
-            var searchObj = search.create({
-                type: "customrecord_stc_apprv_matrix_bdgt_holdr",
-                filters: filters,
-                columns: [
-                    search.createColumn({ name: "custrecord_stc_max_limit_amnt", sort: search.Sort.ASC }),
-                    search.createColumn({ name: "custrecord_stc_bdgt_hldr_approval" })
-                ]
-            });
-
-            var result = searchObj.run().getRange({ start: 0, end: 1 });
-            if (result && result.length > 0) {
-                return result[0].getValue("custrecord_stc_bdgt_hldr_approval");
-            }
-            return null;
-        }
         var approval = runSearch(true);
         if (!approval) {
             approval = runSearch(false);
@@ -42,48 +54,74 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url
 
         return approval;
     }
-    function getFinanceMatric(sofId, amount){
-        console.log('finance matrix')
-        var approvalFinance
+    function getFinanceMatric(sofId, amount, createdBy) {
+        
+        var approvalFinance = null;
+        
         var customrecord_stc_apprvl_mtrix_financeSearchObj = search.create({
             type: "customrecord_stc_apprvl_mtrix_finance",
             filters: [
                 ["custrecord_stc_sof_mtrx_finance", "anyof", sofId],
                 "AND", 
-                ["custrecord_finance_max_amnt","greaterthanorequalto",amount]
+                ["custrecord_finance_max_amnt", "greaterthanorequalto", amount]
+                , "AND",
+                ["isinactive", "is", "F"]
             ],
             columns: [
+                search.createColumn({
+                    name: "custrecord_finance_max_amnt",
+                    sort: search.Sort.ASC
+                }),
                 search.createColumn({ name: "custrecord_stc_apprvl_finance", label: "Approval Finance" })
             ]
         });
 
         var results = customrecord_stc_apprvl_mtrix_financeSearchObj.run().getRange({
             start: 0,
-            end: 1
+            end: 100 
         });
 
-        if (results.length > 0) {
-            approvalFinance = results[0].getValue("custrecord_stc_apprvl_finance");
+        if (results && results.length > 0) {
+            for (var i = 0; i < results.length; i++) {
+                var potentialApprover = results[i].getValue("custrecord_stc_apprvl_finance");
+                
+                if (potentialApprover != createdBy) {
+                    approvalFinance = potentialApprover;
+                    break; 
+                }
+                
+            }
         }
-        return approvalFinance
+        
+        return approvalFinance;
     }
     function validateLine(context) {
-    var currentRec = currentRecord.get();
+        var currentRec = currentRecord.get();
+        var currentuser = runtime.getCurrentUser().id;
+        var createdFIeld
         var typeRec = currentRec.type;
         console.log('typeRec', typeRec)
         var sublistExpens
         var sublistItem
         if(typeRec == 'customrecord_tar'){
+            createdFIeld = 'custrecord_tar_created_by'
             sublistExpens = 'recmachcustrecord_tar_e_id'
         }
 
         if(typeRec == 'customrecord_ter'){
             sublistItem = 'recmachcustrecord_terd_id'
             sublistExpens = 'recmachcustrecord_tar_id_ter'
+            createdFIeld = 'custrecord_ter_created_by'
         }
         if(typeRec == 'customrecord_tor'){
             sublistItem = 'recmachcustrecord_tori_id'
+            createdFIeld = 'custrecord_tor_create_by'
         }
+        var createdBy
+        if(createdFIeld){
+            createdBy = currentRec.getValue(createdFIeld)
+        }
+         
         // ==== KONDISI SUBLIST ITEM ====
         if (context.sublistId === sublistItem) {
             var cekType = currentRec.getValue('type');
@@ -142,7 +180,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url
             console.log('cekCurrentMode', currentMode)
 
             if (sofId) {
-                var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+                var cekEmp = getBudgetHolderApproval(sofId, account, grossamt, createdBy, currentuser);
                 if(typeRec == 'customrecord_tor' || typeRec == 'customrecord_ter'){
                     var fieldNameEmp
                     var fieldNameStatus
@@ -155,7 +193,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url
                     }
                     console.log('masuk app FA')
                     console.log('data params fa', {sofId : sofId, grossamt : grossamt})
-                    var emp = getFinanceMatric(sofId, grossamt)
+                    var emp = getFinanceMatric(sofId, grossamt, createdBy)
                     console.log('emp', emp)
                     if(emp){
                         currentRec.setCurrentSublistValue({
@@ -226,12 +264,12 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/https', 'N/url
             console.log('cekCurrentMode', currentMode)
 
             if (sofId) {
-                var cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+                var cekEmp = getBudgetHolderApproval(sofId, account, grossamt, createdBy, currentuser);
                 console.log('cekEmp (expense)', cekEmp)
                 
                 if( typeRec == 'customrecord_ter'){
                     console.log('ter caaled', sublistExpens)
-                    var emp = getFinanceMatric(sofId, grossamt)
+                    var emp = getFinanceMatric(sofId, grossamt, createdBy)
                     if(emp){
                         currentRec.setCurrentSublistValue({
                             sublistId : "recmachcustrecord_tar_id_ter",
