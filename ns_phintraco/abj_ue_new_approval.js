@@ -295,7 +295,7 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                     form.removeButton('edit');
                     context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
                 }
-                if(cekAppralStat == '2' && cekIdWeb){
+                if(cekAppralStat == '3' && cekIdWeb){
                     form.addButton({
                         id: 'custpage_button_resubmit_app',
                         label: "Resubmit Approval",
