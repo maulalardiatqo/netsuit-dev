@@ -274,6 +274,7 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 if((isAttach && isApprover && cekFlagApproval == false) || (isAttach && isApprover && isAdmin === true)){
                     log.debug('masuk kondisi cek')
                     var cekApprovStatus = rec.getValue('approvalstatus');
+                    log.debug('cekApprovStatus kondisi', cekApprovStatus)
                     var oldStatus = oldRec.getValue('approvalstatus');
                     log.debug('oldStatus', oldStatus)
                     if(oldStatus == '3' && cekApprovStatus == '3'){
@@ -462,10 +463,10 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 })
                 if(cekFlagApproval == true){
                     log.debug('true');
-                    rec.setValue({
-                        fieldId : 'custbody_abj_flag_approval',
-                        value : false
-                    })
+                    // rec.setValue({
+                    //     fieldId : 'custbody_abj_flag_approval',
+                    //     value : false
+                    // })
                 }
                 if(triggerResubmit){
                     rec.setValue({

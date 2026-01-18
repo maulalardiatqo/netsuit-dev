@@ -26,6 +26,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
         var emp  = recLoad.getValue('custrecord_tor_create_by');
         var timeFrom = recLoad.getText('custrecord_tor_timeline_p_from');
         var timeTo = recLoad.getText('custrecord_tor_timeline_period_to');
+        var noTor = recLoad.getValue('name')
 
         var cekLine = recLoad.getLineCount({
             sublistId: 'recmachcustrecord_tori_id'
@@ -56,6 +57,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
 
                     if (!cekLink) {
                         dataTransform.push({
+                            noTor : noTor,
                             date: date,
                             emp: emp,
                             timeFrom : timeFrom,
@@ -120,6 +122,11 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                             bussinessUnit: recLoad.getSublistValue({
                                 sublistId : 'recmachcustrecord_tori_id',
                                 fieldId : 'custrecord_tor_business_unit',
+                                line : i
+                            }),
+                            idLine : recLoad.getSublistValue({
+                                sublistId : 'recmachcustrecord_tori_id',
+                                fieldId : 'id',
                                 line : i
                             })
                         });

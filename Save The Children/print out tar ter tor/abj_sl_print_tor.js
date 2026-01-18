@@ -331,7 +331,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "</tr>"
 
                         body += "<tr>"
-                        body += "<td style=''>"+escapeXmlSymbols(background)+"</td>"
+                        body += "<td style=''>"+repairRichText(background)+"</td>"
                         body += "</tr>"
 
                         body += "<tr>"
@@ -347,7 +347,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "</tr>"
 
                         body += "<tr>"
-                        body += "<td style=''>"+escapeXmlSymbols(expectedOutput)+"</td>"
+                        body += "<td style=''>"+repairRichText(expectedOutput)+"</td>"
                         body += "</tr>"
 
                         body += "</tbody>"
@@ -464,69 +464,69 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "</tr>"
 
                         body += "<tr>"
-                        body += "<td>"+attachment+"</td>"
+                        body += "<td>"+repairRichText(attachment)+"</td>"
                         body += "</tr>"
                         body += "</tbody>"
                         body += "</table>"
 
-                        footer += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
-                        footer += "<tbody>";
+                        body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px; page-break-inside: avoid;\">"; 
+                        body += "<tbody>";
 
-                        footer += "<tr>"
-                        footer += "<td style='width:50%'></td>"
-                        footer += "<td style='width:50%'></td>"
-                        footer += "</tr>"
+                        body += "<tr>"
+                        body += "<td style='width:50%'></td>"
+                        body += "<td style='width:50%'></td>"
+                        body += "</tr>"
 
-                        footer += "<tr>"
-                        footer += "<td style='border:1px solid black;'>Prepared By,</td>"
-                        footer += "<td style='border:1px solid black; border-left:none'>Approved By (Line Manager)</td>"
-                        footer += "</tr>"
+                        body += "<tr>"
+                        body += "<td style='border:1px solid black;'>Prepared By,</td>"
+                        body += "<td style='border:1px solid black; border-left:none'>Approved By (Line Manager)</td>"
+                        body += "</tr>"
 
-                        footer += "<tr style='height:5%'>"
-                        footer += "<td style='border:1px solid black; border-top:none;'></td>"
-                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
-                        footer += "</tr>"
+                        body += "<tr style='height:5%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'></td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        body += "</tr>"
 
-                        footer += "<tr style='height:2%'>"
-                        footer += "<td style='border:1px solid black; border-top:none;'>"+createdByName+"</td>"
-                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+nextAppName+"</td>"
-                        footer += "</tr>"
+                        body += "<tr style='height:2%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'>"+createdByName+"</td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+nextAppName+"</td>"
+                        body += "</tr>"
 
-                        footer += "<tr style='height:2%'>"
-                        footer += "<td style='border:1px solid black; border-top:none;'>"+createdDate+"</td>"
-                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+lastAppManager+"</td>"
-                        footer += "</tr>"
+                        body += "<tr style='height:2%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'>"+createdDate+"</td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+lastAppManager+"</td>"
+                        body += "</tr>"
 
-                        footer += "<tr style='height:1%'>"
-                        footer += "<td style='border:1px solid black; border-top:none;'>Reviewed By (FInance)</td>"
-                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>Approved By (Budget Holder – can be various/multiple according to SOF)</td>"
-                        footer += "</tr>"
+                        body += "<tr style='height:1%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'>Reviewed By (FInance)</td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'>Approved By (Budget Holder – can be various/multiple according to SOF)</td>"
+                        body += "</tr>"
 
-                        footer += "<tr style='height:5%'>"
-                        footer += "<td style='border:1px solid black; border-top:none;'></td>"
-                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
-                        footer += "</tr>"
+                        body += "<tr style='height:5%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'></td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'></td>"
+                        body += "</tr>"
 
-                         footer += "<tr style='height:2%'>"
-                        footer += "<td style='border:1px solid black; border-top:none;'>"+allAppFa+"</td>"
-                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+allAppBudget+"</td>"
-                        footer += "</tr>"
+                         body += "<tr style='height:2%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'>"+allAppFa+"</td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+allAppBudget+"</td>"
+                        body += "</tr>"
 
-                        footer += "<tr style='height:2%'>"
-                        footer += "<td style='border:1px solid black; border-top:none;'>"+lastAppFa+"</td>"
-                        footer += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+lastAppBudget+"</td>"
-                        footer += "</tr>"
+                        body += "<tr style='height:2%'>"
+                        body += "<td style='border:1px solid black; border-top:none;'>"+lastAppFa+"</td>"
+                        body += "<td style='border:1px solid black; border-left:none; border-top:none;'>"+lastAppBudget+"</td>"
+                        body += "</tr>"
 
-                        footer += "</tbody>"
-                        footer += "</table>"
+                        body += "</tbody>"
+                        body += "</table>"
 
 
-                        footer += "<table class='tg' style='table-layout: fixed; width: 100%; font-size:8px'>";
-                        footer += "<tbody>";
-                        footer += "<tr>"
-                        footer += "</tr>"
-                        footer += "</tbody>";
-                        footer += "</table>";
+                        body += "<table class='tg' style='table-layout: fixed; width: 100%; font-size:8px'>";
+                        body += "<tbody>";
+                        body += "<tr>"
+                        body += "</tr>"
+                        body += "</tbody>";
+                        body += "</table>";
                         var xml = '<?xml version="1.0"?>\n' +
                         '<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">';
 
@@ -548,7 +548,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                         xml += "<body font-size='10' style='font-family: Tahoma,sans-serif; height: 29.7cm; width: 21cm;' " +
                             "header='nlheader' header-height='" + headerHeight + "' " +
-                            "footer='nlfooter' footer-height='20%' " + 
+                            "footer='nlfooter' footer-height='0%' " + 
                             "margin-left='0.7cm' margin-right='0.7cm'>";
 
                         xml += body;
