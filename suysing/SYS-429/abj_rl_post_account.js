@@ -9,248 +9,227 @@
 /*******************************************************************************
  * **Copyright (c) 2025 ABJ Cloud Solutions, Inc.
  * @Client        :  Suy Sing
- * @Script Name   :  - SSCC | RL | Customer Integration
- * @script File   :  abj_rl_suy_sing_integration.js
+ * @Script Name   :  - SSCC | RL | Accounts Integration
+ * @script File   :  abj_rl_accounts_integration.js
  * @Trigger Type  :  HTTP Request
- * @Release Date  :  AUG 01, 2025
- * @Author        :  ABJ Developer
- * @Description   :  Restlet to Create and Retrieve Customer Data based on External Client Input.
+ * @Release Date  :  JAN 19, 2026
+ * @Author        :  Maulal Ardi Atqo
+ * @Description   :  Handle creation and retrieval of Customer (Accounts) records.
  * @Enhancement   :  
  * @NApiVersion 2.1
  * @NScriptType Restlet
  * @NModuleScope SameAccount
  *
  ******************************************************************************/
-define(['N/record', 'N/search', 'N/format'], (record, search, format) => {
+define(['N/record', 'N/search', 'N/format', 'N/error'], (record, search, format, error) => {
+
+
+    const createErrorResponse = (code, message) => {
+        return {
+            status: "error",
+            error_code: code,
+            message: message
+        };
+    };
+
+    const parseDate = (dateString) => {
+        if (!dateString) return null;
+        return new Date(dateString); // Assumes ISO or valid JS date string
+    };
 
     /**
-    * GET method - Used to retrieve information about a specific record.
-    * Retrieves Customer data by reference_id (External ID).
-    *
-    * @param {Object} requestParams - An object containing the URL parameters.
-    * e.g., /app/site/hosting/restlet.nl?script=xxx&deploy=xxx&reference_id=REF123
-    * @returns {Object} - A JSON object representing the customer data.
-    * @since 2015.2
-    */
+     * GET method - Used to retrieve information about customer records.
+     * Supports filtering by account_id or date range (start_date/end_date).
+     *
+     * @param {Object} requestParams
+     * @returns {Object}
+     */
     function get(requestParams) {
         try {
-            var response = {};
-            
-            // Validasi input
-            if (!requestParams.reference_id && !requestParams.id) {
-                throw { name: 'MISSING_REQ_PARAM', message: 'Please provide reference_id (External ID) or id (Internal ID)' };
+            let filters = [];
+            const { account_id, start_date, end_date } = requestParams;
+            if (account_id) {
+                filters.push(['entityid', 'is', account_id]);
+            } else {
+                if (!start_date) {
+                    filters.push(['isinactive', 'is', 'F']);
+                } else {
+                    let sDate = parseDate(start_date);
+                    let eDate = end_date ? parseDate(end_date) : new Date(); 
+
+                    if (eDate < sDate) {
+                        throw error.create({
+                            name: 'INVALID_DATE_RANGE',
+                            message: 'end_date cannot be earlier than start_date'
+                        });
+                    }
+                    const formattedStart = format.format({ value: sDate, type: DATETIME_FORMAT });
+                    const formattedEnd = format.format({ value: eDate, type: DATETIME_FORMAT });
+
+                    filters.push(['lastmodifieddate', 'within', formattedStart, formattedEnd]);
+                }
             }
 
-            // Setup Search
-            var filters = [];
-            if (requestParams.reference_id) {
-                filters.push(['externalid', 'is', requestParams.reference_id]);
-            } else if (requestParams.id) {
-                filters.push(['internalid', 'is', requestParams.id]);
-            }
-
-            // Mapping output sesuai field yang diminta
-            var customerSearch = search.create({
+            // Create Search
+            const customerSearch = search.create({
                 type: search.Type.CUSTOMER,
                 filters: filters,
                 columns: [
-                    'internalid',
-                    'externalid', // reference_id
-                    'custentity_abj_entity_ow_fname', // first_name
-                    'custentity_abj_entity_ow_lname', // last_name
-                    'companyname', // store_name
-                    'custentity_abj_format', // format
-                    'leadsource', // lead_source
-                    'defaultaddress', // address
-                    'custentity_abj_datapriconsentdatemanual', // data_privacy_agreement_at
-                    'custrecord_abj_cont_confirname' // contacts
+                    'entityid',                         // account_id
+                    'externalid',                       // reference_id
+                    'companyname',                      // client_name / store_name
+                    'custentity_abj_customerclass',     // class
+                    'custentity_abj_format',            // format
+                    'custentity_abj_preferredpickupdc', // default_pickup_branch
+                    'custentity_abj_tradevdr_trans_type', // default_transaction_type
+                    'custentity_abj_paymentmode',       // default_payment_code
+                    'defaultaddress',                   // addresses
+                    'custentity_abj_maincode',          // main_account_id
+                    'entitystatus',                     // lead
+                    'isinactive',                       // status
+                    'custentity_abj_contact',           // contacts
+                    'custrecord_abj_custgrpcode_link_groupcod' // groups
+                    // Note: 'name' field for success_card_number is ambiguous in search, usually entityid or companyname. 
+                    // Assuming 'entityid' or specific custom field. Using entityid as placeholder.
                 ]
             });
 
-            var searchResult = customerSearch.run().getRange({ start: 0, end: 1 });
+            const resultData = [];
+            const pagedData = customerSearch.runPaged({ pageSize: 1000 });
 
-            if (searchResult.length > 0) {
-                var res = searchResult[0];
-                response = {
-                    status: "success",
-                    data: {
-                        internal_id: res.getValue('internalid'),
+            pagedData.pageRanges.forEach(pageRange => {
+                const page = pagedData.fetch({ index: pageRange.index });
+                page.data.forEach(res => {
+                    resultData.push({
+                        account_id: res.getValue('entityid'),
                         reference_id: res.getValue('externalid'),
-                        first_name: res.getValue('custentity_abj_entity_ow_fname'),
-                        last_name: res.getValue('custentity_abj_entity_ow_lname'),
+                        client_name: res.getValue('companyname'),
                         store_name: res.getValue('companyname'),
-                        format: res.getText('custentity_abj_format'), // Mengambil Text karena ini List/Record
-                        lead_source: res.getText('leadsource'),
-                        address: res.getValue('defaultaddress'),
-                        contacts: res.getValue('custrecord_abj_cont_confirname'),
-                        data_privacy_agreement_at: res.getValue('custentity_abj_datapriconsentdatemanual')
-                    }
-                };
-            } else {
-                response = {
-                    status: "error",
-                    message: "Record not found"
-                };
-            }
+                        class: res.getText('custentity_abj_customerclass'),
+                        format: res.getText('custentity_abj_format'),
+                        default_pickup_branch: res.getText('custentity_abj_preferredpickupdc'),
+                        default_transaction_type: res.getText('custentity_abj_tradevdr_trans_type'),
+                        default_ship_to_id: "", // Field ID 'Default shipping check box' not standard searchable, requires specific logic
+                        default_payment_code: res.getText('custentity_abj_paymentmode'),
+                        success_card_number: res.getValue('entityid'), // Mapping ambiguous 'name'
+                        contacts: res.getValue('custentity_abj_contact'),
+                        groups: res.getValue('custrecord_abj_custgrpcode_link_groupcod'),
+                        addresses: res.getValue('defaultaddress'),
+                        main_account_id: res.getValue('custentity_abj_maincode'),
+                        lead: res.getText('entitystatus'),
+                        status: res.getValue('isinactive') ? "Inactive" : "Active"
+                    });
+                });
+            });
 
-            return response;
+            return {
+                status: "success",
+                message: "Data retrieved successfully",
+                data: resultData
+            };
 
         } catch (ex) {
             log.error("get: " + ex.name, ex.message);
-            return {
-                status: "error",
-                error_code: ex.name,
-                message: ex.message
-            };
+            return createErrorResponse(ex.name, ex.message);
         }
     };
 
     /**
-     * POST method - Used to create a new record.
-     * Creates a new Customer record based on field mapping.
+     * POST method - Used to create a new Customer record.
      *
-     * @param {Object} requestBody - A JSON object from the request body.
-     * @returns {Object} - A JSON object with the new record's internal ID.
-     * @since 2015.2
+     * @param {Object} requestBody
+     * @returns {Object}
      */
     function post(requestBody) {
         try {
-            log.debug('POST Request Body', requestBody);
-
-            // Validasi Mandatory Fields (contoh sederhana)
-            if (!requestBody.store_name || !requestBody.reference_id) {
-                throw { name: 'MISSING_MANDATORY_FIELD', message: 'store_name and reference_id are required.' };
+            log.debug('requestBody', requestBody)
+            if (!requestBody) {
+                throw error.create({ name: 'MISSING_BODY', message: 'Request body is empty' });
             }
 
-            // Create Record: CUSTOMER
-            var rec = record.create({
+            if (!requestBody.how_did_u_know_suysing || !requestBody.funnel  || !requestBody.sales_rep  || !requestBody.reference_id || !requestBody.store_name) {
+                throw error.create({ name: 'MISSING_REQUIRED_FIELD', message: 'reference_id and store_name are required.' });
+            }
+
+            const rec = record.create({
                 type: record.Type.CUSTOMER,
                 isDynamic: true
             });
-
-            // --- 1. client_id (Customer Source) ---
-            // Note: Gambar menyatakan "NOT PART OF CLIENT INPUT; SYSTEM TO INFER".
-            // Logic: Anda harus menentukan logic infer di sini. Contoh hardcode atau lookup.
-            // rec.setValue({ fieldId: 'custentity_customer_source', value: 'SOME_DEFAULT_VALUE' }); 
-            
-            // --- 2. reference_id -> externalid ---
-            rec.setValue({
-                fieldId: 'externalid',
-                value: requestBody.reference_id
-            });
-
-            // --- 3. first_name -> custentity_abj_entity_ow_fname ---
+            rec.setValue({ fieldId: 'externalid', value: requestBody.reference_id });
             if (requestBody.first_name) {
-                rec.setValue({
-                    fieldId: 'custentity_abj_entity_ow_fname',
-                    value: requestBody.first_name
-                });
+                rec.setValue({ fieldId: 'custentity_abj_entity_ow_fname', value: requestBody.first_name });
             }
-
-            // --- 4. last_name -> custentity_abj_entity_ow_lname ---
             if (requestBody.last_name) {
-                rec.setValue({
-                    fieldId: 'custentity_abj_entity_ow_lname',
-                    value: requestBody.last_name
-                });
+                rec.setValue({ fieldId: 'custentity_abj_entity_ow_lname', value: requestBody.last_name });
             }
-
-            // --- 5. store_name -> companyname ---
-            rec.setValue({
-                fieldId: 'companyname',
-                value: requestBody.store_name
-            });
-
-            // --- 6. format -> custentity_abj_format ---
-            // Value: REF FORMATS MASTER (Asumsi input adalah Internal ID dari List Format)
+            rec.setValue({ fieldId: 'companyname', value: requestBody.store_name });
             if (requestBody.format) {
-                rec.setValue({
-                    fieldId: 'custentity_abj_format',
-                    value: requestBody.format
-                });
+                rec.setValue({ fieldId: 'custentity_abj_format', value: requestBody.format });
             }
-
-            // --- 7. lead_source -> leadsource ---
-            // Value: REF LEAD SOURCE MASTER
             if (requestBody.lead_source) {
-                rec.setValue({
-                    fieldId: 'leadsource',
-                    value: requestBody.lead_source
-                });
+                rec.setValue({ fieldId: 'leadsource', value: requestBody.lead_source });
             }
-
-            // --- 8. contacts -> custrecord_abj_cont_confirname ---
-            // Note: Field ID 'custrecord...' biasanya untuk Custom Record.
-            // Pastikan field ini benar-benar ada di record Customer.
             if (requestBody.contacts) {
-                rec.setValue({
-                    fieldId: 'custrecord_abj_cont_confirname',
-                    value: requestBody.contacts
-                });
+                rec.setValue({ fieldId: 'custrecord_abj_cont_confirname', value: requestBody.contacts });
             }
-
-            // --- 9. address -> defaultaddress ---
-            // Note: 'defaultaddress' biasanya string block.
-            // Jika ingin masuk ke sublist Address Book, logic-nya berbeda.
             if (requestBody.address) {
-                rec.setValue({
-                    fieldId: 'defaultaddress',
-                    value: requestBody.address
+                rec.setValue({ fieldId: 'defaultaddress', value: requestBody.address });
+                let addrSubRec = rec.getCurrentSublistSubrecord({
+                    sublistId: 'addressbook',
+                    fieldId: 'addressbookaddress'
                 });
-            }
 
-            // --- 10. data_privacy_agreement_at -> custentity_abj_datapriconsentdatemanual ---
+                addrSubRec.setValue({ fieldId: 'country', value: 'PH' });
+                addrSubRec.setValue({ fieldId: 'addressee', value: requestBody.address });
+
+                rec.commitLine({ sublistId: 'addressbook' });
+            }
             if (requestBody.data_privacy_agreement_at) {
-                // Parsing string date ke Object Date (Asumsi format YYYY-MM-DD atau ISO)
-                var dateValue = new Date(requestBody.data_privacy_agreement_at);
-                rec.setValue({
-                    fieldId: 'custentity_abj_datapriconsentdatemanual',
-                    value: dateValue
-                });
+                let privacyDate = parseDate(requestBody.data_privacy_agreement_at);
+                if (privacyDate) {
+                    rec.setValue({ fieldId: 'custentity_abj_datapriconsentdatemanual', value: privacyDate });
+                }
             }
-
-            // Save Record
-            var newRecordId = rec.save();
-            log.audit('Record Created', 'New Customer ID: ' + newRecordId);
+            rec.setValue({fieldId : 'custentity_abj_cust_salesrep', value :requestBody.sales_rep});
+            rec.setValue({fieldId : 'custentity_abj_funnel', value :requestBody.funnel});
+            rec.setValue({fieldId : 'custentity_abj_knabotss', value :requestBody.how_did_u_know_suysing});
+            
+            const recordId = rec.save();
+            log.audit('Customer Created', 'ID: ' + recordId + ', Ref: ' + requestBody.reference_id);
 
             return {
                 status: "success",
-                internal_id: newRecordId,
-                reference_id: requestBody.reference_id,
-                message: "Customer created successfully"
+                message: "Record created successfully",
+                internal_id: recordId
             };
 
         } catch (ex) {
             log.error("post: " + ex.name, ex.message);
-            return {
-                status: "error",
-                error_code: ex.name,
-                message: ex.message
-            };
+            return createErrorResponse(ex.name, ex.message);
         }
     };
 
     /**
-     * PUT method - Used to update an existing record.
+     * PUT method - Update not requested but skeleton provided.
      */
     function put(requestBody) {
         try {
-            // Logic Update bisa ditambahkan di sini jika diperlukan
-            return { status: "success", message: "PUT method not implemented yet" };
+            return createErrorResponse("NOT_IMPLEMENTED", "PUT method is not implemented");
         } catch (ex) {
             log.error("put: " + ex.name, ex.message);
+            return createErrorResponse(ex.name, ex.message);
         }
     };
 
     /**
-     * DELETE method - Used to delete a record.
+     * DELETE method - Delete not requested but skeleton provided.
      */
     function deleteRecord(requestParams) {
         try {
-             // Logic Delete bisa ditambahkan di sini jika diperlukan
-             return { status: "success", message: "DELETE method not implemented yet" };
+            return createErrorResponse("NOT_IMPLEMENTED", "DELETE method is not implemented");
         } catch (ex) {
             log.error("deleteRecord: " + ex.name, ex.message);
+            return createErrorResponse(ex.name, ex.message);
         }
     };
 

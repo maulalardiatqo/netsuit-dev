@@ -17,12 +17,14 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 const rec = context.newRecord;
                 var cekSof = rec.getValue('custbody_stc_sof_awarded');
                 var cekisClose = rec.getValue('entitystatus');
+                var cekApproval = rec.getValue('custbody_sos_p_approval_status');
                 log.debug('cekIsClose', cekisClose);
                 log.debug('cekSof', cekSof)
+                log.debug('cekApproval', cekApproval)
                 if(cekSof){
                     log.debug('adaSOF');
                 }else{
-                    if(cekisClose == '13'){
+                    if(cekisClose == '13' && cekApproval == '2'){
                         form.addButton({
                             id: 'custpage_btn_transform',
                             label: "Create SOF",

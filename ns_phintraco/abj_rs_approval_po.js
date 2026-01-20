@@ -38,25 +38,8 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
                     value: 3, 
                     ignoreFieldChange: true
                 });
-                recPo.setValue({
-                    fieldId: 'custbody_abj_flag_approval',
-                    value: false, 
-                    ignoreFieldChange: true
-                });
             }
 
-            // === Jika updateHeader == true, ubah header ke Approved ===
-            // if (updateHeader === 'true') {
-            //     log.debug('Update Header', 'Semua approver sudah approve, ubah approvalstatus ke Approved.');
-                
-            //     recPo.setValue({
-            //         fieldId: 'approvalstatus',
-            //         value: 2, // Approved
-            //         ignoreFieldChange: true
-            //     });
-            //     log.debug('after set header')
-            //     setSublist(recPo, 2, approver, reason || '');
-            // }
             log.debug('bfore save')
             const savePO = recPo.save({
                 enableSourcing: false,

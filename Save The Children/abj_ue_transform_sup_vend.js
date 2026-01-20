@@ -249,6 +249,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                 var payye = recLoad.getValue('custrecord_srf_payye');
                 var bankAcc = recLoad.getValue('custrecord_srf_bank_acc');
                 var npwp = recLoad.getValue('custrecord_srf_npwp');
+                var typeOfBussiness = recLoad.getValue('custrecord_srf_type_of_business');
+                var location = recLoad.getValue('custrecord_srf_location');
+                var attachment = recLoad.getValue('custrecord_srf_attachment');
+                var idCard = recLoad.getValue('custrecord_srf_id_card');
                 var recCreate = record.create({
                     type : 'vendor',
                     isDynamic: true
@@ -302,8 +306,25 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                     fieldId : 'custentity_created_from',
                     value : idRec
                 })
-
+                recCreate.setValue({
+                    fieldId : 'custentity_stc_vndr_type_of_businss',
+                    value : typeOfBussiness
+                })
+                recCreate.setValue({
+                    fieldId : 'custentity_stc_attchment',
+                    value : attachment
+                })
+                recCreate.setValue({
+                    fieldId : 'custentity_stc_id_card',
+                    value : idCard
+                })
                 recCreate.selectNewLine({ sublistId: 'addressbook' });
+
+                recCreate.setCurrentSublistValue({
+                    sublistId: 'addressbook',
+                    fieldId: 'label',
+                    value: 'Register Address'
+                });
 
                 let addrSubRec = recCreate.getCurrentSublistSubrecord({
                     sublistId: 'addressbook',
@@ -314,6 +335,22 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                 addrSubRec.setValue({ fieldId: 'addressee', value: addr });
 
                 recCreate.commitLine({ sublistId: 'addressbook' });
+
+                if (location) {
+                    recCreate.selectNewLine({ sublistId: 'addressbook' });
+                    recCreate.setCurrentSublistValue({
+                        sublistId: 'addressbook',
+                        fieldId: 'label',
+                        value: 'Warehouse Address'
+                    });
+                    let warehouseSubRec = recCreate.getCurrentSublistSubrecord({
+                        sublistId: 'addressbook',
+                        fieldId: 'addressbookaddress'
+                    });
+                    warehouseSubRec.setValue({ fieldId: 'country', value: country });
+                    warehouseSubRec.setValue({ fieldId: 'addressee', value: location }); // Addressee = Location name
+                    recCreate.commitLine({ sublistId: 'addressbook' });
+                }
 
                 var vendorId = recCreate.save();
                 if(vendorId){

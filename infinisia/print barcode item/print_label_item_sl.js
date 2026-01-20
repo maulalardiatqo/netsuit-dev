@@ -134,7 +134,7 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             <head>
                 ${style}
             </head>
-            <body padding="0mm 0mm 0mm 4mm" size="custom" width="72mm" height="28mm">
+            <body padding="0mm 0mm 0mm 4mm" size="custom" width="58mm" height="28mm">
                 <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                         <td style="padding: 0; margin: 0;">${pageRow1}</td>

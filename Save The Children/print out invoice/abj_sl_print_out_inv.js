@@ -211,7 +211,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var currency = res.getText({ name: 'currency' });
                         var amount = res.getValue({ 
                             name: "formulanumeric",
-                            formula: "{grossamount}+{taxamount}",
+                            formula: "({grossamount}+{taxamount})/{exchangerate}",
                         });
 
                         dataLine.push({

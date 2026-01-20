@@ -15,14 +15,6 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
     const submitApp = async () => {
         try {
             const rec = currentRecord.get();
-            const roleAdmin = 3;
-            let isAdmin = false;
-            
-            const currentRole = runtime.getCurrentUser().role;
-            console.log('currentRole', currentRole)
-            if (currentRole == roleAdmin) {
-                isAdmin = true;
-            }
             dialog.confirm({
                 title: 'Konfirmasi',
                 message: 'Apakah Anda yakin ingin Submit Approval ke Website?'
@@ -39,8 +31,8 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
                         url: suiteletUrl,
                         body: JSON.stringify({ 
                             recId: rec.id, 
-                            recType: rec.type, 
-                            isAdmin: isAdmin
+                            recType: rec.type,
+                            action : 'submitApp'
                         })
                     });
 
@@ -69,8 +61,6 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
     const recall = async () => {
         try {
             const rec = currentRecord.get();
-            const recId = rec.id;
-            const recType = rec.type;
 
             const confirmRecall = await dialog.confirm({
                 title: 'Konfirmasi Recall',
@@ -78,30 +68,35 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
             });
 
             if (confirmRecall) {
-                // Submit perubahan field custbody_abj_flag_approval = false
-                var recordLoad = record.load({
-                    type : recType,
-                    id : recId
-                })
-                recordLoad.setValue({
-                    fieldId : 'custbody_after_recall',
-                    value : true
-                })
-                var cekRec = recordLoad.save()
-                if(cekRec){
-                    dialog.alert({
-                        title: 'Recall Berhasil',
-                        message: 'Approval berhasil di-recall.'
+                const suiteletUrl = url.resolveScript({
+                        scriptId: 'customscript_abj_sl_callintegration', 
+                        deploymentId: 'customdeploy_abj_sl_callintegration'
+                });
+
+                const response = https.post({
+                    url: suiteletUrl,
+                    body: JSON.stringify({ 
+                        recId: rec.id, 
+                        recType: rec.type,
+                        action : 'recall'
+                    })
+                });
+
+                const result = JSON.parse(response.body);
+
+                if (result.status === 'success' || result.id_web) {
+                        dialog.alert({
+                        title: 'Success',
+                        message: 'Data berhasil dikirim ke Website.'
+                    }).then(() => {
+                        location.reload();
                     });
-                }else{
+                } else {
                     dialog.alert({
-                        title: 'Recall Gagal',
-                        message: 'Approval gagal di-recall.'
+                        title: 'Error',
+                        message: 'Gagal integrasi: ' + (result.message || 'Unknown Error')
                     });
                 }
-                
-
-                location.reload();
             }
 
         } catch (e) {
@@ -115,39 +110,41 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
     const resubmitData = async () => {
         try {
             const rec = currentRecord.get();
-            const recId = rec.id;
-            const recType = rec.type;
-
             const confirmRecall = await dialog.confirm({
                 title: 'Konfirmasi Resubmit Data',
                 message: 'Apakah Anda yakin ingin melakukan Resubmit Data pada record ini?'
             });
 
             if (confirmRecall) {
-                // Submit perubahan field custbody_abj_flag_approval = false
-                var recordLoad = record.load({
-                    type : recType,
-                    id : recId
-                })
-                recordLoad.setValue({
-                    fieldId : 'custbody_abj_trigger_resubmit',
-                    value : true
-                })
-                var cekRec = recordLoad.save()
-                if(cekRec){
-                    dialog.alert({
-                        title: 'Resubmit  Revision Berhasil',
-                        message: 'Approval berhasil di submit.'
+                  const suiteletUrl = url.resolveScript({
+                        scriptId: 'customscript_abj_sl_callintegration', 
+                        deploymentId: 'customdeploy_abj_sl_callintegration'
+                });
+
+                const response = https.post({
+                    url: suiteletUrl,
+                    body: JSON.stringify({ 
+                        recId: rec.id, 
+                        recType: rec.type,
+                        action : 'resubmitData'
+                    })
+                });
+                console.log('response', response)
+                const result = JSON.parse(response.body);
+
+                if (result.status === 'success' || result.id_web) {
+                        dialog.alert({
+                        title: 'Success',
+                        message: 'Data berhasil dikirim ke Website.'
+                    }).then(() => {
+                        location.reload();
                     });
-                }else{
+                } else {
                     dialog.alert({
-                        title: 'Resubmit Revision Gagal',
-                        message: 'Approval gagal di-resubmit.'
+                        title: 'Error',
+                        message: 'Gagal integrasi: ' + (result.message || 'Unknown Error')
                     });
                 }
-                
-
-                location.reload();
             }
 
         } catch (e) {
@@ -158,11 +155,9 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
             });
         }
     }
-    const resubmit = async () => {
+    const resubmitRevission = async () => {
         try {
             const rec = currentRecord.get();
-            const recId = rec.id;
-            const recType = rec.type;
 
             const confirmRecall = await dialog.confirm({
                 title: 'Konfirmasi Resubmit Revision',
@@ -170,55 +165,84 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
             });
 
             if (confirmRecall) {
-                // Submit perubahan field custbody_abj_flag_approval = false
-                var recordLoad = record.load({
-                    type : recType,
-                    id : recId
-                })
-                recordLoad.setValue({
-                    fieldId : 'approvalstatus',
-                    value : '1'
-                })
-                recordLoad.setValue({
-                    fieldId : 'custbody_after_recall',
-                    value : false
-                })
-                recordLoad.setValue({
-                    fieldId : 'custbody_abj_trigger_resubmit',
-                    value : true
-                })
-                recordLoad.setValue({
-                    fieldId : 'custbody_abj_flag_approval',
-                    value : false
-                })
-                var cekLine = recordLoad.getLineCount({
-                    sublistId: 'recmachcustrecord_abj_a_id'
+                const suiteletUrl = url.resolveScript({
+                        scriptId: 'customscript_abj_sl_callintegration', 
+                        deploymentId: 'customdeploy_abj_sl_callintegration'
                 });
-                if(cekLine > 0){
-                    for(var i = 0; i < cekLine; i++){
-                        recordLoad.setSublistValue({
-                            sublistId : 'recmachcustrecord_abj_a_id',
-                            fieldId : 'custrecord_abj_status_approve',
-                            value : '1',
-                            line : i
-                        });
-                    }
-                }
-                var cekRec = recordLoad.save()
-                if(cekRec){
-                    dialog.alert({
-                        title: 'Resubmit  Revision Berhasil',
-                        message: 'Approval berhasil di submit.'
-                    });
-                }else{
-                    dialog.alert({
-                        title: 'Resubmit Revision Gagal',
-                        message: 'Approval gagal di-resubmit.'
-                    });
-                }
-                
 
-                location.reload();
+                const response = https.post({
+                    url: suiteletUrl,
+                    body: JSON.stringify({ 
+                        recId: rec.id, 
+                        recType: rec.type,
+                        action : 'resubmitRevission'
+                    })
+                });
+
+                const result = JSON.parse(response.body);
+
+                if (result.status === 'success' || result.id_web) {
+                        dialog.alert({
+                        title: 'Success',
+                        message: 'Data berhasil dikirim ke Website.'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    dialog.alert({
+                        title: 'Error',
+                        message: 'Gagal integrasi: ' + (result.message || 'Unknown Error')
+                    });
+                }
+            }
+
+        } catch (e) {
+            console.log('Error saat resubmit:', e);
+            dialog.alert({
+                title: 'Error Resubmit',
+                message: 'Terjadi kesalahan: ' + e.message
+            });
+        }
+    }
+    const rebusmitApproval = async () => {
+        try {
+            const rec = currentRecord.get();
+
+            const confirmRecall = await dialog.confirm({
+                title: 'Konfirmasi Resubmit Revision',
+                message: 'Apakah Anda yakin ingin melakukan Resubmit Revision pada record ini?'
+            });
+
+            if (confirmRecall) {
+                const suiteletUrl = url.resolveScript({
+                        scriptId: 'customscript_abj_sl_callintegration', 
+                        deploymentId: 'customdeploy_abj_sl_callintegration'
+                });
+
+                const response = https.post({
+                    url: suiteletUrl,
+                    body: JSON.stringify({ 
+                        recId: rec.id, 
+                        recType: rec.type,
+                        action : 'rebusmitApproval'
+                    })
+                });
+
+                const result = JSON.parse(response.body);
+
+                if (result.status === 'success' || result.id_web) {
+                        dialog.alert({
+                        title: 'Success',
+                        message: 'Data berhasil dikirim ke Website.'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    dialog.alert({
+                        title: 'Error',
+                        message: 'Gagal integrasi: ' + (result.message || 'Unknown Error')
+                    });
+                }
             }
 
         } catch (e) {
@@ -301,5 +325,5 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
             });
         }
     }
-    return { pageInit, recall, resubmit, afterReject, submitApp, resubmitData };
+    return { pageInit, recall, resubmitRevission, afterReject, submitApp, resubmitData, rebusmitApproval };
 });
