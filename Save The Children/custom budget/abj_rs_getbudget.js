@@ -4,7 +4,7 @@
  */
 define(["N/search", "N/record"], (search, record) => {
 
-    const searchBudget = (account, department, classId, sofId, yearId, monthIdx) => {
+    const searchBudget = (account, department, classId, sofId, yearId, monthIdx, deaSeg, drcSeg) => {
         log.debug('dataParams', {
             account : account,
             classId : classId,
@@ -26,7 +26,11 @@ define(["N/search", "N/record"], (search, record) => {
                 "AND", 
                 ["cseg_stc_sof","anyof",sofId],
                 "AND",
-                ["year","anyof",yearId]
+                ["year","anyof",yearId],
+                "AND",
+                ["cseg_stc_drc_segmen", "anyof", drcSeg],
+                "AND",
+                ["cseg_stc_segmentdea","anyof", deaSeg]
             ],
             columns:
             [
@@ -79,7 +83,9 @@ define(["N/search", "N/record"], (search, record) => {
             params.custscript_class_id,
             params.custscript_sof_id,
             params.custscript_year_id,
-            params.custscript_monthidx
+            params.custscript_monthidx,
+            params.custscript_dea_seg,
+            params.custscript_drc_seg
         );
 
         context.response.write(JSON.stringify({

@@ -61,6 +61,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var invSearchSet = invSearch.run();
                 var result = invSearchSet.getRange(0, 1);
                 var invoiceRecord = result[0];
+                var otherComment = invoiceRecord.getValue('custbody3')
                 var bankInfo = invoiceRecord.getValue('custbody13');
                 var bankNameRec = ''
                 var bankAccNo = ''
@@ -462,25 +463,32 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // }
                 body+="<td style='font-weight:bold;align:left;font-size:20px;'>"+escapeXmlSymbols(bankName)+"</td>"; 
                 body+="<td style='align:left;'></td>"; 
-                body+="<td style='font-weight:bold;align:right;'><p style='align:right;'>"+escapeXmlSymbols(addresSubsidiaries)+"</p></td>"; 
-                body+= "</tr>";
-
-                body+= "<tr>";
-                body += "<td style='vertical-align:bottom;'>Invoice To :</td>";
-                body += "<td></td>";
                 body += "<td style='color:blue; font-size:30px; align:right'>Invoice</td>";
                 body+= "</tr>";
+                
+                
+                body+= "<tr>";
+                body+="<td style='align:right;'><p style='align:left;'>"+escapeXmlSymbols(addresSubsidiaries)+"</p></td>"; 
+                body += "<td></td>";
+                 body+= "</tr>";
+
+                body+= "<tr>";
+                body += "<td style='vertical-align:bottom; font-weight:bold;'>Invoice To :</td>";
+                body += "<td></td>";
+                body += "<td style='align:right'>"+InvDate+"</td>";
+                body+= "</tr>";
+
+
 
                 body+= "<tr>";
                 body += "<td>"+escapeXmlSymbols(custName)+"</td>";
                 body += "<td></td>";
-                body += "<td style='align:right'>"+InvDate+"</td>";
+                body += "<td style='align:right'>"+tandId+"</td>";
                 body+= "</tr>";
 
                 body+= "<tr>";
                 body += "<td rowspan='4'>"+escapeXmlSymbols(custAddres)+"</td>";
                 body += "<td></td>";
-                body += "<td style='align:right'>"+tandId+"</td>";
                 body+= "</tr>";
                 
                 body+= "<tr>";
@@ -500,17 +508,18 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                body += "<td style='width:50%;'></td>";
+                body += "<td style='width:5%;'></td>";
+                body += "<td style='width:45%;'></td>";
                 body += "<td style='width:50%;'></td>";
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body += "<td style='height:30px; background-color:#038cfc;align:center; vertical-align:center;font-size:16px;'>Description</td>";
+                body += "<td style='height:30px; background-color:#038cfc;align:center; vertical-align:center;font-size:16px;' colspan='2'>Description</td>";
                 body += "<td style='height:30px; background-color:#038cfc;align:right; vertical-align:center;font-size:16px;padding-right:60px'>Amount</td>";
                 body+= "</tr>";
 
                 body += "<tr>";
-                body += "<td  style='' colspan='2'>"+escapeXmlSymbols(projectName)+"</td>";
+                body += "<td  style='' colspan='3'>"+escapeXmlSymbols(projectName)+"</td>";
                 body += "</tr>";
 
                 body+= getPOItem(context, allDataLine)
@@ -540,7 +549,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "</tr>";
 
                 footer += "<tr>";
-                footer += "<td style=''>"+projectName+"</td>"
+                footer += "<td style=''>"+otherComment+"</td>"
                 footer += "<td style='align:right'>VAT :</td>"
                 footer += "<td style='align:right'>"+tlcCurr+"</td>"
                 footer += "<td style='align:right'>"+taxtotal+"</td>"
@@ -548,7 +557,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 footer += "<tr>";
                 footer += "<td style=''></td>"
-                footer += "<td style='align:right; font-weight:bold;'>Total Invoice</td>"
+                footer += "<td style='align:right; font-weight:bold;'>Total Invoice :</td>"
                 footer += "<td style='align:right; font-weight:bold;'>"+tlcCurr+"</td>"
                 footer += "<td style='align:right; font-weight:bold;'>"+total+"</td>"
                 footer += "</tr>";
@@ -559,17 +568,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "</tr>";
 
                 footer += "<tr style='padding-top:20px'>";
-                footer += "<td style='font-weight:bold;font-size:14px;'>"+bankNameRec+"</td>"
+                footer += "<td style='font-size:14px;'>"+bankNameRec+"</td>"
                 footer += "<td style='align:center;' colspan='3'></td>"
                 footer += "</tr>";
 
                 footer += "<tr style=''>";
-                footer += "<td style='font-weight:bold;font-size:14px;'>"+bankAccName +"</td>"
+                footer += "<td style='font-size:14px;'>"+bankAccName +"</td>"
                 footer += "<td style='align:center;' colspan='3'></td>"
                 footer += "</tr>";
 
                 footer += "<tr style=''>";
-                footer += "<td style='font-weight:bold;font-size:14px;'>"+bankAccNo +"</td>"
+                footer += "<td style='font-size:14px;'>"+bankAccNo +"</td>"
                 footer += "<td style='align:center;' colspan='3'></td>"
                 footer += "</tr>";
 
@@ -806,6 +815,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             onRequest: onRequest,
         };
         function getPOItem(context, allDataLine){
+            log.debug('allDataLine', allDataLine)
             var body = "";
             allDataLine.forEach(data => {
                 var description = data.description;
@@ -818,6 +828,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     amount = removeDecimalFormat(amount);
                 }
                 body += "<tr>";
+                body += "<td></td>"
                 body += "<td  style=''>"+escapeXmlSymbols(description)+"</td>";
                 body += "<td  style='align:right;'>"+amount+"</td>";
                 body += "</tr>";

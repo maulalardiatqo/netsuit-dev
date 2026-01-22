@@ -54,7 +54,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             };
         }
 
-        function getBudget(account, department, classId, sofId, yearId, periodId, monthIndex){
+        function getBudget(account, department, classId, sofId, yearId, periodId, monthIndex, deaSeg, drcSeg){
             log.debug('filter search budget', {account, department, classId, sofId})
             console.log('filter search budget', {account, department, classId, sofId})
             var budgetAmt = 0
@@ -69,6 +69,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     custscript_year_id: yearId,
                     custscript_period_id: periodId,
                     custscript_monthidx: monthIndex,
+                    custscript_dea_seg: deaSeg,
+                    custscript_drc_seg: drcSeg,
                 }
             });
 
@@ -91,6 +93,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     custscript_sof_id: sofId,
                     custscript_period_id: periodId,
                     custscript_est_amt: estAmount,
+                    
+
                 }
             });
 
@@ -100,10 +104,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var newAmount = data.newAmt || 0
             return newAmount
         }
-        function setSblValue(currentRecordObj, account, department, classId, sofId, estAmount, additionalAmt, sblsId, yearId, periodId, monthIndex){
+        function setSblValue(currentRecordObj, account, department, classId, sofId, estAmount, additionalAmt, sblsId, yearId, periodId, monthIndex, deaSeg, drcSeg){
             var newAmount = 0
             if(account && department && estAmount && classId && sofId){
-                newAmount = callSearch( account, department, estAmount, classId, sofId, periodId)
+                newAmount = callSearch( account, department, estAmount, classId, sofId, periodId, deaSeg, drcSeg)
             }
             
             log.debug('newAmount', newAmount)
@@ -128,7 +132,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 department : department
             })
             if(account && department){
-                dataBudget = getBudget(account, department, classId, sofId, yearId, periodId, monthIndex)
+                dataBudget = getBudget(account, department, classId, sofId, yearId, periodId, monthIndex, deaSeg, drcSeg)
             }
             console.log('DATA BUDGET', dataBudget)
             log.debug('DATA BUDGET', dataBudget)
@@ -183,6 +187,14 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 sublistId: sblsId,
                 fieldId: "cseg_stc_sof",
             });
+            var deaSeg = currentRecordObj.getCurrentSublistValue({
+                sublistId : sblsId,
+                fieldId : 'cseg_stc_segmentdea'
+            })
+            var drcSeg = currentRecordObj.getCurrentSublistValue({
+                sublistId : sblsId,
+                fieldId : 'cseg_stc_drc_segmen'
+            })
             var account = ''
             console.log('sblsId cek before', sblsId);
 
@@ -341,7 +353,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         }
                     }
                 }
-                setSblValue(currentRecordObj, account, department, classId, sofId, estAmount, additionalAmt, sblsId, yearId, periodId, monthIndex);
+                setSblValue(currentRecordObj, account, department, classId, sofId, estAmount, additionalAmt, sblsId, yearId, periodId, monthIndex, deaSeg, drcSeg);
             }
             
         }

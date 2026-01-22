@@ -84,10 +84,10 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
 
                 const result = JSON.parse(response.body);
 
-                if (result.status === 'success' || result.id_web) {
+                if (result.status === 'success_recall') {
                         dialog.alert({
                         title: 'Success',
-                        message: 'Data berhasil dikirim ke Website.'
+                        message: 'Berhasil Recall.'
                     }).then(() => {
                         location.reload();
                     });
@@ -132,7 +132,7 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
                 console.log('response', response)
                 const result = JSON.parse(response.body);
 
-                if (result.status === 'success' || result.id_web) {
+                if (result.status === 'success_update' || result.id_web) {
                         dialog.alert({
                         title: 'Success',
                         message: 'Data berhasil dikirim ke Website.'
@@ -181,7 +181,7 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
 
                 const result = JSON.parse(response.body);
 
-                if (result.status === 'success' || result.id_web) {
+                if (result.status === 'success_revission' || result.id_web) {
                         dialog.alert({
                         title: 'Success',
                         message: 'Data berhasil dikirim ke Website.'
@@ -204,7 +204,7 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
             });
         }
     }
-    const rebusmitApproval = async () => {
+    const resubmitApproval = async () => {
         try {
             const rec = currentRecord.get();
 
@@ -224,7 +224,7 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
                     body: JSON.stringify({ 
                         recId: rec.id, 
                         recType: rec.type,
-                        action : 'rebusmitApproval'
+                        action : 'resubmitApproval'
                     })
                 });
 
@@ -325,5 +325,5 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/runtime', 'N/url', 'N/h
             });
         }
     }
-    return { pageInit, recall, resubmitRevission, afterReject, submitApp, resubmitData, rebusmitApproval };
+    return { pageInit, recall, resubmitRevission, afterReject, submitApp, resubmitData, resubmitApproval };
 });

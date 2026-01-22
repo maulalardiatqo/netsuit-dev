@@ -30,6 +30,14 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
             // === Update line approval ===
             if ((status == '1' && approver) || (status == '2' && approver)) {
                 setSublist(recPo, 2, approver, reason || '');
+                if(updateHeader === 'true' || updateHeader === true){
+                    log.debug('updateHeader true')
+                    recPo.setValue({
+                        fieldId: 'approvalstatus',
+                        value: 2, 
+                        ignoreFieldChange: true
+                    });
+                }
             }
              if (status == '3' && approver) {
                 setSublist(recPo, 3, approver, reason || '');

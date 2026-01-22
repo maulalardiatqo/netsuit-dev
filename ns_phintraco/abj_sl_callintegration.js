@@ -36,20 +36,15 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                 if (action == 'recall') {
                     result = sendRecallData(rec);
                     
-                    if (result && result.status === 'success') {
+                    if (result && result.status === 'success_recall') {
                         rec.setValue({ fieldId: 'custbody_after_recall', value: true });
                         isRecordUpdated = true;
                     }
 
                 } else if (action == 'submitApp') {
-                    let revToSend = currentRev || 'R1'; 
-                    result = sendFullData(rec, 'create', revToSend);
+                    result = sendFullData(rec, 'create');
                     if (result && result.status === 'success') {
                         rec.setValue({ fieldId: 'custbody_abj_flag_approval', value: true });
-                        
-                        if (!currentRev) {
-                            rec.setValue({ fieldId: 'custbody_abj_revision_code', value: 'R1' });
-                        }
                         if (result.po_id) { 
                             rec.setValue({ fieldId: 'custbody_id_web', value: result.po_id });
                         }
@@ -57,9 +52,9 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                     }
 
                 } else if (action == 'resubmitData') {
-                    result = sendFullData(rec, 'update', currentRev);
+                    result = sendFullData(rec, 'update');
 
-                    if (result && result.status === 'success') {
+                    if (result && result.status === 'success_update') {
                         rec.setValue({ fieldId: 'custbody_after_recall', value: false });
                         isRecordUpdated = true;
                     }
@@ -67,12 +62,70 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                 } else if (action == 'resubmitRevission') {
                     result = sendFullData(rec, 'revission', nextRevisionCode);
 
-                    if (result && result.status === 'success') {
+                    if (result && result.status === 'success_revission') {
                         rec.setValue({ fieldId: 'custbody_abj_revision_code', value: nextRevisionCode });
+                        rec.setValue({ fieldId: 'custbody_id_web', value : result.new_po_id})
+                        rec.setValue({ fieldId: 'approvalstatus', value : '1'})
+                        var cekLineApp = rec.getLineCount({
+                            sublistId : 'recmachcustrecord_abj_a_id'
+                        });
+
+                        if (cekLineApp > 0) {
+                            for (var i = 0; i < cekLineApp; i++) {
+                                // 1. Pilih Baris
+                                rec.selectLine({
+                                    sublistId: 'recmachcustrecord_abj_a_id',
+                                    line: i
+                                });
+
+                                // 2. Set Value di baris yang aktif
+                                rec.setCurrentSublistValue({
+                                    sublistId: 'recmachcustrecord_abj_a_id',
+                                    fieldId: 'custrecord_abj_status_approve',
+                                    value: '1' // Pastikan '1' adalah value yang valid untuk list/select
+                                });
+
+                                // 3. Commit (Simpan perubahan baris)
+                                rec.commitLine({
+                                    sublistId: 'recmachcustrecord_abj_a_id'
+                                });
+                            }
+                        }
                         isRecordUpdated = true;
                     }
-                } else {
-                    result = sendFullData(rec, 'create', currentRev || 'R1');
+                } else if(action == 'resubmitApproval'){
+                    log.debug('masuk sini')
+                    result = sendFullData(rec, 'create', null, true);
+                    log.debug('result', result)
+                    if (result && result.status === 'success') {
+                        rec.setValue({ fieldId: 'custbody_abj_flag_approval', value: true });
+                        if (result.po_id) { 
+                            rec.setValue({ fieldId: 'custbody_id_web', value: result.po_id });
+                            rec.setValue({ fieldId: 'approvalstatus', value: '1' });
+                            var cekLineApp = rec.getLineCount({
+                                sublistId : 'recmachcustrecord_abj_a_id'
+                            });
+
+                            if (cekLineApp > 0) {
+                                for (var i = 0; i < cekLineApp; i++) {
+                                    // 1. Pilih Baris
+                                    rec.selectLine({
+                                        sublistId: 'recmachcustrecord_abj_a_id',
+                                        line: i
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'recmachcustrecord_abj_a_id',
+                                        fieldId: 'custrecord_abj_status_approve',
+                                        value: '1'
+                                    });
+                                    rec.commitLine({
+                                        sublistId: 'recmachcustrecord_abj_a_id'
+                                    });
+                                }
+                            }
+                        }
+                        isRecordUpdated = true;
+                    }
                 }
                 if (isRecordUpdated) {
                     rec.save({
@@ -108,7 +161,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
         return JSON.parse(response.body || '{}');
     }
 
-    function sendFullData(rec, endpointAction, revisionCode) {
+    function sendFullData(rec, endpointAction, revisionCode, flaging) {
         log.debug('Mode', `Sending Heavy Payload (${endpointAction}) with Rev: ${revisionCode}`);
         const appStatus = rec.getValue('approvalstatus') || '';
         const created_by = rec.getValue('entity') || ''; 
@@ -159,7 +212,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             
             line_items: getLineItems(rec),
             expenses: getExpenses(rec),
-            approvers: getApprovers(rec),
+            approvers: getApprovers(rec, flaging),
             attachments: getAttachments(rec)
         };
 
@@ -226,7 +279,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
         return lines;
     }
 
-    function getApprovers(rec) {
+    function getApprovers(rec, flaging) {
         var approvers = [];
         const approvalCount = rec.getLineCount({ sublistId: 'recmachcustrecord_abj_a_id' });
         var approvalNo = 1;
@@ -249,11 +302,16 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             } catch(e) {
                 log.error("Lookup Approver Error", e.message);
             }
+            let statusKirim = flaging === true ? '1' : rec.getSublistValue({ 
+                sublistId: 'recmachcustrecord_abj_a_id', 
+                fieldId: 'custrecord_abj_status_approve', 
+                line: i 
+            });
 
             approvers.push({
                 po_id: rec.id,
                 user_approver: userId,
-                status_approve: rec.getSublistValue({ sublistId: 'recmachcustrecord_abj_a_id', fieldId: 'custrecord_abj_status_approve', line: i }),
+                status_approve: statusKirim,
                 tgl_approve: rec.getSublistValue({ sublistId: 'recmachcustrecord_abj_a_id', fieldId: 'custrecord_abj_tgl_appprove', line: i }),
                 approval_group: rec.getSublistValue({ sublistId: 'recmachcustrecord_abj_a_id', fieldId: 'custrecord_approval_group', line: i }),
                 approval_no: approvalNo

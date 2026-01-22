@@ -211,9 +211,6 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log'],
                             safeSet(rec, sublistId, 'custrecord_ter_approver_fa', lineData.approverFa, true);
                             
                             const commitStatus = rec.commitLine({ sublistId: sublistId });
-                            
-                            // --- SCROLL FIX SETELAH COMMIT ---
-                            // NetSuite otomatis scroll ke bawah setelah commit, kita paksa balik lagi
                             if (fixedScrollY !== undefined) {
                                 window.scrollTo(0, fixedScrollY);
                             }
@@ -229,7 +226,7 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log'],
                             log.error('Error inside timeout line ' + index, timeoutErr);
                             processLine(index + 1);
                         }
-                    }, 500); 
+                    }, 100); 
 
                 } catch (err) {
                     log.error('Error processing line ' + index, err);

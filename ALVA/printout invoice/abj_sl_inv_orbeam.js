@@ -488,7 +488,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body+= "<tr>";
                 body += "<td></td>";
-                body += "<td style='align:right'>"+escapeXmlSymbols(Othercomment1)+"</td>";
+                body += "<td style='align:right'>"+escapeXmlSymbols(projectName)+"</td>";
                 body+= "</tr>";
 
 
@@ -499,12 +499,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                body += "<td style='width:50%;'></td>";
+                body += "<td style='width:5%;'></td>";
+                body += "<td style='width:45%;'></td>";
                 body += "<td style='width:50%;'></td>";
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body += "<td style='height:30px; background-color:#8c05ad;align:center; vertical-align:center;font-size:16px;'>Description</td>";
+                body += "<td style='height:30px; background-color:#8c05ad;align:center; vertical-align:center;font-size:16px;' colsapn='2'>Description</td>";
                 body += "<td style='height:30px; background-color:#8c05ad;align:right; vertical-align:center;font-size:16px;padding-right:60px'>Amount</td>";
                 body+= "</tr>";
 
@@ -535,7 +536,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "</tr>";
 
                 footer += "<tr>";
-                footer += "<td style=''>"+projectName+"</td>"
+                footer += "<td style=''>"+escapeXmlSymbols(Othercomment1)+"</td>"
                 footer += "<td style='align:right'>VAT :</td>"
                 footer += "<td style='align:right'>"+tlcCurr+"</td>"
                 footer += "<td style='align:right'>"+taxtotal+"</td>"
@@ -770,6 +771,26 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     response.write('OK');
                     return;
                 }
+
+                var isemailv2 = context.request.parameters.isemailv2;
+                log.debug('isemailv2', isemailv2);
+                if(isemailv2){
+                    log.debug('masuk group by customer', isemailv2)
+                    let responseObj = {
+                        status: 'success',
+                        billTo: custName,
+                        xml: xml
+                    };
+
+                    context.response.setHeader({
+                        name: 'Content-Type',
+                        value: 'application/json'
+                    });
+
+                    context.response.write(JSON.stringify(responseObj));
+                    // response.write(xml);
+                    return;
+                }
                 response.renderPdf({
                     xmlString: xml
                 });
@@ -781,6 +802,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             onRequest: onRequest,
         };
         function getPOItem(context, allDataLine){
+            log.debug('allDataLine', allDataLine)
             var body = "";
             allDataLine.forEach(data => {
                 var description = data.description;

@@ -58,6 +58,7 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                 const cekAfterRecall = rec.getValue('custbody_after_recall');
                 const cekRevision = rec.getValue('custbody_is_revision');
                 const currentRole = runtime.getCurrentUser().role;
+                const creatorPo = rec.getValue('custbody_abj_creator');
                 log.debug("currentRole", currentRole);
                 
                 var isAttach = false
@@ -82,7 +83,7 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                     isApprover = true
                 }
                 log.debug('cek kondisi submit approval', {cekAppralStat : cekAppralStat, isApprover : isApprover, isAttach : isAttach})
-                if(cekAppralStat == '1' && isApprover && isAttach && !cekIdWeb){
+                if(cekAppralStat == '1' && isApprover && isAttach && !cekIdWeb && creatorPo){
                     form.addButton({
                         id: 'custpage_button_submit_app',
                         label: "Submit For Approval",
@@ -116,7 +117,6 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                         label: "Resubmit Revision",
                         functionName: "resubmitRevission()"
                     });
-                    form.removeButton('edit');
                     context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
                 }
                 if(cekAppralStat == '3' && cekIdWeb){
@@ -128,6 +128,52 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                     form.removeButton('edit');
                     context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
                 }
+                
+            }
+            if(context.type === context.UserEventType.COPY){
+                const rec = context.newRecord;
+                const cekFlagApproval = rec.getValue('custbody_abj_flag_approval');
+                log.debug('cekFlagApproval on bfload copy', cekFlagApproval)
+                const cekIdWeb = rec.getValue('custbody_id_web');
+                const triggerResubmit = rec.getValue('custbody_abj_trigger_resubmit');
+                log.debug('cekIdWeb', cekIdWeb);
+                rec.setValue({
+                    fieldId : 'custbody_id_web',
+                    value : ''
+                })
+                if(cekFlagApproval == true){
+                    log.debug('true');
+                    // rec.setValue({
+                    //     fieldId : 'custbody_abj_flag_approval',
+                    //     value : false
+                    // })
+                }
+                if(triggerResubmit){
+                    rec.setValue({
+                        fieldId : 'custbody_abj_trigger_resubmit',
+                        value : false
+                    })
+                }
+                rec.setValue({
+                    fieldId: 'custbody_after_recall',
+                    value: false
+                });
+                rec.setValue({
+                    fieldId : 'custbody_abj_revision',
+                    value : false
+                })
+                rec.setValue({
+                    fieldId : 'custbody_trigger_after_resubmit',
+                    value : false
+                })
+                 rec.setValue({
+                    fieldId : 'custbody_is_revision',
+                    value : false
+                })
+                rec.setValue({
+                    fieldId : 'custbody_abj_revision_code',
+                    value : ''
+                })
                 
             }
         }catch(e){
