@@ -499,8 +499,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\" style=\"table-layout:fixed;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                body += "<td style='width:5%;'></td>";
-                body += "<td style='width:45%;'></td>";
+                body += "<td style='width:50%;'></td>";
                 body += "<td style='width:50%;'></td>";
                 body+= "</tr>";
 

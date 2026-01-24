@@ -11,7 +11,9 @@ define(["N/search", "N/record"], (search, record) => {
             department : department,
             sofId : sofId,
             yearId : yearId,
-            monthIdx : monthIdx
+            monthIdx : monthIdx,
+            deaSeg : deaSeg,
+            drcSeg : drcSeg
         })
         var amountBudget = 0
         var budgetimportSearchObj = search.create({

@@ -10,7 +10,7 @@
  * **Copyright (c) 2025 ABJ Cloud Solutions, Inc.
  * @Client        :  Suy Sing
  * @Script Name   :  - SSCC | RL | Sales Order Integration
- * @script File   :  abj_rl_sales_order_api.js
+ * @script File   :  abj_rl_pos_get_so.js
  * @Trigger Type  :  External Request
  * @Release Date  :  JAN 22, 2026
  * @Author        :  Maulal Ardi Atqo
@@ -169,80 +169,53 @@ define(['N/record', 'N/search', 'N/format', 'N/error', 'N/log'], (record, search
             if (!customerId) {
                 throw error.create({ name: 'INVALID_CLIENT', message: 'Client not found for reference_id: ' + requestBody.reference_id });
             }
-
-            // 2. CREATE RECORD
             let soRecord = record.create({
                 type: record.Type.SALES_ORDER,
                 isDynamic: true
             });
-
-            // 3. SET HEADER FIELDS 
             soRecord.setValue({ fieldId: 'entity', value: customerId });
-            soRecord.setValue({ fieldId: 'entity.externalid', value: requestBody.reference_id }); // Optional: Ensure consistency
-            
-            // account_code -> custbody_abj_custid
+            soRecord.setValue({ fieldId: 'entity.externalid', value: requestBody.reference_id }); 
             if (requestBody.account_code) soRecord.setValue({ fieldId: 'custbody_abj_custid', value: requestBody.account_code });
-            
-            // transaction_type -> custbody_abj_ttype (Assuming input is ID, otherwise needs lookup)
             if (requestBody.transaction_type) soRecord.setValue({ fieldId: 'custbody_abj_ttype', value: requestBody.transaction_type });
 
-            // branch_code -> location
             if (requestBody.branch_code) {
-                 // Assuming input is Internal ID. If input is Name, use a helper to find ID.
-                 // For now, setting value directly assuming ID or exact mapping.
                  soRecord.setValue({ fieldId: 'location', value: requestBody.branch_code });
             }
-
-            // payment_mode -> custbody_abj_payment_mode
             if (requestBody.payment_mode) soRecord.setValue({ fieldId: 'custbody_abj_payment_mode', value: requestBody.payment_mode });
 
-            // remarks -> custbody_abj_remarks
             if (requestBody.remarks) soRecord.setValue({ fieldId: 'custbody_abj_remarks', value: requestBody.remarks });
 
-
-            // 4. SET LINE ITEMS 
             if (requestBody.sales_order_details && Array.isArray(requestBody.sales_order_details)) {
                 
                 requestBody.sales_order_details.forEach((line, index) => {
                     soRecord.selectNewLine({ sublistId: 'item' });
 
-                    // Item Lookup: Map item_code (Name) to Internal ID
                     let itemId = getInternalIdByName('item', line.item_code);
                     if (!itemId) {
                         throw error.create({ name: 'INVALID_ITEM', message: `Item code ${line.item_code} not found at line ${index + 1}` });
                     }
                     soRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: itemId });
-
-                    // Quantity
                     if (line.ordered_quantity) {
                         soRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: line.ordered_quantity });
                     }
 
-                    // Location (Line Level)
                     if (line.location) {
                         soRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'location', value: line.location });
                     }
                     
-                    // UOM - Assuming input is the Internal ID of the UOM. 
-                    // If input is text (e.g., "Box"), a lookup similar to Item is needed.
                     if (line.item_uom) {
-                        // Note: Setting units often requires the item to be set first.
                         soRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'units', value: line.item_uom });
                     }
 
                     soRecord.commitLine({ sublistId: 'item' });
                 });
             }
-
-            // 5. SAVE RECORD
             let recordId = soRecord.save({
                 enableSourcing: true,
                 ignoreMandatoryFields: false
             });
 
             log.audit('Sales Order Created', 'ID: ' + recordId);
-
-            // Retrieve the tranid (Sales Order ID) of the created record for the response
             let tranId = search.lookupFields({
                 type: search.Type.SALES_ORDER,
                 id: recordId,
@@ -251,10 +224,6 @@ define(['N/record', 'N/search', 'N/format', 'N/error', 'N/log'], (record, search
 
             response.status = "success";
             response.message = "Record created successfully";
-            // Per requirements output, explicit sales_order_id return isn't in JSON example , 
-            // but standard REST practices usually return the ID. I will adhere to the prompt's source 24-27 format
-            // but add data block if needed. Source 24 just says status and message.
-            // However, Source 3 implies output reference_id and sales_order_ids. I will add them to be safe.
             response.sales_order_id = tranId;
             response.internal_id = recordId;
 

@@ -131,7 +131,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 account : account,
                 department : department
             })
-            if(account && department){
+            if(account && department && deaSeg && drcSeg){
                 dataBudget = getBudget(account, department, classId, sofId, yearId, periodId, monthIndex, deaSeg, drcSeg)
             }
             console.log('DATA BUDGET', dataBudget)
