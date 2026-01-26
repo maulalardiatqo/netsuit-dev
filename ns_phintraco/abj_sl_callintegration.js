@@ -165,6 +165,8 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
         log.debug('Mode', `Sending Heavy Payload (${endpointAction}) with Rev: ${revisionCode}`);
         const appStatus = rec.getValue('approvalstatus') || '';
         const created_by = rec.getValue('entity') || ''; 
+        const formC = rec.getText('customform');
+        log.debug('formC', formC)
 
         const payload = {
             id: rec.id,
@@ -201,7 +203,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             created_by: created_by,
             codeRevision: revisionCode, 
             
-            customForm: rec.getValue('customform') || '',
+            customForm: rec.getText('customform') || '',
             series: rec.getValue('custbody_docser_series') || '',
             refertosc: rec.getValue('custbody_ph_refertosc') || '',
             refertopr: rec.getValue('custbodycustbody_ph_refertopr') || '',
