@@ -50,7 +50,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
             if(cekLine > 0){
                 var dateFund = recFund.getValue('custrecord_fund_date');
                 var memoFund = recFund.getValue('custrecord_fund_memo');
-                var paymentType = recFund.getValue('custrecord_fund_payment_type');
+                var paymentType = recFund.getValue('custrecord26');
                 log.debug('paymentType', paymentType)
                 var allDataLine = []
                 for(var i =0; i < cekLine; i++){
@@ -120,6 +120,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                             fieldId : 'custbody_custom_transaksi_list_bank',
                             value : '2'
                         })
+                        
                     }else{
                         // jenis transaksi cash out
                         recCreateJE.setValue({  
@@ -134,7 +135,16 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                             fieldId : 'custbody_custom_transksi_list_cash',
                             value : '2'
                         })
+                        
                     }
+                     recCreateJE.setValue({
+                            fieldId : 'custbody_generate_from_fund',
+                            value : idFund
+                        })
+                        recCreateJE.setValue({
+                            fieldId : 'approved',
+                            value : false
+                        })
                     recCreateJE.setValue({  
                         fieldId : 'trandate',
                         value : dateFund

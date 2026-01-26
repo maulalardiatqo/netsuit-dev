@@ -44,6 +44,10 @@
                     var customForm = headRec.getValue({
                         name : "customform"
                     });
+                    var fundNumber = headRec.getValue({
+                            name: "custrecord_fund_docnumb",
+                            join: "CUSTBODY_GENERATE_FROM_FUND",
+                    })
                     log.debug('customform', customForm);
 
                     var jenisTransaksi
@@ -202,6 +206,9 @@
 
                     body += getGL(dataLine)
                     body += "<tr style='height:40px'>"
+                    body += "</tr>"
+                    body += "<tr>"
+                    body += "<td colspan='6'>Generate From : "+fundNumber+"</td>"
                     body += "</tr>"
                     body += "</tbody>";
                     body += "</table>";

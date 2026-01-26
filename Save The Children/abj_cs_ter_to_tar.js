@@ -189,28 +189,28 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     type: "customrecord_tar_expenses",
                     filters:
                     [
-                        ["custrecord_tar_e_id","anyof",tarNo]
+                        ["custrecord_tar_e_id","anyof",tarNo],
+                        "AND", 
+                        ["custrecord_tar_diem","is","F"]
                     ],
                     columns:
                     [
-                        search.createColumn({name: "custrecord_tar_expense_date", label: "Date"}),
-                        search.createColumn({name: "custrecord_tar_expense_receipt_no", label: "Receipt No"}),
-                        search.createColumn({name: "custrecord_tare_percentage", label: "Percentage"}),
+                        search.createColumn({name: "custrecord_tar_item_diem", label: "Item Diem"}),
                         search.createColumn({name: "custrecord_tare_category", label: "Category"}),
-                        search.createColumn({name: "custrecord_tare_account", label: "Account"}),
+                        search.createColumn({name: "custrecord_tar_expctd_date_depart", label: "Expected date of departure"}),
+                        search.createColumn({name: "custrecord_tar_expctd_date_rtn", label: "Expected date of return"}),
+                        search.createColumn({name: "custrecord_tar_prcntg", label: "Percentage (%)"}),
                         search.createColumn({name: "custrecord_tare_memo", label: "Memo"}),
                         search.createColumn({name: "custrecord_tare_amount", label: "Amount"}),
                         search.createColumn({name: "custrecord_tare_cost_center", label: "Cost Center"}),
                         search.createColumn({name: "custrecord_tare_project_code", label: "Project Code"}),
                         search.createColumn({name: "custrecord_tare_donor", label: "SOF"}),
-                        search.createColumn({name: "custrecord_tare_project_task", label: "DEA/Activity"}),
-                        search.createColumn({name: "custrecord_tare_source_of_funding", label: "Source of Funding"}),
-                        search.createColumn({name: "custrecord_tar_drc", label: "DRC"}),
                         search.createColumn({name: "custrecord_tar_dea", label: "DEA"}),
+                        search.createColumn({name: "custrecord_tare_source_of_funding", label: "Source of Funding"}),
+                        search.createColumn({name: "custrecord_tare_project_task", label: "DEA/Activity"}),
+                        search.createColumn({name: "custrecord_tar_drc", label: "DRC"}),
                         search.createColumn({name: "custrecord_tare_approver", label: "Approver"}),
-                        search.createColumn({name: "custrecord_tare_approval_status", label: "Approval Status"}),
-                        search.createColumn({name: "custrecord_tar_approver_fa", label: "Approver FA"}),
-                        search.createColumn({name: "custrecord_tar_apprvl_sts_fa", label: "Approval Status FA"})
+                        search.createColumn({name: "custrecord_tar_approver_fa", label: "Approver FA"})
                     ]
                     });
                     var searchResultCount = customrecord_tar_expensesSearchObj.runPaged().count;

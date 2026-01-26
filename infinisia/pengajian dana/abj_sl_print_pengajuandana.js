@@ -266,14 +266,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tbody>";
                     body += "<tr>";
                     body += "<td style='width:3%'></td>"
-                    body += "<td style='width:12%'></td>"
+                    body += "<td style='width:10%'></td>"
                     body += "<td style='width:3%'></td>"
                     body += "<td style='width:14%'></td>"
                     body += "<td style='width:14%'></td>"
                     body += "<td style='width:14%'></td>"
                     body += "<td style='width:14%'></td>"
                     body += "<td style='width:14%'></td>"
-                    body += "<td style='width:14%'></td>"
+                    body += "<td style='width:16%'></td>"
                     body += "</tr>";
 
                     body += "<tr style='height:30px;'>";
@@ -318,7 +318,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(approveFinance)+"</td>"
                     body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(approveAccounting)+"</td>"
                     body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(approveFinal)+"</td>"
-                    body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'>"+escapeXmlSymbols(knowledgeBy)+"</td>"
+                    body += "<td style='align:center; border: 1px solid black; border-left:none; border-top:none;'>Mediana Hadiwidjaja</td>"
                     body += "</tr>";
 
                     body += "</tbody>"

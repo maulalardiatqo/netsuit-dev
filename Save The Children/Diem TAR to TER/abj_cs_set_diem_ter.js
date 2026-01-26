@@ -3,9 +3,9 @@
  * @NScriptType ClientScript
  * @NModuleScope SameAccount
  */
-define(['N/search', 'N/format', 'N/ui/message', 'N/log'],
+define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
     
-    function(search, format, message, log) {
+    function(search, format, message, log, url, https) {
 
         const CONFIG = {
             TRIGGER_FIELD: 'custrecord_ter_tar_no',
@@ -70,73 +70,94 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log'],
         }
 
         function fetchTarData(tarId) {
-            const results = [];
-            search.create({
-                type: CONFIG.TAR_REC_TYPE,
-                filters: [
-                    [CONFIG.TAR_PARENT_KEY, "anyof", tarId], "AND", ["custrecord_tar_diem", "is", "T"]
-                ],
-                columns: [
-                    "custrecord_tar_item_diem", 
-                    "custrecord_tare_category",
-                    "custrecord_tar_expctd_date_depart", 
-                    "custrecord_tar_expctd_date_rtn",
-                    "custrecord_tar_prcntg",
-                    "custrecord_tare_memo", 
-                    "custrecord_tare_amount",
-                    "custrecord_tare_cost_center", 
-                    "custrecord_tare_project_code", 
-                    "custrecord_tare_donor",
-                    "custrecord_tar_dea", 
-                    "custrecord_tare_source_of_funding", 
-                    "custrecord_tare_project_task",
-                    "custrecord_tar_drc", 
-                    "custrecord_tare_approver", 
-                    "custrecord_tar_approver_fa",
-                    search.createColumn({ name: "custrecord_tar_travel_from", join: "CUSTRECORD_TAR_E_ID", label: "Travel From" }),
-                    search.createColumn({ name: "custrecord_tar_travel_to", join: "CUSTRECORD_TAR_E_ID", label: "Travel To" })
-                ]
-            }).run().each(res => {
-                let pctRaw = res.getValue("custrecord_tar_prcntg");
-                let pct = parseFloat(pctRaw) || 0;
-                if (typeof pctRaw === 'string' && pctRaw.includes('%')) {
-                    pct /= 100;
-                } else if (pct > 1) {
-                    pct /= 100;
-                }
+            // const results = [];
+            // search.create({
+            //     type: CONFIG.TAR_REC_TYPE,
+            //     filters: [
+            //         [CONFIG.TAR_PARENT_KEY, "anyof", tarId], "AND", ["custrecord_tar_diem", "is", "T"]
+            //     ],
+            //     columns: [
+            //         "custrecord_tar_item_diem", 
+            //         "custrecord_tare_category",
+            //         "custrecord_tar_expctd_date_depart", 
+            //         "custrecord_tar_expctd_date_rtn",
+            //         "custrecord_tar_prcntg",
+            //         "custrecord_tare_memo", 
+            //         "custrecord_tare_amount",
+            //         "custrecord_tare_cost_center", 
+            //         "custrecord_tare_project_code", 
+            //         "custrecord_tare_donor",
+            //         "custrecord_tar_dea", 
+            //         "custrecord_tare_source_of_funding", 
+            //         "custrecord_tare_project_task",
+            //         "custrecord_tar_drc", 
+            //         "custrecord_tare_approver", 
+            //         "custrecord_tar_approver_fa",
+            //         search.createColumn({ name: "custrecord_tar_travel_from", join: "CUSTRECORD_TAR_E_ID", label: "Travel From" }),
+            //         search.createColumn({ name: "custrecord_tar_travel_to", join: "CUSTRECORD_TAR_E_ID", label: "Travel To" }),
+            //         search.createColumn({ name: "cost", join: "CUSTRECORD_TAR_ITEM_DIEM", label: "Purchase Price" })
+            //     ]
+            // }).run().each(res => {
+            //     let pctRaw = res.getValue("custrecord_tar_prcntg");
+            //     let pct = parseFloat(pctRaw) || 0;
+            //     if (typeof pctRaw === 'string' && pctRaw.includes('%')) {
+            //         pct /= 100;
+            //     } else if (pct > 1) {
+            //         pct /= 100;
+            //     }
 
-                results.push({
-                    itemDiem: res.getValue("custrecord_tar_item_diem"),
-                    dateDepart: res.getValue("custrecord_tar_expctd_date_depart"),
-                    dateReturn: res.getValue("custrecord_tar_expctd_date_rtn"),
-                    percentage: pct,
-                    memo: res.getValue("custrecord_tare_memo"),
-                    amountBase: parseFloat(res.getValue("custrecord_tare_amount")) || 0,
-                    costCenter: res.getValue("custrecord_tare_cost_center"),
-                    projectCode: res.getValue("custrecord_tare_project_code"),
-                    sof: res.getValue("custrecord_tare_donor"),
-                    dea: res.getValue("custrecord_tar_dea"),
-                    sourceOfFunding: res.getValue("custrecord_tare_source_of_funding"),
-                    projectTask: res.getValue("custrecord_tare_project_task"),
-                    drc: res.getValue("custrecord_tar_drc"),
-                    approver: res.getValue("custrecord_tare_approver"),
-                    approverFa: res.getValue("custrecord_tar_approver_fa"),
-                    travelFrom: res.getValue({ name: "custrecord_tar_travel_from", join: "CUSTRECORD_TAR_E_ID" }),
-                    travelTo: res.getValue({ name: "custrecord_tar_travel_to", join: "CUSTRECORD_TAR_E_ID" })
-                });
-                return true;
+            //     results.push({
+            //         itemDiem: res.getValue("custrecord_tar_item_diem"),
+            //         dateDepart: res.getValue("custrecord_tar_expctd_date_depart"),
+            //         dateReturn: res.getValue("custrecord_tar_expctd_date_rtn"),
+            //         percentage: pct,
+            //         memo: res.getValue("custrecord_tare_memo"),
+            //         amountBase: parseFloat(res.getValue({name: "cost", join: "CUSTRECORD_TAR_ITEM_DIEM"})) || 0,
+            //         costCenter: res.getValue("custrecord_tare_cost_center"),
+            //         projectCode: res.getValue("custrecord_tare_project_code"),
+            //         sof: res.getValue("custrecord_tare_donor"),
+            //         dea: res.getValue("custrecord_tar_dea"),
+            //         sourceOfFunding: res.getValue("custrecord_tare_source_of_funding"),
+            //         projectTask: res.getValue("custrecord_tare_project_task"),
+            //         drc: res.getValue("custrecord_tar_drc"),
+            //         approver: res.getValue("custrecord_tare_approver"),
+            //         approverFa: res.getValue("custrecord_tar_approver_fa"),
+            //         travelFrom: res.getValue({ name: "custrecord_tar_travel_from", join: "CUSTRECORD_TAR_E_ID" }),
+            //         travelTo: res.getValue({ name: "custrecord_tar_travel_to", join: "CUSTRECORD_TAR_E_ID" })
+            //     });
+            //     return true;
+            // });
+            // return results;
+                const suiteletUrl = url.resolveScript({
+                scriptId: "customscript_abj_sl_get_data_tar",
+                deploymentId: "customdeploy_abj_sl_get_data_tar",
+                params: {
+                    custscript_item_id: tarId,
+                }
             });
+            const response = https.get({ url: suiteletUrl });
+
+            let results = [];
+            if (response.body) {
+                try {
+                    results = JSON.parse(response.body);
+                } catch (e) {
+                    console.log('Error parsing JSON from Suitelet', e);
+                }
+            }
+
             return results;
         }
 
         function expandDateRange(dataRow) {
+            
             const dailyLines = [];
             if (!dataRow.dateDepart || !dataRow.dateReturn) return dailyLines;
 
             const startDate = format.parse({ value: dataRow.dateDepart, type: format.Type.DATE });
             const endDate = format.parse({ value: dataRow.dateReturn, type: format.Type.DATE });
             const calculatedAmount = dataRow.amountBase * dataRow.percentage;
-
+            console.log('dataDate', {startDate : startDate, endDate : endDate, calculatedAmount : calculatedAmount} )
             let currentDate = new Date(startDate);
             while (currentDate <= endDate) {
                 dailyLines.push({
@@ -146,7 +167,9 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log'],
                 });
                 currentDate.setDate(currentDate.getDate() + 1);
             }
+            console.log('dailyLines', dailyLines)
             return dailyLines;
+
         }
 
         function clearSublist(rec, sublistId) {
@@ -226,7 +249,7 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log'],
                             log.error('Error inside timeout line ' + index, timeoutErr);
                             processLine(index + 1);
                         }
-                    }, 100); 
+                    }, 500); 
 
                 } catch (err) {
                     log.error('Error processing line ' + index, err);
