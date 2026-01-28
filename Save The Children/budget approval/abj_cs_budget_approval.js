@@ -39,7 +39,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
                         if (approverId != createdBy) {
                             return approverId;
                         }
-                        
+                        console.log('Skip Self Approval', 'Approver ' + approverId + ' is the creator. Skipping to next tier.');
                         log.debug('Skip Self Approval', 'Approver ' + approverId + ' is the creator. Skipping to next tier.');
                     }
                 }

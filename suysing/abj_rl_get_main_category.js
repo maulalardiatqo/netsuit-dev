@@ -73,7 +73,7 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
                 });
 
                 var categoryDesc = result.getValue({
-                    name: 'custitem_abj_maincat'
+                    name: 'custitem_abj_maincat_desc'
                 });
 
                 results.push({

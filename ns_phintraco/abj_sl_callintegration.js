@@ -72,20 +72,15 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
 
                         if (cekLineApp > 0) {
                             for (var i = 0; i < cekLineApp; i++) {
-                                // 1. Pilih Baris
                                 rec.selectLine({
                                     sublistId: 'recmachcustrecord_abj_a_id',
                                     line: i
                                 });
-
-                                // 2. Set Value di baris yang aktif
                                 rec.setCurrentSublistValue({
                                     sublistId: 'recmachcustrecord_abj_a_id',
                                     fieldId: 'custrecord_abj_status_approve',
-                                    value: '1' // Pastikan '1' adalah value yang valid untuk list/select
+                                    value: '1'
                                 });
-
-                                // 3. Commit (Simpan perubahan baris)
                                 rec.commitLine({
                                     sublistId: 'recmachcustrecord_abj_a_id'
                                 });
@@ -203,12 +198,13 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             created_by: created_by,
             codeRevision: revisionCode, 
             
-            customForm: rec.getText('customform') || '',
+            customForm: rec.getValue('customform') || '',
             series: rec.getValue('custbody_docser_series') || '',
             refertosc: rec.getValue('custbody_ph_refertosc') || '',
             refertopr: rec.getValue('custbodycustbody_ph_refertopr') || '',
             budgetcost_period: rec.getValue('custbody_bc_period') || '',
             project_segment: rec.getValue('cseg1') || '',
+            customform_text : rec.getText('customform') || '',
             
             action_type: endpointAction, 
             

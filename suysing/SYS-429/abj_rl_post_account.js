@@ -63,64 +63,82 @@ define(['N/record', 'N/search', 'N/format', 'N/error'], (record, search, format,
                             message: 'end_date cannot be earlier than start_date'
                         });
                     }
-                    const formattedStart = format.format({ value: sDate, type: DATETIME_FORMAT });
-                    const formattedEnd = format.format({ value: eDate, type: DATETIME_FORMAT });
+                    const formattedStart = format.format({ value: sDate, type: format.Type.DATETIME });
+                const formattedEnd = format.format({ value: eDate, type: format.Type.DATETIME });
 
                     filters.push(['lastmodifieddate', 'within', formattedStart, formattedEnd]);
                 }
             }
 
-            // Create Search
+            log.debug('filter', filters)
             const customerSearch = search.create({
                 type: search.Type.CUSTOMER,
                 filters: filters,
                 columns: [
-                    'entityid',                         // account_id
-                    'externalid',                       // reference_id
-                    'companyname',                      // client_name / store_name
-                    'custentity_abj_customerclass',     // class
-                    'custentity_abj_format',            // format
-                    'custentity_abj_preferredpickupdc', // default_pickup_branch
-                    'custentity_abj_tradevdr_trans_type', // default_transaction_type
-                    'custentity_abj_paymentmode',       // default_payment_code
-                    'defaultaddress',                   // addresses
-                    'custentity_abj_maincode',          // main_account_id
-                    'entitystatus',                     // lead
-                    'isinactive',                       // status
-                    'custentity_abj_contact',           // contacts
-                    'custrecord_abj_custgrpcode_link_groupcod' // groups
-                    // Note: 'name' field for success_card_number is ambiguous in search, usually entityid or companyname. 
-                    // Assuming 'entityid' or specific custom field. Using entityid as placeholder.
+                    'internalid',
+                    'entityid',
+                    'externalid',
+                    'companyname',
+                    'custentity_abj_customerclass',
+                    'custentity_abj_format',
+                    'custentity_abj_preferredpickupdc',
+                    'custentity_abj_tradevdr_trans_type',
+                    'custentity_abj_paymentmode',
+                    'address',
+                    'custentity_abj_maincode',
+                    'entitystatus',
+                    'isinactive',
+                    'custentity_abj_contact',
+                    search.createColumn({
+                        name: "internalid",
+                        join: "CUSTRECORD_ABJ_CUSTGRPCODE_LINK_CUSTOMER",
+                        label: "Internal ID"
+                    }),
                 ]
             });
 
-            const resultData = [];
+            const customerMap = {};
             const pagedData = customerSearch.runPaged({ pageSize: 1000 });
 
             pagedData.pageRanges.forEach(pageRange => {
                 const page = pagedData.fetch({ index: pageRange.index });
                 page.data.forEach(res => {
-                    resultData.push({
-                        account_id: res.getValue('entityid'),
-                        reference_id: res.getValue('externalid'),
-                        client_name: res.getValue('companyname'),
-                        store_name: res.getValue('companyname'),
-                        class: res.getText('custentity_abj_customerclass'),
-                        format: res.getText('custentity_abj_format'),
-                        default_pickup_branch: res.getText('custentity_abj_preferredpickupdc'),
-                        default_transaction_type: res.getText('custentity_abj_tradevdr_trans_type'),
-                        default_ship_to_id: "", // Field ID 'Default shipping check box' not standard searchable, requires specific logic
-                        default_payment_code: res.getText('custentity_abj_paymentmode'),
-                        success_card_number: res.getValue('entityid'), // Mapping ambiguous 'name'
-                        contacts: res.getValue('custentity_abj_contact'),
-                        groups: res.getValue('custrecord_abj_custgrpcode_link_groupcod'),
-                        addresses: res.getValue('defaultaddress'),
-                        main_account_id: res.getValue('custentity_abj_maincode'),
-                        lead: res.getText('entitystatus'),
-                        status: res.getValue('isinactive') ? "Inactive" : "Active"
+                    const internalId = res.id;
+
+                    if (!customerMap[internalId]) {
+                        customerMap[internalId] = {
+                            account_id: res.getValue('entityid'),
+                            reference_id: res.getValue('externalid'),
+                            client_name: res.getValue('companyname'),
+                            store_name: res.getValue('companyname'),
+                            class: res.getText('custentity_abj_customerclass'),
+                            format: res.getText('custentity_abj_format'),
+                            default_pickup_branch: res.getText('custentity_abj_preferredpickupdc'),
+                            default_transaction_type: res.getText('custentity_abj_tradevdr_trans_type'),
+                            default_ship_to_id: "",
+                            default_payment_code: res.getText('custentity_abj_paymentmode'),
+                            success_card_number: res.getValue('entityid'),
+                            contacts: res.getValue('custentity_abj_contact'),
+                            groups: [],
+                            addresses: res.getValue('address'),
+                            main_account_id: res.getValue('custentity_abj_maincode'),
+                            lead: res.getText('entitystatus'),
+                            status: res.getValue('isinactive') ? "Inactive" : "Active"
+                        };
+                    }
+
+                    let groupValue = res.getValue({
+                        name: "internalid",
+                        join: "CUSTRECORD_ABJ_CUSTGRPCODE_LINK_CUSTOMER"
                     });
+
+                    if (groupValue && !customerMap[internalId].groups.includes(groupValue)) {
+                        customerMap[internalId].groups.push(groupValue);
+                    }
                 });
             });
+
+            const resultData = Object.values(customerMap);
 
             return {
                 status: "success",

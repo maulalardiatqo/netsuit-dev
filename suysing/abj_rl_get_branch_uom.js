@@ -9,10 +9,10 @@
 /*******************************************************************************
  * **Copyright (c) 2025 ABJ Cloud Solutions, Inc.
  * @Client        :  Suy Sing
- * @Script Name   :  - SSCC | RL | Get Payments
- * @script File   :  abj_rl_get_paymnets.js
+ * @Script Name   :  - SSCC | RL | Get Item UoM
+ * @script File   :  abj_rl_get_branch_uom.js
  * @Trigger Type  :  Integration
- * @Release Date  :  Dec 28, 2025
+ * @Release Date  :  Jan 28, 2025
  * @Author        :  Maulal Ardi Atqo
  * @Description   :  <same as script description>
  * @Enhancement   :  
@@ -40,11 +40,10 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
             pageSize = (pageSize && pageSize > 0) ? pageSize : 10;
             pageIndex = (pageIndex && pageIndex >= 0) ? pageIndex : 0;
 
-            var paymentSearch = search.load({
-                id: 'customsearch1780'
+            var itemUomSearch = search.load({
+                id: 'customsearchwebsite_item_uom_get'
             });
-            log.debug('paymentSearch', paymentSearch)
-            var pagedData = paymentSearch.runPaged({
+            var pagedData = itemUomSearch.runPaged({
                 pageSize: pageSize
             });
             var totalPages = pagedData.pageRanges.length;
@@ -68,27 +67,73 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
             
 
             page.data.forEach(function (result) {
-                var paymentNameId = result.getValue({
-                    name: 'entity'
+                var primaryUnits = result.getValue({
+                    name: "unitstype"
                 });
-                var paymentNameText = result.getText({
-                    name: 'entity'
+                var unitType = result.getValue({
+                    name: "custrecord_abj_uomsub_uom",
+                    join: "CUSTRECORD_ABJ_UOMSUB_ITEM"
                 });
-                var modeofPayment = result.getValue({
-                    name: 'custbody_abj_po_tr_pymtmode'
+                var caseBarcode = result.getValue({
+                    name: "custitem_abj_case_barcode"
                 });
-                var bankDiscount = result.getValue({
-                    name: "custrecord_abj_pymtmode_bankdisc",
-                    join: "CUSTBODY_ABJ_PYMTMODE",
+                var caseHeight = result.getValue({
+                    name: "custitem_abj_case_height"
+                });
+                var caseWidth = result.getValue({
+                    name: "custitem_abj_case_width"
+                });
+                var caseLength = result.getValue({
+                    name: "custitem_abj_case_length"
+                });
+                var packBarcode = result.getValue({
+                    name: "custitem_abj_pack_barcode"
+                });
+                var packHeight = result.getValue({
+                    name: "custitem_abj_pack_height"
+                });
+                var packWidth = result.getValue({
+                    name: "custitem_abj_pack_width"
+                });
+                var packLength = result.getValue({
+                    name: "custitem_abj_pack_length"
+                });
+                var pieceBarcode = result.getValue({
+                    name: "custitem_abj_piece_barcode"
+                });
+                var pieceHeight = result.getValue({
+                    name: "custitem_abj_piece_height"
+                });
+                var pieceWidth = result.getValue({
+                    name: "custitem_abj_piece_width"
+                });
+                var pieceLength = result.getValue({
+                    name: "custitem_abj_piece_length"
+                });
+                var displayImg = result.getValue({
+                    name: "custitem_abj_display_image"
                 });
                 
                 results.push({
-                    paymentName : {
-                        paymentNameId: paymentNameId || '',
-                        paymentNameText : paymentNameText || '',
-                    },
-                    modeofPayment : modeofPayment || '',
-                    bankDiscount : bankDiscount || ''
+                    primaryUnits: primaryUnits || '',
+                    unitType: unitType || '',
+
+                    caseBarcode: caseBarcode || '',
+                    caseHeight: caseHeight || '',
+                    caseWidth: caseWidth || '',
+                    caseLength: caseLength || '',
+
+                    packBarcode: packBarcode || '',
+                    packHeight: packHeight || '',
+                    packWidth: packWidth || '',
+                    packLength: packLength || '',
+
+                    pieceBarcode: pieceBarcode || '',
+                    pieceHeight: pieceHeight || '',
+                    pieceWidth: pieceWidth || '',
+                    pieceLength: pieceLength || '',
+
+                    displayImg: displayImg || ''
                 });
             });
             log.debug('results', results)

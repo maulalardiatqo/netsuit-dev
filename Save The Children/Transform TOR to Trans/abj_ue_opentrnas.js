@@ -77,6 +77,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 });
                 createPO.setSublistValue({
                     sublistId : 'item',
+                    fieldId   : 'rate',
+                    line      : indexL,
+                    value     : data[i].amount
+                });
+                createPO.setSublistValue({
+                    sublistId : 'item',
                     fieldId   : 'amount',
                     line      : indexL,
                     value     : data[i].amount
@@ -556,7 +562,14 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         if(expAcc){
             createTar.setSublistValue({ sublistId : sublistId, fieldId: 'custrecord_tare_account', line : i, value: expAcc})
         }
+        if(rowData.item == '774'){
+                category = '25'
+                createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_diem', line: i, value: true });
+                
+            createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_category', line: i, value: '25' });
+            }
         if (category) {
+            
             createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_category', line: i, value: category });
         }
         createTar.setSublistValue({sublistId : sublistId, fieldId : 'custrecord_tare_memo', line : i, value : '-'})
