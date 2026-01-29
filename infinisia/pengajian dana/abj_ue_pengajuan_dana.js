@@ -20,15 +20,23 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                 log.debug('cekApprovalLevel', cekApprovalLevel)
                 if(cekApprovalLevel && cekApprovalLevel.includes('Pending Setup COA')){
                     log.debug('masuk kondisi panggil client')
-                    
+                    form.addButton({
+                        id: 'custpage_button_po',
+                        label: "Print Pengajuan Dana",
+                        functionName: "printPengajuan()"
+                    });
                 }else{
+                    var cekStatusApp = rec.getValue('custrecord_fund_approval');
+                    if(cekStatusApp == '2'){
+                        form.addButton({
+                            id: 'custpage_button_po',
+                            label: "Print Pengajuan Dana",
+                            functionName: "printPengajuan()"
+                        });
+                    }
                     context.form.clientScriptModulePath = 'SuiteScripts/abj_cs_pengajuan_dana.js';
+                    
                 }
-                form.addButton({
-                    id: 'custpage_button_po',
-                    label: "Print Pengajuan Dana",
-                    functionName: "printPengajuan()"
-                });
                 context.form.clientScriptModulePath = "SuiteScripts/abj_cs_validate_pengajuandana.js"
                 
             }catch(e){

@@ -32,10 +32,11 @@ define(['N/record', 'N/search', 'N/format', 'N/error'], (record, search, format,
             CONTACT_NUM: 'custrecord_abj_cont_contnum',
             CUSTOMER_LINK: 'custrecord_abj_cont_leadcust',
             IS_INACTIVE: 'isinactive',
-            LAST_MODIFIED: 'lastmodified',
+            LAST_MODIFIED: 'lastmodified', // Correct ID for Custom Record
             CONTACT_GROUP: 'custrecord_abj_cont_contactgrp'
         }
     };
+
     const sendResponse = (status, message, data = null) => {
         let response = {
             status: status,
@@ -46,75 +47,65 @@ define(['N/record', 'N/search', 'N/format', 'N/error'], (record, search, format,
         }
         return response;
     };
-    const getCustomerInternalId = (entityId) => {
-        if (!entityId) return null;
-        let customerSearch = search.create({
-            type: search.Type.CUSTOMER,
-            filters: [['entityid', 'is', entityId]],
-            columns: ['internalid']
-        });
-        let result = customerSearch.run().getRange({ start: 0, end: 1 });
-        return (result && result.length > 0) ? result[0].getValue('internalid') : null;
-    };
 
     /**
      * GET method - Used to retrieve information about specific records.
-     * Retrieves Account Contacts based on date filters and account_id.
-     *
-     * @param {Object} requestParams
-     * @returns {Object} 
      */
     function get(requestParams) {
         try {
             log.debug('GET Request', requestParams);
 
-            let startDateStr = requestParams.start_date;
-            let endDateStr = requestParams.end_date;
-            let accountId = requestParams.account_id;
+            let { start_date, end_date, account_id } = requestParams;
+            
+            // Inisialisasi Filter dengan Inactive = F
+            let filterExpression = [
+                [CONFIG.FIELDS.IS_INACTIVE, 'is', 'F']
+            ];
 
-            let filters = [];
-            if (!startDateStr) {
-                filters.push(search.createFilter({
-                    name: CONFIG.FIELDS.IS_INACTIVE,
-                    operator: search.Operator.IS,
-                    values: false
-                }));
-            } else {
-                let startDate = format.parse({ value: startDateStr, type: format.Type.DATE }); // Assuming YYYY-MM-DD or system format
-                let endDate;
+            // 1. Filter Account ID
+            if (account_id) {
+                filterExpression.push('AND');
+                filterExpression.push([CONFIG.FIELDS.CUSTOMER_LINK + '.entityid', 'is', account_id]);
+            }
 
-                if (!endDateStr) {
-                    endDate = new Date(); 
+            // 2. Filter Date Logic
+            if (start_date) {
+                // Parse ke Object Date
+                let sDate = format.parse({ value: start_date, type: format.Type.DATE });
+                
+                let eDate;
+                if (end_date) {
+                    eDate = format.parse({ value: end_date, type: format.Type.DATE });
                 } else {
-                    endDate = format.parse({ value: endDateStr, type: format.Type.DATE });
+                    eDate = new Date();
                 }
-                if (endDate < startDate) {
+
+                if (eDate < sDate) {
                     return sendResponse('error', 'end_date cannot be earlier than start_date');
                 }
-                let formattedStart = format.format({ value: startDate, type: format.Type.DATETIME });
-                let formattedEnd = format.format({ value: endDate, type: format.Type.DATETIME });
 
-                filters.push(search.createFilter({
-                    name: CONFIG.FIELDS.LAST_MODIFIED,
-                    operator: search.Operator.WITHIN,
-                    values: [formattedStart, formattedEnd]
-                }));
+                // SOLUSI: FORMAT TANGGAL SAJA, LALU GABUNG JAM SECARA MANUAL
+                // Ini menghindari error format detik yang terjadi sebelumnya.
+                
+                // 1. Ambil String Tanggal (misal: "09/12/2025" atau "12/09/2025" sesuai sistem)
+                let sDateString = format.format({ value: sDate, type: format.Type.DATE });
+                let eDateString = format.format({ value: eDate, type: format.Type.DATE });
+
+                // 2. Gabungkan dengan jam hardcode (Persis seperti yang berhasil Anda coba)
+                // Start: Awal hari (12:00 am)
+                // End: Akhir hari (11:59 pm)
+                let finalStartString = sDateString + " 12:00 am";
+                let finalEndString = eDateString + " 11:59 pm";
+
+                filterExpression.push('AND');
+                filterExpression.push([CONFIG.FIELDS.LAST_MODIFIED, 'within', finalStartString, finalEndString]);
             }
-            if (accountId) {
-                let customerId = getCustomerInternalId(accountId);
-                if (customerId) {
-                    filters.push(search.createFilter({
-                        name: CONFIG.FIELDS.CUSTOMER_LINK,
-                        operator: search.Operator.ANYOF,
-                        values: customerId
-                    }));
-                } else {
-                    return sendResponse('success', 'Data retrieved successfully', []);
-                }
-            }
+
+            log.debug('Final Filter Expression', JSON.stringify(filterExpression));
+
             let contactSearch = search.create({
                 type: CONFIG.REC_TYPE,
-                filters: filters,
+                filters: filterExpression,
                 columns: [
                     search.createColumn({ name: CONFIG.FIELDS.FIRST_NAME }),
                     search.createColumn({ name: CONFIG.FIELDS.LAST_NAME }),
@@ -122,7 +113,11 @@ define(['N/record', 'N/search', 'N/format', 'N/error'], (record, search, format,
                     search.createColumn({ name: CONFIG.FIELDS.CONTACT_TYPE }),
                     search.createColumn({ name: CONFIG.FIELDS.CONTACT_NUM }),
                     search.createColumn({ name: CONFIG.FIELDS.IS_INACTIVE }),
-                    search.createColumn({ name: CONFIG.FIELDS.CUSTOMER_LINK })
+                    search.createColumn({ name: CONFIG.FIELDS.CUSTOMER_LINK }),
+                    search.createColumn({
+                        name: 'entityid',
+                        join: CONFIG.FIELDS.CUSTOMER_LINK
+                    })
                 ]
             });
 
@@ -134,10 +129,12 @@ define(['N/record', 'N/search', 'N/format', 'N/error'], (record, search, format,
                     designation: result.getValue(CONFIG.FIELDS.ROLE),
                     type: result.getValue(CONFIG.FIELDS.CONTACT_TYPE),
                     contact: result.getValue(CONFIG.FIELDS.CONTACT_NUM),
+                    account_id: result.getValue({ name: 'entityid', join: CONFIG.FIELDS.CUSTOMER_LINK }), 
                     status: result.getValue(CONFIG.FIELDS.IS_INACTIVE) ? 'Inactive' : 'Active'
                 });
-                return true; 
+                return true;
             });
+
             return sendResponse('success', 'Data retrieved successfully', { data: resultData });
 
         } catch (ex) {

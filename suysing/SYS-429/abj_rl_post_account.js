@@ -49,25 +49,45 @@ define(['N/record', 'N/search', 'N/format', 'N/error'], (record, search, format,
             let filters = [];
             const { account_id, start_date, end_date } = requestParams;
             if (account_id) {
-                filters.push(['entityid', 'is', account_id]);
+                filters.push(search.createFilter({
+                    name: 'entityid',
+                    operator: search.Operator.IS,
+                    values: account_id
+                }));
+            }
+            if (!start_date) {
+                filters.push(search.createFilter({
+                    name: 'isinactive',
+                    operator: search.Operator.IS,
+                    values: false
+                }));
             } else {
-                if (!start_date) {
-                    filters.push(['isinactive', 'is', 'F']);
-                } else {
-                    let sDate = parseDate(start_date);
-                    let eDate = end_date ? parseDate(end_date) : new Date(); 
+                let sDate = format.parse({ value: start_date, type: format.Type.DATE });
+                let eDate = end_date ? format.parse({ value: end_date, type: format.Type.DATE }) : new Date();
 
-                    if (eDate < sDate) {
-                        throw error.create({
-                            name: 'INVALID_DATE_RANGE',
-                            message: 'end_date cannot be earlier than start_date'
-                        });
-                    }
-                    const formattedStart = format.format({ value: sDate, type: format.Type.DATETIME });
-                const formattedEnd = format.format({ value: eDate, type: format.Type.DATETIME });
-
-                    filters.push(['lastmodifieddate', 'within', formattedStart, formattedEnd]);
+                if (eDate < sDate) {
+                    throw error.create({
+                        name: 'INVALID_DATE_RANGE',
+                        message: 'end_date cannot be earlier than start_date'
+                    });
                 }
+                const formattedStart = format.format({ value: sDate, type: format.Type.DATE });
+                const formattedEnd = format.format({ value: eDate, type: format.Type.DATE });
+                filters.push(search.createFilter({
+                    name: 'startdate',
+                    operator: search.Operator.WITHIN, 
+                    values: [formattedStart, formattedEnd]
+                }));
+                
+                // OPSI TAMBAHAN (Jika ingin logic strict memanfaatkan field 'enddate' pada record juga):
+                // Jika Anda ingin record yang SELESAI sebelum parameter end_date, aktifkan baris ini:
+                /*
+                filters.push(search.createFilter({
+                    name: 'enddate', 
+                    operator: search.Operator.ONORBEFORE, 
+                    values: formattedEnd
+                }));
+                */
             }
 
             log.debug('filter', filters)
