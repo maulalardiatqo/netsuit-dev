@@ -210,7 +210,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             
             line_items: getLineItems(rec),
             expenses: getExpenses(rec),
-            approvers: getApprovers(rec, flaging),
+            approvers: getApprovers(rec, flaging, endpointAction),
             attachments: getAttachments(rec)
         };
 
@@ -277,7 +277,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
         return lines;
     }
 
-    function getApprovers(rec, flaging) {
+    function getApprovers(rec, flaging, endpointAction) {
         var approvers = [];
         const approvalCount = rec.getLineCount({ sublistId: 'recmachcustrecord_abj_a_id' });
         var approvalNo = 1;
@@ -300,11 +300,24 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             } catch(e) {
                 log.error("Lookup Approver Error", e.message);
             }
-            let statusKirim = flaging === true ? '1' : rec.getSublistValue({ 
-                sublistId: 'recmachcustrecord_abj_a_id', 
-                fieldId: 'custrecord_abj_status_approve', 
-                line: i 
-            });
+            let statusKirim = '';
+
+            if (endpointAction === 'create') {
+                if (groupVal == '1') {
+                    statusKirim = '1';
+                } else {
+                    statusKirim = ''; 
+                }
+            } else if (flaging === true) {
+                statusKirim = '1';
+            } else {
+                // Logic default (ambil dari record)
+                statusKirim = rec.getSublistValue({ 
+                    sublistId: 'recmachcustrecord_abj_a_id', 
+                    fieldId: 'custrecord_abj_status_approve', 
+                    line: i 
+                });
+            }
 
             approvers.push({
                 po_id: rec.id,
