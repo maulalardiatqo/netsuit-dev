@@ -143,6 +143,18 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 });
                 createPO.setSublistValue({
                     sublistId : 'item',
+                    fieldId : 'cseg_paactivitycode',
+                    line      : indexL,
+                    value : data[i].activityCode
+                })
+                createPO.setSublistValue({
+                    sublistId : 'item',
+                    fieldId : 'cseg1',
+                    line      : indexL,
+                    value : data[i].bussinessUnit
+                })
+                createPO.setSublistValue({
+                    sublistId : 'item',
                     fieldId   : 'custcol_stc_approval_status_line',
                     line      : indexL,
                     value     : '1'
@@ -324,6 +336,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 safeSublist('projecttask', lineData.projectTask);
                 safeSublist('custrecord_tare_project_task', lineData.projectTask);
             }
+            if(lineData.activityCode){
+                safeSublist('cseg_paactivitycode', lineData.activityCode)
+            }
+             if(lineData.bussinessUnit){
+                safeSublist('cseg1', lineData.bussinessUnit)
+            }
 
             if (lineData.drc) safeSublist('cseg_stc_drc_segmen', lineData.drc);
             if (lineData.dea) safeSublist('cseg_stc_segmentdea', lineData.dea);
@@ -420,6 +438,18 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     line : indexL,
                     value     : data[i].projectCode
                 });
+                createPr.setSublistValue({
+                    sublistId : 'item',
+                    fieldId : 'cseg_paactivitycode',
+                    line      : indexL,
+                    value : data[i].activityCode
+                })
+                createPr.setSublistValue({
+                    sublistId : 'item',
+                    fieldId : 'cseg1',
+                    line      : indexL,
+                    value : data[i].bussinessUnit
+                })
                 createPr.setSublistValue({
                     sublistId : 'item',
                     fieldId   : 'currency',
@@ -596,6 +626,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         if (rowData.amount) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_amount', line: i, value: rowData.amount });
         if (rowData.costCenter) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_cost_center', line: i, value: rowData.costCenter });
         if (rowData.projectCode) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_project_code', line: i, value: rowData.projectCode });
+        if (rowData.bussinessUnit) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_ter_business_unit', line: i, value: rowData.bussinessUnit });
+        if (rowData.activityCode) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_activity_code', line: i, value: rowData.activityCode });
         
         // Tidak perlu increment indexL manual, pakai 'i' dari loop saja
     }
@@ -678,6 +710,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     typeToCheck ='4'
                 }
                 var cekIdTOR = rec.getValue('custbody_id_to');
+                if(recType == 'customrecord_tar'){
+                    cekIdTOR = rec.getValue('custrecord_tar_link_to_tor');
+                }
 
                 if(recType == 'purchaserequisition'){
                     if (cekIdTOR) {
@@ -738,6 +773,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     }
                     
                 }else{
+                    log.debug('cekIdTOR', cekIdTOR)
+                    
                     if(cekIdTOR){
                         var recLoad = record.load({
                             type : 'customrecord_tor',
@@ -753,10 +790,16 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                                     fieldId   : 'custrecord_tor_transaction_type',
                                     line      : i
                                 });
+                                log.debug('typeToCheck', typeToCheck)
+                    log.debug('transactionType', transactionType)
                                 if(transactionType == typeToCheck){
+                                    var fieldToSet = 'custrecord_tor_link_trx_no'
+                                    if(transactionType == '4'){
+                                        fieldToSet = 'custrecord_tor_link_tar'
+                                    }
                                     recLoad.setSublistValue({
                                         sublistId : 'recmachcustrecord_tori_id',
-                                        fieldId   : 'custrecord_tor_link_trx_no',
+                                        fieldId   : fieldToSet,
                                         line      : i,
                                         value     : idRec
                                     });

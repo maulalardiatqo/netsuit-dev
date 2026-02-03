@@ -31,29 +31,17 @@ define(['N/record', 'N/search', 'N/format', 'N/error', 'N/log'], (record, search
      * @returns {Object} - JSON object matching the requested output format.
      */
     function get(requestParams) {
-        let response = {
-            status: "failed",
-            message: "",
-            data: []
-        };
-
         try {
             log.debug('GET Request Received', requestParams);
 
             let filters = [];
-            // Filter by Date Range if provided
             if (requestParams.start_date && requestParams.end_date) {
                 filters.push(['trandate', 'within', requestParams.start_date, requestParams.end_date]);
             }
-
-            // Filter by Specific Sales Order ID (TranID / Order #)
             if (requestParams.sales_order_id) {
                 if (filters.length > 0) filters.push('AND');
-                filters.push(['tranid', 'is', requestParams.sales_order_id]);
+                filters.push(['internalid', 'is', requestParams.sales_order_id]);
             }
-
-            // Essential Filter: Main Line is False to get lines, but we need to be careful to group them
-            // Strategy: Search Main Line = False to get everything, then process in memory to group by Header.
             if (filters.length > 0) filters.push('AND');
             filters.push(['mainline', 'is', 'F']);
             if (filters.length > 0) filters.push('AND');
@@ -61,29 +49,24 @@ define(['N/record', 'N/search', 'N/format', 'N/error', 'N/log'], (record, search
             if (filters.length > 0) filters.push('AND');
             filters.push(['shipping', 'is', 'F']);
 
-            // Columns Mapping based on 
             let columns = [
-                search.createColumn({ name: 'internalid', sort: search.Sort.ASC }), // Used for grouping
-                search.createColumn({ name: 'entity' }), // Client Name Source
-                search.createColumn({ name: 'externalid', join: 'customer' }), // reference_id (Customer External ID)
-                search.createColumn({ name: 'tranid' }), // sales_order_id
-                search.createColumn({ name: 'entityid', join: 'customer' }), // account_code (Cust ID)
-                search.createColumn({ name: 'custbody_abj_ttype' }), // transaction_type
-                search.createColumn({ name: 'location' }), // branch_code
-                search.createColumn({ name: 'custbody_abj_payment_mode' }), // payment_mode
-                search.createColumn({ name: 'custbody_abj_remarks' }), // remarks
-                search.createColumn({ name: 'status' }), // order_status
-                search.createColumn({ name: 'trandate' }), // created_at
-                search.createColumn({ name: 'lastmodifieddate' }), // updated_at
-                
-                // Line Details
-                search.createColumn({ name: 'item' }), // item_code (ID)
-                search.createColumn({ name: 'itemid', join: 'item' }), // item_code (Name)
-                search.createColumn({ name: 'units' }), // item_uom
-                search.createColumn({ name: 'location', join: 'item' }), // item_location (from item master? or line location?) - Source 3 says line.location
-                search.createColumn({ name: 'location' }), // line location
-                search.createColumn({ name: 'quantity' }), // ordered_quantity
-                search.createColumn({ name: 'quantityshiprecv' }) // served_quantity (fulfilled)
+                search.createColumn({ name: 'internalid', sort: search.Sort.ASC }),
+                search.createColumn({ name: 'entity' }), 
+                search.createColumn({ name: 'tranid' }), 
+                search.createColumn({ name: 'entityid', join: 'customer' }), 
+                search.createColumn({ name: 'custbody_abj_ttype' }), 
+                search.createColumn({ name: 'location' }), 
+                search.createColumn({ name: 'custbody_abj_payment_mode' }), 
+                search.createColumn({ name: 'custbody_abj_remarks' }), 
+                search.createColumn({ name: 'status' }), 
+                search.createColumn({ name: 'trandate' }), 
+                search.createColumn({ name: 'lastmodifieddate' }), 
+                search.createColumn({ name: 'item'}), 
+                search.createColumn({ name: 'itemid', join: 'item' }),
+                search.createColumn({ name: 'unitstype', join: 'item' }), 
+                search.createColumn({ name: 'location', join: 'item' }), 
+                search.createColumn({ name: 'quantity' }), 
+                search.createColumn({ name: 'quantityshiprecv'}) 
             ];
 
             let soSearch = search.create({
@@ -98,52 +81,55 @@ define(['N/record', 'N/search', 'N/format', 'N/error', 'N/log'], (record, search
                 let page = pagedData.fetch({ index: pageRange.index });
                 searchResults = searchResults.concat(page.data);
             });
-
-            // Process results into nested JSON
             let groupedData = {};
+           searchResults.forEach(function(result) {
+            var internalId = result.getValue('internalid');
 
-            searchResults.forEach((result) => {
-                let internalId = result.getValue('internalid');
-
-                if (!groupedData[internalId]) {
-                    // Create Header Object
-                    groupedData[internalId] = {
-                        client_name: result.getText('entity'),
-                        reference_id: result.getValue({ name: 'externalid', join: 'customer' }),
-                        sales_order_id: result.getValue('tranid'),
-                        account_code: result.getValue({ name: 'entityid', join: 'customer' }),
-                        transaction_type: result.getText('custbody_abj_ttype'),
-                        branch_code: result.getText('location'),
-                        payment_mode: result.getText('custbody_abj_payment_mode'),
-                        remarks: result.getValue('custbody_abj_remarks'),
-                        order_status: result.getText('status'),
-                        created_at: result.getValue('trandate'),
-                        updated_at: result.getValue('lastmodifieddate'),
-                        order_details: []
-                    };
-                }
-
-                // Add Line Detail
-                groupedData[internalId].order_details.push({
-                    item_code: result.getValue({ name: 'itemid', join: 'item' }),
-                    item_uom: result.getText('units'),
-                    item_location: result.getText('location'), // Line location
-                    ordered_quantity: result.getValue('quantity'),
-                    served_quantity: result.getValue('quantityshiprecv') || 0
-                });
+            if (!groupedData[internalId]) {
+                groupedData[internalId] = {
+                    // Gunakan getText untuk nama, getValue untuk ID
+                    client_name: result.getText('entity') || "", 
+                    reference_id: result.getValue({ name: 'externalid', join: 'customer' }) || null,
+                    sales_order_id: result.getValue('tranid') || "",
+                    account_code: result.getValue({ name: 'entityid', join: 'customer' }) || "",
+                    transaction_type: result.getText('custbody_abj_ttype') || "",
+                    branch_code: result.getText('location') || "",
+                    payment_mode: result.getText('custbody_abj_payment_mode') || "",
+                    remarks: (result.getValue('custbody_abj_remarks') || "").toString().replace(/[\r\n]/g, " "),
+                    order_status: result.getText('status') || "",
+                    created_at: result.getValue('trandate') || "",
+                    updated_at: result.getValue('lastmodifieddate') || "",
+                    order_details: []
+                };
+            }
+            groupedData[internalId].order_details.push({
+                item_code: result.getValue({ name: 'itemid', join: 'item' }) || "",
+                item_uom: result.getText({ name: 'unitstype', join: 'item' }) || "",
+                item_location: result.getText('location') || "",
+                ordered_quantity: result.getValue('quantity') || "0",
+                served_quantity: result.getValue('quantityshiprecv') || "0"
             });
+        });
 
-            response.data = Object.values(groupedData);
-            response.status = "success";
-            response.message = "Data retrieved successfully";
+        var resultData = Object.values(groupedData);
 
+        // KUNCI: Gunakan JSON.parse(JSON.stringify()) untuk memutus 
+        // semua referensi object internal NetSuite sebelum dikirim.
+        var cleanObject = JSON.parse(JSON.stringify(resultData));
+
+            return {
+                status: "success",
+                message: "Data retrieved successfully",
+                data: cleanObject
+            };
         } catch (ex) {
             log.error("get: " + ex.name, ex.message);
-            response.status = "failed";
-            response.message = ex.message;
+            return {
+                status: "failed", 
+                error_code: ex.name,    
+                message: ex.message
+            };
         }
-
-        return response;
     }
 
     /**
@@ -190,15 +176,11 @@ define(['N/record', 'N/search', 'N/format', 'N/error', 'N/log'], (record, search
                 requestBody.sales_order_details.forEach((line, index) => {
                     soRecord.selectNewLine({ sublistId: 'item' });
 
-                    let itemId = getInternalIdByName('item', line.item_code);
+                    let itemId = line.item_code;
                     if (!itemId) {
                         throw error.create({ name: 'INVALID_ITEM', message: `Item code ${line.item_code} not found at line ${index + 1}` });
                     }
                     soRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: itemId });
-                    if (line.ordered_quantity) {
-                        soRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: line.ordered_quantity });
-                    }
-
                     if (line.location) {
                         soRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'location', value: line.location });
                     }
@@ -206,8 +188,26 @@ define(['N/record', 'N/search', 'N/format', 'N/error', 'N/log'], (record, search
                     if (line.item_uom) {
                         soRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'units', value: line.item_uom });
                     }
+                    if (line.ordered_quantity) {
+                        soRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: line.ordered_quantity });
+                    }
+                    if(line.amount){
+                        soRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'price', value: '-1' }); 
+                        
+                        soRecord.setCurrentSublistValue({ sublistId: 'item', fieldId: 'rate', value: line.amount });
+
+                    }
+
+                    // Debugging value sebelum commit
+                    var cekAmt = soRecord.getCurrentSublistValue({
+                        sublistId : 'item',
+                        fieldId : 'amount'
+                    });
+                    log.debug('cekAmt line ' + index, cekAmt);
 
                     soRecord.commitLine({ sublistId: 'item' });
+    
+
                 });
             }
             let recordId = soRecord.save({
@@ -259,7 +259,7 @@ define(['N/record', 'N/search', 'N/format', 'N/error', 'N/log'], (record, search
         let resultId = null;
         search.create({
             type: recordType,
-            filters: [['externalid', 'is', externalId]],
+            filters: [['entityid', 'is', externalId]],
             columns: ['internalid']
         }).run().each(function(result) {
             resultId = result.id;

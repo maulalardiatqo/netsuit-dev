@@ -17,7 +17,9 @@ define(['N/ui/message', 'N/log'],
             ]
         };
 
-        function pageInit(context){}
+        function pageInit(context){
+            toggleDiemFields(context.currentRecord, 'recmachcustrecord_tar_e_id')
+        }
 
         /**
          * Dijalankan saat baris dipilih/diinisialisasi.
@@ -47,12 +49,8 @@ define(['N/ui/message', 'N/log'],
             }
         }
 
-        // --- Helper Function untuk Logic Disable/Enable ---
         function toggleDiemFields(rec, sublistId) {
             const isDiem = rec.getCurrentSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_diem' });
-            
-            // Jika Diem = True, maka Disable = False (Enable)
-            // Jika Diem = False, maka Disable = True (Disable)
             const shouldDisable = (isDiem === true || isDiem === 'T') ? false : true;
 
             CONFIG.FIELDS_TO_TOGGLE.forEach(fieldId => {
@@ -62,11 +60,9 @@ define(['N/ui/message', 'N/log'],
                     line: rec.getCurrentSublistIndex({ sublistId: sublistId })
                 });
 
-                // Pastikan field object ditemukan sebelum set property
                 if (fieldObj) {
                     fieldObj.isDisabled = shouldDisable;
                     
-                    // Optional: Kosongkan nilai jika didisable agar data bersih
                     if (shouldDisable) {
                         rec.setCurrentSublistValue({ sublistId: sublistId, fieldId: fieldId, value: '', ignoreFieldChange: true });
                     }
@@ -102,7 +98,7 @@ define(['N/ui/message', 'N/log'],
             }
         }
 
-        function saveRecord(context){
+        function saveRecord(context) {
             try {
                 const rec = context.currentRecord;
                 const sublistId = CONFIG.SUBLIST_ID;
@@ -111,30 +107,44 @@ define(['N/ui/message', 'N/log'],
                 let itemPercentageMap = {};
 
                 for (let i = 0; i < lineCount; i++) {
-                    const itemDiem = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_item_diem', line: i });
-                    let pctRaw = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_prcntg', line: i });
                     
-                    let pctVal = parseFloat(pctRaw) || 0;
-                    if (typeof pctRaw === 'string' && pctRaw.includes('%')) {
-                        pctVal = parseFloat(pctRaw.replace('%', ''));
-                    }
+                    const isDiemRaw = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_diem', line: i });
+                    const isDiem = (isDiemRaw === true || isDiemRaw === 'T');
 
-                    if (itemDiem) {
-                        if (!itemPercentageMap[itemDiem]) {
-                            itemPercentageMap[itemDiem] = 0;
+                    if (isDiem) {
+                        const itemDiem = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_item_diem', line: i });
+                        const dateRtn = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_expctd_date_rtn', line: i });
+                        const dateDepart = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_expctd_date_depart', line: i });
+                        const pctRaw = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_prcntg', line: i });
+
+                        if (!itemDiem || !dateRtn || !dateDepart || (pctRaw === '' || pctRaw === null || pctRaw === undefined)) {
+                            alert(`Error on Line ${i + 1}: Since 'Diem' is checked, you must fill in Item Diem, Dates, and Percentage.`);
+                            return false; 
                         }
-                        itemPercentageMap[itemDiem] += pctVal;
+
+                        let pctVal = parseFloat(pctRaw) || 0;
+                        if (typeof pctRaw === 'string' && pctRaw.includes('%')) {
+                            pctVal = parseFloat(pctRaw.replace('%', ''));
+                        }
+
+                        if (itemDiem) {
+                            if (!itemPercentageMap[itemDiem]) {
+                                itemPercentageMap[itemDiem] = 0;
+                            }
+                            itemPercentageMap[itemDiem] += pctVal;
+                        }
                     }
                 }
 
+                // --- VALIDASI 2: Cek Total Persentase > 100% ---
                 for (let itemId in itemPercentageMap) {
                     if (itemPercentageMap[itemId] > 100) {
                         alert(`Validation Error: Total Percentage for Item Diem (ID: ${itemId}) exceeds 100%. Current total: ${itemPercentageMap[itemId]}%`);
-                        return false;
+                        return false; 
                     }
                 }
 
-                return true; 
+                return true; // Save berhasil jika semua lolos
 
             } catch (e) {
                 log.error('Error in saveRecord', e);

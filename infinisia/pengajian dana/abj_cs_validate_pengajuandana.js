@@ -60,12 +60,13 @@ define(['N/record', 'N/search', 'N/ui/dialog', 'N/currentRecord', 'N/url', 'N/ui
                     alert('total Debit And Total Credit Must Balance');
                     return false
                 }else{
-                    if(totalAMountHead != totalDebit){
-                        alert('total amount in journal must balance with total amount Realisasi');
-                        return false
-                    }else{
-                        return true
-                    }
+                    // if(totalAMountHead != totalDebit){
+                    //     alert('total amount in journal must balance with total amount Realisasi');
+                    //     return false
+                    // }else{
+                    //     return true
+                    // }
+                    return true
                 }
             }
             

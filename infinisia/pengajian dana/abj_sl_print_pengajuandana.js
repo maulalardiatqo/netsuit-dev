@@ -83,6 +83,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var approveAccounting = getEmployeeName(empIds.approveAccounting).name;
                     var approveFinal = getEmployeeName(empIds.approveFinal).name;
                     var knowledgeBy = getEmployeeName(empIds.knowledgeBy).name;
+                  
 
                     var empData = getEmployeeName(empIds.requestor);
                     var nameEmp = empData.name;
@@ -107,6 +108,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var department = recLoad.getText('custrecord_fund_department');
                     var totalPengajuan = recLoad.getValue('custrecord_total_pengajuan_dana');
                     var metodePengajuan = recLoad.getValue('custrecord_fund_payment_type');
+                    var cekApprovalLevel = recLoad.getValue('custrecord_approval_level');
+                    var approvalStatus = recLoad.getValue('custrecord_fund_approval')
+                    var showNotif = false;
+                    if(cekApprovalLevel && cekApprovalLevel.includes('Pending Setup COA')){
+                        showNotif = true
+                    }else{
+                        if(approvalStatus == '2'){
+                            showNotif = true
+                        }
+                    }
 
                     var allKeperluan = [];
                     var cekLine = recLoad.getLineCount({
@@ -323,6 +334,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     body += "</tbody>"
                     body += "</table>"
+
+                    //add by kurnia 28 Jan 2026
+                    var remarks = recLoad.getValue('custrecord27')
+                    
+                    log.debug('condition norif', {remarks : remarks, showNotif : showNotif})
+                    if(showNotif == true){
+                        body += "<div style='margin-top:20px;'>"
+                        body += "<p style='font-size:10px;'>This form does not require a signature as it has been approved by the system.</p>"
+                        body += "</div>"
+                    }
+                    //
 
                     footer += "<table class='tg' style='table-layout: fixed;'>";
                     footer += "<tbody>";

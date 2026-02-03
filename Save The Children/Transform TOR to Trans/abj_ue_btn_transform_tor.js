@@ -36,6 +36,11 @@ define(["N/runtime", "N/log", "N/record"], (runtime, log, record) => {
                             fieldId : 'custrecord_tor_link_trx_no',
                             line : i
                         })
+                        var createdTransTAR = recLoad.getSublistValue({
+                            sublistId : 'recmachcustrecord_tori_id',
+                            fieldId : 'custrecord_tor_link_tar',
+                            line : i
+                        })
                         log.debug('cekTransType', cekTransType)
                         if(cekTransType == '1' && (createdTrans == '' || createdTrans == null)){
                             showBtnPO = true
@@ -46,7 +51,7 @@ define(["N/runtime", "N/log", "N/record"], (runtime, log, record) => {
                         if(cekTransType == '3' && (createdTrans == '' || createdTrans == null)){
                             showBtnPR = true
                         }
-                        if(cekTransType == '4' && (createdTrans == '' || createdTrans == null)){
+                        if(cekTransType == '4' && (createdTransTAR == '' || createdTransTAR == null)){
                             showBtnTar = true
                         }
                     }

@@ -128,6 +128,11 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                                 sublistId : 'recmachcustrecord_tori_id',
                                 fieldId : 'id',
                                 line : i
+                            }),
+                            activityCode : recLoad.getSublistValue({
+                                sublistId : 'recmachcustrecord_tori_id',
+                                fieldId : 'custrecord_tor_activity_code',
+                                line : i
                             })
                         });
                     }
