@@ -571,7 +571,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 footer += "<tr style=''>";
                 footer += "<td style=''>"+otherComment+"</td>"
                 footer += "<td style=''></td>"
-                footer += "<td style=''>VAT"+taxRegNo+"</td>"
+                footer += "<td style=''>VAT</td>"
                 footer += "<td style=''>:</td>"
                 footer += "<td style=''>"+tlcCurr+"</td>"
                 footer += "<td style='align:right'>"+totalTax+"</td>"
