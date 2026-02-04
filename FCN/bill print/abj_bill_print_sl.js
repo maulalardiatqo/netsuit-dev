@@ -8,6 +8,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
         function removeDecimalFormat(number) {
             return number.toString().substring(0, number.toString().length - 3);
         }
+         function escapeXmlSymbols(input) {
+            if (!input || typeof input !== "string") {
+                return input;
+            }
+            return input.replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(/"/g, "&quot;")
+                        .replace(/'/g, "&apos;");
+        }
         function pembulatan(angka) {
             if (angka >= 0) {
                 var bulat = Math.floor(angka);
@@ -99,7 +109,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     if(venAddres === ''){
                         venAddres = vendorRecord.getValue('defaultaddress');
                     }
-                
+                    log.debug('venAddres', venAddres)
+                if(venAddres.includes('&')){
+                    venAddres = venAddres.replace(/&/g, '&amp;');
+                }
                 var taxRegNo = vendorRecord.getValue('vatregnumber');
                 var count = vendorRecord.getLineCount({
                     sublistId: 'submachine'
@@ -148,7 +161,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var whtaxammountItem = 0;
             var whtaxammountExp = 0;
             var whTaxCodetoPrint = ''
-            // log.debug('countSubtotal', {total:total, taxtotal:taxtotal});
             var countItem = poRecord.getLineCount({
                 sublistId: 'item'
             });
@@ -445,24 +457,24 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td class='tg-headerlogo' style='width:50%;vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
             }
             body += "<td>";
-            body +=  "<p class='tg-headerrow_legalName' style='margin-top: 10px; margin-bottom: 10px;'>"  + legalName + "</p>";
-            body += "<p class='tg-headerrow' style='margin-top: 1px; margin-bottom: 1px;'>"+ addresSubsidiaries + "<br/>";
-            body += ""+ retEmailAddres + "<br/>"
-            body += "NPWP : "+ Npwp + "</p>" ;
+            body +=  "<p class='tg-headerrow_legalName' style='margin-top: 10px; margin-bottom: 10px;'>"  + escapeXmlSymbols(legalName) + "</p>";
+            body += "<p class='tg-headerrow' style='margin-top: 1px; margin-bottom: 1px;'>"+ escapeXmlSymbols(addresSubsidiaries) + "<br/>";
+            body += ""+ escapeXmlSymbols(retEmailAddres) + "<br/>"
+            body += "NPWP : "+ escapeXmlSymbols(Npwp) + "</p>" ;
             body +="</td>";
             body += "</tr>";
             body += "<tr style='height:30px;'>";
             body += "</tr>";
             body += "<tr>";
             body += "<td>";
-            body += "<p class='tg-headerrow_left'>"+ venName + "<br/>"
-            body += ""+venAddres+"<br/>"
-            body += "NPWP : "+ taxRegNo + "</p>"
+            body += "<p class='tg-headerrow_left'>"+ escapeXmlSymbols(venName) + "<br/>"
+            body += ""+escapeXmlSymbols(venAddres)+"<br/>"
+            body += "NPWP : "+ escapeXmlSymbols(taxRegNo) + "</p>"
             body += "</td>"
             body += "<td>"
             body += "<p class='tg-headerrow_legalName'> Vendorbill # : "+ tandId + "<br/>"
             body += ""+ POdate + "</p>"
-            body += "<p class='tg-headerrow' style='font-size:11px'> Terms : "+ terms + "<br/>"
+            body += "<p class='tg-headerrow' style='font-size:11px'> Terms : "+ escapeXmlSymbols(terms) + "<br/>"
             body += "Due Date :"+duedate+ "</p>"
             body += "</td>"
             body += "</tr>"
@@ -494,7 +506,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-f_body'></td>"
-                body += "<td class='tg-f_body'>VAT "+ taxrateList +" %</td>"
+                body += "<td class='tg-f_body'>VAT "+ escapeXmlSymbols(taxrateList) +" %</td>"
                 body += "<td class='tg-f_body'>"+removeDecimalFormat(taxtotal)+"</td>"
                 body += "</tr>"
             }
@@ -523,7 +535,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             body += "</tr>"
             body += "<tr style='height:30px;'></tr>"
             body += "<tr>"
-            body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>"+jobNumber+"</td>"
+            body += "<td style='align:left; font-size:14px; font-weight: bold;' colspan='5'>"+escapeXmlSymbols(jobNumber)+"</td>"
             body += "</tr>"
             body += "</tbody>";
             body += "</table>";
@@ -679,7 +691,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             
                             body += "<tr>";
                             body += "<td class='tg-b_body'>"+qty+" - "+unit+ "Pcs</td>";
-                            body += "<td class='tg-b_body'>"+description+"</td>";
+                            body += "<td class='tg-b_body'>"+escapeXmlSymbols(description)+"</td>";
                             body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(rate)+"</td>";
                             body += "<td class='tg-b_body' style='align:right'>X</td>";
                             body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(ammount)+"</td>";
@@ -755,7 +767,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         
                         body += "<tr>";
                         body += "<td class='tg-b_body'>"+qty+"</td>";
-                        body += "<td class='tg-b_body'>"+description+"</td>";
+                        body += "<td class='tg-b_body'>"+escapeXmlSymbols(description)+"</td>";
                         body += "<td class='tg-b_body' style='align:right'>"+removeDecimalFormat(amount)+"</td>";
                         body += "<td class='tg-b_body' style='align:right'>X</td>";
                         body += "<td class='tg-b_body' style='align:right;'>"+removeDecimalFormat(grosamt_exp)+"</td>";

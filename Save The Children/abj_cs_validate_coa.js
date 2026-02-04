@@ -110,8 +110,9 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime'], (search, dialog, log, 
         if (Array.isArray(faShow) && faShow.length > 0) faShow = faShow[0].value; 
         
         const isPropCode = accData[FIELDS.ACCOUNT.PROP_CODE];
-
-        if (faShow == '1' || isPropCode === true) {
+        log.debug('faShow', faShow)
+        if ((faShow.length > 0) || isPropCode === true) {
+            log.debug('masuk kondisi')
             const relAsset = currRecord.getCurrentSublistValue({ sublistId, fieldId: FIELDS.LINE.REL_ASSET });
             
             if (!relAsset) {

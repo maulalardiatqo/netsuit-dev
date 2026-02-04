@@ -132,15 +132,15 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format', 'N/config'], fun
             tahunPajak: pickValue(values.custbody_stc_tahun_pajak, values.custcol_stc_tahun_pajak_line),
             fasilitas: pickValue(values.custbody_stc_fasilitas, values.custcol_stc_fasilitas_line),
             kodeObj: pickValue(values.custbody_stc_kode_obj_pajak, values.custcol_stc_kode_obj_pjk_line),
-            jenisDokRef: pickValue(values.custbody_stc_jenis_dok_ref, values.custcol_stc_jenis_dok_line),
+            jenisDokRef: values.custbody_stc_jenis_dok_ref || values.custcol_stc_jenis_dok_line,
             opsiPembayaran: pickValue(values.custbody_stc_opsi_pembayaran, values.custcol_stc_opsi_pembayaran_line),
-
+            nomorDokRef: values.tranid || values.tranid,   
             npwp: values.custbody_stc_npwp_vendor || values.custcol_stc_npwp_line,
             tarif: values.custbody_stc_tarif || values.custcol_stc_tarif_line,
-
+            idTkuPenerima : values.custbody_stc_id_tku_penerima_penghasil || values.custcol_stc_id_tku_penerima_penghasil,
             dpp: dppValue,
             tanggalDok: tanggalDok,
-            idTkuPemotong: tkuPemotong,
+            idTkuPemotong: values.custbody_id_tku_pemotong || values.custcol_stc_id_tku_pemotong_line,
             nomorSP2D: values.custbody_stc_no_sp2d || values.custcol_stc_nomor_sp2d_line,
             tanggalPemotongan: tanggalDok
         };
