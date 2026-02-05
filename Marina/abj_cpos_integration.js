@@ -24,6 +24,98 @@
                 var year = parseInt(parts[2], 10);
                 return new Date(year, month, day);
             }
+            function getItemUpdate(context){
+                const since = context.since;
+                log.debug('since', since)
+                if (!since) {
+                    log.debug('masuk sini')
+                    throw error.create({
+                        name: 'MISSING_PARAM',
+                        message: 'The "since" date parameter is required (format: YYYY-MM-DD).'
+                    });
+                }
+
+                try {
+                    const transFilters = [
+                        search.createFilter({ name: 'type', operator: 'anyof', values: ['InvAdjst', 'ItemRcpt', 'ItemShip', 'InvTrnfr'] }), 
+                        search.createFilter({ name: 'trandate', operator: 'after', values: since })
+                    ];
+                    const transColumns = [
+                        search.createColumn({ name: 'item', summary: 'GROUP' })
+                    ];
+                    const transSearch = search.create({
+                        type: 'transaction',
+                        filters: transFilters,
+                        columns: transColumns
+                    });
+
+                    const itemIds = [];
+                    const pagedData = transSearch.runPaged({ pageSize: 1000 });
+                    pagedData.pageRanges.forEach((pageRange) => {
+                        const page = pagedData.fetch({ index: pageRange.index });
+                        page.data.forEach((result) => {
+                            const itemId = result.getValue({ name: 'item', summary: 'GROUP' });
+                            if (itemId) {
+                                itemIds.push(itemId);
+                            }
+                        });
+                    });
+
+                    if (itemIds.length === 0) {
+                        return { updatedItems: [] };
+                    }
+
+                    const itemFilters = [
+                        search.createFilter({ name: 'internalid', operator: 'anyof', values: itemIds }),
+                        search.createFilter({ name: 'type', operator: 'anyof', values: ['InvtPart'] })
+                    ];
+                    const itemColumns = [
+                        search.createColumn({ name: 'itemid', label: 'Item Name' }),
+                        search.createColumn({ name: 'inventorylocation', label: 'Inventory Location ID' }),
+                        search.createColumn({ name: 'name', join: 'inventorylocation', label: 'Inventory Location Name' }),
+                        search.createColumn({ name: 'locationquantityonhand', label: 'Location On Hand' }) 
+                    ];
+                    const itemSearch = search.create({
+                        type: 'inventoryitem',
+                        filters: itemFilters,
+                        columns: itemColumns
+                    });
+                    const updatedItems = {};
+                    const itemPagedData = itemSearch.runPaged({ pageSize: 1000 });
+                    log.debug('itemPagedData', itemPagedData)
+                    itemPagedData.pageRanges.forEach((pageRange) => {
+                        const page = itemPagedData.fetch({ index: pageRange.index });
+                        log.debug('page', page)
+                        page.data.forEach((result) => {
+                            const itemId = result.id; // Internal ID of the item
+                            const itemName = result.getValue('itemid');
+                            const locId = result.getValue('inventorylocation');
+                            const locName = result.getValue({ name: 'name', join: 'inventorylocation' });
+                            const qty = parseFloat(result.getValue('locationquantityonhand')) || 0;
+
+                            if (!updatedItems[itemId]) {
+                                updatedItems[itemId] = {
+                                    id: itemId,
+                                    name: itemName,
+                                    locations: []
+                                };
+                            }
+                            if (locId) {
+                                updatedItems[itemId].locations.push({
+                                    locationId: locId,
+                                    locationName: locName,
+                                    quantity: qty
+                                });
+                            }
+                        });
+                    });
+                    log.debug(Object.values(updatedItems) )
+                    return { updatedItems: Object.values(updatedItems) };
+                } catch (e) {
+                    log.debug('error', e)
+                    return JSON.stringify(e);
+                }
+            }
             function getItemPrice(intID) {
             try {
                 var filterData = [];
@@ -626,8 +718,10 @@
                 var intID = requestParams.internalid;
                 var start = requestParams.start;
                 var end = requestParams.end;
+                log.debug('record_type', record_type)
                 if (record_type === "itemPrice") return getItemPrice(intID);
                 else if (record_type === "bulkItemPrice") return getBulkItemPrice(start, end);
+                else if (record_type === "itemData") return getItemUpdate(requestParams);
                 else return JSON.stringify("No record type selected");
             } catch (e) {
                 log.debug("Error Get Method : ", e);

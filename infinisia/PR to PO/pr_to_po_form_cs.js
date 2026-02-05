@@ -32,60 +32,57 @@ define(["N/search", "N/currentRecord", "N/query", "N/record", "N/format", "N/ui/
   function prToPO(context) {
     var records = currentRecord.get();
     try {
-      var dataLine = [];
-      var count = records.getLineCount({
-        sublistId: "custpage_sublist_item",
-      });
-      var vendorID = records.getValue("custpage_vendor");
-      var employyeId = records.getValue("employee")
-      var currencySet = ""
-      log.debug("count", count);
-      if (vendorID) {
-        for (var j = 0; j < count; j++) {
-          var selected = records.getSublistValue({
-            sublistId: "custpage_sublist_item",
-            fieldId: "custpage_sublist_item_select",
-            line: j,
-          });
-          if (selected) {
-            var idPrSUm = records.getSublistValue({
-              sublistId: "custpage_sublist_item",
-              fieldId: "custpage_sublist_idprsum",
-              line: j,
-            });
-;
+        var itemsToConvert = [];
+        var count = records.getLineCount({ sublistId: "custpage_sublist_item" });
+        var vendorID = records.getValue("custpage_vendor");
+        var currencySet = "";
 
-            var currency = records.getSublistValue({
-              sublistId: "custpage_sublist_item",
-              fieldId: "custpage_sublist_currency",
-              line: j,
-            });
-           
-            if(currency){
-              currencySet = currency
+        if (vendorID) {
+            for (var j = 0; j < count; j++) {
+                var selected = records.getSublistValue({
+                    sublistId: "custpage_sublist_item",
+                    fieldId: "custpage_sublist_item_select",
+                    line: j
+                });
+
+                if (selected) {
+                    var itemID = records.getSublistValue({ sublistId: "custpage_sublist_item", fieldId: "custpage_sublist_itemid", line: j }); // Pastikan field ID benar
+                    var qtySisa = records.getSublistValue({ sublistId: "custpage_sublist_item", fieldId: "custpage_sublist_quantity", line: j }); 
+                    var lineIdPR = records.getSublistValue({ sublistId: "custpage_sublist_item", fieldId: "custpage_sublist_idprsum", line: j });
+                    var currency = records.getSublistValue({ sublistId: "custpage_sublist_item", fieldId: "custpage_sublist_currency", line: j });
+
+                    if (currency) currencySet = currency;
+
+                    // Membangun objek untuk parameter native 'itemdata'
+                    itemsToConvert.push({
+                        'item': itemID,
+                        'quantity': qtySisa,
+                        'custcol_msa_id_line_from_pr': lineIdPR // ID referensi baris
+                    });
+                }
             }
-            
-            dataLine.push(idPrSUm);
-          }
+
+            if (itemsToConvert.length > 0) {
+                // Gunakan resolveRecord dengan parameter native
+                var createURL = url.resolveRecord({
+                    recordType: "purchaseorder",
+                    isEditMode: true,
+                    params: { 
+                        'cf': 104, 
+                        'entity': vendorID, 
+                        'currency': currencySet,
+                        'itemdata': JSON.stringify(itemsToConvert) // INI KUNCINYA
+                    }
+                });
+                window.open(createURL, "_blank");
+            }
+        } else {
+            alert("Please select vendor!");
         }
-        log.debug("data", {
-          dataLine: dataLine,
-          vendor: vendorID,
-        });
-        var dataLineString = JSON.stringify(dataLine);
-        var createURL = url.resolveRecord({
-          recordType: "purchaseorder",
-          isEditMode: true,
-          params: { vendorID: vendorID, PO_lines: dataLineString, currencySet : currencySet },
-        });
-        window.open(createURL, "_blank");
-      } else {
-        alert("Please select vendor!");
-      }
     } catch (error) {
-      log.debug("error", error.message);
+        console.error("error", error.message);
     }
-  }
+}
 
   exports.prToPO = prToPO;
   exports.pageInit = pageInit;
