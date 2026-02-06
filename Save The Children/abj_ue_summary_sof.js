@@ -42,7 +42,9 @@ define(["N/record", "N/search"], function(
                         name: "cost",
                         join: "projectTaskAssignment",
                         label: "Cost"
-                    })
+                    }),
+                    search.createColumn({name: "parent", label: "Parent Task"}),
+                    search.createColumn({name: "internalid", label: "Internal ID"})
                 ]
                 });
                 var searchResultCount = projecttaskSearchObj.runPaged().count;
@@ -54,7 +56,16 @@ define(["N/record", "N/search"], function(
                     var impBy = result.getValue({
                         name : 'custevent3'
                     })
-                    allTotal = Number(allTotal) + Number(cost)
+                   
+                    var isParent = result.getValue({
+                        name: "parent"
+                    })
+                    if(isParent == '' || isParent == null){
+                        allTotal = Number(allTotal) + Number(cost)
+                    }else{
+                        log.debug('not to summary')
+                    }
+                     
                     if(impBy == '1'){
                         totalStc = Number(totalStc) + Number(cost);
                     }

@@ -122,7 +122,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                 fieldId : "custcol_abj_rate_units_decimal"
                             });
                         }
-                        console.log('convRate', convRate);
+                        console.log('ratePack', ratePack);
                         log.debug('convRate' , convRate);
                         console.log('order', order);
                         var setQty = Number(order) /  Number(ratePack);

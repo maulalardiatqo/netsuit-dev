@@ -284,6 +284,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
           poData.setValue({
             fieldId: "entity",
             value: vendorID,
+            ignoreFieldChange: true
           });
           poData.setValue({
             fieldId: "customform",
@@ -526,10 +527,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
       log.debug("Error in before load", e.name + " : " + e.message);
     }
   }
-
-
-
-
   return {
     beforeLoad: beforeLoad
   };
