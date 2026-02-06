@@ -24,6 +24,8 @@ define(["N/record", "N/search"], function(
                 var totalStc = 0
                 var totalPartNer = 0
                 var totalMix = 0
+                var allDataParent = [];
+                var allDataChild = [];
                 var projecttaskSearchObj = search.create({
                 type: "projecttask",
                 filters:
@@ -57,13 +59,25 @@ define(["N/record", "N/search"], function(
                         name : 'custevent3'
                     })
                    
-                    var isParent = result.getValue({
+                    var parent = result.getValue({
                         name: "parent"
                     })
-                    if(isParent == '' || isParent == null){
+                    var idProject = result.getValue({
+                        name : "internalid"
+                    })
+                    if(parent == '' || parent == null){
                         allTotal = Number(allTotal) + Number(cost)
+                        allDataParent.push({
+                            idProject : idProject,
+                            cost : cost
+                        })
                     }else{
                         log.debug('not to summary')
+                        allDataChild.push({
+                            idProject : idProject,
+                            cost : cost,
+                            parent : parent
+                        })
                     }
                      
                     if(impBy == '1'){
@@ -98,6 +112,26 @@ define(["N/record", "N/search"], function(
                     fieldId : 'custentity_stc_implementing_by_stc_partn',
                     value : totalMix
                 })
+                log.debug('allDataParent', allDataParent);
+                log.debug('allDataChild', allDataChild);
+                if (allTotal > 0) {
+                    allDataParent.forEach(function(item) {
+                        var percentage = (item.cost / allTotal) * 100;
+                        record.submitFields({
+                            type: 'projecttask',
+                            id: item.idProject,
+                            values: { 'custevent6': percentage.toFixed(2) } 
+                        });
+                    });
+                    allDataChild.forEach(function(item) {
+                        var percentage = (item.cost / allTotal) * 100;
+                        record.submitFields({
+                            type: 'projecttask',
+                            id: item.idProject,
+                            values: { 'custevent6': percentage.toFixed(2) }
+                        });
+                    });
+                }
                 recLoad.save()
             }
         }catch(e){

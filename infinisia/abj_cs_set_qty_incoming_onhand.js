@@ -101,7 +101,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                         "AND", 
                                         ["custcol_abj_sales_rep_line","anyof",salesRep], 
                                         "AND", 
-                                        ["custcol_abj_customer_line","anyof",customer], 
+                                        ["custcol_abj_pr_number.custcol_abj_customer_line","anyof",customer], 
                                         "AND", 
                                         ["custcol_abj_no_so","anyof",noSO]
                                     ],
@@ -183,7 +183,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                         "AND", 
                                         ["custcol_abj_sales_rep_line","anyof",salesRep], 
                                         "AND", 
-                                        ["custcol_abj_customer_line","anyof",customer],
+                                        ["custcol_abj_pr_number.custcol_abj_customer_line","anyof",customer],
                                         "AND", 
                                         ["custcol_abj_no_so","anyof","@NONE@"]
                                     ],
