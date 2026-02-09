@@ -36,6 +36,8 @@
                 }
 
                 try {
+                    var respons
+                    log.debug('masuk try')
                     const transFilters = [
                         search.createFilter({ name: 'type', operator: 'anyof', values: ['InvAdjst', 'ItemRcpt', 'ItemShip', 'InvTrnfr'] }), 
                         search.createFilter({ name: 'trandate', operator: 'after', values: since })
@@ -48,7 +50,7 @@
                         filters: transFilters,
                         columns: transColumns
                     });
-
+                    log.debug('transSearch', transSearch)
                     const itemIds = [];
                     const pagedData = transSearch.runPaged({ pageSize: 1000 });
                     pagedData.pageRanges.forEach((pageRange) => {
@@ -60,9 +62,14 @@
                             }
                         });
                     });
-
+                    log.debug('itemIds', itemIds)
                     if (itemIds.length === 0) {
-                        return { updatedItems: [] };
+                        log.debug('masuk length 0')
+                        respons = {
+                            status: "success",
+                            message: "no item data Found",
+                        }
+                        return JSON.stringify(respons)
                     }
 
                     const itemFilters = [
@@ -109,8 +116,12 @@
                             }
                         });
                     });
-                    log.debug(Object.values(updatedItems) )
-                    return { updatedItems: Object.values(updatedItems) };
+                    log.debug('-',Object.values(updatedItems) )
+                    respons = {
+                        status : "success",
+                        data : updatedItems
+                    }
+                    return JSON.stringify(respons)
                 } catch (e) {
                     log.debug('error', e)
                     return JSON.stringify(e);
