@@ -55,94 +55,37 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
             
             clearSublist(rec, CONFIG.SUBLIST_ID);
 
-            if (rawData.length === 0) return;
+            if (!rawData || rawData.length === 0) return;
 
             const linesToSet = [];
             rawData.forEach(row => {
-                linesToSet.push(...expandDateRange(row));
+                const expanded = expandDateRange(row);
+                if (expanded && expanded.length > 0) {
+                    linesToSet.push(...expanded);
+                }
             });
 
-            // --- SCROLL FIX: Ambil posisi scroll saat ini ---
             const currentScrollY = window.scrollY;
-
-            // Oper posisi scroll ke fungsi populate
             populateSublistRecursive(rec, linesToSet, currentScrollY);
         }
 
         function fetchTarData(tarId) {
-            // const results = [];
-            // search.create({
-            //     type: CONFIG.TAR_REC_TYPE,
-            //     filters: [
-            //         [CONFIG.TAR_PARENT_KEY, "anyof", tarId], "AND", ["custrecord_tar_diem", "is", "T"]
-            //     ],
-            //     columns: [
-            //         "custrecord_tar_item_diem", 
-            //         "custrecord_tare_category",
-            //         "custrecord_tar_expctd_date_depart", 
-            //         "custrecord_tar_expctd_date_rtn",
-            //         "custrecord_tar_prcntg",
-            //         "custrecord_tare_memo", 
-            //         "custrecord_tare_amount",
-            //         "custrecord_tare_cost_center", 
-            //         "custrecord_tare_project_code", 
-            //         "custrecord_tare_donor",
-            //         "custrecord_tar_dea", 
-            //         "custrecord_tare_source_of_funding", 
-            //         "custrecord_tare_project_task",
-            //         "custrecord_tar_drc", 
-            //         "custrecord_tare_approver", 
-            //         "custrecord_tar_approver_fa",
-            //         search.createColumn({ name: "custrecord_tar_travel_from", join: "CUSTRECORD_TAR_E_ID", label: "Travel From" }),
-            //         search.createColumn({ name: "custrecord_tar_travel_to", join: "CUSTRECORD_TAR_E_ID", label: "Travel To" }),
-            //         search.createColumn({ name: "cost", join: "CUSTRECORD_TAR_ITEM_DIEM", label: "Purchase Price" })
-            //     ]
-            // }).run().each(res => {
-            //     let pctRaw = res.getValue("custrecord_tar_prcntg");
-            //     let pct = parseFloat(pctRaw) || 0;
-            //     if (typeof pctRaw === 'string' && pctRaw.includes('%')) {
-            //         pct /= 100;
-            //     } else if (pct > 1) {
-            //         pct /= 100;
-            //     }
-
-            //     results.push({
-            //         itemDiem: res.getValue("custrecord_tar_item_diem"),
-            //         dateDepart: res.getValue("custrecord_tar_expctd_date_depart"),
-            //         dateReturn: res.getValue("custrecord_tar_expctd_date_rtn"),
-            //         percentage: pct,
-            //         memo: res.getValue("custrecord_tare_memo"),
-            //         amountBase: parseFloat(res.getValue({name: "cost", join: "CUSTRECORD_TAR_ITEM_DIEM"})) || 0,
-            //         costCenter: res.getValue("custrecord_tare_cost_center"),
-            //         projectCode: res.getValue("custrecord_tare_project_code"),
-            //         sof: res.getValue("custrecord_tare_donor"),
-            //         dea: res.getValue("custrecord_tar_dea"),
-            //         sourceOfFunding: res.getValue("custrecord_tare_source_of_funding"),
-            //         projectTask: res.getValue("custrecord_tare_project_task"),
-            //         drc: res.getValue("custrecord_tar_drc"),
-            //         approver: res.getValue("custrecord_tare_approver"),
-            //         approverFa: res.getValue("custrecord_tar_approver_fa"),
-            //         travelFrom: res.getValue({ name: "custrecord_tar_travel_from", join: "CUSTRECORD_TAR_E_ID" }),
-            //         travelTo: res.getValue({ name: "custrecord_tar_travel_to", join: "CUSTRECORD_TAR_E_ID" })
-            //     });
-            //     return true;
-            // });
-            // return results;
-                const suiteletUrl = url.resolveScript({
+            const suiteletUrl = url.resolveScript({
                 scriptId: "customscript_abj_sl_get_data_tar",
                 deploymentId: "customdeploy_abj_sl_get_data_tar",
                 params: {
                     custscript_item_id: tarId,
                 }
             });
+            
             const response = https.get({ url: suiteletUrl });
-
             let results = [];
+            
             if (response.body) {
                 try {
                     results = JSON.parse(response.body);
                 } catch (e) {
-                    console.log('Error parsing JSON from Suitelet', e);
+                    log.error('Error parsing JSON from Suitelet', e);
                 }
             }
 
@@ -150,26 +93,32 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
         }
 
         function expandDateRange(dataRow) {
-            
             const dailyLines = [];
             if (!dataRow.dateDepart || !dataRow.dateReturn) return dailyLines;
 
-            const startDate = format.parse({ value: dataRow.dateDepart, type: format.Type.DATE });
-            const endDate = format.parse({ value: dataRow.dateReturn, type: format.Type.DATE });
-            const calculatedAmount = dataRow.amountBase * dataRow.percentage;
-            console.log('dataDate', {startDate : startDate, endDate : endDate, calculatedAmount : calculatedAmount} )
-            let currentDate = new Date(startDate);
-            while (currentDate <= endDate) {
-                dailyLines.push({
-                    ...dataRow,
-                    generatedDate: new Date(currentDate),
-                    finalAmount: calculatedAmount
-                });
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-            console.log('dailyLines', dailyLines)
-            return dailyLines;
+            try {
+                const startDate = format.parse({ value: dataRow.dateDepart, type: format.Type.DATE });
+                const endDate = format.parse({ value: dataRow.dateReturn, type: format.Type.DATE });
+                
+                const baseAmount = parseFloat(dataRow.amountBase) || 0;
+                const percentage = parseFloat(dataRow.percentage) || 0;
+                const calculatedAmount = baseAmount * percentage;
 
+                let currentDate = new Date(startDate.getTime());
+                
+                while (currentDate <= endDate) {
+                    dailyLines.push({
+                        ...dataRow,
+                        generatedDate: new Date(currentDate),
+                        finalAmount: calculatedAmount
+                    });
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+            } catch (e) {
+                log.error('Error in expandDateRange', e);
+            }
+            
+            return dailyLines;
         }
 
         function clearSublist(rec, sublistId) {
@@ -182,24 +131,22 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
         function convertToDateObject(dateValue) {
             if (!dateValue) return null;
             if (dateValue instanceof Date) return dateValue;
-            return format.parse({ value: dateValue, type: format.Type.DATE });
+            try {
+                return format.parse({ value: dateValue, type: format.Type.DATE });
+            } catch (e) {
+                return null;
+            }
         }
 
-        // --- Perubahan pada parameter function ---
         function populateSublistRecursive(rec, lines, fixedScrollY) {
             const sublistId = CONFIG.SUBLIST_ID;
 
             function processLine(index) {
-                if (index >= lines.length) {
-                    console.log('All lines processed.');
-                    return;
-                }
+                if (index >= lines.length) return;
 
                 const lineData = lines[index];
 
                 try {
-                    // Paksa scroll kembali ke posisi awal SEBELUM selectNewLine
-                    // (Terkadang NetSuite scroll saat selectNewLine juga)
                     if (fixedScrollY !== undefined) window.scrollTo(0, fixedScrollY);
 
                     rec.selectNewLine({ sublistId: sublistId });
@@ -217,9 +164,7 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
                     safeSet(rec, sublistId, 'custrecord_terd_cost_center', lineData.costCenter, true);
                     safeSet(rec, sublistId, 'custrecord_terd_project_code', lineData.projectCode, true);
                     
-                    // Trigger Sourcing Donor
-                    safeSet(rec, sublistId, 'custrecord_terd_donor', lineData.sof, false); 
-                    
+                    safeSet(rec, sublistId, 'custrecord_terd_donor', lineData.sof, true); 
                     safeSet(rec, sublistId, 'custrecord_terd_sourcing_of_funding', lineData.sourceOfFunding, true);
                     
                     setTimeout(function() {
@@ -233,15 +178,9 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
                             safeSet(rec, sublistId, 'custrecord_terd_approver', lineData.approver, true);
                             safeSet(rec, sublistId, 'custrecord_ter_approver_fa', lineData.approverFa, true);
                             
-                            const commitStatus = rec.commitLine({ sublistId: sublistId });
-                            if (fixedScrollY !== undefined) {
-                                window.scrollTo(0, fixedScrollY);
-                            }
-                            // ---------------------------------
-
-                            if (!commitStatus) {
-                                log.error('Commit Failed at index ' + index, 'Check mandatory fields.');
-                            }
+                            rec.commitLine({ sublistId: sublistId });
+                            
+                            if (fixedScrollY !== undefined) window.scrollTo(0, fixedScrollY);
 
                             processLine(index + 1);
 
@@ -266,7 +205,7 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
                     sublistId: sublist, 
                     fieldId: fieldId, 
                     value: value,
-                    ignoreFieldChange: ignoreChange || false 
+                    ignoreFieldChange: ignoreChange
                 });
             }
         }

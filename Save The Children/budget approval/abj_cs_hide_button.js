@@ -244,6 +244,57 @@ define([], () => {
         if (btnRejFinPOSec) {
             btnRejFinPOSec.style.display = 'none';
         }
+
+         const btnAppReqPO = document.getElementById('custpageworkflow1757');
+        if (btnAppReqPO) {
+            btnAppReqPO.style.display = 'none';
+        }
+        const btnRejbtnAppReqPO= document.getElementById('custpageworkflow1770');
+        if (btnRejbtnAppReqPO) {
+            btnRejbtnAppReqPO.style.display = 'none';
+        }
+        const btnAppbtnAppReqPOSec = document.getElementById('secondarycustpageworkflow1757');
+        if (btnAppbtnAppReqPOSec) {
+            btnAppbtnAppReqPOSec.style.display = 'none';
+        }
+        const btnRejbtnAppReqPOSec = document.getElementById('secondarycustpageworkflow1770');
+        if (btnRejbtnAppReqPOSec) {
+            btnRejbtnAppReqPOSec.style.display = 'none';
+        }
+
+        const btnAppReqPOFA = document.getElementById('custpageworkflow1764');
+        if (btnAppReqPOFA) {
+            btnAppReqPOFA.style.display = 'none';
+        }
+        const btnRejbtnAppReqPOFA= document.getElementById('custpageworkflow1765');
+        if (btnRejbtnAppReqPOFA) {
+            btnRejbtnAppReqPOFA.style.display = 'none';
+        }
+        const btnAppbtnAppReqPOSecFA = document.getElementById('secondarycustpageworkflow1764');
+        if (btnAppbtnAppReqPOSecFA) {
+            btnAppbtnAppReqPOSecFA.style.display = 'none';
+        }
+        const btnRejbtnAppReqPOSecFA = document.getElementById('secondarycustpageworkflow1765');
+        if (btnRejbtnAppReqPOSecFA) {
+            btnRejbtnAppReqPOSecFA.style.display = 'none';
+        }
+
+         const btnAppPO_1 = document.getElementById('custpageworkflow1818');
+        if (btnAppPO_1) {
+            btnAppPO_1.style.display = 'none';
+        }
+        const btnRejbtnAppReqPOFA_1= document.getElementById('custpageworkflow1805');
+        if (btnRejbtnAppReqPOFA_1) {
+            btnRejbtnAppReqPOFA_1.style.display = 'none';
+        }
+        const btnAppbtnAppReqPOSecFA_1 = document.getElementById('secondarycustpageworkflow1818');
+        if (btnAppbtnAppReqPOSecFA_1) {
+            btnAppbtnAppReqPOSecFA_1.style.display = 'none';
+        }
+        const btnRejbtnAppReqPOSecFA_1 = document.getElementById('secondarycustpageworkflow1805');
+        if (btnRejbtnAppReqPOSecFA_1) {
+            btnRejbtnAppReqPOSecFA_1.style.display = 'none';
+        }
     const pageInit = () => {
 
     };

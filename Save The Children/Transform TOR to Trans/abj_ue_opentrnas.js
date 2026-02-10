@@ -17,14 +17,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
     }
     function transPO(data, transData){
             var createPO = transData
-            log.debug('data', data)
-
-            createPO.setValue({
-                fieldId : 'customform',
-                value : '130'
-            });
-            var cekcfrom = createPO.getValue('customform');
-            log.debug('cekcform', cekcfrom)
             createPO.setValue({
                 fieldId : 'trandate',
                 value : data[0].date
@@ -75,6 +67,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     line      : indexL,
                     value     : '1'
                 });
+                log.debug('data[i].amount', data[i].amount)
                 createPO.setSublistValue({
                     sublistId : 'item',
                     fieldId   : 'rate',
@@ -184,7 +177,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     value     : data[i].project
                 });
 
-                log.debug('before commit')
+                log.debug('before commit')  
                 indexL++;
             }
     }
@@ -286,7 +279,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         safeSet('class', data[0].projectCode || '114');
         safeSet('location', '3');
         safeSet('cseg_stc_sof', data[0].sof || '66');
-        safeSet('custbody_exp_autofilled', true);
+        // safeSet('custbody_exp_autofilled', true);
 
         if (data[0].timeFrom) safeSet('custbody_stc_activity_date_from', parseDate(data[0].timeFrom));
         if (data[0].timeTo) safeSet('custbody_stc_activity_date_to', parseDate(data[0].timeTo));

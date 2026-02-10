@@ -23,7 +23,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                     type : recType,
                     id : rec.id
                 })
-                var cekIsAPpFA = recBefLoad.getValue('custrecord_tor_approved_by_finance')
+                var cekisAppBgt = recBefLoad.getValue('custrecord_tor_approved_by_budget_h')
                 var sublistExpense
                 var sublistItem
                 var approverField
@@ -59,7 +59,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             });
                             var appSubtitue
                             if(approver){
-                                log.debug('approver', approver)
                                 var empLook = search.lookupFields({
                                     type: "employee",
                                     id: approver,
@@ -68,7 +67,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 var firstCek = empLook.custentity_stc_subtitute_apprvl
                                 if(firstCek.length > 0){
                                     appSubtitue = firstCek[0].value;
-                                    log.debug('appSubtitue', appSubtitue)
                                 }
                                 
                             }
@@ -84,7 +82,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             });
                             var appFASubtitue
                             if(approverFA){
-                                log.debug('approverFA', approverFA)
                                 var appFALook = search.lookupFields({
                                     type: "employee",
                                     id: approverFA,
@@ -93,7 +90,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 var firstCekFa = appFALook.custentity_stc_subtitute_apprvl
                                 if(firstCekFa.length > 0){
                                     appFASubtitue = firstCekFa[0].value;
-                                    log.debug('appFASubtitue', appFASubtitue)
                                 }
                                 
                             }
@@ -102,20 +98,18 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 fieldId: 'custrecord_tori_approval_status_fa',
                                 line: i
                             });
-                            log.debug('approverFA', approverFA)
-                            log.debug('approverSatatusFA', approverSatatusFA)
-                            log.debug('i', i)
                             if(recType == 'customrecord_tor'){
-                                if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) || (Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
-                                    log.debug('masuk kondisi approve FA')
-                                    allowButton = true;
-                                    break;
-                                }
-                                if(cekIsAPpFA){
-                                    if ((Number(approver) === Number(employeeId) &&
+                                if ((Number(approver) === Number(employeeId) &&
                                         Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) &&
                                         Number(approvalStatus) === 1)) {
                                             log.debug('masuk allow')
+                                        allowButton = true;
+                                        break;
+                                    }
+                                    if(cekisAppBgt){
+                                        
+                                        if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) || (Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
+                                        log.debug('masuk kondisi approve FA')
                                         allowButton = true;
                                         break;
                                     }

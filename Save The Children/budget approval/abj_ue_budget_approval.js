@@ -15,8 +15,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
             try {
                 const currentUser = runtime.getCurrentUser();
                 const employeeId = currentUser.id;
-                
                 const rec = context.newRecord;
+                const cekIsHolder = rec.getValue('custbody_stc_approval_budget_holder')
                 let allowButton = false;
                 const itemCount = rec.getLineCount({ sublistId: 'item' });
                 if(itemCount > 0){
@@ -37,7 +37,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             var firstCek = empLook.custentity_stc_subtitute_apprvl
                             log.debug('firstCek', firstCek)
                             if(firstCek.length > 0){
-                                appSubtitue = [0].value;
+                                appSubtitue = firstCek[0].value;
                                 log.debug('appSubtitue', appSubtitue)
                             }
                             
@@ -62,7 +62,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             });
                             var firstCekFa = appFALook.custentity_stc_subtitute_apprvl
                             if(firstCekFa.length > 0){
-                                appFASubtitue = [0].value;
+                                appFASubtitue = firstCekFa[0].value;
                                 log.debug('appFASubtitue', appFASubtitue)
                             }
                             
@@ -81,11 +81,14 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             allowButton = true;
                             break;
                         }
-                        if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) ||(Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
+                        if(cekIsHolder == true){
+                            if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) ||(Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
                             log.debug('masuk kondisi approve FA')
                             allowButton = true;
                             break;
                         }
+                        }
+                        
                     }
                 }
                 
@@ -134,7 +137,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             });
                             var firscekFA = appFALook.custentity_stc_subtitute_apprvl
                             if(firscekFA){
-                                appFASubtitue = [0].value;
+                                appFASubtitue = firscekFA[0].value;
                                 log.debug('appFASubtitue', appFASubtitue)
                             }
                             
@@ -151,11 +154,14 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             allowButton = true;
                             break;
                         }
-                        if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) || (Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
+                        if(cekIsHolder){
+                            if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) || (Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
                             log.debug('masuk kondisi2')
                             allowButton = true;
                             break;
                         }
+                        }
+                        
                     }
                 }
                 log.debug('allowButton', allowButton)
@@ -197,7 +203,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 log.debug('firstCek', firstCek);
 
                 if (firstCek && firstCek.length > 0) {
-                    appSubtitue = firstCek[0].value; // ✅ INI KUNCINYA
+                    appSubtitue = firstCek[0].value; 
                     log.debug('appSubtitue', appSubtitue);
                 }
 
@@ -336,12 +342,27 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         const approver = toInt(recLoad.getSublistValue({
                             sublistId, fieldId: 'custcol_stc_approver_linetrx', line: i
                         }));
-                        log.debug('approver', approver)
-                        var subtitue = getSubtitue(approver);
-                        log.debug('subtitue', subtitue)
-                        if(subtitue){
-                            if(subtitue == employeeId){
-                                log.debug('subtitue is employee will set')
+                        const cekStatusLine = recLoad.getSublistValue({
+                            sublistId, fieldId: 'custcol_stc_approval_status_line', line: i
+                        });
+                        log.debug('cek is approve', cekStatusLine)
+                        if(cekStatusLine != '2' && statusValue != 3){
+                            log.debug('masuk cekStatusLine = 2', approver)
+                            var subtitue = getSubtitue(approver);
+                            log.debug('subtitue', subtitue)
+                            if(subtitue){
+                                if(subtitue == employeeId){
+                                    log.debug('subtitue is employee will set')
+                                    recLoad.setSublistValue({
+                                        sublistId,
+                                        fieldId: 'custcol_stc_approval_status_line',
+                                        line: i,
+                                        value: statusValue
+                                    });
+                                    log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
+                                }
+                            }
+                            if (approver === employeeId) {
                                 recLoad.setSublistValue({
                                     sublistId,
                                     fieldId: 'custcol_stc_approval_status_line',
@@ -351,15 +372,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
                             }
                         }
-                        if (approver === employeeId) {
-                            recLoad.setSublistValue({
-                                sublistId,
-                                fieldId: 'custcol_stc_approval_status_line',
-                                line: i,
-                                value: statusValue
-                            });
-                            log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
-                        }
+                        
                     }
                 };
                 const updateLinesForUserFA = (sublistId, statusValue) => {
@@ -368,12 +381,27 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         const approver = toInt(recLoad.getSublistValue({
                             sublistId, fieldId: 'custcol_stc_approver_fa', line: i
                         }));
-                        log.debug('approver', approver)
+                        const cekStatusApp = recLoad.getSublistValue({
+                            sublistId, fieldId: 'custcol_stc_apprvl_sts_fa', line: i
+                        });
+                        log.debug('cekStatusApp', cekStatusApp)
+                        if(cekStatusApp != '2' && statusValue != 3){
+                            log.debug('approver', approver)
                         var subtitue = getSubtitue(approver);
                         log.debug('subtitue', subtitue)
                         if(subtitue){
                             if(subtitue == employeeId){
-                                log.debug('subtitue is employee will set')
+                                    log.debug('subtitue is employee will set')
+                                    recLoad.setSublistValue({
+                                        sublistId,
+                                        fieldId: 'custcol_stc_apprvl_sts_fa',
+                                        line: i,
+                                        value: statusValue
+                                    });
+                                    log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
+                                }
+                            }
+                            if (approver === employeeId) {
                                 recLoad.setSublistValue({
                                     sublistId,
                                     fieldId: 'custcol_stc_apprvl_sts_fa',
@@ -383,15 +411,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
                             }
                         }
-                        if (approver === employeeId) {
-                            recLoad.setSublistValue({
-                                sublistId,
-                                fieldId: 'custcol_stc_apprvl_sts_fa',
-                                line: i,
-                                value: statusValue
-                            });
-                            log.debug(`Update ${sublistId}`, `Line ${i} set status -> ${statusValue}`);
-                        }
+                        
                     }
                 };
 
@@ -556,7 +576,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 }
             }
             if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.COPY) {
-                
+
                 log.debug('triggered')
                 const newRec = record.load({
                     type: context.newRecord.type,

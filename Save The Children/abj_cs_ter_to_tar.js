@@ -173,7 +173,42 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         processLine(0, allData);
     }
 
-
+    function searchHeader(tarNo){
+        var data = []
+        const customrecord_tarSearchObj = search.create({
+        type: "customrecord_tar",
+        filters:
+        [
+            ["internalid","anyof",tarNo]
+        ],
+        columns:
+        [
+            search.createColumn({name: "custrecord_tar_travel_to", label: "Travel To"}),
+            search.createColumn({name: "custrecord_tar_purpose", label: "Purpose"}),
+            search.createColumn({name: "custrecord_tar_expected_date_of_return", label: "Expected Date of Return"})
+        ]
+        });
+        const searchResultCount = customrecord_tarSearchObj.runPaged().count;
+        log.debug("customrecord_tarSearchObj result count",searchResultCount);
+        customrecord_tarSearchObj.run().each(function(result){
+            var travelTo = result.getValue({
+                name : "custrecord_tar_travel_to"
+            })
+            var purpose = result.getValue({
+                name : "custrecord_tar_purpose"
+            })
+            var dateReturn = result.getValue({
+                name : "custrecord_tar_expected_date_of_return"
+            });
+            data.push({
+                travelTo : travelTo,
+                purpose : purpose,
+                dateReturn : dateReturn
+            })
+        return false;
+        });
+        return data
+    }
     function fieldChanged(context){
         try{
             var curRec = context.currentRecord;
@@ -184,6 +219,28 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 console.log('tarNo', tarNo)
                 console.log('recId', recId)
                 if(tarNo){
+                    var dataBody = searchHeader(tarNo)
+                    console.log('dataBody', dataBody)
+                    if(dataBody.length > 0){
+                        var travelTo = dataBody[0].travelTo
+                        var purpose = dataBody[0].purpose
+                        var dateReturn = dataBody[0].dateReturn
+                        curRec.setValue({
+                            fieldId : "custrecord_ter_travel_to",
+                            value : travelTo || ''
+                        })
+                        curRec.setValue({
+                            fieldId : "custrecord_ter_purpose_of_travel",
+                            value : purpose || ''
+                        })
+                        if(dateReturn){
+                            curRec.setValue({
+                                fieldId : "custrecord_ter_travel_date_to",
+                                value : new Date(dateReturn)
+                            })
+                        }
+                        
+                    }
                     var allData = []
                     var customrecord_tar_expensesSearchObj = search.create({
                     type: "customrecord_tar_expenses",
@@ -330,6 +387,24 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
                     }
                 }
+            }
+             if(fieldName == 'custrecord_link_ter_expctd_return'){
+                 var notiv = 'The travel date is different from the expected TAR date'
+                    var dateFrom = curRec.getText('custrecord_ter_travel_date_from');
+                    var dateTo = curRec.getText('custrecord_ter_travel_date_to');
+                    var expDateDep = curRec.getText('custrecord_link_tar_expctd_date');
+                    var expDateReturn = curRec.getText('custrecord_link_ter_expctd_return')
+                    var keyA = dateFrom + '-' + dateTo
+                    var keyB = expDateDep + '-' + expDateReturn
+                    console.log('data banding', {
+                        keyA : keyA, keyB : keyB
+                    })
+                    if(keyA != keyB){
+                        curRec.setValue({
+                            fieldId : 'custrecord_ter_alert_note',
+                            value : notiv
+                        })
+                    }
             }
         }catch(e){
             console.log('error',  e)
