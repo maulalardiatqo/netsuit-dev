@@ -54,7 +54,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             line: i
                         });
                         if(approverFA){
-                            log.debug('approver', approver)
+                            log.debug('approverFA', approverFA)
                             var appFALook = search.lookupFields({
                                 type: "employee",
                                 id: approverFA,
@@ -73,7 +73,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             line: i
                         });
                         log.debug('beforCondition cek', {
-                             employeeId : employeeId, appSubtitue : Number(appSubtitue), approvalStatus : approvalStatus
+                            employeeId : employeeId, appSubtitue : Number(appSubtitue), approvalStatus : approvalStatus
                         })
                         if ((Number(approver) === Number(employeeId) &&
                             Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) && Number(approvalStatus) === 1)) {
@@ -182,47 +182,65 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
     };
 
     function afterSubmit(context) {
-        function getSubtitue(empId){
-            var appSubtitue
-            var empLook = search.lookupFields({
-                type: "employee",
-                id: empId,
-                columns: ["custentity_stc_subtitute_apprvl"],
-            });
-            var firstCek = empLook.custentity_stc_subtitute_apprvl
-            if(firstCek.length > 0){
-                appSubtitue = [0].value;
-            }
-            
-            return appSubtitue
-        }
-        function getBudgetHolderApproval(paramSof, paramAccount, paramAmount) {
-            function runSearch(useAccount) {
-                var filters = [];
-                filters.push(["custrecord_stc_sof", "is", paramSof]);
+        function getSubtitue(empId) {
+                log.debug('empId param get substitute', empId);
 
-                if (useAccount && paramAccount) {
-                    filters.push("AND", ["custrecord_stc_account", "is", paramAccount]);
-                }
+                var appSubtitue = null;
 
-                filters.push("AND", ["custrecord_stc_max_limit_amnt", "greaterthanorequalto", paramAmount]);
-                filters.push("AND", ["isinactive", "is", "F"]);
-
-                var searchObj = search.create({
-                    type: "customrecord_stc_apprv_matrix_bdgt_holdr",
-                    filters: filters,
-                    columns: [
-                        search.createColumn({ name: "custrecord_stc_max_limit_amnt", sort: search.Sort.ASC }),
-                        search.createColumn({ name: "custrecord_stc_bdgt_hldr_approval" })
-                    ]
+                var empLook = search.lookupFields({
+                    type: 'employee',
+                    id: empId,
+                    columns: ['custentity_stc_subtitute_apprvl']
                 });
 
-                var result = searchObj.run().getRange({ start: 0, end: 1 });
-                if (result && result.length > 0) {
-                    return result[0].getValue("custrecord_stc_bdgt_hldr_approval");
+                var firstCek = empLook.custentity_stc_subtitute_apprvl;
+                log.debug('firstCek', firstCek);
+
+                if (firstCek && firstCek.length > 0) {
+                    appSubtitue = firstCek[0].value; // ✅ INI KUNCINYA
+                    log.debug('appSubtitue', appSubtitue);
                 }
-                return null;
+
+                log.debug('return appSubtitue', appSubtitue);
+                return appSubtitue;
             }
+        function getBudgetHolderApproval(paramSof, paramAccount, paramAmount, cretaedBy) {
+                function runSearch(useAccount) {
+                    var filters = [];
+                    filters.push(["custrecord_stc_sof", "is", paramSof]);
+
+                    if (useAccount && paramAccount) {
+                        filters.push("AND", ["custrecord_stc_account", "is", paramAccount]);
+                    }
+
+                    filters.push("AND", ["custrecord_stc_max_limit_amnt", "greaterthanorequalto", paramAmount]);
+                    filters.push("AND", ["isinactive", "is", "F"]);
+
+                    var searchObj = search.create({
+                        type: "customrecord_stc_apprv_matrix_bdgt_holdr",
+                        filters: filters,
+                        columns: [
+                            search.createColumn({ name: "custrecord_stc_max_limit_amnt", sort: search.Sort.ASC }),
+                            search.createColumn({ name: "custrecord_stc_bdgt_hldr_approval" })
+                        ]
+                    });
+
+                    var results = searchObj.run().getRange({ start: 0, end: 100 }); 
+                    
+                    if (results && results.length > 0) {
+                        for (var i = 0; i < results.length; i++) {
+                            var approverId = results[i].getValue("custrecord_stc_bdgt_hldr_approval");
+                            
+                            if (approverId != cretaedBy) {
+                                return approverId;
+                            }
+                            log.debug('Skip Self Approval', 'Approver ' + approverId + ' is the creator. Skipping to next tier.');
+                        }
+                    }
+                    
+                    return null;
+                }
+
             var approval = runSearch(true);
             if (!approval) {
                 approval = runSearch(false);
@@ -230,30 +248,45 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
 
             return approval;
         }
-        function getFinanceMatric(sofId, amount){
-            log.debug('finance matric loaded', {sofId : sofId, amount : amount})
-            var approvalFinance
+        function getFinanceMatric(sofId, amount, cretaedBy){
+            var approvalFinance = null;
+        
             var customrecord_stc_apprvl_mtrix_financeSearchObj = search.create({
                 type: "customrecord_stc_apprvl_mtrix_finance",
                 filters: [
-                    ["custrecord_stc_sof_mtrx_finance","anyof",sofId], 
+                    ["custrecord_stc_sof_mtrx_finance", "anyof", sofId],
                     "AND", 
-                    ["custrecord_finance_max_amnt","greaterthanorequalto",amount]
+                    ["custrecord_finance_max_amnt", "greaterthanorequalto", amount]
+                    , "AND",
+                    ["isinactive", "is", "F"]
                 ],
                 columns: [
+                    search.createColumn({
+                        name: "custrecord_finance_max_amnt",
+                        sort: search.Sort.ASC
+                    }),
                     search.createColumn({ name: "custrecord_stc_apprvl_finance", label: "Approval Finance" })
                 ]
             });
 
             var results = customrecord_stc_apprvl_mtrix_financeSearchObj.run().getRange({
                 start: 0,
-                end: 1
+                end: 100 
             });
 
-            if (results.length > 0) {
-                approvalFinance = results[0].getValue("custrecord_stc_apprvl_finance");
+            if (results && results.length > 0) {
+                for (var i = 0; i < results.length; i++) {
+                    var potentialApprover = results[i].getValue("custrecord_stc_apprvl_finance");
+                    
+                    if (potentialApprover != cretaedBy) {
+                        approvalFinance = potentialApprover;
+                        break; 
+                    }
+                    
+                }
             }
-            return approvalFinance
+            
+            return approvalFinance;
         }
         try {
             if (context.type === context.UserEventType.EDIT){
@@ -261,7 +294,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 const employeeId = toInt(currentUser.id);
                 
 
-                const rec    = context.newRecord;
+                const rec  = context.newRecord;
                 const typeRec = rec.type
                 log.debug('typeRec', typeRec)
                 const recOld = context.oldRecord;
@@ -272,9 +305,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
 
                 const valueBeforeFA = recOld.getValue('custbody_stc_apprvl_by_fa');
                 const cekTriggerFA = rec.getValue('custbody_stc_apprvl_by_fa');
+                const cretaedBy = rec.getValue('custbody_stc_create_by');
 
                 const oldValFA = toInt(valueBeforeFA);
-                const newValFA = toInt(cekTriggerFA)
+                const newValFA = toInt(cekTriggerFA);
 
                 const oldVal = toInt(valueBefore);
                 const newVal = toInt(cekTrigger);
@@ -295,11 +329,14 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 });
 
                 const updateLinesForUser = (sublistId, statusValue) => {
+                    log.debug('sublistId', sublistId)
+                    log.debug('statusValue', statusValue)
                     const count = recLoad.getLineCount({ sublistId });
                     for (let i = 0; i < count; i++) {
                         const approver = toInt(recLoad.getSublistValue({
                             sublistId, fieldId: 'custcol_stc_approver_linetrx', line: i
                         }));
+                        log.debug('approver', approver)
                         var subtitue = getSubtitue(approver);
                         log.debug('subtitue', subtitue)
                         if(subtitue){
@@ -325,12 +362,13 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         }
                     }
                 };
-                  const updateLinesForUserFA = (sublistId, statusValue) => {
+                const updateLinesForUserFA = (sublistId, statusValue) => {
                     const count = recLoad.getLineCount({ sublistId });
                     for (let i = 0; i < count; i++) {
                         const approver = toInt(recLoad.getSublistValue({
                             sublistId, fieldId: 'custcol_stc_approver_fa', line: i
                         }));
+                        log.debug('approver', approver)
                         var subtitue = getSubtitue(approver);
                         log.debug('subtitue', subtitue)
                         if(subtitue){
@@ -382,11 +420,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                     )) {
                     log.debug('Masuk eksekusi approve FA');
 
-                    // ---- Update line milik current user ke status 2 ----
                     updateLinesForUserFA('item', 2);
                     updateLinesForUserFA('expense', 2);
 
-                    // ---- Cek apakah semua line sudah approved ----
                     const isAllApprovedFA = () => {
                         let approverLines = 0;
                         let notApproved   = 0;
@@ -431,11 +467,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 )) {
                     log.debug('Masuk eksekusi approve');
 
-                    // ---- Update line milik current user ke status 2 ----
                     updateLinesForUser('item', 2);
                     updateLinesForUser('expense', 2);
 
-                    // ---- Cek apakah semua line sudah approved ----
                     const isAllApproved = () => {
                         let approverLines = 0;
                         let notApproved   = 0;
@@ -522,12 +556,14 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 }
             }
             if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.COPY) {
+                
                 log.debug('triggered')
                 const newRec = record.load({
                     type: context.newRecord.type,
                     id: context.newRecord.id,
                     isDynamic: false
                 });
+                const cretaedBy = newRec.getValue('custbody_stc_create_by');
                 var cekType = context.newRecord.type
                 log.debug('cekType', cekType)
                 newRec.setValue({
@@ -537,6 +573,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 // ==== LOOP SUBLIST ITEM ====
                 const lineCountItem = newRec.getLineCount({ sublistId: 'item' });
                 if(lineCountItem > 0){
+                    log.debug('lineCountItem', lineCountItem)
                     for (let i = 0; i < lineCountItem; i++) {
                         let itemId = newRec.getSublistValue({ sublistId: 'item', fieldId: 'item', line: i });
                         let sofId = newRec.getSublistValue({ sublistId: 'item', fieldId: 'cseg_stc_sof', line: i });
@@ -564,7 +601,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         }
 
                         if (sofId) {
-                            let cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+                            let cekEmp = getBudgetHolderApproval(sofId, account, grossamt, cretaedBy);
+                            log.debug('cekEmp', cekEmp)
                             if (cekEmp) {
                                 newRec.setSublistValue({
                                     sublistId: "item",
@@ -580,7 +618,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 value: "1"
                             });
                             if(cekType == 'vendbill' || cekType == 'purchreq' ||  cekType == 'purchaseorder'){
-                                var emp = getFinanceMatric(sofId, grossamt)
+                                var emp = getFinanceMatric(sofId, grossamt, cretaedBy)
                                 log.debug('emp', emp)
                                 if(emp){
                                     newRec.setSublistValue({
@@ -604,6 +642,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
 
                 // ==== LOOP SUBLIST EXPENSE ====
                 const lineCountExp = newRec.getLineCount({ sublistId: 'expense' });
+                log.debug('lineCountExp', lineCountExp)
                 if(lineCountExp > 0){
                     for (let i = 0; i < lineCountExp; i++) {
                         let account = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'account', line: i });
@@ -611,7 +650,27 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         let grossamt = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'grossamt', line: i });
 
                         if (sofId) {
-                            let cekEmp = getBudgetHolderApproval(sofId, account, grossamt);
+                            let cekEmp = getBudgetHolderApproval(sofId, account, grossamt, cretaedBy);
+                            if(cekType == 'vendbill' || cekType == 'purchreq' ||  cekType == 'purchaseorder' || cekType == 'expensereport'){
+                                let empFinance = getFinanceMatric(sofId, grossamt, cretaedBy)
+                                log.debug('empFinance', empFinance)
+                                if(empFinance){
+                                    newRec.setSublistValue({
+                                        sublistId : "expense",
+                                        fieldId : "custcol_stc_approver_fa",
+                                        line: i,
+                                        value : empFinance
+                                    })
+                                    newRec.setSublistValue({
+                                        sublistId: "expense",
+                                        fieldId: "custcol_stc_apprvl_sts_fa",
+                                        line: i,
+                                        value: "1"
+                                    })  
+                                }
+                            }
+                           
+                            log.debug('cekEmp', cekEmp)
                             if (cekEmp) {
                                 newRec.setSublistValue({
                                     sublistId: "expense",
