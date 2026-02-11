@@ -170,6 +170,7 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
                     setTimeout(function() {
                         try {
                             if (lineData.projectTask) {
+                                console.log('cek projectTask', projectTask)
                                 safeSet(rec, sublistId, 'custrecord_terd_project_task', lineData.projectTask, true);
                             }
                             
