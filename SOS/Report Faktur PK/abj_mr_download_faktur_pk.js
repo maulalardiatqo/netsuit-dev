@@ -323,9 +323,21 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
     }
 
     function getText(field) {
-        if (!field || !Array.isArray(field) || field.length === 0) return '';
-        return field[0].text || '';
+    if (!field) return '';
+    
+    // Jika field adalah objek (hasil dari getAllResults baru: {value:..., text:...})
+    if (typeof field === 'object' && !Array.isArray(field)) {
+        return field.text || field.value || '';
     }
+    
+    // Jika field adalah array (format lama jika masih ada)
+    if (Array.isArray(field) && field.length > 0) {
+        return field[0].text || field[0].value || '';
+    }
+    
+    // Jika field sudah berupa string atau number
+    return field;
+}
 
     function formatDate(dateStr) {
         if (!dateStr || typeof dateStr !== 'string') return '';

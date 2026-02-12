@@ -53,10 +53,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 log.debug('subsidiari', subsidiari)
                 // load subsidiarie
-                var arraySUbsidiaries = [46, 47, 48, 49]
+                var arraySUbsidiaries = [46, 47, 48, 49, 68, 67, 66, 69]
                 var isTampil = true
                 var alva = false
-                if (subsidiari == 46 || subsidiari == 47 || subsidiari == 48 || subsidiari == 49) {
+                if (subsidiari == 46 || subsidiari == 47 || subsidiari == 48 || subsidiari == 49 || subsidiari == 66 || subsidiari == 67 || subsidiari == 68 || subsidiari == 69) {
                     alva = true
                 }
                 if (subsidiari) {
@@ -182,21 +182,37 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var POdate = poRecord.getValue('trandate');
                 var terms = poRecord.getText('terms');
                 var poNumber = poRecord.getValue('custbody7');
+                if(alva){
+                    poNumber = poRecord.getValue('tranid')
+                }
                 var signedId = poRecord.getValue('custbody11');
                 var nameSigned = ''
                 if (signedId) {
-                    var empRec = record.load({
-                        type: "employee",
-                        id: signedId
-                    });
-                    var fName = empRec.getValue('firstname');
-                    var mName = empRec.getValue('middlename');
-                    var lName = empRec.getValue('lastname');
-                    var nameEmp = fName + " " + mName + " " + lName
-                    if (nameEmp) {
-                        nameSigned = nameEmp
-                    }
-                }
+    var employeeSearch = search.create({
+        type: "employee",
+        filters: [["internalid", "anyof", signedId]],
+        columns: [
+            "firstname",
+            "middlename",
+            "lastname"
+        ]
+    }).run().getRange({ start: 0, end: 1 });
+
+    if (employeeSearch && employeeSearch.length > 0) {
+        var resEmp = employeeSearch[0];
+        
+        var fName = resEmp.getValue('firstname') || "";
+        var mName = resEmp.getValue('middlename') || "";
+        var lName = resEmp.getValue('lastname') || "";
+        
+        // Menggabungkan nama dan membersihkan spasi berlebih jika middle name kosong
+        var nameEmp = (fName + " " + mName + " " + lName).replace(/\s+/g, ' ').trim();
+        
+        if (nameEmp) {
+            nameSigned = nameEmp;
+        }
+    }
+}
                 //load sign
                 log.debug('signedid',signedId)
                 var signedUrl = '';
@@ -217,6 +233,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         id: 82039
                     })
                     log.debug('filesign url', fileSign.url)
+                    signedUrl = fileSign.url.replace(/&/g, "&amp;");
+                } else if(signedId == 17803){
+                    var fileSign = file.load({
+                        id: 135474
+                    })
                     signedUrl = fileSign.url.replace(/&/g, "&amp;");
                 }
     
@@ -481,7 +502,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
                 if (subsidiari == 1) {
                     style += ".tg .tg-img-logo{width:150px; height:111px; object-vit:cover;}";
-                } else {
+                } else if(subsidiari == 69){
+                    style += ".tg .tg-img-logo{width:110px; height:30px; object-vit:cover;}";
+                }else{
                     style += ".tg .tg-img-logo{width:195px; height:90px; object-vit:cover;}";
                 }
                 style += ".tg .tg-headerrow{align: right;font-size:12px;}";
@@ -508,6 +531,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
     
                 body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
                 body += "<tbody>";
+                log.debug('subsidiari',subsidiari)
+                if(subsidiari == 69){
+                    body += "<tr>"
+                         body += "<td class='tg-headerlogo' style='vertical-align:center; align:left;'><div style='display: flex; height:35px; width:110px; '><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>"; 
+                         body += "</tr>"
+                    }
                 if (isTampil == false) {
                     body += "<tr>"
                     body += "<td style='width:45%;'></td>"
@@ -523,7 +552,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 body += "<tr>";
                 if (urlLogo) {
-                    body += "<td class='tg-headerlogo' style='vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px; '><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+                    log.debug('alva', alva)
+                    if(alva == false){
+                        body += "<td class='tg-headerlogo' style='vertical-align:center; align:left;'><div style='display: flex; height:150px; width:150px; '><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>"; 
+                    }
+                    
+                   
                 }
                 body += "<td>";
                 log.debug('legalName', legalName)
@@ -602,7 +636,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td class='tg-froyo' style='align:right; width:18%'> UNIT PRICE (" + tlcCurr + ") </td>"
                     body += "<td class='tg-froyo' style='align:right'> TAXED </td>"
                     body += "<td class='tg-froyo' style='align:right; width:23%'> AMOUNT (" + tlcCurr + ") </td>"
-                } else if (subsidiari == 48) {
+                } else if (subsidiari == 48 || subsidiari == 66 || subsidiari == 67 || subsidiari == 68 || subsidiari == 69) {
                     body += "<td class='tg-jkm' style='width:15%'> QTY </td>"
                     body += "<td class='tg-jkm' style='width:30%'> DESCRIPTION </td>"
                     body += "<td class='tg-jkm' style='align:right; width:18%'> UNIT PRICE (" + tlcCurr + ") </td>"
@@ -682,7 +716,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<td class='tg-headerlogo' style='width:70%;vertical-align:center; align:left;'><div style='display: flex; height:50px; width:50px; margin-left:10px;'><img class='' style='width:15%; height:15%; margin-bottom:-12px' src= '"  + (signedUrl) + "' ></img></div></td>";
                     } else if(signedId == 6702){ //resti
                         body += "<td class='tg-headerlogo' style='width:70%;vertical-align:center; align:left;' colspan='3' ><div style='display: flex; height:50px; width:50px; margin-bottom:10px; margin-left:10px;'><img class='' style='width:35%; height:35%; margin-left:15px' src= '"  + (signedUrl) + "' ></img></div></td>";
-                    } else {
+                    } else if(signedId == 17803){
+                        body += "<td class='tg-headerlogo' style='width:70%;vertical-align:center; align:left;' colspan='3' ><div style='display: flex; height:50px; width:50px; margin-bottom:10px; margin-left:10px;'><img class='' style='width:40%; height:35%; margin-left:15px' src= '"  + (signedUrl) + "' ></img></div></td>";
+                    }else {
                         if(signedUrl){
                             body += "<td class='tg-headerlogo' style='width:70%;vertical-align:center; align:left;'><div style='display: flex; height:50px; width:50px; margin-left:10px;'><img class='' style='width:15%; height:15%;' src= '"  + (signedUrl) + "' ></img></div></td>";
                         }else{
