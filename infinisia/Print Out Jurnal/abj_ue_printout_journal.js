@@ -14,18 +14,19 @@ define(["N/runtime", "N/log", "N/search"], (runtime, log, search) => {
             var journalentrySearchObj = search.create({
                 type: "journalentry",
                 filters: [
-                    ["type","anyof","Journal"],
+                    ["type", "anyof", "Journal"],
                     "AND",
-                    ["mainline","is","T"],
+                    ["mainline", "is", "T"],
                     "AND",
-                    ["internalid","anyof",idRec],
+                    ["internalid", "anyof", idRec],
                     "AND",
-                    ["taxline","is","F"],
+                    ["taxline", "is", "F"],
                     "AND",
-                    ["cogs","is","F"]
+                    ["cogs", "is", "F"]
                 ],
                 columns: [
-                    search.createColumn({ name: "customform", label: "Custom Form" })
+                    search.createColumn({ name: "customform", label: "Custom Form" }),
+                    search.createColumn({ name: "status", label: "Status" })
                 ]
             });
             var firstResult = journalentrySearchObj.run().getRange({ start: 0, end: 1 })[0];
@@ -37,34 +38,48 @@ define(["N/runtime", "N/log", "N/search"], (runtime, log, search) => {
             }
             log.debug('customForm', customForm)
             var jenisTransaksi
-            if(customForm == '158'){
+            if (customForm == '158') {
                 jenisTransaksi = rec.getValue('custbody_custom_transaksi_list_bank');
-                if(jenisTransaksi == '1'){
+                if (jenisTransaksi == '1') {
                     jenisTransaksi = 'Bank In'
-                }else{
+                } else {
                     jenisTransaksi = 'Bank Out'
                 }
-            }else if(customForm == '159'){
+            } else if (customForm == '159') {
                 jenisTransaksi = rec.getValue('custbody_custom_transksi_list_cash');
-                        if(jenisTransaksi == '1'){
-                            jenisTransaksi = 'Cash In'
-                        }else{
-                            jenisTransaksi = 'Cash Out'
-                        }
+                if (jenisTransaksi == '1') {
+                    jenisTransaksi = 'Cash In'
+                } else {
+                    jenisTransaksi = 'Cash Out'
+                }
             }
             log.debug('jenisTransaksi', jenisTransaksi);
-            if(jenisTransaksi){
-                form.addButton({
-                    id: 'custpage_button_inv',
-                    label: "Print " + jenisTransaksi,
-                    functionName: "printPDF()"
-                });
+            var status = firstResult.getValue('status')
+            if (jenisTransaksi) {
+                if (jenisTransaksi == 'Bank Out') {
+                    if(status == 'approved'){
+                        form.addButton({
+                            id: 'custpage_button_inv',
+                            label: "Print " + jenisTransaksi,
+                            functionName: "printPDF()"
+                        });
+                    }
+                } else {
+                    log.debug('status', status)
+                    if(status == 'approved'){
+                        form.addButton({
+                            id: 'custpage_button_inv',
+                            label: "Print " + jenisTransaksi,
+                            functionName: "printPDF()"
+                        });
+                    }
+                }
                 context.form.clientScriptModulePath = "SuiteScripts/abj_cs_printout_journal.js"
             }
-        
+
         }
-}
-return {
-    beforeLoad: beforeLoad,
-};
+    }
+    return {
+        beforeLoad: beforeLoad,
+    };
 });

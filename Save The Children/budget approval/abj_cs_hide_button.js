@@ -295,6 +295,40 @@ define([], () => {
         if (btnRejbtnAppReqPOSecFA_1) {
             btnRejbtnAppReqPOSecFA_1.style.display = 'none';
         }
+
+        const btnPOApp_2 = document.getElementById('custpageworkflow2368');
+        if (btnPOApp_2) {
+            btnPOApp_2.style.display = 'none';
+        }
+        const btnPOReject_2= document.getElementById('custpageworkflow2339');
+        if (btnPOReject_2) {
+            btnPOReject_2.style.display = 'none';
+        }
+        const btnPOApp_2_sec = document.getElementById('secondarycustpageworkflow2368');
+        if (btnPOApp_2_sec) {
+            btnPOApp_2_sec.style.display = 'none';
+        }
+        const btnPOReject_2_sec = document.getElementById('secondarycustpageworkflow2339');
+        if (btnPOReject_2_sec) {
+            btnPOReject_2_sec.style.display = 'none';
+        }
+
+        const btnPOApp_2_fa = document.getElementById('custpageworkflow2348');
+        if (btnPOApp_2_fa) {
+            btnPOApp_2_fa.style.display = 'none';
+        }
+        const btnPOReject_2_fa= document.getElementById('custpageworkflow2347');
+        if (btnPOReject_2_fa) {
+            btnPOReject_2_fa.style.display = 'none';
+        }
+        const btnPOApp_2_sec_fa = document.getElementById('secondarycustpageworkflow2348');
+        if (btnPOApp_2_sec_fa) {
+            btnPOApp_2_sec_fa.style.display = 'none';
+        }
+        const btnPOReject_2_sec_fa = document.getElementById('secondarycustpageworkflow2347');
+        if (btnPOReject_2_sec_fa) {
+            btnPOReject_2_sec_fa.style.display = 'none';
+        }
     const pageInit = () => {
 
     };

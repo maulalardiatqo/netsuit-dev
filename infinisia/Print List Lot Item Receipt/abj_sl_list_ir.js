@@ -2,307 +2,351 @@
  * @NApiVersion 2.1
  * @NScriptType Suitelet
  */
-
-define([
-    "N/ui/serverWidget",
-    "N/search",
-    "N/record",
-    "N/url",
-    "N/runtime",
-    "N/currency",
-    "N/error",
-    "N/config",
-    "N/format",
-], function (
-    serverWidget,
-    search,
-    record,
-    url,
-    runtime,
-    currency,
-    error,
-    config,
-    format,
-) {
-    function getAllResults(s) {
-        var results = s.run();
-        var searchResults = [];
-        var searchid = 0;
-        do {
-            var resultslice = results.getRange({
-                start: searchid,
-                end: searchid + 1000,
-            });
-            resultslice.forEach(function (slice) {
-                searchResults.push(slice);
-                searchid++;
-            });
-        } while (resultslice.length >= 1000);
-        return searchResults;
-    }
-
+// This sample shows how to render search results into a PDF file.
+define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
+function(render, search, record, log, file, http, config, format, email, runtime) {
     function onRequest(context) {
         try{
-            var contextRequest = context.request;
-            var form = serverWidget.createForm({
-                title: "Listn Item Receipt",
-            });
-            var filterOption = form.addFieldGroup({
-                id: "filteroption",
-                label: "FILTERS",
-            });
-
-            var locationOpt = form.addField({
-                id: "custpage_location_opt",
-                label: "LOCATION",
-                type: serverWidget.FieldType.SELECT,
-                container: "filteroption",
-                source: "location",
-            });
-            var startDateField = form.addField({
-                id: "custpage_start_date",
-                label: "Start Date",
-                type: serverWidget.FieldType.DATE,
-                container: "filteroption",
-            });
+            var allIdIr = JSON.parse(context.request.parameters.allIdIr);
+            log.debug('allIdIr',allIdIr)
+            var allData = [];
+            if(allIdIr.length > 0){
+                var trandate = ''
+                allIdIr.forEach((data)=>{
+                    var idIr = data
+                    log.debug('idIr', idIr);
+                    
+                    var itemreceiptSearchObj = search.create({
+                        type: "itemreceipt",
+                        filters:
+                        [
+                            ["type","anyof","ItemRcpt"], 
+                            "AND", 
+                            ["internalid","anyof",idIr], 
+                        ],
+                        columns:
+                        [
+                            search.createColumn({
+                                name: "inventorynumber",
+                                join: "inventoryDetail",
+                                label: " Number"
+                            }),
+                            search.createColumn({name: "item", label: "Item"}),
+                            search.createColumn({name: "quantity", label: "Quantity"}),
+                            search.createColumn({name: "tranid",}),
+                            search.createColumn({name: "unit"}),
+                            search.createColumn({name: "trandate"}),
+                            search.createColumn({
+                                name: "legalname",
+                                join: "vendor",
+                                label: "Legal Name"
+                            }),
+                            search.createColumn({
+                                name: "expirationdate",
+                                join: "inventoryDetail",
+                                label: "Expiration Date"
+                             })
+                        ]
+                    });
+                    var searchResultCount = itemreceiptSearchObj.runPaged().count;
+                    log.debug("itemreceiptSearchObj result count",searchResultCount);
+                    itemreceiptSearchObj.run().each(function(result){
+                        var itemName = result.getText({
+                            name : "item"
+                        })
+                        var tandId = result.getValue({
+                            name : "tranid"
+                        })
+                        var qty = result.getValue({
+                            name : "quantity"
+                        })
+                        var vendName = result.getValue({
+                            name: "legalname",
+                            join: "vendor",
+                        })
+                        var lotNumber = result.getText({
+                            name: "inventorynumber",
+                            join: "inventoryDetail",
+                        });
+                        var expireDate = result.getValue({
+                            name: "expirationdate",
+                            join: "inventoryDetail",
+                        })
+                        var unitsText = result.getValue({
+                            name: "unit",
+                        })
+                        trandate = result.getValue({
+                            name: "trandate",
+                        })
+                        log.debug('itemName', itemName);
+                        if(itemName){
+                            allData.push({
+                                itemName : itemName,
+                                qty : qty,
+                                vendName : vendName,
+                                lotNumber : lotNumber,
+                                expireDate : expireDate,
+                                tandId : tandId,
+                                unitsText : unitsText
+                            })
+                        }
+                        
+                        return true;
+                    });
+                    log.debug('allData', allData);
+                    
+                    
+                })
+                var companyInfo = config.load({
+                    type: config.Type.COMPANY_INFORMATION
+                });
+                var legalName = companyInfo.getValue("legalname");
+    
+                log.debug('legalName', legalName);
+                var logo = companyInfo.getValue('formlogo');
+                var filelogo;
+                var urlLogo = '';
+                if (logo) {
+                    filelogo = file.load({
+                        id: logo
+                    });
+                    //get url
+                    urlLogo = filelogo.url.replace(/&/g, "&amp;");
+                }
+                log.debug('urlLogo', urlLogo);
+                var response = context.response;
+                    var xml = "";
+                    var header = "";
+                    var body = "";
+                    var headerHeight = '1%';
+                    var style = "";
+                    var footer = "";
+                    var pdfFile = null;
+                    style += "<style type='text/css'>";
+                    style += ".tg {border-collapse:collapse; border-spacing: 0; width: 100%;}";
+                    style += ".tg .tg-headerlogo{align:right; border-right: none;border-left: none;border-top: none;border-bottom: none;}";
+                    style += ".tg .tg-img-logo{width:200px; height:70px; object-vit:cover;}";
+                    style += ".tg .tg-img-logo-a{width:150px; height:70px; object-vit:cover;}";
+                    style += ".tg .tg-headerrow{align: right;font-size:12px;}";
+                    style += ".tg .tg-headerrow_legalName{align: right;font-size:13px;word-break:break-all; font-weight: bold;}";
+                    style += ".tg .tg-headerrow_Total{align: right;font-size:16px;word-break:break-all; font-weight: bold;}";
+                    style += ".tg .tg-headerrow_left{align: left;font-size:12px;}";
+                    style += ".tg .tg-head_body{align: center;font-size:11px;font-weight: bold;}";
+                    style += ".tg .tg-b_body{align: left;font-size:12px; border-bottom: solid black 2px;}";
+                    style += ".tg .tg-f_body{align: right;font-size:14px;border-bottom: solid black 2px;}";
+                    style += ".tg .tg-foot{font-size:11px; color: #808080; position: absolute; bottom: 0;}";
+                    style += "</style>";
+                    
         
-            // Tambahkan field untuk end date
-            var endDateField = form.addField({
-                id: "custpage_end_date",
-                label: "End Date",
-                type: serverWidget.FieldType.DATE,
-                container: "filteroption",
-            });
-            form.addSubmitButton({
-                label: "Search",
-            });
-            if(context.request.method === 'GET'){
-                context.response.writePage(form);
-            }else{
-                var location = context.request.parameters.custpage_location_opt;
-                var startDate = context.request.parameters.custpage_start_date;
-                var endDate = context.request.parameters.custpage_end_date;
-                if(startDate){
-                    startDate = format.format({
-                        value: startDate,
-                        type: format.Type.DATE
-                    });
-                }
-                if(endDate){
-                    endDate = format.format({
-                        value: endDate,
-                        type: format.Type.DATE
-                    });
-                }
-                log.debug('filters', {location : location, startDate : startDate, endDate : endDate});
-                var currentRecord = createSublist("custpage_sublist_item", form);
-                var itemreceiptSearchObj = search.create({
-                    type: "itemreceipt",
-                    filters:
-                    [
-                        ["type","anyof","ItemRcpt"], 
-                        "AND", 
-                        ["mainline","is","T"], 
-                    ],
-                    columns:
-                    [
-                        search.createColumn({name: "transactionnumber", label: "Transaction Number"}),
-                        search.createColumn({name: "purchaseorder", label: "Purchase Order"}),
-                        search.createColumn({name: "location", label: "Location"}),
-                        search.createColumn({name: "trandate", label: "Date"}),
-                        search.createColumn({name: "createdfrom"}),
-                        search.createColumn({name: "entity",}),
-                        search.createColumn({name: "tranid",}),
-                        search.createColumn({name: "internalid",})
-                    ]
-                });
-                if(startDate && endDate == ''){
-                    itemreceiptSearchObj.filters.push(
-                        search.createFilter({
-                            name: "trandate",
-                            operator: search.Operator.ONORAFTER,
-                            values: startDate
-                        })
-                    )
-                    itemreceiptSearchObj.filters.push(
-                        search.createFilter({
-                            name: "trandate",
-                            operator: search.Operator.ONORBEFORE,
-                            values: startDate
-                        })
-                    )
-                }
-                if(endDate && startDate == ''){
-                    itemreceiptSearchObj.filters.push(
-                        search.createFilter({
-                            name: "trandate",
-                            operator: search.Operator.ONORAFTER,
-                            values: endDate
-                        })
-                    )
-                    itemreceiptSearchObj.filters.push(
-                        search.createFilter({
-                            name: "trandate",
-                            operator: search.Operator.ONORBEFORE,
-                            values: endDate
-                        })
-                    )
-                }
-                if(startDate && endDate){
-                    itemreceiptSearchObj.filters.push(
-                        search.createFilter({
-                            name: "trandate",
-                            operator: search.Operator.ONORAFTER,
-                            values: startDate
-                        })
-                    )
-                    itemreceiptSearchObj.filters.push(
-                        search.createFilter({
-                            name: "trandate",
-                            operator: search.Operator.ONORBEFORE,
-                            values: endDate
-                        })
-                    )
-                }
-                if(location){
-                    itemreceiptSearchObj.filters.push(
-                        search.createFilter({
-                            name: "location",
-                            operator: search.Operator.ANYOF,
-                            values: location
-                        })
-                    )
-                }
-                var searchResultCount = itemreceiptSearchObj.runPaged().count;
-                log.debug("itemreceiptSearchObj result count",searchResultCount);
-                var allIdIr = [];
-                var i = 0;
-                itemreceiptSearchObj.run().each(function(result){
-                    var trandId = result.getValue({
-                        name: "tranid"
-                    });
-                    var internalId = result.getValue({
-                        name: "internalid"
-                    });
-                    var location = result.getValue({
-                        name: "location"
-                    });
-                    var trandate = result.getValue({
-                        name: "trandate"
-                    });
-                    var poNo = result.getValue({
-                        name: "createdfrom"
-                    });
-                    var vendorName = result.getValue({
-                        name: "entity"
-                    });
-                    allIdIr.push(internalId)
-                    currentRecord.setSublistValue({
-                        sublistId: "custpage_sublist_item",
-                        id: "custpage_sublist_po",
-                        value: poNo,
-                        line: i,
-                    });
-                    currentRecord.setSublistValue({
-                        sublistId: "custpage_sublist_item",
-                        id: "custpage_sublist_vendor",
-                        value: vendorName,
-                        line: i,
-                    });
-                    currentRecord.setSublistValue({
-                        sublistId: "custpage_sublist_item",
-                        id: "custpage_sublist_ir",
-                        value: internalId,
-                        line: i,
-                    });
-                    currentRecord.setSublistValue({
-                        sublistId: "custpage_sublist_item",
-                        id: "custpage_sublist_date",
-                        value: trandate,
-                        line: i,
-                    });
-                    currentRecord.setSublistValue({
-                        sublistId: "custpage_sublist_item",
-                        id: "custpage_sublist_location",
-                        value: location,
-                        line: i,
+                    header += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed;\">";
+                    header += "<tbody>";
+                    header += "</tbody>";
+                    header += "</table>";
+
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:10px;\">";
+
+                    body+= "<tbody>";
+                    body+= "<tr>";
+                    if (urlLogo) {
+                        body += "<td class='tg-headerlogo' style='width:50%;vertical-align:center; align:left; margin-left:4px;'><div style='display: flex;'><img class='tg-img-logo' src= '" + urlLogo + "' ></img></div></td>";
+                    }
+                    body+="</tr>";
+                    body+= "</tbody>";
+                    body+= "</table>";
+
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px; font-weight:bold\">";
+                    body+= "<tbody>";
+                    body+= "<tr>";
+                    body+= "<td style='width:65%;'></td>"
+                    body+= "<td style='width:15%;'></td>"
+                    body+= "<td style='width:1%;'></td>"
+                    body+= "<td style='width:19%;'></td>"
+                    body+= "</tr>";
+
+                    body+= "<tr>";
+                    body+= "<td></td>"
+                    body+= "<td>Tanggal</td>"
+                    body+= "<td>:</td>"
+                    body+= "<td>"+trandate+"</td>"
+                    body+= "</tr>";
+
+                    body+= "<tr>";
+                    body+= "<td></td>"
+                    body+= "<td>No</td>"
+                    body+= "<td>:</td>"
+                    body+= "<td></td>"
+                    body+= "</tr>";
+
+                    body+= "</tbody>";
+                    body+= "</table>";
+
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:14px; font-weight:bold\">";
+                    body+= "<tbody>";
+                    body+= "<tr style='height:20px'>";
+                    body+= "</tr>";
+                    body+= "</tbody>";
+                    body+= "</table>";
+
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:14px; font-weight:bold\">";
+                    body+= "<tbody>";
+                    body+= "<tr>";
+                    body+= "<td style='align:center'><u>SURAT PERINTAH PENERIMAAN BARANG (SPPB)</u></td>"
+                    body+= "</tr>";
+                    body+= "</tbody>";
+                    body+= "</table>";
+
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
+                    body+= "<tbody>";
+
+                    body+= "<tr>";
+                    body+= "<td style='width:75%;'></td>"
+                    body+= "<td style='width:25%%;'></td>"
+                    body+= "</tr>";
+                    body+= "<tr>";
+                    body+= "<td></td>"
+                    body+= "<td style='align:leftt'>No. Form : 013/ISS-LG/FF</td>"
+                    body+= "</tr>";
+                    body+= "</tbody>";
+                    body+= "</table>";
+
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:11px;\">";
+                    body+= "<tbody>";
+                    body+= "<tr>";
+                    body+= "<td class='tg-head_body' style='width:5%; border: 1px solid black; border-right:none;'> No </td>"
+                    body+= "<td class='tg-head_body' style='width:23%; border: 1px solid black; border-right:none;'> SUPPLIER </td>"
+                    body+= "<td class='tg-head_body' style='width:17%; border: 1px solid black; border-right:none;'> NAMA BARANG </td>"
+                    body+= "<td class='tg-head_body' style='width:10%; border: 1px solid black; border-right:none;'> QTY (KG) </td>"
+                    body+= "<td class='tg-head_body' style='width:10%; border: 1px solid black; border-right:none;'> PACKING </td>"
+                    body+= "<td class='tg-head_body' style='width:10%; border: 1px solid black; border-right:none;'> NO LOT </td>"
+                    body+= "<td class='tg-head_body' style='width:15%; border: 1px solid black; border-right:none;'> EXPIRED DATE </td>"
+                    body+= "<td class='tg-head_body' style='width:20%; border: 1px solid black;'> KET </td>"
+                    body+= "</tr>";
+                    body += getData(context, allData);
+                    body+= "</tbody>";
+                    body+= "</table>";
+
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:14px; font-weight:bold\">";
+                    body+= "<tbody>";
+                    body+= "<tr style='height:20px'>";
+                    body+= "</tr>";
+                    body+= "</tbody>";
+                    body+= "</table>";
+
+                    body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px; font-weight:bold\">";
+                    body+= "<tbody>";
+                    body+= "<tr>";
+                    body+= "<td style='width:1%;'></td>"
+                    body+= "<td style='width:23%;'></td>"
+                    body+= "<td style='width:1%;'></td>"
+                    body+= "<td style='width:1%;'></td>"
+                    body+= "<td style='width:23%;'></td>"
+                    body+= "<td style='width:1%;'></td>"
+                    body+= "<td style='width:1%;'></td>"
+                    body+= "<td style='width:23%;'></td>"
+                    body+= "<td style='width:1%;'></td>"
+                    body+= "<td style='width:1%;'></td>"
+                    body+= "<td style='width:23%;'></td>"
+                    body+= "<td style='width:1%;'></td>"
+                    body+= "</tr>";
+
+                    body+= "<tr>";
+                    body+= "<td></td>"
+                    body+= "<td style='align:center'>Purchasing,</td>"
+                    body+= "<td></td>"
+                    body+= "<td></td>"
+                    body+= "<td style='align:center'>Admin,</td>"
+                    body+= "<td></td>"
+                    body+= "<td></td>"
+                    body+= "<td style='align:center'>Bag Gudang,</td>"
+                    body+= "<td></td>"
+                    body+= "<td></td>"
+                    body+= "<td style='align:center'>Penerima,</td>"
+                    body+= "<td></td>"
+                    body+= "</tr>";
+
+                    body+= "<tr style='height:40px'>"
+                    body+= "</tr>"
+
+                    body+= "<tr>";
+                    body+= "<td style='align:left'>(</td>"
+                    body+= "<td></td>"
+                    body+= "<td style='align:left'>)</td>"
+                    body+= "<td style='align:left'>(</td>"
+                    body+= "<td></td>"
+                    body+= "<td style='align:left'>)</td>"
+                    body+= "<td style='align:left'>(</td>"
+                    body+= "<td></td>"
+                    body+= "<td style='align:left'>)</td>"
+                    body+= "<td style='align:left'>(</td>"
+                    body+= "<td></td>"
+                    body+= "<td style='align:left'>)</td>"
+                    body+= "</tr>";
+
+                    body+= "</tbody>";
+                    body+= "</table>";
+
+                    footer += "<table class='tg' style='table-layout: fixed;'>";
+                    footer += "<tbody>";
+                    footer += "<tr style='height:40px;'>";
+                    footer += "</tr>";
+                    footer += "</tbody>";
+                    footer += "</table>";
+                    var xml = '<?xml version="1.0"?>\n<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">';
+                    xml += "<pdf>";
+                    xml += "<head>";
+                    xml += style;
+                    xml += "<macrolist>";
+                    xml += "<macro id=\"nlheader\">";
+                    xml += header;
+                    xml += "</macro>";
+                    xml += "<macro id=\"nlfooter\">";
+                    xml += footer;
+                    xml += "</macro>";
+                    xml += "</macrolist>";
+                    xml += "</head>"
+                    xml += "<body font-size='10' style='font-family: Tahoma,sans-serif;height: 21cm; width: 29.7cm; margin-top: 5px; margin-buttom: 5px; margin-left: 20px; margin-right: 20px; padding: 2px;' header='nlheader' header-height='" + headerHeight + "' footer='nlfooter' footer-height='7%'>";
+                    xml += body;
+                    xml += "\n</body>\n</pdf>";
+        
+                    xml = xml.replace(/ & /g, ' &amp; ');
+                    response.renderPdf({
+                        xmlString: xml
                     });
 
-                    i ++
-                    return true;
-                });
-                form.addButton({
-                    id: 'custpage_button_po',
-                    label: "Print SPPB",
-                    functionName: "printSPPB()"
-                });
-                form.addButton({
-                    id: 'custpage_button_po',
-                    label: "Print Checklist Barang Masuk",
-                    functionName: "printChecklist()"
-                });
-                form.clientScriptModulePath = "SuiteScripts/abj_cs_print_lot_ir.js";
-
-                context.response.writePage(form);
             }
-
         }catch(e){
             log.debug('error', e)
         }
         
-    }
-    function createSublist(sublistname, form) {
-        var sublist_in = form.addSublist({
-            id: sublistname,
-            type: serverWidget.SublistType.LIST,
-            label: "Item Receipt List",
-            tab: "matchedtab",
-        });
-        sublist_in.addField({
-            id: "custpage_sublist_check_bin",
-            label: "Select",
-            type: serverWidget.FieldType.CHECKBOX,
-        });
-        sublist_in.addField({
-            id: "custpage_sublist_po",
-            label: "PO Number",
-            type: serverWidget.FieldType.SELECT,
-            source : 'purchaseorder'
-        }).updateDisplayType({
-            displayType: serverWidget.FieldDisplayType.INLINE,
-        });
-        sublist_in.addField({
-            id: "custpage_sublist_vendor",
-            label: "Vendor",
-            type: serverWidget.FieldType.SELECT,
-            source : 'vendor'
-        }).updateDisplayType({
-            displayType: serverWidget.FieldDisplayType.INLINE,
-        });
-        sublist_in.addField({
-            id: "custpage_sublist_ir",
-            label: "Item Receipt",
-            type: serverWidget.FieldType.SELECT,
-            source : 'itemreceipt'
-        }).updateDisplayType({
-            displayType: serverWidget.FieldDisplayType.INLINE,
-        });
-        sublist_in.addField({
-            id: "custpage_sublist_date",
-            label: "Date",
-            type: serverWidget.FieldType.DATE,
-        });
-        sublist_in.addField({
-            id: "custpage_sublist_location",
-            label: "Location",
-            type: serverWidget.FieldType.SELECT,
-            source : 'location'
-        }).updateDisplayType({
-            displayType: serverWidget.FieldDisplayType.INLINE,
-        });
-        return sublist_in;
-    }
-    return {
+      }
+      function getData(context, allData){
+        var body = "";
+        allData = allData
+        log.debug('allData', allData);
+        var No = 1;
+        allData.forEach((data)=>{
+            var itemName = data.itemName;
+            var vendName = data.vendName;
+            var expireDate = data.expireDate;
+            var qty = data.qty;
+            var packing = data.unitsText;
+            var lotNumber = data.lotNumber;
+            var ket = '';
+            body += "<tr>";
+            body += "<td style='font-size: 10px; border: 1px solid black; border-right:none; align:center'>"+No+"</td>";
+            body += "<td style='align:center; font-size:10px; border: 1px solid black; border-right:none;'>"+vendName+"</td>";
+            body += "<td style='align:center; font-size:10px; border: 1px solid black; border-right:none;'>"+itemName+"</td>";
+            body += "<td style='align:center; font-size:10px; border: 1px solid black; border-right:none;'>"+qty+"</td>";
+            body += "<td style='align:center; font-size:10px; border: 1px solid black; border-right:none;'>"+packing+"</td>";
+            body += "<td style='align:center; font-size:10px; border: 1px solid black; border-right:none;'>"+lotNumber+"</td>";
+            body += "<td style='align:center; font-size:10px; border: 1px solid black; border-right:none;'>"+expireDate+"</td>";
+            body += "<td style='align:center; font-size:10px; border: 1px solid black;'>"+ket+"</td>";
+            body += "</tr>";
+            No ++
+        })
+        return body;
+      }
+      return {
         onRequest: onRequest,
     };
-});
+  });

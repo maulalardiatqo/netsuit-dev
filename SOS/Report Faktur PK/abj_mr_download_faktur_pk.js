@@ -27,41 +27,46 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
         return curr
     }
     function getAllResults(s) {
-        const results = s.run();
-        let searchResults = [];
-        let searchid = 0;
-        let resultslice;
+    const results = s.run();
+    let searchResults = [];
+    let searchid = 0;
+    let resultslice;
 
-        do {
-            resultslice = results.getRange({ start: searchid, end: searchid + 1000 });
-            resultslice.forEach(function (result) {
-                // Ambil semua field dari search
-                const values = {};
-                const columns = result.columns;
-                columns.forEach(function (col) {
-                    const fieldId = col.name;
-                    const value = result.getValue(col);
-                    const text = result.getText(col);
-                    if (text && text !== value) {
-                        values[fieldId] = [{ value: value, text: text }];
-                    } else {
-                        values[fieldId] = value;
-                    }
-                });
+    do {
+        resultslice = results.getRange({ start: searchid, end: searchid + 1000 });
+        resultslice.forEach(function (result) {
+            const values = {};
+            const columns = result.columns;
 
-                searchResults.push({
-                    recordType: result.recordType || 'unknown',
-                    id: result.id,
-                    values: values
-                });
+            columns.forEach(function (col, index) { // Tambahkan parameter index di sini
+                const fieldId = col.name;
+                const value = result.getValue(col);
+                const text = result.getText(col);
+                
+                // Tentukan data yang akan disimpan (objek text/value atau value saja)
+                let dataToStore = (text && text !== value) ? { value: value, text: text } : value;
 
-                searchid++;
+                // 1. Simpan berdasarkan index (PENTING: Agar formula tidak tertimpa)
+                // Ini akan menghasilkan key seperti 'col_0', 'col_1', dst.
+                values['col_' + index] = dataToStore;
+
+                // 2. Simpan juga berdasarkan fieldId asli (seperti sebelumnya)
+                // Jika namanya sama, yang terakhir tetap akan menimpa, tapi col_index tetap aman.
+                values[fieldId] = dataToStore;
             });
-        } while (resultslice.length === 1000);
 
-        return searchResults;
-    }
+            searchResults.push({
+                recordType: result.recordType || 'unknown',
+                id: result.id,
+                values: values
+            });
 
+            searchid++;
+        });
+    } while (resultslice.length === 1000);
+
+    return searchResults;
+}
 
     function getInputData() {
         const script = runtime.getCurrentScript();
@@ -153,28 +158,29 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             ] : null;
 
             const detailRows = grouped.details.map(d => {
-            const v = d.values;
-            let itemName = getText(v.item);
-            if (itemName && itemName.includes(':')) {
-                itemName = itemName.split(':')[0].trim(); // Ambil sebelum titik dua
-            }
-            return [
-                d.id,
-                getText(v.custbody_sos_barang_jasa),
-                getText(v.custbody_sos_kode_barang_jasa),
-                itemName,
-                getText(v.custbody_sos_nama_satuan_ukur),
-                removeDecimal(v.rate) || '',
-                v.quantity || '',
-                removeDecimal(v.discountamount) || '',
-                removeDecimal(v.amount) || '',
-                removeDecimal(v.custcol_sos_dpp_nilai_lain) || '',
-                (getText(v.taxcode)?.replace(/vat/gi, '').replace(/%/g, '').trim()) || '',
-                removeDecimal(v.taxamount) || '',
-                '0',
-                '0',
-            ];
-        });
+                const v = d.values;
+                const keys = Object.keys(v);
+                log.debug('keys', keys)
+                log.debug('value', v)
+                let itemName = v['col_2'];
+                log.debug('itemName', itemName)
+                return [
+                    d.id,
+                    getText(v['col_0']),
+                    getText(v['col_1']),
+                    itemName,
+                    getText(v['col_3']),
+                    removeDecimal(v.rate) || '',
+                    v.quantity || '',
+                    removeDecimal(v['col_6']) || '',
+                    removeDecimal(v['col_7'])|| '',
+                    removeDecimal(v.custcol_sos_dpp_nilai_lain) || '',
+                    (getText(v.taxcode)?.replace(/vat/gi, '').replace(/%/g, '').trim()) || '',
+                    removeDecimal(v.taxamount) || '',
+                    '0',
+                    '0',
+                ];
+            });
 
 
             context.write({
@@ -214,11 +220,8 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             xmlParts.push(`<ListOfGoodService>`);
             grouped.details.forEach(detail => {
                 const v = detail.values;
-
-                let itemName = getText(v.item);
-                if (itemName && itemName.includes(':')) {
-                    itemName = itemName.split(':')[0].trim();
-                }
+                const keys = Object.keys(v);
+                let itemName = v['col_2']
 
                 xmlParts.push(`<GoodService>`);
                 xmlParts.push(`<Opt>${getText(v.custbody_sos_barang_jasa)}</Opt>`);
@@ -227,8 +230,8 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 xmlParts.push(`<Unit>${getText(v.custbody_sos_nama_satuan_ukur)}</Unit>`);
                 xmlParts.push(`<Price>${removeDecimal(v.rate) || '0'}</Price>`);
                 xmlParts.push(`<Qty>${v.quantity || '0'}</Qty>`);
-                xmlParts.push(`<TotalDiscount>${removeDecimal(v.discountamount) || '0'}</TotalDiscount>`);
-                xmlParts.push(`<TaxBase>${removeDecimal(v.amount) || '0'}</TaxBase>`);
+                xmlParts.push(`<TotalDiscount>${removeDecimal(v['col_6']) || '0'}</TotalDiscount>`);
+                xmlParts.push(`<TaxBase>${removeDecimal(v['col_7']) || '0'}</TaxBase>`);
                 xmlParts.push(`<OtherTaxBase>${removeDecimal(v.custcol_sos_dpp_nilai_lain) || '0'}</OtherTaxBase>`);
                 xmlParts.push(`<VATRate>${(getText(v.taxcode)?.replace(/vat/gi, '').replace(/%/g, '').trim()) || ''}</VATRate>`);
                 xmlParts.push(`<VAT>${removeDecimal(v.taxamount) || '0'}</VAT>`);

@@ -12,6 +12,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 var allData = [];
                 if (allidFulfill.length > 0) {
+                    var trandate = ''
                     allidFulfill.forEach((data) => {
                         var idFulfill = data
                         log.debug('idFulfill', idFulfill);
@@ -24,7 +25,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                     "AND",
                                     ["createdfrom.type", "anyof", "SalesOrd"],
                                     "AND",
-                                    ["cogs", "is", "T"],
+                                    ["cogs", "is", "F"],
                                     "AND",
                                     ["formulanumeric: {quantity}", "greaterthan", "0"]
                                     
@@ -37,9 +38,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                         label: " Number"
                                     }),
                                     search.createColumn({ name: "item", label: "Item" }),
-                                    search.createColumn({ name: "quantity", label: "Quantity" }),
+                                    search.createColumn({ name: "quantityuom", label: "Quantity" }),
                                     search.createColumn({ name: "tranid" }),
                                     search.createColumn({ name: "entity" }),
+                                    search.createColumn({ name: "trandate" }),
+                                    
                                     // search.createColumn({
                                     //     name: "legalname",
                                     //     join: "customer",
@@ -70,7 +73,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 name: "tranid"
                             });
                             var qty = result.getValue({
-                                name: "quantity"
+                                name: "quantityuom"
                             });
                             var custName = result.getText({
                                 name: "entity"
@@ -83,6 +86,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             var expireDate = result.getValue({
                                 name: "expirationdate",
                                 join: "inventoryDetail",
+                            });
+                            trandate = result.getValue({
+                                name: "trandate"
                             });
                             log.debug('itemName', itemName);
                             if (itemName) {
@@ -165,16 +171,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<tbody>";
                     body += "<tr>";
                     body += "<td style='width:65%;'></td>"
-                    body += "<td style='width:15%%;'></td>"
-                    body += "<td style='width:1%%;'></td>"
-                    body += "<td style='width:19%%;'></td>"
+                    body += "<td style='width:15%;'></td>"
+                    body += "<td style='width:1%;'></td>"
+                    body += "<td style='width:19%;'></td>"
                     body += "</tr>";
 
                     body += "<tr>";
                     body += "<td></td>"
                     body += "<td>Tanggal</td>"
                     body += "<td>:</td>"
-                    body += "<td></td>"
+                    body += "<td>"+trandate+"</td>"
                     body += "</tr>";
 
                     body += "<tr>";
@@ -401,7 +407,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "<td style='text-align:left; font-size:10px; border: 1px solid black; border-right:none;'>" + custName + "</td>";
                     body += "<td style='text-align:left; font-size:10px; border: 1px solid black; border-right:none;'>" + itemName + "</td>";
                     body += "<td style='text-align:center; font-size:10px; border: 1px solid black; border-right:none;'>" + lotData.qtyLot + "</td>";
-                    body += "<td style='text-align:center; font-size:10px; border: 1px solid black; border-right:none;'>" + packing + "</td>";
+                    body += "<td style='text-align:center; font-size:10px; border: 1px solid black; border-right:none;'>" + qty + "</td>";
                     body += "<td style='text-align:center; font-size:10px; border: 1px solid black; border-right:none;'>" + lotData.lot + "</td>";
                     body += "<td style='text-align:left; font-size:10px; border: 1px solid black;'>" + ket + "</td>";
                     body += "</tr>";

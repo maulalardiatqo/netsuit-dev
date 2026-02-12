@@ -74,7 +74,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 tanggalPemotongan = `${day}/${month}/${year}`;
             }
         }
-        let tanggalDok = values.trandate
+        let tanggalDok = values.custbody_sos_inv_date
          if (tanggalDok) {
             let parts = tanggalDok.split('/');
             if (parts.length === 3) {
@@ -91,7 +91,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             idTkuPenerima: values.custbody_sos_id_tku_penerima_penghasil,
             fasilitas: values.custbody_sos_fasilitas,
             kodeObj: values.custbody_sos_kode_obj_pajak,
-            dpp: dppValue,
+            dpp: values.netamountnotax,
             tarif: values.custbody_sos_tarif,
             jenisDokRef: values.custbody_sos_jenis_dok_ref,
             nomorDokRef: values.custbody_sos_no_sp2d,   
@@ -99,6 +99,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
             idTkuPemotong: values.custbody_id_tku_pemotong,
             opsiPembayaran: values.custbody_sos_opsi_pembayaran,
             nomorSP2D: values.custbody_sos_no_sp2d,
+            docNumber : values.tranid,
             tanggalPemotongan: tanggalPemotongan
         };
 
@@ -134,7 +135,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                         <TaxBase>${safe(data?.dpp)}</TaxBase>
                         <Rate>${safe(data?.tarif)}</Rate>
                         <Document>${safe(data?.jenisDokRef?.[0]?.text)}</Document>
-                        <DocumentNumber>${safe(data?.nomorDokRef)}</DocumentNumber>
+                        <DocumentNumber>${safe(data?.docNumber)}</DocumentNumber>
                         <DocumentDate>${safe(data?.tanggalDok)}</DocumentDate>
                         <IDPlaceOfBusinessActivity>${safe(data?.idTkuPemotong)}</IDPlaceOfBusinessActivity>
                         <GovTreasurerOpt>${safe(data?.opsiPembayaran?.[0]?.text)}</GovTreasurerOpt>
@@ -230,7 +231,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 xmlStr += `<Row><Cell/>`; 
                 [
                     'masaPajak', 'tahunPajak', 'npwp', 'idTkuPenerima', 'fasilitas',
-                    'kodeObj', 'dpp', 'tarif', 'jenisDokRef', 'nomorDokRef',
+                    'kodeObj', 'dpp', 'tarif', 'jenisDokRef', 'docNumber',
                     'tanggalDok', 'idTkuPemotong', 'opsiPembayaran', 'nomorSP2D', 'tanggalPemotongan'
                 ].forEach(key => {
                     let value = data[key];
