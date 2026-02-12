@@ -280,6 +280,24 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
     function getApprovers(rec, flaging, endpointAction) {
         var approvers = [];
         const approvalCount = rec.getLineCount({ sublistId: 'recmachcustrecord_abj_a_id' });
+        
+        var minGroupVal = null;
+        if (endpointAction === 'create') {
+            for (let j = 0; j < approvalCount; j++) {
+                let currentGroup = rec.getSublistValue({
+                    sublistId: 'recmachcustrecord_abj_a_id',
+                    fieldId: 'custrecord_approval_group',
+                    line: j
+                });
+                let val = parseInt(currentGroup);
+                if (!isNaN(val)) {
+                    if (minGroupVal === null || val < minGroupVal) {
+                        minGroupVal = val;
+                    }
+                }
+            }
+        }
+
         var approvalNo = 1;
         for (let i = 0; i < approvalCount; i++) {
             var appId = rec.getSublistValue({
@@ -287,6 +305,13 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                 fieldId: 'custrecord_abj_user_need_approval',
                 line: i
             });
+            
+            var appGroup = rec.getSublistValue({
+                sublistId : 'recmachcustrecord_abj_a_id',
+                fieldId : 'custrecord_approval_group',
+                line : i
+            });
+
             let userId = '';
             try {
                 if (appId) {
@@ -300,10 +325,11 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             } catch(e) {
                 log.error("Lookup Approver Error", e.message);
             }
+
             let statusKirim = '';
 
             if (endpointAction === 'create') {
-                if (groupVal == '1') {
+                if (minGroupVal !== null && parseInt(appGroup) === minGroupVal) {
                     statusKirim = '1';
                 } else {
                     statusKirim = ''; 
@@ -311,7 +337,6 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             } else if (flaging === true) {
                 statusKirim = '1';
             } else {
-                // Logic default (ambil dari record)
                 statusKirim = rec.getSublistValue({ 
                     sublistId: 'recmachcustrecord_abj_a_id', 
                     fieldId: 'custrecord_abj_status_approve', 
@@ -324,10 +349,11 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                 user_approver: userId,
                 status_approve: statusKirim,
                 tgl_approve: rec.getSublistValue({ sublistId: 'recmachcustrecord_abj_a_id', fieldId: 'custrecord_abj_tgl_appprove', line: i }),
-                approval_group: rec.getSublistValue({ sublistId: 'recmachcustrecord_abj_a_id', fieldId: 'custrecord_approval_group', line: i }),
+                approval_group: appGroup,
                 approval_no: approvalNo
             });
-            approvalNo = Number(approvalNo) + 1;
+            
+            approvalNo++;
         }
         return approvers;
     }

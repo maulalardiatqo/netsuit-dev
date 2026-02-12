@@ -404,14 +404,44 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             fieldId : 'custrecord_ter_alert_note',
                             value : notiv
                         })
+                    }else{
+                        curRec.setValue({
+                            fieldId : 'custrecord_ter_alert_note',
+                            value : ''
+                        })
                     }
             }
         }catch(e){
             console.log('error',  e)
         }       
     }
-    
+    function saveRecord(context){
+         var curRec = context.currentRecord;
+         var notiv = 'The travel date is different from the expected TAR date'
+        var dateFrom = curRec.getText('custrecord_ter_travel_date_from');
+        var dateTo = curRec.getText('custrecord_ter_travel_date_to');
+        var expDateDep = curRec.getText('custrecord_link_tar_expctd_date');
+        var expDateReturn = curRec.getText('custrecord_link_ter_expctd_return')
+        var keyA = dateFrom + '-' + dateTo
+        var keyB = expDateDep + '-' + expDateReturn
+        console.log('data banding', {
+            keyA : keyA, keyB : keyB
+        })
+        if(keyA != keyB){
+            curRec.setValue({
+                fieldId : 'custrecord_ter_alert_note',
+                value : notiv
+            })
+        }else{
+            curRec.setValue({
+                fieldId : 'custrecord_ter_alert_note',
+                value : ''
+            })
+        }
+        return true
+    }
     return {
         fieldChanged : fieldChanged,
+        saveRecord : saveRecord
     };
 });
