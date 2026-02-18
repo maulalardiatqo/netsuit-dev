@@ -55,8 +55,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 //     id: recid,
                 //     isDynamic: false,
                 // });
-                var subsidiari = poRecord.getValue({name : 'subsidiary'});
-                var currenc = poRecord.getValue({name : 'currency'});
+                var subsidiari = poRecord[0].getValue({name : 'subsidiary'});
+                var currenc = poRecord[0].getValue({name : 'currency'});
                 if (currenc) {
                     var recCurrenc = record.load({
                         type: 'currency',
@@ -127,7 +127,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                 }
                 // load vendor
-                var vendor_id = poRecord.getValue({
+                var vendor_id = poRecord[0].getValue({
                         name: "internalid",
                         join: "vendor",
                     });
@@ -195,14 +195,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                 }
                 // PO data
-                var tandId = poRecord.getValue({ name : 'tranid'});
-                var POdate = poRecord.getValue({ name : 'trandate'});
-                var terms = poRecord.getText({ name : 'terms'});
-                var poNumber = poRecord.getValue({name : 'custbody7'});
+                var tandId = poRecord[0].getValue({ name : 'tranid'});
+                var POdate = poRecord[0].getValue({ name : 'trandate'});
+                var terms = poRecord[0].getText({ name : 'terms'});
+                var poNumber = poRecord[0].getValue({name : 'custbody7'});
                 if(alva){
-                    poNumber = poRecord.getValue({ name : 'tranid'})
+                    poNumber = poRecord[0].getValue({ name : 'tranid'})
                 }
-                var signedId = poRecord.getValue({ name : 'custbody11'});
+                var signedId = poRecord[0].getValue({ name : 'custbody11'});
                 var nameSigned = ''
                 if (signedId) {
                     var employeeSearch = search.create({
@@ -259,17 +259,17 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
     
                 // var subTotal = poRecord.getValue('subtotal') || 0;
-                var poTotal = poRecord.getValue({ name : 'total' }) || 0;
+                var poTotal = poRecord[0].getValue({ name : 'total' }) || 0;
     
                 var total = 0;
-                var duedate = poRecord.getValue({ name : 'duedate'});
-                var jobNumber = poRecord.getValue({ name : 'custbody_abj_custom_jobnumber' });
+                var duedate = poRecord[0].getValue({ name : 'duedate'});
+                var jobNumber = poRecord[0].getValue({ name : 'custbody_abj_custom_jobnumber' });
                 jobNumber = escapeXmlSymbols(jobNumber);
 
                 if (jobNumber.includes('\\')) {
                     jobNumber = jobNumber.replace(/\\/g, '<br/>');
                 }
-                var subTotal = poRecord.getValue({ name : 'netamountnotax' }) || 0;
+                var subTotal = poRecord[0].getValue({ name : 'netamountnotax' }) || 0;
                 var totalWhTaxamount = 0;
                 var totalWhTaxamountItem = 0;
                 var totalWhTaxamountExp = 0;
@@ -289,6 +289,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }));
                 transactionSearchObj.run().each(function(result) {
                     var whtaxammountItem = parseFloat(result.getValue({ name: 'custcol_4601_witaxamount' })) || 0;
+                    var itemId = result.getValue({
+                        name : 'item'
+                    })
                     var taxpphItem = result.getValue({ name: 'custcol_4601_witaxrate' });
                     var taxRateItem = result.getValue({  
                         name: "rate",
@@ -305,7 +308,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             whTaxCodetoPrint = whTaxCodetoPrint.replace('Prepaid Tax', 'PPH').replace('Tax Article', 'PPH');
                         }
                     }
-                    totalWhTaxamountItem += Math.abs(whtaxammountItem);
+                    if(itemId){
+                        totalWhTaxamountItem += Math.abs(whtaxammountItem);
+                    }
+                    
                     
                     if (taxpphItem && taxpphList.indexOf(taxpphItem) === -1) {
                         taxpphList.push(taxpphItem);
@@ -316,7 +322,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     var whtaxammountExp = parseFloat(result.getValue({ name: 'custcol_4601_witaxamt_exp' })) || 0;
                     var taxpphExp = result.getValue({ name: 'custcol_4601_witaxrate_exp' });
-                    totalWhTaxamountExp += Math.abs(whtaxammountExp);
+                   
+                    if(!itemId || itemId == '' || itemId == null){
+                        
+                        totalWhTaxamountExp += Math.abs(whtaxammountExp);
+                    }
+                    
 
                     if (taxpphExp && taxpphList.indexOf(taxpphExp) === -1) {
                         taxpphList.push(taxpphExp);
@@ -328,8 +339,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if (taxpphList.length > 0) {
                     var taxpphToPrint = taxpphList.join(' & ');
                 }
-
+                log.debug('totalWhTaxamountItem', totalWhTaxamountItem)
+                log.debug('totalWhTaxamountExp', totalWhTaxamountExp)
                 totalWhTaxamount = totalWhTaxamountItem + totalWhTaxamountExp;
+                var totalWHTaxToCount = totalWhTaxamount
 
                 if (totalWhTaxamount) {
                     totalWhTaxamount = pembulatan(totalWhTaxamount);
@@ -340,9 +353,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
 
                 log.debug('taxRate Cek Final', taxRateList);
-                var taxtotal = poRecord.getValue({ name : 'taxtotal'});
-    
-                total = Number(subTotal) + Number(taxtotal);
+                var taxtotal = poRecord[0].getValue({ name : 'taxtotal'});
+                log.debug('subTotal', subTotal)
+                log.debug('taxtotal', taxtotal)
+                total = Number(subTotal) + Number(Math.abs(taxtotal));
                 var totalToCount = total
                 if (poTotal) {
     
@@ -365,8 +379,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type: format.Type.CURRENCY
                     });
                 }
-    
+                
                 if (taxtotal) {
+                    taxtotal = Math.abs(taxtotal)
                     if (alva) {
                         taxtotal = taxtotal
                     } else {
@@ -401,13 +416,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     }
                     duedate = sysDate();
                 }
-                log.debug('PoDate', POdate);
-                if (POdate) {
-                    POdate = format.format({
-                        value: POdate,
-                        type: format.Type.DATE
-                    });
-                }
+                // log.debug('PoDate', POdate);
+                // if (POdate) {
+                //     POdate = format.format({
+                //         value: POdate,
+                //         type: format.Type.DATE
+                //     });
+                // }
                 var amountRecieved = Number(totalToCount) - Number(totalWHTaxToCount);
                 if (amountRecieved) {
                     amountRecieved = pembulatan(amountRecieved);
@@ -587,7 +602,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
     
                 body += "</tr>"
                 body += getPOItem(context, recid, alva);
-                body += getPOExpense(context, recid, alva);
                 body += "<tr>"
                 body += "<td class='tg-headerrow_left'></td>"
                 body += "<td class='tg-headerrow_left'></td>"
@@ -596,6 +610,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tr>"
                 log.debug('taxRateList', taxRateList)
                 if (taxRateList != '') {
+                    
                     log.debug('taxtotal', taxtotal)
                     body += "<tr>"
                     body += "<td class='tg-headerrow_left'></td>"
@@ -707,202 +722,76 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             }
     
             function getPOItem(context, recid, alva) {
-                log.debug('masuk fungsing getItem')
-                var itemCount = poRecord.getLineCount({
-                    sublistId: 'item'
+                log.debug('masuk fungsi getPOItem', 'Record ID: ' + recid);
+                
+                var searchLine = search.load({
+                    id: "customsearch1538"
                 });
-    
-                if (itemCount > 0) {
+
+                searchLine.filters.push(
+                    search.createFilter({
+                        name: "internalid",
+                        operator: search.Operator.ANYOF,
+                        values: recid,
+                    })
+                );
+
+                var poLine = searchLine.run().getRange(0, 1000);
+
+                if (poLine && poLine.length > 0) {
                     var body = "";
-                    for (var index = 0; index < itemCount; index++) {
-                        var qty = poRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'quantity',
-                            line: index
-                        });
-                        var description = poRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'description',
-                            line: index
-                        });
+
+                    for (var index = 0; index < poLine.length; index++) {
+                        var row = poLine[index]; // Ambil baris saat ini
+
+                        var qty = row.getValue({ name: "quantity" }) || 0;
+                        var unit = row.getValue({ name: "units" }) || "";
+                        var ammount = row.getValue({ name: "amount" }) || 0;
+                        var description = row.getValue({ name: 'memo' }) || "";
+
+                        // Pembersihan Deskripsi
                         description = escapeXmlSymbols(description);
                         if (description.includes('\\')) {
                             description = description.replace(/\\/g, '<br/>');
                         }
-                        var unit = poRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'units',
-                            line: index
+
+                        // Hitung Rate (Cegah pembagian dengan nol)
+                        var rate = (qty != 0) ? (Number(ammount) / Number(qty)) : 0;
+
+                        // Proses Pembulatan & Formatting
+                        if (!alva) {
+                            rate = pembulatan(rate);
+                            ammount = pembulatan(ammount);
+                        }
+
+                        var formattedRate = format.format({
+                            value: rate,
+                            type: format.Type.CURRENCY
                         });
-                        var rate;
-                        // var rateBef = poRecord.getSublistValue({
-                        //     sublistId: 'item',
-                        //     fieldId: 'amount',
-                        //     line: index
-                        // });
-                        var ammount = poRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'amount',
-                            line: index
+
+                        var formattedAmmount = format.format({
+                            value: ammount,
+                            type: format.Type.CURRENCY
                         });
-                        // if(rateBef){
-                        //     rate = rateBef
-                        // }else{
-                        //     rate = Number(ammount) / Number(qty)
-                        // }
-                        rate = Number(ammount) / Number(qty)
-                        if (rate) {
-                            if (alva) {
-                                rate = rate
-                            } else {
-                                rate = pembulatan(rate)
-                            }
-    
-                            rate = format.format({
-                                value: rate,
-                                type: format.Type.CURRENCY
-                            });
+
+                        // Jika bukan alva, hapus desimal setelah diformat (sesuai logika asli Anda)
+                        if (!alva) {
+                            formattedRate = removeDecimalFormat(formattedRate);
+                            formattedAmmount = removeDecimalFormat(formattedAmmount);
                         }
-    
-                        var taxAmt = poRecord.getSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'tax1amt',
-                            line: index
-                        });
-                        if (taxAmt) {
-                            if (alva) {
-                                taxAmt = taxAmt
-                            } else {
-                                taxAmt = pembulatan(taxAmt)
-                            }
-    
-                            taxAmt = format.format({
-                                value: taxAmt,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        if (ammount) {
-                            if (alva) {
-                                ammount = ammount
-                            } else {
-                                ammount = pembulatan(ammount)
-                            }
-    
-                            ammount = format.format({
-                                value: ammount,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        if (alva) {
-                            body += "<tr>";
-                            body += "<td class='tg-b_body'>" + qty + " - " + unit + "Pcs</td>";
-                            body += "<td class='tg-b_body'>" + description + "</td>";
-                            body += "<td class='tg-b_body' style='align:right'>" + rate + "</td>";
-                            body += "<td class='tg-b_body' style='align:right'> X </td>";
-                            body += "<td class='tg-b_body' style='align:right;'>" + ammount + "</td>";
-                            body += "</tr>";
-                        } else {
-                            body += "<tr>";
-                            body += "<td class='tg-b_body'>" + qty + " - " + unit + "Pcs</td>";
-                            body += "<td class='tg-b_body'>" + description + "</td>";
-                            body += "<td class='tg-b_body' style='align:right'>" + removeDecimalFormat(rate) + "</td>";
-                            body += "<td class='tg-b_body' style='align:right'> X </td>";
-                            body += "<td class='tg-b_body' style='align:right;'>" + removeDecimalFormat(ammount) + "</td>";
-                            body += "</tr>";
-                        }
-    
+
+                        // Build HTML Row
+                        body += "<tr>";
+                        body += "  <td class='tg-b_body'>" + qty + " - " + unit + " Pcs</td>";
+                        body += "  <td class='tg-b_body'>" + description + "</td>";
+                        body += "  <td class='tg-b_body' style='align:right'>" + formattedRate + "</td>";
+                        body += "  <td class='tg-b_body' style='align:right'> X </td>";
+                        body += "  <td class='tg-b_body' style='align:right;'>" + formattedAmmount + "</td>";
+                        body += "</tr>";
                     }
                     return body;
                 }
-    
-            }
-            function getPOExpense(context, poRecord, alva) {
-                var expCont = poRecord.getLineCount({
-                    sublistId: 'expense'
-                });
-                if (expCont > 0) {
-                    var body = "";
-                    for (var index = 0; index < expCont; index++) {
-                        var qty = 1;
-                        var description = poRecord.getSublistValue({
-                            sublistId: 'expense',
-                            fieldId: 'memo',
-                            line: index
-                        });
-                        description = escapeXmlSymbols(description);
-                        if (description.includes('\\')) {
-                            description = description.replace(/\\/g, '<br/>');
-                        }
-                        var amount = poRecord.getSublistValue({
-                            sublistId: 'expense',
-                            fieldId: 'amount',
-                            line: index
-                        });
-                        if (amount) {
-                            var amountBef = amount
-                            if (alva) {
-                                amount = amount
-                            } else {
-                                amount = pembulatan(amount)
-                            }
-    
-                            amount = format.format({
-                                value: amount,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        var taxamt_exp = poRecord.getSublistValue({
-                            sublistId: 'expense',
-                            fieldId: 'tax1amt',
-                            line: index
-                        });
-                        if (taxamt_exp) {
-                            if (alva) {
-                                taxamt_exp = taxamt_exp
-                            } else {
-                                taxamt_exp = pembulatan(taxamt_exp)
-                            }
-    
-                            taxamt_exp = format.format({
-                                value: taxamt_exp,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        var grosamt_exp = Number(amountBef) * Number(qty)
-                        if (grosamt_exp) {
-                            if (alva) {
-                                grosamt_exp = grosamt_exp
-                            } else {
-                                grosamt_exp = pembulatan(grosamt_exp)
-                            }
-    
-                            grosamt_exp = format.format({
-                                value: grosamt_exp,
-                                type: format.Type.CURRENCY
-                            });
-                        }
-                        if (alva) {
-                            body += "<tr>";
-                            body += "<td class='tg-b_body'>" + qty + "</td>";
-                            body += "<td class='tg-b_body'>" + description + "</td>";
-                            body += "<td class='tg-b_body' style='align:right'>" + amount + "</td>";
-                            body += "<td class='tg-b_body' style='align:right'>X</td>";
-                            body += "<td class='tg-b_body' style='align:right;'>" + grosamt_exp + "</td>";
-                            body += "</tr>";
-                        } else {
-                            body += "<tr>";
-                            body += "<td class='tg-b_body'>" + qty + "</td>";
-                            body += "<td class='tg-b_body'>" + description + "</td>";
-                            body += "<td class='tg-b_body' style='align:right'>" + removeDecimalFormat(amount) + "</td>";
-                            body += "<td class='tg-b_body' style='align:right'>X</td>";
-                            body += "<td class='tg-b_body' style='align:right;'>" + removeDecimalFormat(grosamt_exp) + "</td>";
-                            body += "</tr>";
-                        }
-    
-                    }
-                    return body;
-                }
-    
+                return "";
             }
         }catch(e){
             log.debug('error', e)
