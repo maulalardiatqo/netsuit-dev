@@ -24,7 +24,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 if(cekSof){
                     log.debug('adaSOF');
                 }else{
-                    if(cekisClose == '13' && cekApproval == '2'){
+                    if((cekisClose == '13' || cekisClose == '15') && cekApproval == '2'){
                         form.addButton({
                             id: 'custpage_btn_transform',
                             label: "Create SOF",

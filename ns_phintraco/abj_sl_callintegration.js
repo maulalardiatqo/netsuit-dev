@@ -33,6 +33,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                 log.debug('Revision Logic', `Current: ${currentRev} | Next: ${nextRevisionCode}`);
                 let result;
                 let isRecordUpdated = false;
+                log.debug('action', action)
                 if (action == 'recall') {
                     result = sendRecallData(rec);
                     
@@ -159,7 +160,15 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
     function sendFullData(rec, endpointAction, revisionCode, flaging) {
         log.debug('Mode', `Sending Heavy Payload (${endpointAction}) with Rev: ${revisionCode}`);
         const appStatus = rec.getValue('approvalstatus') || '';
-        const created_by = rec.getValue('entity') || ''; 
+        const created_by = rec.getValue('custbody_abj_creator') || ''; 
+        var created_byToSend = ''
+        if(created_by){
+            recCreated = record.load({
+                type : "customrecord_list_users_web",
+                id : created_by
+            })
+            created_byToSend = recCreated.getValue('custrecord_id_users_web')
+        }
         const formC = rec.getText('customform');
         log.debug('formC', formC)
 
@@ -195,7 +204,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             totalAmount: rec.getValue('total'),
             submission_status: appStatus,
             id_web: rec.getValue('custbody_id_web') || '',
-            created_by: created_by,
+            created_by: created_byToSend,
             codeRevision: revisionCode, 
             
             customForm: rec.getValue('customform') || '',
@@ -205,6 +214,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             budgetcost_period: rec.getValue('custbody_bc_period') || '',
             project_segment: rec.getValue('cseg1') || '',
             customform_text : rec.getText('customform') || '',
+
             
             action_type: endpointAction, 
             
@@ -213,7 +223,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             approvers: getApprovers(rec, flaging, endpointAction),
             attachments: getAttachments(rec)
         };
-
+        log.debug('payload', payload)
         const response = https.post({
             url: WEBSITE_API_URL + endpointAction,
             body: JSON.stringify(payload),
@@ -327,8 +337,21 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             }
 
             let statusKirim = '';
+            log.debug('cek data', {
+                endpointAction : endpointAction,
+                flaging : flaging
+            })
 
             if (endpointAction === 'create') {
+                if (minGroupVal !== null && parseInt(appGroup) === minGroupVal) {
+                    statusKirim = '1';
+                } else {
+                    statusKirim = ''; 
+                }
+            } else if(endpointAction === 'revission'){
+                log.debug('resubmit revission', {
+                    endpointAction : endpointAction
+                })
                 if (minGroupVal !== null && parseInt(appGroup) === minGroupVal) {
                     statusKirim = '1';
                 } else {
@@ -355,6 +378,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             
             approvalNo++;
         }
+        log.debug('approvers', approvers)
         return approvers;
     }
 

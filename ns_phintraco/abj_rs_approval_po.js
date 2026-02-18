@@ -8,7 +8,7 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
 
     const get = (requestParams) => {
         try {
-            const { po_ns_id, status, approver, reason, updateHeader } = requestParams;
+            const { po_ns_id, status, approver, reason, updateHeader, device_info } = requestParams;
             log.debug('Request Params', requestParams);
 
             if (!po_ns_id) {
@@ -29,7 +29,7 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
 
             // === Update line approval ===
             if ((status == '1' && approver) || (status == '2' && approver)) {
-                setSublist(recPo, 2, approver, reason || '');
+                setSublist(recPo, 2, approver, reason || '', device_info || 'WEB');
                 if(updateHeader === 'true' || updateHeader === true){
                     log.debug('updateHeader true')
                     recPo.setValue({
@@ -40,7 +40,7 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
                 }
             }
              if (status == '3' && approver) {
-                setSublist(recPo, 3, approver, reason || '');
+                setSublist(recPo, 3, approver, reason || '', device_info || 'WEB');
                 recPo.setValue({
                     fieldId: 'approvalstatus',
                     value: 3, 
@@ -69,7 +69,7 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
         }
     };
 
-    function setSublist(recPo, statusLine, approver, reason) {
+    function setSublist(recPo, statusLine, approver, reason, device_info) {
         log.debug('setSublist Approver', approver);
         var cekLine = recPo.getLineCount({ sublistId: 'recmachcustrecord_abj_a_id' });
 
@@ -102,6 +102,12 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
                         sublistId: 'recmachcustrecord_abj_a_id',
                         fieldId: 'custrecord_abj_notes',
                         value: reason,
+                        line: i
+                    });
+                    recPo.setSublistValue({
+                        sublistId: 'recmachcustrecord_abj_a_id',
+                        fieldId: 'custrecord_af_approval_device',
+                        value: device_info,
                         line: i
                     });
 
