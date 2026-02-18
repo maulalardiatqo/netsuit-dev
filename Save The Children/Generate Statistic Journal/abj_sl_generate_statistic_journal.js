@@ -63,7 +63,24 @@ define(['N/log', 'N/record', 'N/search'], (log, record, search) => {
             }
             log.debug('searchResult', searchResult)
             const newJeId = createJournalEntry(searchResult, periodId); 
-
+            if(newJeId){
+                var recCreate = record.create({
+                    type : 'customrecord_line_statiscal_schedule'
+                });
+                recCreate.setValue({
+                    fieldId : 'custrecord_sch_header',
+                    value : recordId
+                })
+                recCreate.setValue({
+                    fieldId : 'custrecord_sch_date',
+                    value : new Date()
+                })
+                recCreate.setValue({
+                    fieldId : 'custrecord_sch_journal_entry',
+                    value : newJeId
+                })
+                recCreate.save();
+            }
             context.response.write(JSON.stringify({
                 status: 'success',
                 jeId: newJeId
@@ -138,6 +155,11 @@ define(['N/log', 'N/record', 'N/search'], (log, record, search) => {
                         fieldId : 'entity',
                         value : empName
                     })
+                     jeRec.setCurrentSublistValue({
+                        sublistId : 'line',
+                        fieldId : 'department',
+                        value : costCenter
+                    })
                     jeRec.setCurrentSublistValue({
                         sublistId : 'line',
                         fieldId : 'class',
@@ -150,19 +172,15 @@ define(['N/log', 'N/record', 'N/search'], (log, record, search) => {
                     })
                     jeRec.setCurrentSublistValue({
                         sublistId : 'line',
-                        fieldId : 'department',
-                        value : costCenter
+                        fieldId : 'cseg_stc_drc_segmen',
+                        value : drc
                     })
                     jeRec.setCurrentSublistValue({
                         sublistId : 'line',
                         fieldId : 'cseg_stc_segmentdea',
                         value : dea
                     })
-                    jeRec.setCurrentSublistValue({
-                        sublistId : 'line',
-                        fieldId : 'cseg_stc_drc_segmen',
-                        value : drc
-                    })
+                    
                     jeRec.commitLine({
                         sublistId : 'line'
                     })

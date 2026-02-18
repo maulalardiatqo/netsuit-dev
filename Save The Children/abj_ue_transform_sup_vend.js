@@ -232,7 +232,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                 var bcn = recLoad.getValue('custrecord_srf_business_id');
                 // data ceo
                 var ctCEO = recLoad.getValue('custrecord_srf_name');
-                var ttlCeo = 'CEO'
+                var positionCeo = 'CEO';
+                var ttlCeo = recLoad.getValue('custrecord_srf_ceo_date');
                 //data 2
                 var contactName = recLoad.getValue('custrecord_srf_contact_name');
                 var email = recLoad.getValue('custrecord_srf_email');
@@ -354,60 +355,110 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
 
                 var vendorId = recCreate.save();
                 if(vendorId){
+                    // const createContact = (params) => {
+                    //     const { name, title, email, phone, vendorId, dateBirth } = params;
+                    //     if (!name && !email && !phone) return null; // skip kalau kosong semua
+                    //     var contactRec = record.create({
+                    //         type: record.Type.CONTACT,
+                    //         isDynamic: true
+                    //     });
+                    //     contactRec.setValue({ fieldId: 'firstname', value: name || '' });
+                    //     contactRec.setValue({ fieldId: 'title', value: title || '' });
+                    //     contactRec.setValue({ fieldId: 'email', value: email || '' });
+                    //     contactRec.setValue({ fieldId: 'phone', value: phone || '' });
+                    //     contactRec.setValue({ fieldId: 'custentity_stc_conctact_ceobirth', value: dateBirth || '' });
+                    //     contactRec.setValue({ fieldId: 'company', value: vendorId });
+                    //     var contactId = contactRec.save({ enableSourcing: true, ignoreMandatoryFields: true });
+                    //     log.audit('Contact Created', `${title} - ID: ${contactId}`);
+                    //     return contactId;
+                    // };
+                    // const contactIds = [];
+                    // if (ctCEO) {
+                    //     const ceoId = createContact({
+                    //         name: ctCEO,
+                    //         title: ttlCeo,
+                    //         email: '',
+                    //         phone: '',
+                    //         vendorId,
+                    //         dateBirth: ttlCeo
+                    //     });
+                    //     if (ceoId) contactIds.push(ceoId);
+                    // }
+                    // if (contactName) {
+                    //     const mainContactId = createContact({
+                    //         name: contactName,
+                    //         title: position,
+                    //         email,
+                    //         phone,
+                    //         vendorId,
+                    //         dateBirth : ''
+                    //     });
+                    //     if (mainContactId) contactIds.push(mainContactId);
+                    // }
+                    // if (scCtName) {
+                    //     const scContactId = createContact({
+                    //         name: scCtName,
+                    //         title: scPosition,
+                    //         email: scEmail,
+                    //         phone: scTelp,
+                    //         vendorId,
+                    //         dateBirth : ''
+                    //     });
+
+                    //     if (scContactId) contactIds.push(scContactId);
+                    // }
                     const createContact = (params) => {
-                        const { name, title, email, phone, vendorId } = params;
-                        if (!name && !email && !phone) return null; // skip kalau kosong semua
+                    const { name, title, email, phone, vendorId, dateBirth } = params;
+                    // Skip jika nama kosong atau kriteria minimal tidak terpenuhi
+                    if (!name) return null; 
 
-                        var contactRec = record.create({
-                            type: record.Type.CONTACT,
-                            isDynamic: true
-                        });
+                    var contactRec = record.create({
+                        type: record.Type.CONTACT,
+                        isDynamic: true
+                    });
 
-                        contactRec.setValue({ fieldId: 'firstname', value: name || '' });
-                        contactRec.setValue({ fieldId: 'title', value: title || '' });
-                        contactRec.setValue({ fieldId: 'email', value: email || '' });
-                        contactRec.setValue({ fieldId: 'phone', value: phone || '' });
-                        contactRec.setValue({ fieldId: 'company', value: vendorId });
-
-                        var contactId = contactRec.save({ enableSourcing: true, ignoreMandatoryFields: true });
-                        log.audit('Contact Created', `${title} - ID: ${contactId}`);
-                        return contactId;
-                    };
-
-                    const contactIds = [];
-
-                    if (ctCEO) {
-                        const ceoId = createContact({
-                            name: ctCEO,
-                            title: ttlCeo,
-                            email: '',
-                            phone: '',
-                            vendorId
-                        });
-                        if (ceoId) contactIds.push(ceoId);
+                    contactRec.setValue({ fieldId: 'firstname', value: name });
+                    contactRec.setValue({ fieldId: 'title', value: title || '' });
+                    contactRec.setValue({ fieldId: 'email', value: email || '' });
+                    contactRec.setValue({ fieldId: 'phone', value: phone || '' });
+                    if(dateBirth){
+                        log.debug('dateBirth', dateBirth);
+                        var formatNew = new Date(dateBirth)
+                        log.debug('formatNew', formatNew)
+                        contactRec.setValue({ fieldId: 'custentity_stc_conctact_ceobirth', value: formatNew || '' });
                     }
+                    contactRec.setValue({ fieldId: 'company', value: vendorId });
 
-                    if (contactName) {
-                        const mainContactId = createContact({
-                            name: contactName,
-                            title: position,
-                            email,
-                            phone,
-                            vendorId
-                        });
-                        if (mainContactId) contactIds.push(mainContactId);
-                    }
+                    var contactId = contactRec.save({ enableSourcing: true, ignoreMandatoryFields: true });
+                    log.audit('Contact Created', `${title} - ID: ${contactId}`);
+                    return contactId;
+                };
 
-                    if (scCtName) {
-                        const scContactId = createContact({
-                            name: scCtName,
-                            title: scPosition,
-                            email: scEmail,
-                            phone: scTelp,
-                            vendorId
-                        });
-                        if (scContactId) contactIds.push(scContactId);
+                const contactIds = [];
+                const processedNames = new Set(); // Tempat menyimpan nama yang sudah dibuat
+
+                // 1. Definisikan list kandidat kontak
+                const rawContacts = [
+                    { name: ctCEO, title: positionCeo, email: '', phone: '', vendorId, dateBirth: ttlCeo },
+                    { name: contactName, title: position, email: email, phone: phone, vendorId, dateBirth: '' },
+                    { name: scCtName, title: scPosition, email: scEmail, phone: scTelp, vendorId, dateBirth: '' }
+                ];
+
+                // 2. Loop dan Filter Duplikat
+                rawContacts.forEach(data => {
+                    // Cek: Apakah nama ada? Dan apakah nama ini sudah diproses sebelumnya?
+                    if (data.name && !processedNames.has(data.name)) {
+                        
+                        const newId = createContact(data);
+                        
+                        if (newId) {
+                            contactIds.push(newId);
+                            processedNames.add(data.name); // Tandai nama agar tidak diduplikasi
+                        }
+                    } else if (data.name && processedNames.has(data.name)) {
+                        log.debug('Duplicate Skipped', 'Contact with name ' + data.name + ' already exists in this process.');
                     }
+                });
                     record.submitFields({
                             type: 'customrecord_supplier_registration_form',
                             id: idRec,
