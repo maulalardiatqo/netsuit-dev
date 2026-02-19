@@ -130,6 +130,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         }
         if(allSofId.length > 0){
             var periodId = records.getValue('postingperiod');
+            var periodIdText = records.getText('postingperiod');
+            var accountHeadText = records.getText('custbody_abj_destination_account');
             var allDataCredits = []
             var transactionSearchObj = search.create({
             type: "transaction",
@@ -446,7 +448,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
 
             var dataSisa = [];
-
+            var memoToSet = 'Allocation Non Premise ' + accountHeadText + ' ' + periodIdText
             finalData.forEach(function (row) {
                 console.log('row', row)
                 var sofId = row.sof;
@@ -511,6 +513,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         sublistId: "line",
                         fieldId: "department",
                         value: costCenter
+                    });
+                     records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "memo",
+                        value: memoToSet
                     });
                     records.setCurrentSublistValue({
                         sublistId: "line",
@@ -580,6 +587,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: "class",
                         value: credits.projectCode
                     });
+                     records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "memo",
+                        value: memoToSet
+                    });
                     records.setCurrentSublistValue({
                         sublistId: "line",
                         fieldId: "cseg_stc_sof",
@@ -609,6 +621,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         sublistId: "line",
                         fieldId: "department",
                         value: sisa.costCenter
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "memo",
+                        value: memoToSet
                     });
                     records.setCurrentSublistValue({
                         sublistId: "line",
@@ -708,6 +725,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         sublistId: "line",
                         fieldId: "debit",
                         value: round2(oldDebit + selisih)
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "memo",
+                        value: memoToSet
                     });
                     records.commitLine({ sublistId: "line" });
                 }

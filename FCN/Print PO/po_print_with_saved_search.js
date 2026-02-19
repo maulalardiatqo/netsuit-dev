@@ -744,7 +744,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     for (var index = 0; index < poLine.length; index++) {
                         var row = poLine[index]; // Ambil baris saat ini
 
-                        var qty = row.getValue({ name: "quantity" }) || 0;
+                        var qty = row.getValue({ name: "quantity" }) || 1;
                         var unit = row.getValue({ name: "units" }) || "";
                         var ammount = row.getValue({ name: "amount" }) || 0;
                         var description = row.getValue({ name: 'memo' }) || "";
@@ -755,7 +755,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             description = description.replace(/\\/g, '<br/>');
                         }
 
-                        // Hitung Rate (Cegah pembagian dengan nol)
                         var rate = (qty != 0) ? (Number(ammount) / Number(qty)) : 0;
 
                         // Proses Pembulatan & Formatting

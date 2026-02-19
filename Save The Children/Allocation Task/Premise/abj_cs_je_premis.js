@@ -12,9 +12,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     }
     function fieldChanged(context) {
         var records = context.currentRecord;
+        var amountAllocated = records.getValue('custbody_abj_amount_to_allocate');
         var cForm = records.getValue('customform');
         if (cForm == 140) {
             var fieldName = context.fieldId;
+            var sublistFieldName = context.sublistId;
             if (fieldName == 'custbody_stc_source_account_allocation') {
                 var cekAccount = records.getValue('custbody_stc_source_account_allocation');
                 var periodId = records.getValue('postingperiod');
@@ -70,14 +72,46 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     alert('Please Fill Account & Period');
                 }
             }
+            if(sublistFieldName == 'line' && fieldName == 'custcol_tar_percentage'){
+                var percentage = records.getCurrentSublistValue({
+                    sublistId : 'line',
+                    fieldId : 'custcol_tar_percentage'
+                });
+                console.log('percentage', percentage);
+                if(percentage){
+                    var cekMemo = records.getCurrentSublistValue({
+                        sublistId : 'line',
+                        fieldId : 'memo'
+                    });
+                    var memoNew = cekMemo + ' ' + percentage + '%'
+                    records.setCurrentSublistValue({
+                        sublistId : 'line',
+                        fieldId : 'memo',
+                        value : memoNew
+                    })
+                    var newAmount = Number(amountAllocated) * (Number(percentage) / 100);
+                    records.setCurrentSublistValue({
+                        sublistId : 'line',
+                        fieldId : 'debit',
+                        value : newAmount
+                    })
+                }
+                // console.log('changed', fieldName)
+            }
+            
         }
     }
 
     function generate(context) {
         console.log('called generate');
+
         var sofIdHead = records.getValue('cseg_stc_sof');
         var accountHeader = records.getValue('custbody_stc_source_account_allocation');
+        var accountHeaderText = records.getText('custbody_stc_source_account_allocation');
         var amountAllocated = records.getValue('custbody_abj_amount_to_allocate');
+        var costCenterIdDepartment = 17;
+        var projectCodeIdClass = 12;
+        var periodText = records.getText('postingperiod');
 
         if (!sofIdHead) {
             alert('Please select SOF in Header');
@@ -96,166 +130,45 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var page = pagedData.fetch({ index: pageRange.index });
             page.data.forEach(function (result) {
                 sofResult.push({
-                    sofId: result.getValue({ name: 'internalid' })
+                    sofId: result.getValue({ name: 'internalid' }),
+                    deaPromise: [] 
                 });
             });
         });
 
-        console.log('sofResult.length', sofResult.length);
-        var idDea = '';
+        console.log('sofResult', sofResult);
 
-        if (accountHeader && sofIdHead) {
-            console.log('masuk search');
-            var searchDea = search.load({ id: 'customsearch_dea_promise' });
-            var filters = searchDea.filters;
+        if (accountHeader && sofResult.length > 0) {
+            console.log('masuk search DEA Promise');
 
-            filters.push(search.createFilter({
-                name: 'cseg_stc_segmentdea_filterby_cseg_stc_sof',
-                operator: search.Operator.IS,
-                values: sofIdHead
-            }));
-            searchDea.filters = filters;
-
-            var result = searchDea.run().getRange({ start: 0, end: 1 });
-
-            if (result && result.length > 0) {
-                var firstResult = result[0];
-                idDea = firstResult.getValue({ name: "internalid" });
-                console.log('idDea:', idDea);
-            }
-
-            // ✅ CEK DULU apakah sublist ada isinya
             var lineCount = records.getLineCount({
-                sublistId: 'recmachcustrecord_stc_trx_id_allocation'
+                sublistId: 'line'
             });
             console.log('lineCount existing:', lineCount);
 
-            // Jika ada line, hapus semuanya
             if (lineCount > 0) {
                 for (var i = lineCount - 1; i >= 0; i--) {
                     records.removeLine({
-                        sublistId: 'recmachcustrecord_stc_trx_id_allocation',
+                        sublistId: 'line',
                         line: i
                     });
                 }
                 console.log('All existing lines removed.');
             }
-
-            // ✅ Setelah sublist kosong, tambahkan line baru
+            var totalAmountTemp = 0
+            var memoSet = 'Allocation Premise '  + accountHeaderText + ' ' + periodText;
             sofResult.forEach(function (item) {
                 var sofId = item.sofId;
-                records.selectNewLine({ sublistId: 'recmachcustrecord_stc_trx_id_allocation' });
-                records.setCurrentSublistValue({
-                    sublistId: 'recmachcustrecord_stc_trx_id_allocation',
-                    fieldId: 'custrecord_stc_list_coa_allocation',
-                    value: accountHeader
-                });
-                records.setCurrentSublistValue({
-                    sublistId: 'recmachcustrecord_stc_trx_id_allocation',
-                    fieldId: 'custrecord_stc_list_sof_allocation',
-                    value: sofId
-                });
-                if (idDea) {
-                    records.setCurrentSublistValue({
-                        sublistId: 'recmachcustrecord_stc_trx_id_allocation',
-                        fieldId: 'custrecord_stc_list_dea_to_allocate',
-                        value: idDea
-                    });
+                var amountTempt = 0
+                totalAmountTemp = Number(totalAmountTemp) + Number(amountTempt)
+                var dea
+                var drc
+                if (item.deaPromise?.length) {
+                    var dea = item.deaPromise[0].deaId;
+                    console.log('dea', dea)
+                    var drc = item.deaPromise[0].drcSegmen;
                 }
-                records.commitLine({ sublistId: 'recmachcustrecord_stc_trx_id_allocation' });
-            });
-        }
-    }
-
-    function calculate(context) {
-        console.log('called calculate');
-        var cekLine = records.getLineCount({
-            sublistId: 'recmachcustrecord_stc_trx_id_allocation'
-        });
-        console.log('calculate cekline', cekLine);
-
-        if (cekLine > 0) {
-            var sofIdHead = records.getValue('cseg_stc_sof');
-            var accountHeader = records.getValue('custbody_stc_source_account_allocation');
-            var amountAllocated = records.getValue('custbody_abj_amount_to_allocate');
-            var periodText = records.getText('postingperiod');
-            var allDataSet = [];
-
-            for (var i = 0; i < cekLine; i++) {
-                var dea = records.getSublistValue({
-                    sublistId: 'recmachcustrecord_stc_trx_id_allocation',
-                    fieldId: 'custrecord_stc_list_dea_to_allocate',
-                    line: i
-                });
-                var sofId = records.getSublistValue({
-                    sublistId: 'recmachcustrecord_stc_trx_id_allocation',
-                    fieldId: 'custrecord_stc_list_sof_allocation',
-                    line: i
-                });
-                var percentage = records.getSublistValue({
-                    sublistId: 'recmachcustrecord_stc_trx_id_allocation',
-                    fieldId: 'custrecord_stc_percentage_allocation',
-                    line: i
-                });
-
-                if (percentage) {
-                    allDataSet.push({
-                        dea: dea,
-                        sofId: sofId,
-                        percentage: percentage
-                    });
-                } else {
-                    alert('Please make sure that percentage to count is filled');
-                    return false;
-                }
-            }
-
-            var costCenterIdDepartment = 17;
-            var projectCodeIdClass = 12;
-            var memo = 'Allocation Premise Office Rental ' + periodText;
-            console.log('memo', memo);
-
-            if (allDataSet.length > 0) {
-                // ✅ CEK apakah sublist "line" sudah ada isinya
-                var lineCount = records.getLineCount({ sublistId: 'line' });
-                console.log('existing journal lines:', lineCount);
-
-                // Jika ada, hapus semua line dulu
-                if (lineCount > 0) {
-                    for (var j = lineCount - 1; j >= 0; j--) {
-                        records.removeLine({
-                            sublistId: 'line',
-                            line: j
-                        });
-                    }
-                    console.log('All existing journal lines removed.');
-                }
-
-                // ✅ Setelah kosong, baru tambahkan line baru
-                var total = 0;
-                var deaId
-                var drcId
-                allDataSet.forEach(function (data) {
-                    var dea = data.dea;
-                    deaId = dea
-                    var drc = '';
-                    if (dea) {
-                        var searchDrc = search.lookupFields({
-                            type: "customrecord_cseg_stc_segmentdea",
-                            id: dea,
-                            columns: ["cseg_stc_segmentdea_filterby_cseg_stc_drc_segmen"]
-                        });
-                        drc = searchDrc.cseg_stc_segmentdea_filterby_cseg_stc_drc_segmen;
-                    }
-                    if(drc){
-                        drcId = drc
-                    }
-                    var sofId = data.sofId;
-                    var percentage = data.percentage;
-                    var memoSet = memo + ' ' + percentage + '%';
-                    var amountDebit = Number(amountAllocated) * (Number(percentage) / 100);
-                    total += amountDebit;
-
+                
                     records.selectNewLine({ sublistId: 'line' });
                     records.setCurrentSublistValue({
                         sublistId: 'line',
@@ -265,7 +178,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     records.setCurrentSublistValue({
                         sublistId: 'line',
                         fieldId: 'debit',
-                        value: amountDebit
+                        value: amountTempt
                     });
                     records.setCurrentSublistValue({
                         sublistId: 'line',
@@ -277,16 +190,28 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: 'class',
                         value: projectCodeIdClass
                     });
-                    records.setCurrentSublistValue({
-                        sublistId: 'line',
-                        fieldId: 'cseg_stc_sof',
-                        value: sofId
-                    });
+                    
                     records.setCurrentSublistValue({
                         sublistId: 'line',
                         fieldId: 'memo',
                         value: memoSet
                     });
+                    records.setCurrentSublistValue({
+                        sublistId: 'line',
+                        fieldId: 'cseg_stc_sof',
+                        value: sofId
+                    });
+                    
+                    if(dea){
+                        console.log('dea', dea)
+                        records.setCurrentSublistValue({
+                            sublistId: 'line',
+                            fieldId: 'cseg_stc_segmentdea',
+                            value: dea,
+                            enableSourcing : false,
+                            ignoreFieldChange : true
+                        });
+                    }
                     if(drc){
                         records.setCurrentSublistValue({
                             sublistId: 'line',
@@ -294,71 +219,215 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             value: drc
                         });
                     }
-                    if(dea){
-                        records.setCurrentSublistValue({
-                            sublistId: 'line',
-                            fieldId: 'cseg_stc_segmentdea',
-                            value: drc
-                        });
-                    }
-                    
                     records.commitLine({ sublistId: 'line' });
-                });
+                
+            });
+            var idDea = ''
+            var idDrc = ''
+            var deaSearch = search.load({
+                id : 'customsearch_mapping_dea_je_premise'
+            });
+            var filters = deaSearch.filters;
+            filters.push(search.createFilter({
+                name: 'custrecord_stc_account_allocation',
+                operator: search.Operator.IS,
+                values: accountHeader
+            }));
+            filters.push(search.createFilter({
+                name: 'custrecord_stc_account_allocation',
+                operator: search.Operator.IS,
+                values: sofIdHead
+            }));
+            deaSearch.filters = filters;
 
-                if (total > 0) {
-                    // Tambahkan baris kredit (total)
-                    records.selectNewLine({ sublistId: 'line' });
-                    records.setCurrentSublistValue({
-                        sublistId: 'line',
-                        fieldId: 'account',
-                        value: accountHeader
-                    });
-                    records.setCurrentSublistValue({
-                        sublistId: 'line',
-                        fieldId: 'credit',
-                        value: total
-                    });
-                    records.setCurrentSublistValue({
-                        sublistId: 'line',
-                        fieldId: 'department',
-                        value: costCenterIdDepartment
-                    });
-                    records.setCurrentSublistValue({
-                        sublistId: 'line',
-                        fieldId: 'class',
-                        value: projectCodeIdClass
-                    });
-                    records.setCurrentSublistValue({
-                        sublistId: 'line',
-                        fieldId: 'cseg_stc_sof',
-                        value: sofIdHead
-                    });
-                    if(drcId){
-                        records.setCurrentSublistValue({
-                            sublistId: 'line',
-                            fieldId: 'cseg_stc_drc_segmen',
-                            value: drcId
-                        });
-                    }
-                    if(deaId){
-                        records.setCurrentSublistValue({
-                            sublistId: 'line',
-                            fieldId: 'cseg_stc_segmentdea',
-                            value: deaId
-                        });
-                    }
-                    records.commitLine({ sublistId: 'line' });
-                }
+            var result = deaSearch.run().getRange({ start: 0, end: 1 });
+
+            if (result && result.length > 0) {
+                var firstResult = result[0];
+                idDea = firstResult.getValue({
+                    name: "custrecord_dea_allocation"
+                });
+                console.log('idDea', idDea)
+                
+                
             }
-        } else {
-            alert('Please generate SOF list first');
+            records.selectNewLine({ sublistId: 'line' });
+            records.setCurrentSublistValue({
+                sublistId: 'line',
+                fieldId: 'account',
+                value: accountHeader
+            });
+            records.setCurrentSublistValue({
+                sublistId: 'line',
+                fieldId: 'credit',
+                value: totalAmountTemp
+            });
+            records.setCurrentSublistValue({
+                sublistId: 'line',
+                fieldId: 'department',
+                value: costCenterIdDepartment
+            });
+            records.setCurrentSublistValue({
+                sublistId: 'line',
+                fieldId: 'class',
+                value: projectCodeIdClass
+            });
+            records.setCurrentSublistValue({
+                sublistId: 'line',
+                fieldId: 'memo',
+                value: memoSet
+            });
+            records.setCurrentSublistValue({
+                sublistId: 'line',
+                fieldId: 'cseg_stc_sof',
+                value: '58',
+            });
+            records.setCurrentSublistValue({
+                sublistId: 'line',
+                fieldId: 'cseg_stc_drc_segmen',
+                value: 3,
+                enableSourcing : false,
+                ignoreFieldChange : true
+            });
+
+            records.setCurrentSublistValue({
+                sublistId: 'line',
+                fieldId: 'cseg_stc_segmentdea',
+                value: idDea,
+                 enableSourcing : false,
+                ignoreFieldChange : true
+            });
+            
+            records.commitLine({ sublistId: 'line' });
         }
     }
 
+
+
+    function calculate(context) {
+        try {
+            console.log('called calculate');
+
+            var rec = records
+            var lineCount = rec.getLineCount({ sublistId: 'line' });
+            console.log('lineCount:', lineCount);
+
+            if (lineCount === 0) return;
+
+            var totalDebit = 0;
+            var creditLineIndex = -1;
+
+            for (var i = 0; i < lineCount; i++) {
+                var debit = parseFloat(rec.getSublistValue({
+                    sublistId: 'line',
+                    fieldId: 'debit',
+                    line: i
+                })) || 0;
+
+                var credit = rec.getSublistValue({
+                    sublistId: 'line',
+                    fieldId: 'credit',
+                    line: i
+                });
+
+                if (credit && credit !== 0) {
+                    creditLineIndex = i;
+                }
+
+                if (i < lineCount - 1) {
+                    totalDebit += debit;
+                }
+            }
+
+            console.log('totalDebit:', totalDebit);
+
+            if (creditLineIndex === -1) {
+                creditLineIndex = lineCount - 1;
+            }
+
+            rec.selectLine({
+                sublistId: 'line',
+                line: creditLineIndex
+            });
+            rec.setCurrentSublistValue({
+                sublistId: 'line',
+                fieldId: 'credit',
+                value: totalDebit
+            });
+            rec.commitLine({ sublistId: 'line' });
+
+            console.log('credit set on line:', creditLineIndex);
+        } catch (e) {
+            console.log('Error in calculate:', e);
+        }
+    }
+
+    function saveRecord(context) {
+        var rec = context.currentRecord;
+        var cekForm = rec.getValue('customform');
+        if(cekForm == 140){
+            var lineCount = rec.getLineCount({
+                sublistId: 'line'
+            });
+
+            if (lineCount <= 0) {
+                return true;
+            }
+
+            var totalDebit = 0;
+            var creditLineIndex = null;
+
+            for (var i = 0; i < lineCount; i++) {
+
+                var debit = parseFloat(rec.getSublistValue({
+                    sublistId: 'line',
+                    fieldId: 'debit',
+                    line: i
+                })) || 0;
+
+                var credit = rec.getSublistValue({
+                    sublistId: 'line',
+                    fieldId: 'credit',
+                    line: i
+                });
+
+                if (debit !== 0) {
+                    totalDebit += debit;
+                }
+
+                if (credit !== null && credit !== '') {
+                    creditLineIndex = i;
+                }
+            }
+            if (creditLineIndex !== null) {
+                console.log('creditLineIndex', creditLineIndex)
+                console.log('totalDebit', totalDebit)
+                rec.selectLine({
+                    sublistId: 'line',
+                    line: creditLineIndex
+                });
+
+                rec.setCurrentSublistValue({
+                    sublistId: 'line',
+                    fieldId: 'credit',
+                    value: totalDebit,
+                    ignoreFieldChange: true
+                });
+
+                rec.commitLine({
+                    sublistId: 'line'
+                });
+            }
+
+        }
+       
+        return true;
+    }
     return {
         pageInit: pageInit,
         calculate: calculate,
         generate : generate,
-        fieldChanged : fieldChanged
+        fieldChanged : fieldChanged,
+        saveRecord : saveRecord
     };
 });
