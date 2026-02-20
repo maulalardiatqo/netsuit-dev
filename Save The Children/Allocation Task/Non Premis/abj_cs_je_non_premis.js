@@ -228,6 +228,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     name: "line.cseg_stc_sof",
                     summary: "GROUP",
                 })
+                var sofText = dataRes.getText({
+                    name: "line.cseg_stc_sof",
+                    summary: "GROUP",
+                })
                 allDataCredits.push({
                     acc : acc,
                     costCenter : costCenter,
@@ -235,7 +239,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     drc : drc,
                     dea : dea,
                     amt : amt,
-                    sof : sof
+                    sof : sof,
+                    sofText : sofText
                 })
                 return true;
             });
@@ -294,13 +299,19 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     summary: "GROUP",
                     label: "Source of Funding"
                 });
+                var sofText = firstResult.getText({
+                    name: "line.cseg_stc_sof",
+                    summary: "GROUP",
+                    label: "Source of Funding"
+                });
                 dataInclude.push({
                     costCenter : costCenter,
                     project : project,
                     drc : drc,
                     dea : dea,
                     account : account,
-                    sof : sof
+                    sof : sof,
+                    sofText : sofText
                 })
                 
             }
@@ -330,11 +341,13 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             results.forEach(function(result) {
 
                 var sofId = result.getValue(columns[0]); 
+                var sofText = result.getText(columns[0]); 
                 var amtSpend = result.getValue(columns[6]); 
                 var costCenter = result.getValue(columns[2]); 
                 var projectCode = result.getValue(columns[3]); 
                 allSpendAmount.push({
                     sofId: sofId,
+                    sofText : sofText,
                     amtSpend: amtSpend,
                     costCenter : costCenter,
                     projectCode : projectCode
@@ -358,6 +371,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             resultRemaining.forEach(function(result) {
                 // console.log('colRemaining', colRemaining)
                 var sofIdRemaining = result.getValue(colRemaining[0]);
+                var sofIdRemainingText = result.getText(colRemaining[0]);
                 var budget = result.getValue(colRemaining[1]); 
                 var actual = result.getValue(colRemaining[2]); 
                 var amtRemaining = Number(budget) - Number(actual);
@@ -367,6 +381,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
                 allRemaining.push({
                     sofIdRemaining: sofIdRemaining,
+                    sofIdRemainingText : sofIdRemainingText,
                     amtRemaining: amtRemaining
                 });
             });
@@ -380,6 +395,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 if (!spendMap[key]) {
                     spendMap[key] = {
                         sofId: d.sofId,
+                        sofText: d.sofText,
                         costCenter: d.costCenter || "",
                         projectCode: d.projectCode || "",
                         amtSpend: 0
@@ -409,6 +425,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 console.log('key', key)
                 var row = spendMap[key];
                 var sofIdRow = row.sofId
+                var sofText = row.sofText
                 console.log('sofIdRow', sofIdRow)
                 var remaining = remainingMap[sofIdRow] || 0;
 
@@ -422,7 +439,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         project: row.projectCode,
                         drc: includeData.drc,
                         dea: includeData.dea,
-                        sof : sofIdRow
+                        sof : sofIdRow,
+                        sofText : sofText,
                     });
                 }
             });
@@ -452,6 +470,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             finalData.forEach(function (row) {
                 console.log('row', row)
                 var sofId = row.sof;
+                var sofText = row.sofText
                 var spend = Number(row.amtSpend);
                 var remaining = Number(row.amtRemaining);
                 var costCenter = row.costCenter;
@@ -487,7 +506,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         prosent : prosent,
                         bobotPerMonth : bobotPerMonth,
                         remaining : remaining,
-                        sofId : sofId
+                        sofId : sofId,
+                        sofText : sofText
                     });
                 }
 
@@ -514,16 +534,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: "department",
                         value: costCenter
                     });
-                     records.setCurrentSublistValue({
-                        sublistId: "line",
-                        fieldId: "memo",
-                        value: memoToSet
-                    });
-                    records.setCurrentSublistValue({
-                        sublistId: "line",
-                        fieldId: "class",
-                        value: project
-                    });
+                     
+                    var sofForMemo = ''
                     if(sofId){
                         console.log('sofId', sofId)
                         var sofSearch = search.lookupFields({
@@ -534,13 +546,28 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         var cekBf = sofSearch.custrecord_stc_subtitute_sof
                         if(cekBf.length >0){
                             var sofSubtitue = cekBf[0].value;
+                            var sofSubtitueText = cekBf[0].text;
+                            sofForMemo = sofSubtitueText
                             console.log("sofSubtitue", sofSubtitue);
                             if(sofSubtitue){
                                 sofId = sofSubtitue 
                             }
+                        }else{
+                            sofForMemo = sofText
                         }
                     }
-                   
+                    var sofMemo = 'Subtitute from SOF'+ sofForMemo
+                    var newMemo = memoToSet + ' ' + sofMemo
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "memo",
+                        value: newMemo
+                    });
+                    records.setCurrentSublistValue({
+                        sublistId: "line",
+                        fieldId: "class",
+                        value: project
+                    });
                     records.setCurrentSublistValue({
                         sublistId: "line",
                         fieldId: "cseg_stc_sof",
@@ -622,6 +649,33 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: "department",
                         value: sisa.costCenter
                     });
+                    var sofSisa = sisa.sofId
+                    var sofText = sisa.sofText
+                    if(sofSisa){
+                        console.log('sofSisa', sofSisa)
+                        var sofSearch = search.lookupFields({
+                            type: "customrecord_cseg_stc_sof",
+                            id: sofSisa,
+                            columns: ["custrecord_stc_subtitute_sof"],
+                        });
+                        var cekSOf = sofSearch.custrecord_stc_subtitute_sof
+
+                        if(cekSOf.length > 0){
+                            var sofSubtitue = cekSOf[0].value;
+                            sofText = cekSOf[0].text;
+                            console.log("sofSubtitue", sofSubtitue);
+                            if(sofSubtitue){
+                                sofSisa = sofSubtitue 
+                            }
+                        }
+                        
+                    }
+                    var memoSOF =  ''
+                    if(sofText){
+                        memoToSet = 'Subtitute from SOF' + ' ' + sofText
+                    }
+                
+                    memoToSet = memoToSet + ' ' + memoSOF
                     records.setCurrentSublistValue({
                         sublistId: "line",
                         fieldId: "memo",
@@ -632,24 +686,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: "class",
                         value: sisa.project
                     });
-                    var sofSisa = sisa.sofId
-                    if(sofSisa){
-                         console.log('sofSisa', sofSisa)
-                        var sofSearch = search.lookupFields({
-                            type: "customrecord_cseg_stc_sof",
-                            id: sofSisa,
-                            columns: ["custrecord_stc_subtitute_sof"],
-                        });
-                        var cekSOf = sofSearch.custrecord_stc_subtitute_sof
-                        if(cekSOf.length > 0){
-                            var sofSubtitue = cekSOf[0].value;
-                            console.log("sofSubtitue", sofSubtitue);
-                            if(sofSubtitue){
-                                sofSisa = sofSubtitue 
-                            }
-                        }
-                        
-                    }
+                   
                     records.setCurrentSublistValue({
                         sublistId: "line",
                         fieldId: "cseg_stc_sof",

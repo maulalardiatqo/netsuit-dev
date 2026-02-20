@@ -62,7 +62,7 @@ define(['N/log', 'N/record', 'N/search'], (log, record, search) => {
                 throw new Error("No data found in search for the selected period.");
             }
             log.debug('searchResult', searchResult)
-            const newJeId = createJournalEntry(searchResult, periodId); 
+            const newJeId = createJournalEntry(searchResult, periodId, endDate); 
             if(newJeId){
                 var recCreate = record.create({
                     type : 'customrecord_line_statiscal_schedule'
@@ -96,7 +96,7 @@ define(['N/log', 'N/record', 'N/search'], (log, record, search) => {
     };
 
 
-    const createJournalEntry = (results, periodId) => {
+    const createJournalEntry = (results, periodId, endDate) => {
         if(results.length > 0){
             var allDataLine = []
             results.forEach((row) => {
@@ -122,8 +122,12 @@ define(['N/log', 'N/record', 'N/search'], (log, record, search) => {
             log.debug('allDataLine', allDataLine)
             if(allDataLine.length > 0){
                 const jeRec = record.create({ type: "statisticaljournalentry", isDynamic: true });
+                var parts = endDate.split('/');
+                var formattedDate = new Date(parts[2], parts[1] - 1, parts[0]);
+
+                log.debug('Hasil Object Date', formattedDate);
                 jeRec.setValue({ fieldId: 'conversionrate', value: '1' });
-                jeRec.setValue({ fieldId: 'createddate', value: new Date()});
+                jeRec.setValue({ fieldId: 'trandate', value: formattedDate});
                 jeRec.setValue({ fieldId: 'currency', value: '1'});
                 jeRec.setValue({ fieldId: 'postingperiod', value: periodId});
                 jeRec.setValue({ fieldId: 'unit', value: '1'});

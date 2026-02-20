@@ -79,6 +79,7 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime'], (search, dialog, log, 
         
         let accountId = null;
         if (recType === 'journalentry' && sublistId === FIELDS.JE_SUBLIST) {
+            
             accountId = currRecord.getCurrentSublistValue({ sublistId, fieldId: FIELDS.LINE.ACCOUNT });
         } 
         else if (recType === 'vendorbill' || recType === 'check') {
@@ -126,22 +127,37 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime'], (search, dialog, log, 
 
     const validateLine = (context) => {
         try {
-            const recType = context.currentRecord.type;
+            const currentRecord = context.currentRecord;
+            const recType = currentRecord.type;
             const sublist = context.sublistId;
+            
             var currentUser = runtime.getCurrentUser();
             var roleUser = currentUser.role;
-            log.debug('ROLE', roleUser)
-            if (recType === 'journalentry' && (roleUser == '3' || roleUser == '1120' || roleUser == '1121' || roleUser == '1122' || roleUser == '1115' || roleUser == '1117') &&sublist !== FIELDS.JE_SUBLIST) return true;
-            
+            log.debug('ROLE', roleUser);
+
+            var cFrom = currentRecord.getValue('customform');
+
+            if (recType === 'journalentry') {
+                const allowedRoles = ['3', '1120', '1121', '1122', '1115', '1117'];
+                const isAllowedRole = allowedRoles.indexOf(roleUser.toString()) !== -1;
+
+                if (isAllowedRole && sublist !== FIELDS.JE_SUBLIST) {
+                    return true;
+                }
+
+                if (cFrom == '140' || cFrom == '141') {
+                    return true;
+                }
+            }
+
             if ((recType === 'vendorbill' || recType === 'check')) {
-                // Allow both 'item' and 'expense' sublists
                 if (sublist !== FIELDS.TRX_SUBLIST && sublist !== FIELDS.EXPENSE_SUBLIST) return true;
             }
 
             return runValidation(context);
 
         } catch (e) {
-            console.error('ValidateLine Error', e);
+            log.error('ValidateLine Error', e);
             return true; 
         }
     };
