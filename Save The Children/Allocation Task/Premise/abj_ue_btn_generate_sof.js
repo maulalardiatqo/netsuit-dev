@@ -60,6 +60,14 @@ define(["N/runtime", "N/log", "N/record", "N/search"], (runtime, log, record, se
                 });
                 context.form.clientScriptModulePath = "SuiteScripts/abj_cs_je_non_premis.js"
             }
+            if(cForm == 149){
+                form.addButton({
+                    id: 'custpage_btn_generate_sof',
+                    label: "Generate SOF",
+                    functionName: "onClickGenerate()"
+                });
+                context.form.clientScriptModulePath = "SuiteScripts/abj_cs_allocation_resources.js"
+            }
         }
     }
     function afterSubmit(context) {
@@ -75,7 +83,7 @@ define(["N/runtime", "N/log", "N/record", "N/search"], (runtime, log, record, se
                 });
                 var cForm = rec.getValue('customform');
                 log.debug('cForm', cForm)
-                if(cForm == 140 || cForm == 141){
+                if(cForm == 140 || cForm == 141 ||  cForm == 149){
                     var lineCount = rec.getLineCount({
                         sublistId: 'line'
                     });

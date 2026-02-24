@@ -145,7 +145,7 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime'], (search, dialog, log, 
                     return true;
                 }
 
-                if (cFrom == '140' || cFrom == '141') {
+                if (cFrom == '140' || cFrom == '141' || cFrom == '149') {
                     return true;
                 }
             }
@@ -166,11 +166,15 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime'], (search, dialog, log, 
         try {
             const rec = context.currentRecord;
             const recType = rec.type;
-            
+            var cFrom = rec.getValue('customform');
             let sublistsToCheck = [];
 
             if (recType === 'journalentry') {
-                sublistsToCheck.push(FIELDS.JE_SUBLIST);
+                if(cFrom == '140' || cFrom == '141' || cFrom == '149'){
+                    return true
+                }else{
+                    sublistsToCheck.push(FIELDS.JE_SUBLIST);
+                }   
             } else if (recType === 'vendorbill' || recType === 'check') {
                 sublistsToCheck.push(FIELDS.TRX_SUBLIST);     
                 sublistsToCheck.push(FIELDS.EXPENSE_SUBLIST); 
