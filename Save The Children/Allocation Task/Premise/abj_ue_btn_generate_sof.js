@@ -150,7 +150,7 @@ define(["N/runtime", "N/log", "N/record", "N/search"], (runtime, log, record, se
                         }
                         log.debug('allSOFid', allSOFId)
                         var idSearch
-                        if(cForm == 140){
+                        if(cForm == 140 || cForm == 149){
                             idSearch = 'customsearch_mapping_dea_je_premise'
                         }else{
                             idSearch = 'customsearch_mapping_dea_je_premise_2'

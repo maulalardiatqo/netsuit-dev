@@ -74,7 +74,31 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     id: period,
                     columns: ['startdate', 'enddate']
                 });
+                var searchProjectCode = search.load({
+                    id: "customsearch_abj_premise_allocate_amou_2"
+                });
 
+                var fltrs = searchProjectCode.filters;
+                fltrs.push(search.createFilter({ name: 'account', operator: search.Operator.ANYOF, values: accountHeader }));
+                fltrs.push(search.createFilter({ name: 'postingperiod', operator: search.Operator.ANYOF, values: period }));
+                searchProjectCode.filters = fltrs;
+
+                var searchResult = searchProjectCode.run().getRange({ start: 0, end: 1 });
+                console.log('searchResult', searchResult)
+                var projectCodeValue = "";
+               if (searchResult && searchResult.length > 0) {
+    var result = searchResult[0];
+    var allColumns = result.columns;
+    if (allColumns.length >= 5) { 
+        var targetColumn = allColumns[4]; 
+        projectCodeValue = result.getValue(targetColumn);
+        
+        console.log('Column Index 4 Name:', targetColumn.name);
+        console.log('Value:', projectCodeValue);
+    } else {
+        console.log('Error: Kolom tidak cukup. Total: ' + allColumns.length);
+    }
+}           console.log('projectCodeValue', projectCodeValue)
                 var allSofId = [];
                 var searchSof = search.load({ id: 'customsearch_sof_resource_timesheet' });
                 searchSof.run().each(function (result) {
@@ -130,10 +154,16 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                             row.prosentHour = prosentHour;
                             row.calculatedPct = roundedPct;
                             row.amountDebit = prosentHour * Number(amountHeader);
-                            row.memo = "Allocation Premis " + accountHeaderText + " " + periodText;
+                            var pct = roundedPct || Math.round(roundedPct * 100);
+                            row.memo = "Allocation Premis " + accountHeaderText + " " + periodText + " - " + pct + "%";
                             dataToProcess.push(row);
                         });
-                        prosesJournalRecursive(rec, dataToProcess, accountHeader, btn);
+                        if(projectCodeValue){
+                            prosesJournalRecursive(rec, dataToProcess, accountHeader, btn, amountHeader, projectCodeValue);
+                        }else{
+                            finishProcess(btn, "Project Code Not Found");
+                        }
+                        
                     } else {
                         finishProcess(btn, "Total hours for selected SOFs is zero.");
                     }
@@ -148,8 +178,12 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
         }
     }
 
-    function prosesJournalRecursive(rec, dataToProcess, accountHeader, btn) {
+    function prosesJournalRecursive(rec, dataToProcess, accountHeader, btn, amountHeader, projectCodeValue) {
         console.log('dataToProcess', dataToProcess);
+        
+        var runningTotalDebit = 0;
+        var totalHeader = Number(amountHeader);
+
         var lineCount = rec.getLineCount({ sublistId: "line" });
         for (var i = lineCount - 1; i >= 0; i--) {
             rec.removeLine({ sublistId: "line", line: i, ignoreRecalc: true });
@@ -159,68 +193,102 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
 
         function doLine(index) {
             if (index >= dataToProcess.length) {
-                finishProcess(btn, "Process Completed. " + dataToProcess.length + " lines generated.");
+                addCreditLine();
                 return;
             }
 
             var data = dataToProcess[index];
             try {
-                console.log("--- Processing Line Index: " + index + " ---" );
-                console.log('data', data)
+                console.log("--- Processing Debit Line Index: " + index + " ---");
                 rec.selectNewLine({ sublistId: "line" });
                 
                 rec.setCurrentSublistValue({ sublistId: "line", fieldId: "account", value: accountHeader });
-                rec.setCurrentSublistValue({ sublistId: "line", fieldId: "debit", value: Number(data.amountDebit.toFixed(2)) });
+
+                var amountToSet = 0;
+                if (index === dataToProcess.length - 1) {
+                    amountToSet = Number((totalHeader - runningTotalDebit).toFixed(2));
+                    console.log("Adjusting last debit line with amount: " + amountToSet);
+                } else {
+                    amountToSet = Number(Number(data.amountDebit).toFixed(2));
+                    runningTotalDebit += amountToSet;
+                }
+
+                rec.setCurrentSublistValue({ sublistId: "line", fieldId: "debit", value: amountToSet });
                 
                 rec.setCurrentSublistValue({ sublistId: "line", fieldId: "department", value: data.costCenter, ignoreFieldChange: false });
                 rec.setCurrentSublistValue({ sublistId: "line", fieldId: "cseg_stc_sof", value: data.sof, ignoreFieldChange: false });
 
                 setTimeout(function () {
                     try {
-                        // Validasi Currency (Wajib agar commit tidak 0)
                         var lineCur = rec.getCurrentSublistValue({ sublistId: "line", fieldId: "account_cur" });
                         if (!lineCur && headerCurrency) {
                             rec.setCurrentSublistValue({ sublistId: "line", fieldId: "account_cur", value: headerCurrency });
                         }
-
-                        // TAHAP 2: Set Field sisa setelah Sourcing Segment selesai
-                        rec.setCurrentSublistValue({ sublistId: "line", fieldId: "cseg1", value: '2' });
-                        rec.setCurrentSublistValue({ sublistId: "line", fieldId: "class", value: data.projectCode });
+                        
+                        rec.setCurrentSublistValue({ sublistId: "line", fieldId: "class", value: projectCodeValue});
                         rec.setCurrentSublistValue({ sublistId: "line", fieldId: "memo", value: data.memo });
                         
-                        // Gunakan nilai persen yang sudah diseimbangkan (calculatedPct)
                         var pct = data.calculatedPct || Math.round(data.prosentHour * 100);
                         rec.setCurrentSublistValue({ sublistId: "line", fieldId: "custcol_tar_percentage", value: pct });
 
-                        // Jeda sangat singkat sebelum commit untuk memastikan DOM stabil
                         setTimeout(function() {
                             try {
-                                var commitStatus = rec.commitLine({ sublistId: "line" });
-                                var currentTotal = rec.getLineCount({ sublistId: "line" });
-
-                                console.log("Index " + index + " | Commit: " + commitStatus + " | Total Lines: " + currentTotal);
+                                rec.commitLine({ sublistId: "line" });
                                 doLine(index + 1);
                             } catch (e) {
                                 console.error("Commit error at index " + index, e.message);
                                 doLine(index + 1);
                             }
                         }, 200); 
-
                     } catch (innerE) {
                         console.error("Error at line processing " + index, innerE.message);
                         doLine(index + 1);
                     }
                 }, 200); 
-
             } catch (outerE) {
                 console.error("Error selecting line " + index, outerE.message);
                 finishProcess(btn, "Critical Error: " + outerE.message);
             }
         }
 
+        function addCreditLine() {
+            try {
+                console.log("--- Processing Final Credit Line ---");
+                rec.selectNewLine({ sublistId: "line" });
+                
+                rec.setCurrentSublistValue({ sublistId: "line", fieldId: "account", value: accountHeader });
+                
+                rec.setCurrentSublistValue({ sublistId: "line", fieldId: "credit", value: totalHeader });
+                
+                rec.setCurrentSublistValue({ sublistId: "line", fieldId: "department", value: 17, ignoreFieldChange: false });
+                rec.setCurrentSublistValue({ sublistId: "line", fieldId: "cseg_stc_sof", value: 58, ignoreFieldChange: false });
+
+                setTimeout(function() {
+                    try {
+                        var lineCur = rec.getCurrentSublistValue({ sublistId: "line", fieldId: "account_cur" });
+                        if (!lineCur && headerCurrency) {
+                            rec.setCurrentSublistValue({ sublistId: "line", fieldId: "account_cur", value: headerCurrency });
+                        }
+
+                        rec.setCurrentSublistValue({ sublistId: "line", fieldId: "class", value: 12 });
+                        
+                        var commitStatus = rec.commitLine({ sublistId: "line" });
+                        console.log("Credit Line Commit: " + commitStatus);
+                        
+                        finishProcess(btn,);
+                    } catch (e) {
+                        console.error("Error committing credit line", e.message);
+                        finishProcess(btn, "Completed with error on credit line.");
+                    }
+                }, 500);
+            } catch (e) {
+                console.error("Error creating credit line", e.message);
+                finishProcess(btn, "Error on final credit line.");
+            }
+        }
+
         doLine(0);
     }
-
     function finishProcess(btn, msg) {
         if (processMsg) processMsg.hide();
         if (btn) {
