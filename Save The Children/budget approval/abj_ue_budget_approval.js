@@ -136,7 +136,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 columns: ["custentity_stc_subtitute_apprvl"],
                             });
                             var firscekFA = appFALook.custentity_stc_subtitute_apprvl
-                            if(firscekFA){
+                            if(firscekFA.length > 0){
                                 appFASubtitue = firscekFA[0].value;
                                 log.debug('appFASubtitue', appFASubtitue)
                             }

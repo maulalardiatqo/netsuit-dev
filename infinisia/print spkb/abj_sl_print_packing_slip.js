@@ -32,11 +32,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 ],
                             columns:
                                 [
-                                    search.createColumn({
-                                        name: "inventorynumber",
-                                        join: "inventoryDetail",
-                                        label: " Number"
-                                    }),
+                                    // search.createColumn({
+                                    //     name: "inventorynumber",
+                                    //     join: "inventoryDetail",
+                                    //     label: " Number"
+                                    // }),
                                     search.createColumn({ name: "item", label: "Item" }),
                                     search.createColumn({ name: "quantityuom", label: "Quantity" }),
                                     search.createColumn({ name: "tranid" }),
@@ -48,16 +48,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                     //     join: "customer",
                                     //     label: "Legal Name"
                                     // }),
-                                    search.createColumn({
-                                        name: "expirationdate",
-                                        join: "inventoryDetail",
-                                        label: "Expiration Date"
-                                    }),
-                                    search.createColumn({
-                                        name: "inventorynumber",
-                                        join: "inventoryDetail",
-                                        label: "Expiration Date"
-                                    })
+                                    // search.createColumn({
+                                    //     name: "expirationdate",
+                                    //     join: "inventoryDetail",
+                                    //     label: "Expiration Date"
+                                    // }),
+                                    // search.createColumn({
+                                    //     name: "inventorynumber",
+                                    //     join: "inventoryDetail",
+                                    //     label: "Expiration Date"
+                                    // })
                                 ]
                         });
                         var searchResultCount = fulfillmentSearchObj.runPaged().count;
@@ -78,15 +78,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             var custName = result.getText({
                                 name: "entity"
                             });
-                            var lotNumber = result.getText({
-                                name: "inventorynumber",
-                                join: "inventoryDetail",
-                            });
-                            log.debug('lotNumber', lotNumber)
-                            var expireDate = result.getValue({
-                                name: "expirationdate",
-                                join: "inventoryDetail",
-                            });
+                            // var lotNumber = result.getText({
+                            //     name: "inventorynumber",
+                            //     join: "inventoryDetail",
+                            // });
+                            // log.debug('lotNumber', lotNumber)
+                            // var expireDate = result.getValue({
+                            //     name: "expirationdate",
+                            //     join: "inventoryDetail",
+                            // });
                             trandate = result.getValue({
                                 name: "trandate"
                             });
@@ -96,8 +96,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                     itemName: itemName,
                                     qty: qty,
                                     custName: custName,
-                                    lotNumber: lotNumber,
-                                    expireDate: expireDate,
+                                    // lotNumber: lotNumber,
+                                    // expireDate: expireDate,
                                     tandId: tandId,
                                     itemId : itemId,
                                     idFulfill : idFulfill
@@ -342,7 +342,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             allData.forEach((data) => {
                 var itemName = data.itemName;
                 var custName = data.custName;
-                var expireDate = data.expireDate;
+                // var expireDate = data.expireDate;
                 var qty = data.qty;
                 var packing = data.tandId;
                 var itemId = data.itemId;
@@ -396,11 +396,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     return true;
                 });
 
-                log.debug('lotNumberItem', lotNumberItem);
+                log.debug('lotNumberItem', {lotNumberItem : lotNumberItem, idFulfill : idFulfill, itemId : itemId});
 
                 var ket = '';
 
-                // 🔁 Loop per LOT agar barisnya sesuai jumlah LOT
                 lotNumberItem.forEach(function (lotData) {
                     body += "<tr>";
                     body += "<td style='font-size: 10px; border: 1px solid black; border-right:none; text-align:center'>" + No + "</td>";

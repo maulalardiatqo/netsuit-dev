@@ -57,6 +57,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 // });
                 var subsidiari = poRecord[0].getValue({name : 'subsidiary'});
                 var currenc = poRecord[0].getValue({name : 'currency'});
+                var excRate = poRecord[0].getValue({ 
+                    name: "exchangerate",
+                    join: "Currency",});
                 if (currenc) {
                     var recCurrenc = record.load({
                         type: 'currency',
@@ -260,7 +263,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
     
                 // var subTotal = poRecord.getValue('subtotal') || 0;
                 var poTotal = poRecord[0].getValue({ name : 'total' }) || 0;
-    
+                if(poTotal){
+                    poTotal = Number(poTotal) / Number(excRate)
+                }
                 var total = 0;
                 var duedate = poRecord[0].getValue({ name : 'duedate'});
                 var jobNumber = poRecord[0].getValue({ name : 'custbody_abj_custom_jobnumber' });
@@ -270,6 +275,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     jobNumber = jobNumber.replace(/\\/g, '<br/>');
                 }
                 var subTotal = poRecord[0].getValue({ name : 'netamountnotax' }) || 0;
+                if(subTotal){
+                    subTotal = Number(subTotal) / Number(excRate)
+                }
                 var totalWhTaxamount = 0;
                 var totalWhTaxamountItem = 0;
                 var totalWhTaxamountExp = 0;
@@ -341,7 +349,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 log.debug('totalWhTaxamountItem', totalWhTaxamountItem)
                 log.debug('totalWhTaxamountExp', totalWhTaxamountExp)
-                totalWhTaxamount = totalWhTaxamountItem + totalWhTaxamountExp;
+                totalWhTaxamount = (Number(totalWhTaxamountItem) + Number(totalWhTaxamountExp))  / Number(excRate);
                 var totalWHTaxToCount = totalWhTaxamount
 
                 if (totalWhTaxamount) {
@@ -353,10 +361,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
 
                 log.debug('taxRate Cek Final', taxRateList);
-                var taxtotal = poRecord[0].getValue({ name : 'taxtotal'});
+                var taxtotal = poRecord[0].getValue({ name : 'taxtotal'}) ;
+                if(taxtotal){
+                    taxtotal = Number(taxtotal) /  Number(excRate)
+                }
                 log.debug('subTotal', subTotal)
                 log.debug('taxtotal', taxtotal)
-                total = Number(subTotal) + Number(Math.abs(taxtotal));
+                total = Number(subTotal) + Number(Math.abs(taxtotal)) ;
                 var totalToCount = total
                 if (poTotal) {
     
@@ -748,14 +759,20 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var unit = row.getValue({ name: "units" }) || "";
                         var ammount = row.getValue({ name: "amount" }) || 0;
                         var description = row.getValue({ name: 'memo' }) || "";
-
+                        var excRate = row.getValue({
+                            name: "exchangerate",
+                            join: "Currency",
+                        })
+                        if(ammount){
+                            ammount = Number(ammount) / Number(excRate)
+                        }
                         // Pembersihan Deskripsi
                         description = escapeXmlSymbols(description);
                         if (description.includes('\\')) {
                             description = description.replace(/\\/g, '<br/>');
                         }
 
-                        var rate = (qty != 0) ? (Number(ammount) / Number(qty)) : 0;
+                        var rate = (qty != 0) ? (Number(ammount) / Number(qty))  : 0;
 
                         // Proses Pembulatan & Formatting
                         if (!alva) {
