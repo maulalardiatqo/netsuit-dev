@@ -67,8 +67,9 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
             var accountHeader = rec.getValue('custbody_stc_source_account_allocation');
             var periodText = rec.getText('postingperiod');
             var accountHeaderText = rec.getText('custbody_stc_source_account_allocation');
+            var costCenterHead = rec.getValue('custbody_stc_cost_centre_need_to_alloc');
 
-            if (accountHeader && period && (Number(amountHeader) > 0)) {
+            if (accountHeader && period && (Number(amountHeader) > 0) && costCenterHead) {
                 const periodFields = search.lookupFields({
                     type: record.Type.ACCOUNTING_PERIOD,
                     id: period,
@@ -86,19 +87,20 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 var searchResult = searchProjectCode.run().getRange({ start: 0, end: 1 });
                 console.log('searchResult', searchResult)
                 var projectCodeValue = "";
-               if (searchResult && searchResult.length > 0) {
-    var result = searchResult[0];
-    var allColumns = result.columns;
-    if (allColumns.length >= 5) { 
-        var targetColumn = allColumns[4]; 
-        projectCodeValue = result.getValue(targetColumn);
-        
-        console.log('Column Index 4 Name:', targetColumn.name);
-        console.log('Value:', projectCodeValue);
-    } else {
-        console.log('Error: Kolom tidak cukup. Total: ' + allColumns.length);
-    }
-}           console.log('projectCodeValue', projectCodeValue)
+                if (searchResult && searchResult.length > 0) {
+                    var result = searchResult[0];
+                    var allColumns = result.columns;
+                    if (allColumns.length >= 5) { 
+                        var targetColumn = allColumns[4]; 
+                        projectCodeValue = result.getValue(targetColumn);
+                        
+                        console.log('Column Index 4 Name:', targetColumn.name);
+                        console.log('Value:', projectCodeValue);
+                    } else {
+                        console.log('Error: Kolom tidak cukup. Total: ' + allColumns.length);
+                    }
+                }           
+                console.log('projectCodeValue', projectCodeValue)
                 var allSofId = [];
                 var searchSof = search.load({ id: 'customsearch_sof_resource_timesheet' });
                 searchSof.run().each(function (result) {
@@ -112,6 +114,12 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     var filters = search580.filters;
                     filters.push(search.createFilter({ name: 'startdate', operator: search.Operator.ONORAFTER, values: [periodFields.startdate] }));
                     filters.push(search.createFilter({ name: 'enddate', operator: search.Operator.ONORBEFORE, values: [periodFields.enddate] }));
+                    filters.push(search.createFilter({
+                        name: 'department',         // Nama field asli di record employee
+                        join: 'employee',           // Nama join ID
+                        operator: search.Operator.ANYOF,
+                        values: costCenterHead      // Pastikan ini adalah array ID internal
+                    }));
                     search580.filters = filters;
 
                     var resultSet = search580.run();
@@ -171,7 +179,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     finishProcess(btn, "No SOF Master data found.");
                 }
             } else {
-                finishProcess(btn, "Missing Header Data.");
+                finishProcess(btn, "Account, Period, Amount & Cost Center is mandatory for searching data.");
             }
         } catch (e) {
             finishProcess(btn, "Generate Error: " + e.message);
