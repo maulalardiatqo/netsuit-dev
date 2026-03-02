@@ -112,11 +112,11 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
                 var costCenter = rec.getSublistValue({ sublistId: sublistId, fieldId: 'department', line: i }) || '';
                 var projectCode = rec.getSublistValue({ sublistId: sublistId, fieldId: 'class', line: i }) || '';
                 
-                // --- KUNCI GROUPING BARU ---
                 var groupKey = sofId + '_' + costCenter + '_' + projectCode;
 
-                var amountField = (sublistId === 'item') ? ((type == 'cutrprch108' || type == 'purchreq') ? 'amount' : 'grossamt') : ((type == 'exprept' || type == 'purchreq') ? 'amount' : 'grossamt');
+                var amountField = (sublistId === 'item') ? ((type == 'cutrprch108' || type == 'purchreq') ? 'estimatedamount' : 'grossamt') : ((type == 'exprept' || type == 'purchreq') ? 'estimatedamount' : 'grossamt');
                 var amount = parseFloat(rec.getSublistValue({ sublistId: sublistId, fieldId: amountField, line: i })) || 0;
+                log.debug('amount', amount)
                 var statusLine = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custcol_stc_approval_status_line', line: i });
                 var statusFa = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custcol_stc_apprvl_sts_fa', line: i });
 
@@ -152,9 +152,16 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
                 }
             }
         });
-
+        log.debug('groupMap', groupMap)
         for (var key in groupMap) {
             var data = groupMap[key];
+            log.debug('data params', {
+                'sofId' : data.sofId,
+                'account' : data.account,
+                'total' : data.total,
+                'costCenter' : data.costCenter,
+                'projectCode' : data.projectCode
+            })
             var bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.costCenter, data.projectCode);
             var finApprover = null;
 

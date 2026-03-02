@@ -159,15 +159,17 @@ define(['N/log', 'N/record', 'N/search'], (log, record, search) => {
                         fieldId : 'entity',
                         value : empName
                     })
-                     jeRec.setCurrentSublistValue({
+                    jeRec.setCurrentSublistValue({
                         sublistId : 'line',
                         fieldId : 'department',
-                        value : costCenter
+                        value : costCenter,
+                        ignoreFieldChange: false
                     })
                     jeRec.setCurrentSublistValue({
                         sublistId : 'line',
                         fieldId : 'class',
-                        value : projectCode
+                        value : projectCode,
+                        ignoreFieldChange: false
                     })
                     jeRec.setCurrentSublistValue({
                         sublistId : 'line',

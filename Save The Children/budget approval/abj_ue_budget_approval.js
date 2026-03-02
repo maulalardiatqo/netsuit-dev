@@ -435,8 +435,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                  * Jika custbody_stc_approval_by berubah → logic approve
                  */
                 if (newValFA !== oldValFA && employeeId === newValFA && (
+                        (typeRec === 'purchaseorder') || 
                         (typeRec === 'purchaserequisition' && cekIsHolder === false) ||
-                        (typeRec !== 'purchaserequisition' && cekIsHolder === true)
+                        (typeRec !== 'purchaserequisition' && typeRec !== 'purchaseorder' && cekIsHolder === true)
                     )) {
                     log.debug('Masuk eksekusi approve FA');
 

@@ -97,6 +97,11 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
                 ignoreFieldChange: false,
             });
             createRec.setValue({
+                fieldId : "cseg_stc_cashflow",
+                value : 12,
+                ignoreFieldChange : false
+            })
+            createRec.setValue({
                 fieldId: "cseg_stc_sof",
                 value: 66
             });
@@ -297,6 +302,11 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
             createRec.setValue({
                 fieldId: "department",
                 value: 3,
+                ignoreFieldChange: false,
+            });
+            createRec.setValue({
+                fieldId: "cseg_stc_cashflow",
+                value: 12,
                 ignoreFieldChange: false,
             });
             createRec.setValue({
