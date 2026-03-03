@@ -256,7 +256,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     transData.setValue({
                         fieldId: field,
                         value: val,
-                        ignoreFieldChange: true // KUNCI ANTI ERROR
+                        ignoreFieldChange: true 
                     });
                 } catch (e) {
                     log.error('Gagal set field: ' + field, e.message);
@@ -303,7 +303,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             }
 
             safeSublist('expensedate', parseDate(data[0].date));
-            if (category) safeSublist('category', category);
+            log.debug('category', category)
+            safeSublist('category', '1');
             if (lineData.noTor) safeSublist('memo', lineData.noTor);
             totalAmount = Number(totalAmount) + Number(lineData.amount)
             safeSublist('amount', lineData.amount);
@@ -518,104 +519,109 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
     }
     function transTar(data, createTar) {
 
-    log.debug('Processing Header', data[0]);
-    
-    if (data[0].idTor) {
-        createTar.setValue({
-            fieldId: 'custrecord_tar_link_to_tor',
-            value: data[0].idTor
-        });
-    }
-
-    var currentEmployeeId = runtime.getCurrentUser().id; 
-    createTar.setValue({
-        fieldId: 'custrecord_tar_staf_name',
-        value: currentEmployeeId
-    });
-
-    // Date
-    if (data[0].date) {
-        createTar.setValue({
-            fieldId: 'custrecord_tar_date',
-            value: data[0].date 
-        });
-    }
-
-    var sublistId = 'recmachcustrecord_tar_e_id';
-
-    for (var i = 0; i < data.length; i++) {
-        var rowData = data[i];
-
-        var category = '';
-        var expAcc = null;
-
-        if (rowData.item) {
-            var itemSearchObj = search.create({
-                type: "item",
-                filters: [["internalid", "anyof", rowData.item]],
-                columns: ["expenseaccount"]
+        log.debug('Processing Header', data[0]);
+        
+        if (data[0].idTor) {
+            createTar.setValue({
+                fieldId: 'custrecord_tar_link_to_tor',
+                value: data[0].idTor
             });
-            itemSearchObj.run().each(function (result) {
-                expAcc = result.getValue({ name: 'expenseaccount' });
-                return false;
-            });
+        }
 
-            // Search Category
-            if (expAcc) {
-                var catSearch = search.create({
-                    type: "expensecategory",
-                    filters: [["account", "anyof", expAcc]],
-                    columns: ["internalid"]
+        var currentEmployeeId = runtime.getCurrentUser().id; 
+        createTar.setValue({
+            fieldId: 'custrecord_tar_staf_name',
+            value: currentEmployeeId
+        });
+
+        // Date
+        if (data[0].date) {
+            createTar.setValue({
+                fieldId: 'custrecord_tar_date',
+                value: data[0].date 
+            });
+        }
+
+        var sublistId = 'recmachcustrecord_tar_e_id';
+        var totalAmount = 0
+        for (var i = 0; i < data.length; i++) {
+            var rowData = data[i];
+
+            var category = '';
+            var expAcc = null;
+
+            if (rowData.item) {
+                var itemSearchObj = search.create({
+                    type: "item",
+                    filters: [["internalid", "anyof", rowData.item]],
+                    columns: ["expenseaccount"]
                 });
-                if (catSearch.runPaged().count === 1) {
-                    catSearch.run().each(function (result) {
-                        category = result.getValue({ name: 'internalid' });
-                        return false;
+                itemSearchObj.run().each(function (result) {
+                    expAcc = result.getValue({ name: 'expenseaccount' });
+                    return false;
+                });
+
+                // Search Category
+                if (expAcc) {
+                    var catSearch = search.create({
+                        type: "expensecategory",
+                        filters: [["account", "anyof", expAcc]],
+                        columns: ["internalid"]
                     });
+                    if (catSearch.runPaged().count === 1) {
+                        catSearch.run().each(function (result) {
+                            category = result.getValue({ name: 'internalid' });
+                            return false;
+                        });
+                    }
                 }
             }
-        }
-        if (rowData.date) {
-            createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_expense_date', line: i, value: rowData.date });
-        }
-        if(expAcc){
-            createTar.setSublistValue({ sublistId : sublistId, fieldId: 'custrecord_tare_account', line : i, value: expAcc})
-        }
-        if(rowData.item == '774'){
-                category = '25'
-                createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_diem', line: i, value: true });
-                
-            createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_category', line: i, value: '25' });
+            if (rowData.date) {
+                createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_expense_date', line: i, value: rowData.date });
             }
-        if (category) {
+            if(expAcc){
+                createTar.setSublistValue({ sublistId : sublistId, fieldId: 'custrecord_tare_account', line : i, value: expAcc})
+            }
+            if(rowData.item == '774'){
+                    category = '25'
+                    createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_diem', line: i, value: true });
+                    
+                createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_category', line: i, value: '25' });
+                }
+            if (category) {
+                
+                createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_category', line: i, value: category });
+            }
+            createTar.setSublistValue({sublistId : sublistId, fieldId : 'custrecord_tare_memo', line : i, value : '-'})
+            if (rowData.project) {
+                createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_donor', line: i, value: rowData.project });
+            }
+            if(rowData.approver){
+                createTar.setSublistValue({sublistId: sublistId, fieldId : 'custrecord_tare_approver', line: i, value: rowData.approver})
+                createTar.setSublistValue({sublistId : sublistId, fieldId : 'custrecord_tare_approval_status', line : i, value : '1'})
+            }
+            if (rowData.projectTask) {
+                createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_project_task', line: i, value: rowData.projectTask });
+            }
+            if (rowData.bussinessUnit) {
+                createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_ter_business_unit', line: i, value: rowData.bussinessUnit });
+            }
+            if (rowData.sof) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_source_of_funding', line: i, value: rowData.sof });
+            if (rowData.drc) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_drc', line: i, value: rowData.drc });
+            if (rowData.dea) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_dea', line: i, value: rowData.dea });
+            totalAmount = Number(totalAmount) + Number(rowData.amount)
+            if (rowData.amount) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_amount', line: i, value: rowData.amount });
+            if (rowData.costCenter) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_cost_center', line: i, value: rowData.costCenter });
+            if (rowData.projectCode) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_project_code', line: i, value: rowData.projectCode });
+            if (rowData.bussinessUnit) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_ter_business_unit', line: i, value: rowData.bussinessUnit });
+            if (rowData.activityCode) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_activity_code', line: i, value: rowData.activityCode });
             
-            createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_category', line: i, value: category });
         }
-        createTar.setSublistValue({sublistId : sublistId, fieldId : 'custrecord_tare_memo', line : i, value : '-'})
-        if (rowData.project) {
-            createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_donor', line: i, value: rowData.project });
-        }
-        if(rowData.approver){
-            createTar.setSublistValue({sublistId: sublistId, fieldId : 'custrecord_tare_approver', line: i, value: rowData.approver})
-            createTar.setSublistValue({sublistId : sublistId, fieldId : 'custrecord_tare_approval_status', line : i, value : '1'})
-        }
-        if (rowData.projectTask) {
-            createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_project_task', line: i, value: rowData.projectTask });
-        }
-        if (rowData.bussinessUnit) {
-            createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_ter_business_unit', line: i, value: rowData.bussinessUnit });
-        }
-        if (rowData.sof) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_source_of_funding', line: i, value: rowData.sof });
-        if (rowData.drc) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_drc', line: i, value: rowData.drc });
-        if (rowData.dea) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_dea', line: i, value: rowData.dea });
-        if (rowData.amount) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_amount', line: i, value: rowData.amount });
-        if (rowData.costCenter) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_cost_center', line: i, value: rowData.costCenter });
-        if (rowData.projectCode) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_project_code', line: i, value: rowData.projectCode });
-        if (rowData.bussinessUnit) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_ter_business_unit', line: i, value: rowData.bussinessUnit });
-        if (rowData.activityCode) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_activity_code', line: i, value: rowData.activityCode });
-        
+         createTar.setValue({
+            fieldId: 'custrecord_amount_from_tor',
+            value: totalAmount
+        });
     }
-}
     function beforeLoad(context) {
         try{
             if (context.type == context.UserEventType.CREATE) {

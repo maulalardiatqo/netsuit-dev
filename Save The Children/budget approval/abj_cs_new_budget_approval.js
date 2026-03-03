@@ -59,6 +59,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
     }
 
     function getFinanceMatric(sofId, amount, createdBy, costCenter, projectCode) {
+        log.debug('params FA', {sofId : sofId, amount : amount, createdBy : createdBy, costCenter : costCenter, projectCode : projectCode})
         var customrecord_stc_apprvl_mtrix_financeSearchObj = search.create({
             type: "customrecord_stc_apprvl_mtrix_finance",
             filters: [
@@ -167,6 +168,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
 
             if (['vendbill', 'purchreq', 'purchord', 'exprept'].includes(type)) {
                 finApprover = getFinanceMatric(data.sofId, data.total, createdBy, data.costCenter, data.projectCode);
+                log.debug('finApprover', finApprover)
             }
 
             data.lines.forEach(function(item) {
@@ -180,6 +182,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
                         rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_approval_status_line', value: "1" });
                     }
                     if (!isFa2 && finApprover) {
+                        log.debug('masuk set approver fa')
                         rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_approver_fa', value: finApprover });
                         rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_apprvl_sts_fa', value: "1" });
                     }
