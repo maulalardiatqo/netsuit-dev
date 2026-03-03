@@ -46,6 +46,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 fieldId : 'cseg_stc_sof',
                 value : data[0].sof || '66'
             });
+            var totalAmount = 0
             var cekAccountafter = createPO.getValue('account');
             log.debug('cekAccountafter',cekAccountafter)
             var indexL = 0
@@ -68,6 +69,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     value     : '1'
                 });
                 log.debug('data[i].amount', data[i].amount)
+                var amount = data[i].amount
+                totalAmount = Number(totalAmount) + Number(amount)
                 createPO.setSublistValue({
                     sublistId : 'item',
                     fieldId   : 'rate',
@@ -180,26 +183,26 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 log.debug('before commit')  
                 indexL++;
             }
+            createPO.setValue({
+                fieldId : 'custbody_amount_from_tor',
+                value : totalAmount
+            });
     }
     function transExp(data, transData) {
         log.debug('Masuk transExp Safe Mode', 'Total baris: ' + data.length);
         function parseDate(dateStr) {
-            if (!dateStr) return new Date(); // Fallback ke hari ini jika kosong, untuk mencegah error Date
+            if (!dateStr) return new Date(); 
             try {
                 var parts = dateStr.split('/'); 
                 if (parts.length !== 3) return new Date();
-                // Pastikan menjadi Date object valid
                 var dt = new Date(parts[2], parts[1] - 1, parts[0]);
-                if (isNaN(dt.getTime())) return new Date(); // Cek Invalid Date
+                if (isNaN(dt.getTime())) return new Date(); 
                 return dt;
             } catch (e) {
                 return new Date();
             }
         }
 
-        // ==========================================
-        // 2. PRE-FETCHING DATA (BULK PROCESS)
-        // ==========================================
         var itemIds = [];
         for (var j = 0; j < data.length; j++) {
             if (data[j].item) itemIds.push(data[j].item);
@@ -245,13 +248,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 }
             }
         }
-
-        // ==========================================
-        // 3. SET BODY FIELDS (DENGAN SAFE GUARD)
-        // ==========================================
         var currentUser = runtime.getCurrentUser();
         
-        // Helper function untuk Set Value aman
         function safeSet(field, val) {
             if (val !== null && val !== undefined && val !== '') {
                 try {
@@ -272,29 +270,23 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         safeSet('entity', currentUser.id);
         safeSet('expensereportcurrency', '1');
         
-        // Khusus Date, pastikan format Date Object
         safeSet('trandate', parseDate(data[0].date));
         
         safeSet('department', data[0].costCenter);
         safeSet('class', data[0].projectCode || '114');
         safeSet('location', '3');
         safeSet('cseg_stc_sof', data[0].sof || '66');
-        // safeSet('custbody_exp_autofilled', true);
 
         if (data[0].timeFrom) safeSet('custbody_stc_activity_date_from', parseDate(data[0].timeFrom));
         if (data[0].timeTo) safeSet('custbody_stc_activity_date_to', parseDate(data[0].timeTo));
 
-        // ==========================================
-        // 4. SET SUBLIST (LOOPING)
-        // ==========================================
-        
+        var totalAmount = 0
         for (var i = 0; i < data.length; i++) {
             var lineData = data[i];
             
             var expAcc = (lineData.item && itemAccountMap[lineData.item]) ? itemAccountMap[lineData.item] : null;
             var category = (expAcc && accountCategoryMap[expAcc]) ? accountCategoryMap[expAcc] : null;
 
-            // Sublist Helper
             function safeSublist(field, val) {
                 if (val !== null && val !== undefined && val !== '') {
                     try {
@@ -303,10 +295,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                             fieldId: field,
                             line: i,
                             value: val
-                            // ignoreFieldChange tidak berlaku di setSublistValue standard mode, tapi aman
                         });
                     } catch (e) {
-                    // Ignore error baris agar tidak membatalkan seluruh script
                     log.debug('Skip line field ' + field, e.message); 
                     }
                 }
@@ -315,7 +305,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             safeSublist('expensedate', parseDate(data[0].date));
             if (category) safeSublist('category', category);
             if (lineData.noTor) safeSublist('memo', lineData.noTor);
-            
+            totalAmount = Number(totalAmount) + Number(lineData.amount)
             safeSublist('amount', lineData.amount);
             if (lineData.costCenter) safeSublist('department', lineData.costCenter);
             if (lineData.projectCode) safeSublist('class', lineData.projectCode);
@@ -340,6 +330,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             if (lineData.dea) safeSublist('cseg_stc_segmentdea', lineData.dea);
             if (lineData.sof) safeSublist('cseg_stc_sof', lineData.sof);
         }
+        safeSet('custbody_amount_from_tor', totalAmount);
     }
     function transPR(data, transData){
             var createPr = transData
@@ -519,6 +510,11 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 fieldId : 'estimatedtotal',
                 value : totalEstimate
             })
+            log.debug('totalEstimate', totalEstimate)
+            createPr.setValue({
+                fieldId : 'custbody_amount_from_tor',
+                value : totalEstimate
+            })
     }
     function transTar(data, createTar) {
 
@@ -606,13 +602,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         if (rowData.projectTask) {
             createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_project_task', line: i, value: rowData.projectTask });
         }
-
-        // 5. Business Unit (Langsung set, tidak perlu sourcing delay di server side)
         if (rowData.bussinessUnit) {
             createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_ter_business_unit', line: i, value: rowData.bussinessUnit });
         }
-
-        // 6. Field Lainnya
         if (rowData.sof) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_source_of_funding', line: i, value: rowData.sof });
         if (rowData.drc) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_drc', line: i, value: rowData.drc });
         if (rowData.dea) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_dea', line: i, value: rowData.dea });
@@ -622,7 +614,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         if (rowData.bussinessUnit) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_ter_business_unit', line: i, value: rowData.bussinessUnit });
         if (rowData.activityCode) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_activity_code', line: i, value: rowData.activityCode });
         
-        // Tidak perlu increment indexL manual, pakai 'i' dari loop saja
     }
 }
     function beforeLoad(context) {
