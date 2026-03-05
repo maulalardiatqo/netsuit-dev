@@ -140,6 +140,7 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
 
         function populateSublistRecursive(rec, lines, fixedScrollY) {
             const sublistId = CONFIG.SUBLIST_ID;
+            console.log('lines', lines)
 
             function processLine(index) {
                 if (index >= lines.length) return;
@@ -162,15 +163,14 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
                     safeSet(rec, sublistId, 'custrecord_terd_rate', lineData.finalAmount, true);
                     safeSet(rec, sublistId, 'custrecord_terd_amount', lineData.finalAmount, true);
                     safeSet(rec, sublistId, 'custrecord_terd_cost_center', lineData.costCenter, true);
-                    safeSet(rec, sublistId, 'custrecord_terd_project_code', lineData.projectCode, true);
                     
                     safeSet(rec, sublistId, 'custrecord_terd_donor', lineData.sof, true); 
                     safeSet(rec, sublistId, 'custrecord_terd_sourcing_of_funding', lineData.sourceOfFunding, true);
                     
                     setTimeout(function() {
                         try {
+                            safeSet(rec, sublistId, 'custrecord_terd_project_code', lineData.projectCode, true);
                             if (lineData.projectTask) {
-                                console.log('cek projectTask', projectTask)
                                 safeSet(rec, sublistId, 'custrecord_terd_project_task', lineData.projectTask, true);
                             }
                             

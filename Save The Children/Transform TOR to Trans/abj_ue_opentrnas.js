@@ -560,7 +560,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     expAcc = result.getValue({ name: 'expenseaccount' });
                     return false;
                 });
-
+                log.debug('expAcc', expAcc)
                 // Search Category
                 if (expAcc) {
                     var catSearch = search.create({
@@ -568,7 +568,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                         filters: [["account", "anyof", expAcc]],
                         columns: ["internalid"]
                     });
-                    if (catSearch.runPaged().count === 1) {
+                    if (catSearch.runPaged().count > 0) {
                         catSearch.run().each(function (result) {
                             category = result.getValue({ name: 'internalid' });
                             return false;
@@ -588,6 +588,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     
                 createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_category', line: i, value: '25' });
                 }
+                log.debug('category TAR', category)
             if (category) {
                 
                 createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_category', line: i, value: category });

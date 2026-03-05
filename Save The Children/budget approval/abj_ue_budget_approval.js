@@ -4,18 +4,22 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
+define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/url", "N/https"], function(
     record,
     search,
     serverWidget,
-    runtime
+    runtime,
+    url,
+    https
     ) {
-  function beforeLoad(context) {
+function beforeLoad(context) {
         if(context.type == context.UserEventType.VIEW){
             try {
                 const currentUser = runtime.getCurrentUser();
                 const employeeId = currentUser.id;
                 const rec = context.newRecord;
+                const typeRec = rec.type
+                log.debug('typeRec', typeRec)
                 const cekIsHolder = rec.getValue('custbody_stc_approval_budget_holder')
                 let allowButton = false;
                 const itemCount = rec.getLineCount({ sublistId: 'item' });
@@ -26,6 +30,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             fieldId: 'custcol_stc_approver_linetrx',
                             line: i
                         });
+                        const approverText = rec.getSublistText({
+                            sublistId: 'item',
+                            fieldId: 'custcol_stc_approver_linetrx',
+                            line: i
+                        });
+
                         var appSubtitue
                         if(approver){
                             log.debug('approver', approver)
@@ -47,6 +57,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             fieldId: 'custcol_stc_approval_status_line',
                             line: i
                         });
+                        log.debug('approvalStatus', approvalStatus)
                         var appFASubtitue
                         const approverFA = rec.getSublistValue({
                             sublistId: 'item',
@@ -72,23 +83,35 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             fieldId: 'custcol_stc_apprvl_sts_fa',
                             line: i
                         });
+                        log.debug('cekLine', i)
                         log.debug('beforCondition cek', {
+                            approverText : approverText, lineKe : i,
                             employeeId : employeeId, appSubtitue : Number(appSubtitue), approvalStatus : approvalStatus
                         })
-                        if ((Number(approver) === Number(employeeId) &&
-                            Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) && Number(approvalStatus) === 1)) {
+                        if ((approver == employeeId && approvalStatus == 1 || appSubtitue == employeeId && approvalStatus == 1)) {
+                            log.debug('approverText', approverText)
                                 log.debug('masuk kondisi allowButton')
                             allowButton = true;
                             break;
                         }
-                        if(cekIsHolder == true){
-                            if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) ||(Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
-                            log.debug('masuk kondisi approve FA')
-                            allowButton = true;
-                            break;
+                        if(typeRec != 'purchaseorder'){
+                            if(cekIsHolder == true){
+                                if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) ||(Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
+                                    log.debug('masuk kondisi approve FA')
+                                    allowButton = true;
+                                    break;
+                                }
+                            }
+                        }else{
+                            log.debug('masuk else')
+                             if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) ||(Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
+                                    log.debug('masuk kondisi approve FA', approverSatatusFA)
+                                    allowButton = true;
+                                    break;
+                                }
                         }
-                        }
-                        
+                        appSubtitue = ''
+                        appFASubtitue = ''
                     }
                 }
                 
@@ -178,6 +201,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
             } catch (e) {
                 log.error('Error in beforeLoad', e);
             }
+            appSubtitue = ''
+            appFASubtitue=''
         }
         
     }
@@ -210,90 +235,93 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 log.debug('return appSubtitue', appSubtitue);
                 return appSubtitue;
             }
-        function getBudgetHolderApproval(paramSof, paramAccount, paramAmount, cretaedBy) {
-                function runSearch(useAccount) {
-                    var filters = [];
-                    filters.push(["custrecord_stc_sof", "is", paramSof]);
-
+            const getBudgetHolderApproval = (paramSof, paramAccount, paramAmount, createdBy, costCenter, projectCode) => {
+                const runSearch = (useAccount) => {
+                    let filters = [
+                        ["custrecord_stc_sof", "is", paramSof], "AND",
+                        ["custrecord_stc_max_limit_amnt", "greaterthanorequalto", paramAmount], "AND",
+                        ["isinactive", "is", "F"]
+                    ];
                     if (useAccount && paramAccount) {
                         filters.push("AND", ["custrecord_stc_account", "is", paramAccount]);
                     }
 
-                    filters.push("AND", ["custrecord_stc_max_limit_amnt", "greaterthanorequalto", paramAmount]);
-                    filters.push("AND", ["isinactive", "is", "F"]);
-
-                    var searchObj = search.create({
+                    let searchObj = search.create({
                         type: "customrecord_stc_apprv_matrix_bdgt_holdr",
                         filters: filters,
                         columns: [
                             search.createColumn({ name: "custrecord_stc_max_limit_amnt", sort: search.Sort.ASC }),
-                            search.createColumn({ name: "custrecord_stc_bdgt_hldr_approval" })
+                            search.createColumn({ name: "custrecord_stc_bdgt_hldr_approval" }),
+                            search.createColumn({ name: "custrecord_stc_bh_cost_center" }),
+                            search.createColumn({ name: "custrecord_stc_bh_project_code" })
                         ]
                     });
 
-                    var results = searchObj.run().getRange({ start: 0, end: 100 }); 
-                    
+                    let results = searchObj.run().getRange({ start: 0, end: 100 });
                     if (results && results.length > 0) {
-                        for (var i = 0; i < results.length; i++) {
-                            var approverId = results[i].getValue("custrecord_stc_bdgt_hldr_approval");
-                            
-                            if (approverId != cretaedBy) {
-                                return approverId;
+                        for (let i = 0; i < results.length; i++) {
+                            let mtrxCC = results[i].getValue("custrecord_stc_bh_cost_center");
+                            let mtrxPC = results[i].getValue("custrecord_stc_bh_project_code");
+                            let approverId = results[i].getValue("custrecord_stc_bdgt_hldr_approval");
+
+                            if (mtrxCC == costCenter && mtrxPC == projectCode) {
+                                if (approverId != createdBy) return approverId;
                             }
-                            log.debug('Skip Self Approval', 'Approver ' + approverId + ' is the creator. Skipping to next tier.');
+                        }
+                        for (let j = 0; j < results.length; j++) {
+                            let mtrxCCG = results[j].getValue("custrecord_stc_bh_cost_center");
+                            let mtrxPCG = results[j].getValue("custrecord_stc_bh_project_code");
+                            let apprvId = results[j].getValue("custrecord_stc_bdgt_hldr_approval");
+                            if (!mtrxCCG && !mtrxPCG) {
+                                if (apprvId != createdBy) return apprvId;
+                            }
                         }
                     }
-                    
                     return null;
-                }
+                };
 
-            var approval = runSearch(true);
-            if (!approval) {
-                approval = runSearch(false);
-            }
+                let approval = runSearch(true);
+                if (!approval) approval = runSearch(false);
+                return approval;
+            };
 
-            return approval;
-        }
-        function getFinanceMatric(sofId, amount, cretaedBy){
-            var approvalFinance = null;
-        
-            var customrecord_stc_apprvl_mtrix_financeSearchObj = search.create({
+        const getFinanceMatric = (sofId, amount, createdBy, costCenter, projectCode) => {
+            let customrecord_stc_apprvl_mtrix_financeSearchObj = search.create({
                 type: "customrecord_stc_apprvl_mtrix_finance",
                 filters: [
-                    ["custrecord_stc_sof_mtrx_finance", "anyof", sofId],
-                    "AND", 
-                    ["custrecord_finance_max_amnt", "greaterthanorequalto", amount]
-                    , "AND",
+                    ["custrecord_stc_sof_mtrx_finance", "anyof", sofId], "AND",
+                    ["custrecord_finance_max_amnt", "greaterthanorequalto", amount], "AND",
                     ["isinactive", "is", "F"]
                 ],
                 columns: [
-                    search.createColumn({
-                        name: "custrecord_finance_max_amnt",
-                        sort: search.Sort.ASC
-                    }),
-                    search.createColumn({ name: "custrecord_stc_apprvl_finance", label: "Approval Finance" })
+                    search.createColumn({ name: "custrecord_finance_max_amnt", sort: search.Sort.ASC }),
+                    search.createColumn({ name: "custrecord_stc_apprvl_finance" }),
+                    search.createColumn({ name: "custrecord_stc_fa_cost_center" }),
+                    search.createColumn({ name: "custrecord_stc_fa_project_code" })
                 ]
             });
 
-            var results = customrecord_stc_apprvl_mtrix_financeSearchObj.run().getRange({
-                start: 0,
-                end: 100 
-            });
-
+            let results = customrecord_stc_apprvl_mtrix_financeSearchObj.run().getRange({ start: 0, end: 100 });
             if (results && results.length > 0) {
-                for (var i = 0; i < results.length; i++) {
-                    var potentialApprover = results[i].getValue("custrecord_stc_apprvl_finance");
-                    
-                    if (potentialApprover != cretaedBy) {
-                        approvalFinance = potentialApprover;
-                        break; 
+                for (let i = 0; i < results.length; i++) {
+                    let mtrxCC = results[i].getValue("custrecord_stc_fa_cost_center");
+                    let mtrxPC = results[i].getValue("custrecord_stc_fa_project_code");
+                    let apprvFinance = results[i].getValue("custrecord_stc_apprvl_finance");
+                    if (mtrxCC == costCenter && mtrxPC == projectCode) {
+                        if (apprvFinance != createdBy) return apprvFinance;
                     }
-                    
+                }
+                for (let j = 0; j < results.length; j++) {
+                    let mtrxCCG = results[j].getValue("custrecord_stc_fa_cost_center");
+                    let mtrxPCG = results[j].getValue("custrecord_stc_fa_project_code");
+                    let apprvFinanceG = results[j].getValue("custrecord_stc_apprvl_finance");
+                    if (!mtrxCCG && !mtrxPCG) {
+                        if (apprvFinanceG != createdBy) return apprvFinanceG;
+                    }
                 }
             }
-            
-            return approvalFinance;
-        }
+            return null;
+        };
         try {
             if (context.type === context.UserEventType.EDIT){
                 const currentUser = runtime.getCurrentUser();
@@ -542,7 +570,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             value : false,
                             ignoreMandatoryFields : true
                         })
-                         recLoad.setValue({
+                        recLoad.setValue({
                             fieldId : 'custbody_stc_approved_by_finance',
                             value : false,
                             ignoreMandatoryFields : true
@@ -579,144 +607,100 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
             if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.COPY) {
 
                 log.debug('triggered')
-                const newRec = record.load({
-                    type: context.newRecord.type,
-                    id: context.newRecord.id,
-                    isDynamic: false
-                });
-                const cretaedBy = newRec.getValue('custbody_stc_create_by');
-                var cekType = context.newRecord.type
-                log.debug('cekType', cekType)
-                newRec.setValue({
+
+                const newRecord = context.newRecord;
+                const recId = newRecord.id;
+                const recType = newRecord.type;
+                const rec = record.load({ type: recType, id: recId, isDynamic: true });
+                
+                const createdBy = rec.getValue('custbody_stc_create_by');
+                const groupMap = {};
+                rec.setValue({
                     fieldId : "custbody_stc_approved_by_finance",
                     value : false
-                })
-                // // ==== LOOP SUBLIST ITEM ====
-                // const lineCountItem = newRec.getLineCount({ sublistId: 'item' });
-                // if(lineCountItem > 0){
-                //     log.debug('lineCountItem', lineCountItem)
-                //     for (let i = 0; i < lineCountItem; i++) {
-                //         let itemId = newRec.getSublistValue({ sublistId: 'item', fieldId: 'item', line: i });
-                //         let sofId = newRec.getSublistValue({ sublistId: 'item', fieldId: 'cseg_stc_sof', line: i });
-                //         let grossamt = newRec.getSublistValue({ sublistId: 'item', fieldId: 'grossamt', line: i });
+                });
+                const sublists = ['item', 'expense'];
+                sublists.forEach((sublistId) => {
+                    const lineCount = rec.getLineCount({ sublistId: sublistId });
+                    for (let i = 0; i < lineCount; i++) {
+                        let sofId = rec.getSublistValue({ sublistId: sublistId, fieldId: 'cseg_stc_sof', line: i });
+                        if (!sofId) continue;
 
-                //         let account;
-                //         if (itemId) {
-                //             let itemSearchObj = search.create({
-                //                 type: "item",
-                //                 filters: [["internalid", "anyof", itemId]],
-                //                 columns: [
-                //                     search.createColumn({ name: "type" }),
-                //                     search.createColumn({ name: "assetaccount" }),
-                //                     search.createColumn({ name: "expenseaccount" })
-                //                 ]
-                //             });
-                //             let results = itemSearchObj.run().getRange({ start: 0, end: 1 });
-                //             if (results.length > 0) {
-                //                 let type = results[0].getValue({ name: "type" });
-                //                 let assetAccount = results[0].getValue({ name: "assetaccount" });
-                //                 let expenseAccount = results[0].getValue({ name: "expenseaccount" });
+                        let costCenter = rec.getSublistValue({ sublistId: sublistId, fieldId: 'department', line: i }) || '';
+                        let projectCode = rec.getSublistValue({ sublistId: sublistId, fieldId: 'class', line: i }) || '';
+                        let groupKey = `${sofId}_${costCenter}_${projectCode}`;
+                        let amountField = (sublistId === 'item') ? 
+                            (['purchreq', 'purchord'].includes(recType) ? 'estimatedamount' : 'grossamt') : 
+                            (['purchreq', 'purchord'].includes(recType) ? 'estimatedamount' : 'grossamt');
+                        
+                        let amount = parseFloat(rec.getSublistValue({ sublistId: sublistId, fieldId: amountField, line: i })) || 0;
+                        let statusLine = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custcol_stc_approval_status_line', line: i });
+                        let statusFa = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custcol_stc_apprvl_sts_fa', line: i });
 
-                //                 account = (type === 'InvtPart') ? assetAccount : expenseAccount;
-                //             }
-                //         }
+                        if (!groupMap[groupKey]) {
+                            groupMap[groupKey] = { 
+                                sofId: sofId, total: 0, account: null, costCenter: costCenter, projectCode: projectCode, lines: [] 
+                            };
+                        }
+                        
+                        groupMap[groupKey].total += amount;
+                        groupMap[groupKey].lines.push({ sublist: sublistId, line: i, statusLine: statusLine, statusFa: statusFa });
 
-                //         if (sofId) {
-                //             let cekEmp = getBudgetHolderApproval(sofId, account, grossamt, cretaedBy);
-                //             log.debug('cekEmp', cekEmp)
-                //             if (cekEmp) {
-                //                 newRec.setSublistValue({
-                //                     sublistId: "item",
-                //                     fieldId: "custcol_stc_approver_linetrx",
-                //                     line: i,
-                //                     value: cekEmp
-                //                 });
-                //             }
-                //             newRec.setSublistValue({
-                //                 sublistId: "item",
-                //                 fieldId: "custcol_stc_approval_status_line",
-                //                 line: i,
-                //                 value: "1"
-                //             });
-                //             if(cekType == 'vendbill' || cekType == 'purchreq' ||  cekType == 'purchaseorder'){
-                //                 var emp = getFinanceMatric(sofId, grossamt, cretaedBy)
-                //                 log.debug('emp', emp)
-                //                 if(emp){
-                //                     newRec.setSublistValue({
-                //                         sublistId : "item",
-                //                         fieldId : "custcol_stc_approver_fa",
-                //                         line: i,
-                //                         value : emp
-                //                     })
-                //                     newRec.setSublistValue({
-                //                         sublistId: "item",
-                //                         fieldId: "custcol_stc_apprvl_sts_fa",
-                //                         line: i,
-                //                         value: "1"
-                //                     })
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
+                        if (!groupMap[groupKey].account) {
+                            if (sublistId === 'item') {
+                                let itemId = rec.getSublistValue({ sublistId: 'item', fieldId: 'item', line: i });
+                                if (itemId) {
+                                    let suiteletUrl = url.resolveScript({
+                                        scriptId: "customscript_abj_sl_get_item",
+                                        deploymentId: "customdeploy_abj_sl_get_item",
+                                        params: { custscript_item_id: itemId },
+                                        returnExternalUrl: true
+                                    });
+                                    let response = https.get({ url: suiteletUrl });
+                                    groupMap[groupKey].account = response.body || '';
+                                }
+                            } else {
+                                groupMap[groupKey].account = rec.getSublistValue({ sublistId: 'expense', fieldId: (['exprept', 'purchreq'].includes(recType)) ? 'expenseaccount' : 'account', line: i });
+                            }
+                        }
+                    }
+                });
+                for (let key in groupMap) {
+                    let data = groupMap[key];
+                    let bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.costCenter, data.projectCode);
+                    let finApprover = null;
+                    log.debug('bhApprover', bhApprover)
+                    log.debug('recType',recType)
+                    if (['vendorbill', 'purchaserequisition', 'purchaseorder', 'expensereport'].includes(recType)) {
+                        log.debug('masuk kondisi')
+                        finApprover = getFinanceMatric(data.sofId, data.total, createdBy, data.costCenter, data.projectCode);
+                    }
+                    log.debug('finApprover', finApprover)
+                    data.lines.forEach((item) => {
+                        let isLine2 = (item.statusLine == "2" || item.statusLine == 2);
+                        let isFa2 = (item.statusFa == "2" || item.statusFa == 2);
+
+                        if (!isLine2 || !isFa2) {
+                            rec.selectLine({ sublistId: item.sublist, line: item.line });
+                            if (!isLine2) {
+                                rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_approver_linetrx', value: bhApprover || '' });
+                                rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_approval_status_line', value: "1" });
+                            }
+                            if (!isFa2 && finApprover) {
+                                rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_approver_fa', value: finApprover });
+                                rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_apprvl_sts_fa', value: "1" });
+                            }
+                            rec.commitLine({ sublistId: item.sublist });
+                        }
+                    });
+                }
+
+                rec.save({ ignoreMandatoryFields: true });
                 
-
-                // // ==== LOOP SUBLIST EXPENSE ====
-                // const lineCountExp = newRec.getLineCount({ sublistId: 'expense' });
-                // log.debug('lineCountExp', lineCountExp)
-                // if(lineCountExp > 0){
-                //     for (let i = 0; i < lineCountExp; i++) {
-                //         let account = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'account', line: i });
-                //         let sofId = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'cseg_stc_sof', line: i });
-                //         let grossamt = newRec.getSublistValue({ sublistId: 'expense', fieldId: 'grossamt', line: i });
-
-                //         if (sofId) {
-                //             let cekEmp = getBudgetHolderApproval(sofId, account, grossamt, cretaedBy);
-                //             if(cekType == 'vendbill' || cekType == 'purchreq' ||  cekType == 'purchaseorder' || cekType == 'expensereport'){
-                //                 let empFinance = getFinanceMatric(sofId, grossamt, cretaedBy)
-                //                 log.debug('empFinance', empFinance)
-                //                 if(empFinance){
-                //                     newRec.setSublistValue({
-                //                         sublistId : "expense",
-                //                         fieldId : "custcol_stc_approver_fa",
-                //                         line: i,
-                //                         value : empFinance
-                //                     })
-                //                     newRec.setSublistValue({
-                //                         sublistId: "expense",
-                //                         fieldId: "custcol_stc_apprvl_sts_fa",
-                //                         line: i,
-                //                         value: "1"
-                //                     })  
-                //                 }
-                //             }
-                           
-                //             log.debug('cekEmp', cekEmp)
-                //             if (cekEmp) {
-                //                 newRec.setSublistValue({
-                //                     sublistId: "expense",
-                //                     fieldId: "custcol_stc_approver_linetrx",
-                //                     line: i,
-                //                     value: cekEmp
-                //                 });
-                //             }
-                //             newRec.setSublistValue({
-                //                 sublistId: "expense",
-                //                 fieldId: "custcol_stc_approval_status_line",
-                //                 line: i,
-                //                 value: "1"
-                //             });
-                //         }
-                //     }
-                // }
-                
-
-                // simpan perubahan
-                newRec.save({ ignoreMandatoryFields: true });
             }
 
 
-           
+        
         } catch (e) {
             log.error('Error in afterSubmit', e);
         }

@@ -115,10 +115,10 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     filters.push(search.createFilter({ name: 'startdate', operator: search.Operator.ONORAFTER, values: [periodFields.startdate] }));
                     filters.push(search.createFilter({ name: 'enddate', operator: search.Operator.ONORBEFORE, values: [periodFields.enddate] }));
                     filters.push(search.createFilter({
-                        name: 'department',         // Nama field asli di record employee
-                        join: 'employee',           // Nama join ID
+                        name: 'department',         
+                        join: 'employee',          
                         operator: search.Operator.ANYOF,
-                        values: costCenterHead      // Pastikan ini adalah array ID internal
+                        values: costCenterHead      
                     }));
                     search580.filters = filters;
 

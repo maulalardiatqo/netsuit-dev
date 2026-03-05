@@ -404,12 +404,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 line: line_idx,
                 value: osPO,
               });
-              poData.setSublistValue({
-                sublistId: "item",
-                fieldId: "customer",
-                line: line_idx,
-                value: poCustomerID,
-              });
+              // poData.setSublistValue({
+              //   sublistId: "item",
+              //   fieldId: "customer",
+              //   line: line_idx,
+              //   value: poCustomerID,
+              // });
               poData.setSublistValue({
                 sublistId: "item",
                 fieldId: "custcol_abj_customer_line",

@@ -29,6 +29,8 @@ define(['N/ui/serverWidget',"N/search"], (serverWidget, search) => {
                     "custrecord_tar_drc", 
                     "custrecord_tare_approver", 
                     "custrecord_tar_approver_fa",
+                    "custrecord_tar_activity_code",
+                    "custrecord_ter_business_unit",
                     search.createColumn({ name: "custrecord_tar_travel_from", join: "CUSTRECORD_TAR_E_ID", label: "Travel From" }),
                     search.createColumn({ name: "custrecord_tar_travel_to", join: "CUSTRECORD_TAR_E_ID", label: "Travel To" }),
                     search.createColumn({ name: "cost", join: "CUSTRECORD_TAR_ITEM_DIEM", label: "Purchase Price" })
@@ -56,6 +58,8 @@ define(['N/ui/serverWidget',"N/search"], (serverWidget, search) => {
                     sourceOfFunding: res.getValue("custrecord_tare_source_of_funding"),
                     projectTask: res.getValue("custrecord_tare_project_task"),
                     drc: res.getValue("custrecord_tar_drc"),
+                    activityCode : res.getValue('custrecord_tar_activity_code'),
+                    businessUnit : res.getValue('custrecord_ter_business_unit'),
                     approver: res.getValue("custrecord_tare_approver"),
                     approverFa: res.getValue("custrecord_tar_approver_fa"),
                     travelFrom: res.getValue({ name: "custrecord_tar_travel_from", join: "CUSTRECORD_TAR_E_ID" }),

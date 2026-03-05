@@ -20,16 +20,10 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
         console.log('Processing line', index + 1);
 
-        // ==========================
-        // SELECT NEW LINE
-        // ==========================
         curRec.selectNewLine({
             sublistId: 'recmachcustrecord_tar_id_ter'
         });
 
-        // ==========================
-        // SET NORMAL FIELDS
-        // ==========================
         if (data.date) {
             var d = data.date.split('/');
             var dateSet = new Date(d[2], d[1] - 1, d[0]);
@@ -132,6 +126,14 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     ignoreFieldChange: true
                 });
             }
+            if(data.activityCode){
+                curRec.setCurrentSublistValue({
+                    sublistId: 'recmachcustrecord_tar_id_ter',
+                    fieldId: 'custrecord_tar_activity_code',
+                    value: data.activityCode,
+                    ignoreFieldChange: true
+                });
+            }
             if(data.drc){ 
                 curRec.setCurrentSublistValue({ 
                     sublistId : 'recmachcustrecord_tar_id_ter', 
@@ -161,18 +163,25 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             });
 
             console.log('Line committed:', index + 1);
-
-            // ==========================
-            // NEXT LINE (SERIAL)
-            // ==========================
             processLine(index + 1, dataList);
 
-        }, 450); // jangan < 150ms
+        }, 500); 
     }
     function addLines(allData) {
         processLine(0, allData);
     }
-
+    function parseDateSafe(dateStr) {
+        if (!dateStr) return null;
+        try {
+            var parts = dateStr.split('/');
+            if (parts.length === 3) {
+                return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+            }
+            return new Date(dateStr);
+        } catch (e) {
+            return null;
+        }
+    }
     function searchHeader(tarNo){
         var data = []
         const customrecord_tarSearchObj = search.create({
@@ -233,10 +242,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             fieldId : "custrecord_ter_purpose_of_travel",
                             value : purpose || ''
                         })
+                        console.log('dateReturn', dateReturn)
                         if(dateReturn){
                             curRec.setValue({
                                 fieldId : "custrecord_ter_travel_date_to",
-                                value : new Date(dateReturn)
+                                value : parseDateSafe(dateReturn)
                             })
                         }
                         
@@ -267,7 +277,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         search.createColumn({name: "custrecord_tare_project_task", label: "DEA/Activity"}),
                         search.createColumn({name: "custrecord_tar_drc", label: "DRC"}),
                         search.createColumn({name: "custrecord_tare_approver", label: "Approver"}),
-                        search.createColumn({name: "custrecord_tar_approver_fa", label: "Approver FA"})
+                        search.createColumn({name: "custrecord_tar_approver_fa", label: "Approver FA"}),
+                        search.createColumn({name: "custrecord_tar_activity_code"})
                     ]
                     });
                     var searchResultCount = customrecord_tar_expensesSearchObj.runPaged().count;
@@ -312,6 +323,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         var approverFaText = result.getText({ name: 'custrecord_tar_approver_fa' });
 
                         var approvalStatusFa = result.getValue({ name: 'custrecord_tar_apprvl_sts_fa' });
+                        var activityCode = result.getValue({ name : 'custrecord_tar_activity_code'})
 
                         allData.push({
                             date: date,
@@ -352,7 +364,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                             approverFaId: approverFaId,
                             approverFaText: approverFaText,
 
-                            approvalStatusFa: approvalStatusFa
+                            approvalStatusFa: approvalStatusFa,
+                            activityCode : activityCode
                         });
                         return true;
                     });
