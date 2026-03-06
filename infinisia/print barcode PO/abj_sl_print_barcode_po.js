@@ -23,7 +23,6 @@ define(["N/render", "N/search", "N/record", "N/log"],
                 const itemNameMax = parseInt(loadSetUp.getValue('custrecord_barcode_item_length')) || 25;
                 const lotNumberMax = parseInt(loadSetUp.getValue('custrecord_barcode_lot_length')) || 20;
 
-                // 2. Search Inventory Detail
                 const dataBarcode = [];
                 const inventorydetailSearchObj = search.create({
                     type: "inventorydetail",
@@ -45,12 +44,11 @@ define(["N/render", "N/search", "N/record", "N/log"],
                 });
 
                 inventorydetailSearchObj.run().each((result) => {
-                    let rawLot = result.getValue({ name: 'inventorynumber' }) || "";
+                    let rawLot = result.getText({ name: 'inventorynumber' }) || "";
                     let rawItemCode = result.getValue({ name: 'itemid', join: 'item' }) || "";
                     let rawItemName = result.getValue({ name: 'displayname', join: 'item' }) || "";
                     let qty = Math.abs(parseInt(result.getValue({ name: 'quantity' }))) || 1;
 
-                    // Logika Substring/Max Length untuk Barcode Value
                     let cleanItemForBarcode = rawItemCode.substring(0, itemNameMax).trim();
                     let cleanLotForBarcode = rawLot.substring(0, lotNumberMax).trim();
                     let finalBarcodeValue = `${cleanItemForBarcode}${paddingSymbol}${cleanLotForBarcode}`;
@@ -67,13 +65,12 @@ define(["N/render", "N/search", "N/record", "N/log"],
                     });
                     return true;
                 });
-
+                log.debug('dataBarcode', dataBarcode)
                 if (dataBarcode.length === 0) {
                     context.response.write("Data tidak ditemukan.");
                     return;
                 }
 
-                // 3. Render PDF Logic
                 const style = `
                     <style type="text/css">
                         * { font-family: Arial, sans-serif; }
@@ -88,7 +85,6 @@ define(["N/render", "N/search", "N/record", "N/log"],
                     let item = dataBarcode[i];
                     let count = item.countLabel;
 
-                    // Cetak label sebanyak jumlah Quantity
                     while (count > 0) {
                         let content = getItemDetails(item);
                         pdfPages.push(`
@@ -119,8 +115,8 @@ define(["N/render", "N/search", "N/record", "N/log"],
             }
         };
 
-        // Fungsi Helper Struktur Label
         const getItemDetails = (item) => {
+            log.debug('barcodeValue', item.barcodeValue)
             return `
                 <table style="width: 100%; height: 100%;">
                     <tr>
