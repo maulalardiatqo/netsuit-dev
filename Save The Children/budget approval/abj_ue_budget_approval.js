@@ -103,12 +103,24 @@ function beforeLoad(context) {
                                 }
                             }
                         }else{
-                            log.debug('masuk else')
-                             if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) ||(Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
+                            log.debug('masuk PO')
+                            var typePo = rec.getValue('custbody_stc_po_type');
+                            if(typePo == '1'){
+                                if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) ||(Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
                                     log.debug('masuk kondisi approve FA', approverSatatusFA)
                                     allowButton = true;
                                     break;
                                 }
+                            }else{
+                                 if(cekIsHolder == true){
+                                    if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) ||(Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
+                                        log.debug('masuk kondisi approve FA')
+                                        allowButton = true;
+                                        break;
+                                    }
+                            }
+                        }
+                             
                         }
                         appSubtitue = ''
                         appFASubtitue = ''
