@@ -23,6 +23,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function(search
         if (dateFrom && dateTo) {
             searchLoad.filters.push(search.createFilter({
                 name: "trandate",
+                join: "applyingTransaction", 
                 operator: search.Operator.WITHIN,
                 values: [dateFrom, dateTo]
             }));
