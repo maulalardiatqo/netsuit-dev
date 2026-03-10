@@ -23,11 +23,14 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                     type : recType,
                     id : rec.id
                 })
-                var cekisAppBgt = recBefLoad.getValue('custrecord_tor_approved_by_budget_h')
+                
                 var sublistExpense
                 var sublistItem
                 var approverField
                 var approvalStatusField
+                var approverFAfield
+                var fieldApprovalStatusFA
+                var fieldTriggerBudget
                 var isItem = true
                 if(recType == 'customrecord_tar'){
                     sublistExpense = 'recmachcustrecord_tar_e_id'
@@ -38,14 +41,21 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                     sublistExpense = 'recmachcustrecord_tar_id_ter'
                     approverField = 'custrecord_terd_approver'
                     approvalStatusField = 'custrecord_terd_approval_status'
+                    approverFAfield = 'custrecord_ter_approver_fa'
+                    fieldTriggerBudget = 'custrecord_ter_approved_by_budget_h'
+                    fieldApprovalStatusFA = 'custrecord_ter_apprvl_sts_fa'
                     isItem = true
                 }
                 if(recType == 'customrecord_tor'){
                     sublistItem = 'recmachcustrecord_tori_id'
                     approverField = 'custrecord_tori_approver'
                     approvalStatusField = 'custrecord_tori_approval_status'
+                    approverFAfield = 'custrecord_tori_approver_fa'
+                    fieldTriggerBudget = 'custrecord_tor_approved_by_budget_h'
+                    fieldApprovalStatusFA = 'custrecord_tori_approval_status_fa'
                     isItem = true
                 }
+                var cekisAppBgt = recBefLoad.getValue(fieldTriggerBudget)
                 let allowButton = false;
                 if(isItem){
                     const itemCount = recBefLoad.getLineCount({ sublistId: sublistItem });
@@ -77,9 +87,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             });
                             const approverFA = recBefLoad.getSublistValue({
                                 sublistId: sublistItem,
-                                fieldId: 'custrecord_tori_approver_fa',
+                                fieldId: approverFAfield,
                                 line: i
                             });
+                            log.debug('approverFA', approverFA)
                             var appFASubtitue
                             if(approverFA){
                                 var appFALook = search.lookupFields({
@@ -88,17 +99,20 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                     columns: ["custentity_stc_subtitute_apprvl"],
                                 });
                                 var firstCekFa = appFALook.custentity_stc_subtitute_apprvl
+                                log.debug('firstCekFa', firstCekFa)
                                 if(firstCekFa.length > 0){
                                     appFASubtitue = firstCekFa[0].value;
                                 }
                                 
                             }
+                           
                             const approverSatatusFA = recBefLoad.getSublistValue({
                                 sublistId: sublistItem,
-                                fieldId: 'custrecord_tori_approval_status_fa',
+                                fieldId: fieldApprovalStatusFA,
                                 line: i
                             });
-                            if(recType == 'customrecord_tor'){
+                            if(recType == 'customrecord_tor' || recType == 'customrecord_ter'){
+                                log.debug('cekisAppBgt', cekisAppBgt)
                                 if ((Number(approver) === Number(employeeId) &&
                                         Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) &&
                                         Number(approvalStatus) === 1)) {
@@ -106,9 +120,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                         allowButton = true;
                                         break;
                                     }
-                                    if(cekisAppBgt){
-                                        
-                                        if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) || (Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
+                                if(cekisAppBgt){
+                                    log.debug('data cek', {cekisAppBgt : cekisAppBgt, appFASubtitue : appFASubtitue, employeeId : employeeId, approverSatatusFA : approverSatatusFA})
+                                    if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) || (Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
+
                                         log.debug('masuk kondisi approve FA')
                                         allowButton = true;
                                         break;
@@ -562,7 +577,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                     }
 
                 }else{
-                      // field and sublistCondition
                         var sublistName
                         var apprStatusHeader
                         var headerAppBudgetHolder

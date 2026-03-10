@@ -21,8 +21,7 @@ define(['N/ui/serverWidget', 'N/search', 'N/url'], (serverWidget, search, url) =
             });
 
             sublist.addField({ id: 'col_sof', type: serverWidget.FieldType.TEXT, label: 'SOF' });
-            sublist.addField({ id: 'col_po', type: serverWidget.FieldType.TEXT, label: 'Pledge Order' });
-            sublist.addField({ id: 'col_amt_po', type: serverWidget.FieldType.CURRENCY, label: 'Amount Pledge Order' });
+            sublist.addField({ id: 'col_amt_po', type: serverWidget.FieldType.CURRENCY, label: 'Pledge Order' });
             sublist.addField({ id: 'col_invoice', type: serverWidget.FieldType.CURRENCY, label: 'Invoice' });
             sublist.addField({ id: 'col_receipt', type: serverWidget.FieldType.CURRENCY, label: 'Receipt Payment' });
             sublist.addField({ id: 'col_spending', type: serverWidget.FieldType.CURRENCY, label: 'Sepending Amount' });
@@ -52,10 +51,8 @@ define(['N/ui/serverWidget', 'N/search', 'N/url'], (serverWidget, search, url) =
                 form.clientScriptModulePath = 'SuiteScripts/abj_cs_pagination_po.js'; 
             }
 
-            // 5. Isi Data ke Sublist
             pagedData.forEach((row, index) => {
                 sublist.setSublistValue({ id: 'col_sof', line: index, value: row.sof || ' ' });
-                sublist.setSublistValue({ id: 'col_po', line: index, value: row.po || ' ' });
                 sublist.setSublistValue({ id: 'col_amt_po', line: index, value: row.amtPo.toString() });
                 sublist.setSublistValue({ id: 'col_invoice', line: index, value: row.invoice.toString() });
                 sublist.setSublistValue({ id: 'col_receipt', line: index, value: row.receipt.toString() });
@@ -66,26 +63,79 @@ define(['N/ui/serverWidget', 'N/search', 'N/url'], (serverWidget, search, url) =
             response.writePage(form);
         }
     };
-
-    /**
-     * Fungsi untuk menggabungkan data dari berbagai Saved Search
-     */
     const fetchDataFromSearches = () => {
-        let combinedResults = [];
+        let dataMap = {};
 
-        for (let i = 1; i <= 120; i++) {
-            combinedResults.push({
-                sof: 'Sof' + i,
-                po: 'PO-322' + i,
-                amtPo: 100000,
-                invoice: 100000,
-                receipt: 50000,
-                spending: 50000,
-                percent: '100%'
-            });
-        }
+        const search1 = search.create({
+            type: "transaction",
+            filters: [["type","anyof","SalesOrd","CustInvc"], "AND", ["mainline","is","T"]],
+            columns: [
+                search.createColumn({ name: "altname", join: "jobMain", summary: "GROUP" }),
+                search.createColumn({ name: "formulacurrency", summary: "SUM", formula: "SUM(NVL(CASE WHEN {recordType} = 'salesorder' THEN {amount} END, 0))" }),
+                search.createColumn({ name: "formulacurrency", summary: "SUM", formula: "SUM(NVL(CASE WHEN {recordType} = 'invoice' THEN {amount} END, 0))" })
+            ]
+        });
 
-        return combinedResults;
+        search1.run().each(function(res) {
+            let jobName = res.getValue({ name: "altname", join: "jobMain", summary: "GROUP" });
+            if (jobName) {
+                dataMap[jobName] = {
+                    sof: jobName,
+                    amtPo: parseFloat(res.getValue(res.columns[1])) || 0,
+                    invoice: parseFloat(res.getValue(res.columns[2])) || 0,
+                    receipt: 0, 
+                    spending: 0, 
+                    debit: 0,    
+                    percent: '0%'
+                };
+            }
+            return true;
+        });
+
+        const search2 = search.create({
+            type: "transaction",
+            filters: [["type","anyof","ExpRept","VendBill"], "AND", ["mainline","is","F"]],
+            columns: [
+                search.createColumn({ name: "altname", join: "job", summary: "GROUP" }),
+                search.createColumn({ name: "formulacurrency", summary: "SUM", formula: "SUM(NVL(CASE WHEN {recordType} IN ('vendbill','expensereport') THEN {amount} END, 0))" })
+            ]
+        });
+
+        search2.run().each(function(res) {
+            let jobName = res.getValue({ name: "altname", join: "job", summary: "GROUP" });
+            if (dataMap[jobName]) {
+                dataMap[jobName].spending = parseFloat(res.getValue(res.columns[1])) || 0;
+            }
+            return true;
+        });
+
+        const search3 = search.create({
+            type: "journalentry",
+            filters: [["type","anyof","Journal"], "AND", ["debitamount","greaterthan","0.00"]],
+            columns: [
+                search.createColumn({ name: "altname", join: "job", summary: "GROUP" }),
+                search.createColumn({ name: "debitamount", summary: "SUM" })
+            ]
+        });
+
+        search3.run().each(function(res) {
+            let jobName = res.getValue({ name: "altname", join: "job", summary: "GROUP" });
+            let debitAmt = parseFloat(res.getValue(res.columns[1])) || 0;
+            
+            if (dataMap[jobName]) {
+                dataMap[jobName].receipt = debitAmt; 
+                
+                if (debitAmt > 0) {
+                    let calcPercent = (dataMap[jobName].spending / debitAmt) * 100;
+                    dataMap[jobName].percent = calcPercent.toFixed(2) + '%';
+                } else {
+                    dataMap[jobName].percent = '0%';
+                }
+            }
+            return true;
+        });
+
+        return Object.keys(dataMap).map(key => dataMap[key]);
     };
 
     return { onRequest };

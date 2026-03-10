@@ -77,9 +77,26 @@ define([], () => {
         if(btnRejTer){
             btnRejTer.style.display = 'none';
         }
-         const btnRejTerSec = document.getElementById('secondarycustpageworkflow1151');
+        const btnRejTerSec = document.getElementById('secondarycustpageworkflow1151');
         if(btnRejTerSec){
             btnRejTerSec.style.display = 'none';
+        }
+         const btnAppTerFA = document.getElementById('custpageworkflow1589');
+        if(btnAppTerFA){
+            btnAppTerFA.style.display = 'none';
+        }
+        const btnAppTerSecFA = document.getElementById('secondarycustpageworkflow1589');
+        if(btnAppTerSecFA){
+            btnAppTerSecFA.style.display = 'none';
+        }
+
+        const btnRejTerFA = document.getElementById('custpageworkflow1590');
+        if(btnRejTerFA){
+            btnRejTerFA.style.display = 'none';
+        }
+        const btnRejTerSecFA = document.getElementById('secondarycustpageworkflow1590');
+        if(btnRejTerSecFA){
+            btnRejTerSecFA.style.display = 'none';
         }
         // approval FA
         const btnAppFA = document.getElementById('custpageworkflow292');

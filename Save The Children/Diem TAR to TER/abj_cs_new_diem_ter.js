@@ -46,7 +46,7 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
         function processTarExpenses(rec, tarId, msg) {
             const rawData = fetchTarData(tarId);
             clearSublist(rec, CONFIG.SUBLIST_ID);
-
+            log.debug('rawData', rawData)
             if (!rawData || rawData.length === 0) {
                 if (msg) msg.hide();
                 return;
@@ -59,72 +59,80 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
                     linesToSet.push(...expanded);
                 }
             });
-
+            log.debug('linesToSet', linesToSet)
             populateSublistRecursive(rec, linesToSet, msg);
         }
 
         function populateSublistRecursive(rec, lines, msg) {
-            const sublistId = CONFIG.SUBLIST_ID;
+    const sublistId = CONFIG.SUBLIST_ID;
 
-            function processLine(index) {
-                if (index >= lines.length) {
-                    if (msg) msg.hide();
-                    console.log('Finished populating all lines');
-                    return;
-                }
+    function processLine(index) {
+        if (index >= lines.length) {
+            if (msg) msg.hide();
+            console.log('Finished populating all lines');
+            return;
+        }
 
-                const lineData = lines[index];
+        const lineData = lines[index];
 
-                try {
-                    rec.selectNewLine({ sublistId: sublistId });
-                    safeSet(rec, sublistId, 'custrecord_ted_item', lineData.itemDiem);
-                    safeSet(rec, sublistId, 'custrecord_terd_from', lineData.travelFrom);
-                    safeSet(rec, sublistId, 'custrecord_terd_to', lineData.travelTo);
-                    
-                    const dateObj = convertToDateObject(lineData.generatedDate);
-                    safeSet(rec, sublistId, 'custrecord_terd_date', dateObj);
-                    
-                    safeSet(rec, sublistId, 'custrecord_terd_description', lineData.memo);
-                    safeSet(rec, sublistId, 'custrecord_terd_rate', lineData.finalAmount);
-                    safeSet(rec, sublistId, 'custrecord_terd_amount', lineData.finalAmount);
-                    safeSet(rec, sublistId, 'custrecord_terd_donor', lineData.sof, false); 
-                    safeSet(rec, sublistId, 'custrecord_terd_sourcing_of_funding', lineData.sourceOfFunding, false);
-                    
-                    setTimeout(function() {
-                        try {
-                            safeSet(rec, sublistId, 'custrecord_terd_cost_center', lineData.costCenter);
-                            safeSet(rec, sublistId, 'custrecord_terd_project_code', lineData.projectCode);
-                            
-                            if (lineData.projectTask) {
-                                safeSet(rec, sublistId, 'custrecord_terd_project_task', lineData.projectTask);
-                            }
-                            log.debug('lineData.activityCode', lineData.activityCode)
-                            log.debug('lineData.businessUnit', lineData.businessUnit)
-                            safeSet(rec, sublistId, 'custrecord_ter_activity_code', lineData.activityCode);
-                            safeSet(rec, sublistId, 'custrecord_ter_diem_business_unit', lineData.businessUnit);
-                            safeSet(rec, sublistId, 'custrecord_ter_dea', lineData.dea);
-                            safeSet(rec, sublistId, 'custrecord_ter_drc', lineData.drc);
-                            safeSet(rec, sublistId, 'custrecord_terd_approver', lineData.approver);
-                            safeSet(rec, sublistId, 'custrecord_ter_approver_fa', lineData.approverFa);
-                            const committed = rec.commitLine({ sublistId: sublistId });
-                            console.log(`Line ${index + 1} Committed: ${committed}`);
+        try {
+            log.debug('lineData', lineData);
+            rec.selectNewLine({ sublistId: sublistId });
 
-                            processLine(index + 1);
+            safeSet(rec, sublistId, 'custrecord_ted_item', lineData.itemDiem, true);
+            safeSet(rec, sublistId, 'custrecord_terd_from', lineData.travelFrom);
+            safeSet(rec, sublistId, 'custrecord_terd_to', lineData.travelTo);
 
-                        } catch (timeoutErr) {
-                            console.error(`Error commit line ${index}`, timeoutErr);
-                            processLine(index + 1);
-                        }
-                    }, 300);
+            const dateObj = convertToDateObject(lineData.generatedDate);
+            safeSet(rec, sublistId, 'custrecord_terd_date', dateObj);
 
-                } catch (err) {
-                    console.error(`Error select line ${index}`, err);
-                    processLine(index + 1);
-                }
+            safeSet(rec, sublistId, 'custrecord_terd_description', lineData.memo);
+            safeSet(rec, sublistId, 'custrecord_terd_rate', lineData.finalAmount);
+            safeSet(rec, sublistId, 'custrecord_terd_amount', lineData.finalAmount);
+            safeSet(rec, sublistId, 'custrecord_terd_donor', lineData.sof, false);
+            safeSet(rec, sublistId, 'custrecord_terd_sourcing_of_funding', lineData.sourceOfFunding, false);
+
+            safeSet(rec, sublistId, 'custrecord_terd_cost_center', lineData.costCenter);
+            safeSet(rec, sublistId, 'custrecord_terd_project_code', lineData.projectCode);
+
+            if (lineData.projectTask) {
+                safeSet(rec, sublistId, 'custrecord_terd_project_task', lineData.projectTask);
             }
 
-            processLine(0);
+            safeSet(rec, sublistId, 'custrecord_ter_activity_code', lineData.activityCode);
+            safeSet(rec, sublistId, 'custrecord_ter_diem_business_unit', lineData.businessUnit);
+            safeSet(rec, sublistId, 'custrecord_ter_dea', lineData.dea);
+            safeSet(rec, sublistId, 'custrecord_ter_drc', lineData.drc);
+            safeSet(rec, sublistId, 'custrecord_terd_approver', lineData.approver);
+            safeSet(rec, sublistId, 'custrecord_ter_approver_fa', lineData.approverFa);
+
+            const committed = rec.commitLine({ sublistId: sublistId });
+            console.log(`Line ${index + 1} Committed: ${committed}`);
+
+            setTimeout(function() {
+                processLine(index + 1);
+            }, 100);
+
+        } catch (err) {
+            console.error(`Error processing line ${index}`, err);
+            processLine(index + 1);
         }
+    }
+
+    processLine(0);
+}
+
+function safeSet(rec, sublist, fieldId, value, ignoreChange = true) {
+    if (value !== null && value !== undefined && value !== '') {
+        rec.setCurrentSublistValue({
+            sublistId: sublist,
+            fieldId: fieldId,
+            value: value,
+            ignoreFieldChange: ignoreChange,
+            forceSyncSourcing: true
+        });
+    }
+}
 
 
         function safeSet(rec, sublist, fieldId, value, ignoreChange = true) {
@@ -133,7 +141,8 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
                     sublistId: sublist, 
                     fieldId: fieldId, 
                     value: value,
-                    ignoreFieldChange: ignoreChange
+                    ignoreFieldChange: ignoreChange,
+                    forceSyncSourcing: true
                 });
             }
         }
@@ -161,11 +170,8 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
                 const startDate = format.parse({ value: dataRow.dateDepart, type: format.Type.DATE });
                 const endDate = format.parse({ value: dataRow.dateReturn, type: format.Type.DATE });
                 const baseAmount = parseFloat(dataRow.amountBase) || 0;
-                log.debug('baseAmount', baseAmount)
                 const percentage = parseFloat(dataRow.percentage) || 0;
-                log.debug('percentage', percentage)
                 const calculatedAmount = baseAmount * percentage;
-                log.debug('calculatedAmount', calculatedAmount)
 
                 let currentDate = new Date(startDate.getTime());
                 while (currentDate <= endDate) {

@@ -14,102 +14,88 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 if (allidFulfill.length > 0) {
                     var trandate = ''
                     allidFulfill.forEach((data) => {
-                        var idFulfill = data
+                        var idFulfill = data;
                         log.debug('idFulfill', idFulfill);
+
+                        var loadFulfill = record.load({
+                            type: 'itemfulfillment',
+                            id: idFulfill
+                        });
+
+                        var countLine = loadFulfill.getLineCount({
+                            sublistId: 'item'
+                        });
+
+                        var lineMapping = {}; 
+                        for (var i = 0; i < countLine; i++) {
+                            var unitConversion = loadFulfill.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'unitconversion',
+                                line: i
+                            });
+
+                            var lineId = loadFulfill.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'line', 
+                                line: i
+                            });
+
+                            lineMapping[lineId] = unitConversion;
+                        }
+                        
+                        log.debug('lineMapping Table', lineMapping);
 
                         var fulfillmentSearchObj = search.create({
                             type: "itemfulfillment",
-                            filters:
-                                [
-                                    ["internalid", "anyof", idFulfill],
-                                    "AND",
-                                    ["createdfrom.type", "anyof", "SalesOrd"],
-                                    "AND",
-                                    ["cogs", "is", "F"],
-                                    "AND",
-                                    ["formulanumeric: {quantity}", "greaterthan", "0"]
-                                    
-                                ],
-                            columns:
-                                [
-                                    // search.createColumn({
-                                    //     name: "inventorynumber",
-                                    //     join: "inventoryDetail",
-                                    //     label: " Number"
-                                    // }),
-                                    search.createColumn({ name: "item", label: "Item" }),
-                                    search.createColumn({ name: "quantityuom", label: "Quantity" }),
-                                    search.createColumn({ name: "tranid" }),
-                                    search.createColumn({ name: "entity" }),
-                                    search.createColumn({ name: "trandate" }),
-                                    
-                                    // search.createColumn({
-                                    //     name: "legalname",
-                                    //     join: "customer",
-                                    //     label: "Legal Name"
-                                    // }),
-                                    // search.createColumn({
-                                    //     name: "expirationdate",
-                                    //     join: "inventoryDetail",
-                                    //     label: "Expiration Date"
-                                    // }),
-                                    // search.createColumn({
-                                    //     name: "inventorynumber",
-                                    //     join: "inventoryDetail",
-                                    //     label: "Expiration Date"
-                                    // })
-                                ]
+                            filters: [
+                                ["internalid", "anyof", idFulfill],
+                                "AND",
+                                ["createdfrom.type", "anyof", "SalesOrd"],
+                                "AND",
+                                ["cogs", "is", "F"],
+                                "AND",
+                                ["formulanumeric: {quantity}", "greaterthan", "0"]
+                            ],
+                            columns: [
+                                search.createColumn({ name: "item", label: "Item" }),
+                                search.createColumn({ name: "quantityuom", label: "Quantity" }),
+                                search.createColumn({ name: "tranid" }),
+                                search.createColumn({ name: "entity" }),
+                                search.createColumn({ name: "trandate" }),
+                                search.createColumn({ name: "line" }) 
+                            ]
                         });
-                        var searchResultCount = fulfillmentSearchObj.runPaged().count;
-                        log.debug("fulfillmentSearchObj result count", searchResultCount);
+
                         fulfillmentSearchObj.run().each(function (result) {
-                            var itemName = result.getText({
-                                name: "item"
-                            });
-                            var itemId = result.getValue({
-                                name: "item"
-                            });
-                            var tandId = result.getValue({
-                                name: "tranid"
-                            });
-                            var qty = result.getValue({
-                                name: "quantityuom"
-                            });
-                            var custName = result.getText({
-                                name: "entity"
-                            });
-                            // var lotNumber = result.getText({
-                            //     name: "inventorynumber",
-                            //     join: "inventoryDetail",
-                            // });
-                            // log.debug('lotNumber', lotNumber)
-                            // var expireDate = result.getValue({
-                            //     name: "expirationdate",
-                            //     join: "inventoryDetail",
-                            // });
-                            trandate = result.getValue({
-                                name: "trandate"
-                            });
-                            log.debug('itemName', itemName);
+                            var itemName = result.getText({ name: "item" });
+                            var itemId = result.getValue({ name: "item" });
+                            var tandId = result.getValue({ name: "tranid" });
+                            var qty = result.getValue({ name: "quantityuom" });
+                            var custName = result.getText({ name: "entity" });
+                            var lineUniq = result.getValue({ name: "line" });
+                            log.debug('lineUniq', lineUniq)
+                            trandate = result.getValue({ name: "trandate" });
+
+                            var matchedUnitConv = lineMapping[lineUniq] || 1; 
+
                             if (itemName) {
                                 allData.push({
                                     itemName: itemName,
                                     qty: qty,
                                     custName: custName,
-                                    // lotNumber: lotNumber,
-                                    // expireDate: expireDate,
+                                    lineUniq: lineUniq,
+                                    unitConversion: matchedUnitConv,
                                     tandId: tandId,
-                                    itemId : itemId,
-                                    idFulfill : idFulfill
-                                })
+                                    itemId: itemId,
+                                    idFulfill: idFulfill
+                                });
                             }
 
                             return true;
                         });
-                        log.debug('allData', allData);
-
-
-                    })
+                        
+                        log.debug('allData Updated', allData);
+                    });
                     var companyInfo = config.load({
                         type: config.Type.COMPANY_INFORMATION
                     });
@@ -347,6 +333,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var packing = data.tandId;
                 var itemId = data.itemId;
                 var idFulfill = data.idFulfill;
+                var unitConversion = data.unitConversion
+                
                 var lotNumberItem = [];
 
                 var itemfulfillmentSearchObj = search.create({
@@ -373,7 +361,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         })
                     ]
                 });
-
+                
                 var searchResultCount = itemfulfillmentSearchObj.runPaged().count;
                 log.debug("itemfulfillmentSearchObj result count", searchResultCount);
 
@@ -401,12 +389,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var ket = '';
 
                 lotNumberItem.forEach(function (lotData) {
+                    log.debug('unitConversion', unitConversion)
+                    var qtySet = Number(lotData.qtyLot) / Number(unitConversion)
                     body += "<tr>";
                     body += "<td style='font-size: 10px; border: 1px solid black; border-right:none; text-align:center'>" + No + "</td>";
                     body += "<td style='text-align:left; font-size:10px; border: 1px solid black; border-right:none;'>" + custName + "</td>";
                     body += "<td style='text-align:left; font-size:10px; border: 1px solid black; border-right:none;'>" + itemName + "</td>";
                     body += "<td style='text-align:center; font-size:10px; border: 1px solid black; border-right:none;'>" + lotData.qtyLot + "</td>";
-                    body += "<td style='text-align:center; font-size:10px; border: 1px solid black; border-right:none;'>" + qty + "</td>";
+                    body += "<td style='text-align:center; font-size:10px; border: 1px solid black; border-right:none;'>" + qtySet + "</td>";
                     body += "<td style='text-align:center; font-size:10px; border: 1px solid black; border-right:none;'>" + lotData.lot + "</td>";
                     body += "<td style='text-align:left; font-size:10px; border: 1px solid black;'>" + ket + "</td>";
                     body += "</tr>";

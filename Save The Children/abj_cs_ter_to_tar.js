@@ -10,6 +10,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         return parseFloat(percentStr.replace('%', ''));
     }
     function processLine(index, dataList) {
+
         if (index >= dataList.length) {
             console.log('ALL LINES SUCCESSFULLY COMMITTED');
             return;
@@ -17,8 +18,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
         var curRec = currentRecord.get();
         var data = dataList[index];
-
-        console.log('Processing line', index + 1);
+        
+        log.debug('Processing line', {index : index, data : data});
 
         curRec.selectNewLine({
             sublistId: 'recmachcustrecord_tar_id_ter'
@@ -145,7 +146,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 curRec.setCurrentSublistValue({ 
                     sublistId : 'recmachcustrecord_tar_id_ter', 
                     fieldId : 'custrecord_tar_dea',
-                     value : data.dea 
+                    value : data.dea 
                 }) 
             }
             curRec.setCurrentSublistValue({
@@ -395,7 +396,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                 }
                             }
                         }
-                        console.log('allData', allData)
+                        log.debug('allData', allData)
                         addLines(allData);
 
                     }
@@ -409,7 +410,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     var expDateReturn = curRec.getText('custrecord_link_ter_expctd_return')
                     var keyA = dateFrom + '-' + dateTo
                     var keyB = expDateDep + '-' + expDateReturn
-                    console.log('data banding', {
+                    log.debug('data banding', {
                         keyA : keyA, keyB : keyB
                     })
                     if(keyA != keyB){
