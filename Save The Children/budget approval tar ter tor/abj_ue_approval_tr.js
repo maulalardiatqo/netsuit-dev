@@ -18,7 +18,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
 
                 const rec = context.newRecord;
                 const recType = rec.type
-                log.debug('recType', recType);
+                // log.debug('recType', recType);
                 var recBefLoad = record.load({
                     type : recType,
                     id : rec.id
@@ -59,7 +59,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 let allowButton = false;
                 if(isItem){
                     const itemCount = recBefLoad.getLineCount({ sublistId: sublistItem });
-                    log.debug('itemCount', itemCount)
+                    // log.debug('itemCount', itemCount)
                     if(itemCount > 0){
                         for (let i = 0; i < itemCount; i++) {
                             const approver = recBefLoad.getSublistValue({
@@ -90,7 +90,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 fieldId: approverFAfield,
                                 line: i
                             });
-                            log.debug('approverFA', approverFA)
+                            // log.debug('approverFA', approverFA)
                             var appFASubtitue
                             if(approverFA){
                                 var appFALook = search.lookupFields({
@@ -99,7 +99,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                     columns: ["custentity_stc_subtitute_apprvl"],
                                 });
                                 var firstCekFa = appFALook.custentity_stc_subtitute_apprvl
-                                log.debug('firstCekFa', firstCekFa)
+                                // log.debug('firstCekFa', firstCekFa)
                                 if(firstCekFa.length > 0){
                                     appFASubtitue = firstCekFa[0].value;
                                 }
@@ -112,11 +112,11 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 line: i
                             });
                             if(recType == 'customrecord_tor' || recType == 'customrecord_ter'){
-                                log.debug('cekisAppBgt', cekisAppBgt)
+                                // log.debug('cekisAppBgt', cekisAppBgt)
                                 if ((Number(approver) === Number(employeeId) &&
                                         Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) &&
                                         Number(approvalStatus) === 1)) {
-                                            log.debug('masuk allow')
+                                            // log.debug('masuk allow')
                                         allowButton = true;
                                         break;
                                     }
@@ -124,18 +124,18 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                     log.debug('data cek', {cekisAppBgt : cekisAppBgt, appFASubtitue : appFASubtitue, employeeId : employeeId, approverSatatusFA : approverSatatusFA})
                                     if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) || (Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
 
-                                        log.debug('masuk kondisi approve FA')
+                                        // log.debug('masuk kondisi approve FA')
                                         allowButton = true;
                                         break;
                                     }
                                 }
                                 
                             }else{
-                                log.debug('kondisi else tor', {
-                                    appSubtitue : appFASubtitue,
-                                    employeeId : employeeId,
-                                    approvalStatus : approvalStatus
-                                })
+                                // log.debug('kondisi else tor', {
+                                //     appSubtitue : appFASubtitue,
+                                //     employeeId : employeeId,
+                                //     approvalStatus : approvalStatus
+                                // })
                                 if ((Number(approver) === Number(employeeId) &&
                                     Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) &&
                                     Number(approvalStatus) === 1)) {
@@ -180,7 +180,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 const approver = row.getValue(approverField);
                                 var appSubtitue
                                 if(approver){
-                                    log.debug('approver', approver)
+                                    // log.debug('approver', approver)
                                     var empLook = search.lookupFields({
                                         type: "employee",
                                         id: approver,
@@ -189,7 +189,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                     var firstCek = empLook.custentity_stc_subtitute_apprvl
                                     if(firstCek.length> 0){
                                         appSubtitue = firstCek[0].value;
-                                        log.debug('appSubtitue', appSubtitue)
+                                        // log.debug('appSubtitue', appSubtitue)
                                     }
                                     
                                 }
@@ -198,7 +198,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                     var approverFA = row.getValue(approvalFaField);
                                     var appFASubtitue
                                     if(approverFA){
-                                        log.debug('approverFA', approverFA)
+                                        // log.debug('approverFA', approverFA)
                                         var appFALook = search.lookupFields({
                                             type: "employee",
                                             id: approverFA,
@@ -207,7 +207,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                         var firscekFA = appFALook.custentity_stc_subtitute_apprvl
                                         if(firscekFA.length > 0){
                                             appFASubtitue = firscekFA[0].value;
-                                            log.debug('appFASubtitue', appFASubtitue)
+                                            // log.debug('appFASubtitue', appFASubtitue)
                                         }
                                         
                                     }
@@ -225,17 +225,17 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 //     approverStatusFA,
                                 //     employeeId
                                 // });
-                                log.debug('cek data app TAR', {
-                                    appSubtitue : Number(appSubtitue),
-                                    employeeId : employeeId,
-                                    approvalStatus : approvalStatus
-                                })
+                                // log.debug('cek data app TAR', {
+                                //     appSubtitue : Number(appSubtitue),
+                                //     employeeId : employeeId,
+                                //     approvalStatus : approvalStatus
+                                // })
                                 if (
                                     (Number(approver) === Number(employeeId) &&
                                     Number(approvalStatus) === 1) || (Number(appSubtitue) == Number(employeeId) &&
                                     Number(approvalStatus) === 1)
                                 ) {
-                                    log.debug('masuk kondisi approve regular');
+                                    // log.debug('masuk kondisi approve regular');
                                     allowButton = true;
                                     break;
                                 }
@@ -253,9 +253,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         }
                     }
                     if(recType === 'customrecord_ter'){
-                        log.debug('exp')
+                        // log.debug('exp')
                         const expCount = recBefLoad.getLineCount({ sublistId: 'recmachcustrecord_tar_id_ter' });
-                        log.debug('expCount', expCount)
+                        // log.debug('expCount', expCount)
                         for (let j = 0; j < expCount; j++) {
                             const approver = recBefLoad.getSublistValue({
                                 sublistId: 'recmachcustrecord_tar_id_ter',
@@ -264,7 +264,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             });
                              var appSubtitue
                             if(approver){
-                                log.debug('approver', approver)
+                                // log.debug('approver', approver)
                                 var empLook = search.lookupFields({
                                     type: "employee",
                                     id: approver,
@@ -273,7 +273,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 var firstCek = empLook.custentity_stc_subtitute_apprvl
                                 if(firstCek.length > 0){
                                     appSubtitue = firstCek[0].value;
-                                    log.debug('appSubtitue', appSubtitue)
+                                    // log.debug('appSubtitue', appSubtitue)
                                 }
                                 
                             }
@@ -282,21 +282,26 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 fieldId: 'custrecord_tare_approval_status',
                                 line: j
                             });
-                            log.debug('approvalStatus', approvalStatus)
+                            // log.debug('approvalStatus', approvalStatus)
                             if ((Number(approver) === Number(employeeId) &&
                                 Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) &&
                                 Number(approvalStatus) === 1)) {
-                                    log.debug('kondisi approver')
+                                    // log.debug('kondisi approver')
                                 allowButton = true;
                                 break;
                             }
+                            // recBefLoad.setValue({
+                            //     fieldId : "custrecord_ter_apprvl_by_finance",
+                            //     value : ""
+                            // })
+                            // recBefLoad.save()
                         }
                     }
 
                     
                 }
 
-                log.debug('allowButton', allowButton)
+                // log.debug('allowButton', allowButton)
                 if (!allowButton) {
                     
                     context.form.clientScriptModulePath = 'SuiteScripts/abj_cs_hide_button.js';
@@ -328,9 +333,13 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 columns: ["custentity_stc_subtitute_apprvl"],
             });
             var firstCek = empLook.custentity_stc_subtitute_apprvl
-            if(firstCek.length > 0){
-                appSubtitue = firstCek[0].value;
+            log.debug('firstCek', firstCek)
+            if(firstCek){
+                if(firstCek.length > 0){
+                    appSubtitue = firstCek[0].value;
+                }
             }
+            
             
             return appSubtitue
         }
@@ -810,7 +819,13 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             log.debug('data approve FA TER', {
                                 newValFA : newValFA, oldValFA : oldValFA, employeeId : employeeId, cekIsHO : cekIsHO
                             })
-
+                            if(newValFA == oldValFA){
+                                log.debug('masuk value sama')
+                                newRecLoad.setValue({
+                                    fieldId : 'custrecord_ter_apprvl_by_finance',
+                                    value : ""
+                                })
+                            }
                             if(newValFA !== oldValFA && employeeId === newValFA && cekIsHO === true){
                                 log.debug('masuk kondisi approve ter FA')
                                 updateLinesForUserFA(sublistName, 2)

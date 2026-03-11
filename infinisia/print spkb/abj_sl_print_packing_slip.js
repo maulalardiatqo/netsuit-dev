@@ -17,34 +17,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var idFulfill = data;
                         log.debug('idFulfill', idFulfill);
 
-                        var loadFulfill = record.load({
-                            type: 'itemfulfillment',
-                            id: idFulfill
-                        });
-
-                        var countLine = loadFulfill.getLineCount({
-                            sublistId: 'item'
-                        });
-
-                        var lineMapping = {}; 
-                        for (var i = 0; i < countLine; i++) {
-                            var unitConversion = loadFulfill.getSublistValue({
-                                sublistId: 'item',
-                                fieldId: 'unitconversion',
-                                line: i
-                            });
-
-                            var lineId = loadFulfill.getSublistValue({
-                                sublistId: 'item',
-                                fieldId: 'line', 
-                                line: i
-                            });
-
-                            lineMapping[lineId] = unitConversion;
-                        }
-                        
-                        log.debug('lineMapping Table', lineMapping);
-
                         var fulfillmentSearchObj = search.create({
                             type: "itemfulfillment",
                             filters: [
@@ -62,7 +34,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 search.createColumn({ name: "tranid" }),
                                 search.createColumn({ name: "entity" }),
                                 search.createColumn({ name: "trandate" }),
-                                search.createColumn({ name: "line" }) 
+                                search.createColumn({ name: "custcol_unitconversion_fulfill" }) 
                             ]
                         });
 
@@ -72,19 +44,16 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             var tandId = result.getValue({ name: "tranid" });
                             var qty = result.getValue({ name: "quantityuom" });
                             var custName = result.getText({ name: "entity" });
-                            var lineUniq = result.getValue({ name: "line" });
-                            log.debug('lineUniq', lineUniq)
                             trandate = result.getValue({ name: "trandate" });
+                            var unitConversion = result.getValue({ name  : 'custcol_unitconversion_fulfill'}) || 1
 
-                            var matchedUnitConv = lineMapping[lineUniq] || 1; 
 
                             if (itemName) {
                                 allData.push({
                                     itemName: itemName,
                                     qty: qty,
                                     custName: custName,
-                                    lineUniq: lineUniq,
-                                    unitConversion: matchedUnitConv,
+                                    unitConversion: unitConversion,
                                     tandId: tandId,
                                     itemId: itemId,
                                     idFulfill: idFulfill
