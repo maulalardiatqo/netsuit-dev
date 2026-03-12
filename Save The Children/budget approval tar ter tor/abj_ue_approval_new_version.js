@@ -290,11 +290,42 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 allowButton = true;
                                 break;
                             }
-                            // recBefLoad.setValue({
-                            //     fieldId : "custrecord_ter_apprvl_by_finance",
-                            //     value : ""
-                            // })
-                            // recBefLoad.save()
+                            // =====================
+                            const approverFA = recBefLoad.getSublistValue({
+                                sublistId: 'recmachcustrecord_tar_id_ter',
+                                fieldId: 'custrecord_tar_approver_fa',
+                                line: j
+                            });
+                            var appFaSubtitue
+                            if(approverFA){
+                                
+                                var empLook = search.lookupFields({
+                                    type: "employee",
+                                    id: approverFA,
+                                    columns: ["custentity_stc_subtitute_apprvl"],
+                                });
+                                var firstCek = empLook.custentity_stc_subtitute_apprvl
+                                if(firstCek.length > 0){
+                                    appFaSubtitue = firstCek[0].value;
+                                    
+                                }
+                                
+                            }
+                            const approvalStatusFA = recBefLoad.getSublistValue({
+                                sublistId: 'recmachcustrecord_tar_id_ter',
+                                fieldId: 'custrecord_tar_apprvl_sts_fa',
+                                line: j
+                            });
+                            log.debug('data exp ter FA', {approverFA : approverFA, appFaSubtitue : appFaSubtitue, approvalStatusFA : approvalStatusFA})
+                            if (
+                                    (Number(approverFA) === Number(employeeId) &&
+                                    Number(approvalStatusFA) === 1) || (Number(appFaSubtitue) === Number(employeeId) &&
+                                    Number(approvalStatusFA) === 1)
+                                ) {
+                                    log.debug('masuk kondisi approve FA EXP TER');
+                                    allowButton = true;
+                                    break;
+                                }
                         }
                     }
 

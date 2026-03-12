@@ -41,6 +41,7 @@ define(["N/runtime", "N/log", "N/record"], (runtime, log, record) => {
                             fieldId : 'custrecord_tor_link_tar',
                             line : i
                         })
+                        log.debug('createdTransTAR', createdTransTAR)
                         log.debug('cekTransType', cekTransType)
                         if(cekTransType == '1' && (createdTrans == '' || createdTrans == null)){
                             showBtnPO = true
@@ -52,10 +53,12 @@ define(["N/runtime", "N/log", "N/record"], (runtime, log, record) => {
                             showBtnPR = true
                         }
                         if(cekTransType == '4' && (createdTransTAR == '' || createdTransTAR == null)){
+                            log.debug('masuk kondisi', createdTransTAR)
                             showBtnTar = true
                         }
                     }
                 }
+                
                 if(showBtnPR){
                     form.addButton({
                         id: 'custpage_btn_transform_pr',

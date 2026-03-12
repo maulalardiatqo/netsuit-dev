@@ -253,9 +253,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                         }
                     }
                     if(recType === 'customrecord_ter'){
-                        // log.debug('exp')
+                        log.debug('exp')
                         const expCount = recBefLoad.getLineCount({ sublistId: 'recmachcustrecord_tar_id_ter' });
-                        // log.debug('expCount', expCount)
+                        log.debug('expCount', expCount)
                         for (let j = 0; j < expCount; j++) {
                             const approver = recBefLoad.getSublistValue({
                                 sublistId: 'recmachcustrecord_tar_id_ter',
@@ -264,7 +264,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             });
                              var appSubtitue
                             if(approver){
-                                // log.debug('approver', approver)
+                                
                                 var empLook = search.lookupFields({
                                     type: "employee",
                                     id: approver,
@@ -273,7 +273,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 var firstCek = empLook.custentity_stc_subtitute_apprvl
                                 if(firstCek.length > 0){
                                     appSubtitue = firstCek[0].value;
-                                    // log.debug('appSubtitue', appSubtitue)
+                                    
                                 }
                                 
                             }
@@ -282,7 +282,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 fieldId: 'custrecord_tare_approval_status',
                                 line: j
                             });
-                            // log.debug('approvalStatus', approvalStatus)
+                            
                             if ((Number(approver) === Number(employeeId) &&
                                 Number(approvalStatus) === 1) || (Number(appSubtitue) === Number(employeeId) &&
                                 Number(approvalStatus) === 1)) {
@@ -295,17 +295,52 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                             //     value : ""
                             // })
                             // recBefLoad.save()
+                             const approverFA = recBefLoad.getSublistValue({
+                                sublistId: 'recmachcustrecord_tar_id_ter',
+                                fieldId: 'custrecord_tar_approver_fa',
+                                line: j
+                            });
+                            var appFaSubtitue
+                            if(approverFA){
+                                
+                                var empLook = search.lookupFields({
+                                    type: "employee",
+                                    id: approverFA,
+                                    columns: ["custentity_stc_subtitute_apprvl"],
+                                });
+                                var firstCek = empLook.custentity_stc_subtitute_apprvl
+                                if(firstCek.length > 0){
+                                    appFaSubtitue = firstCek[0].value;
+                                    
+                                }
+                                
+                            }
+                            const approvalStatusFA = recBefLoad.getSublistValue({
+                                sublistId: 'recmachcustrecord_tar_id_ter',
+                                fieldId: 'custrecord_tar_apprvl_sts_fa',
+                                line: j
+                            });
+                            log.debug('data exp ter FA', {approverFA : approverFA, appFaSubtitue : appFaSubtitue, approvalStatusFA : approvalStatusFA})
+                            if (
+                                    (Number(approverFA) === Number(employeeId) &&
+                                    Number(approvalStatusFA) === 1) || (Number(appFaSubtitue) === Number(employeeId) &&
+                                    Number(approvalStatusFA) === 1)
+                                ) {
+                                    log.debug('masuk kondisi approve FA EXP TER');
+                                    allowButton = true;
+                                    break;
+                                }
                         }
                     }
 
                     
                 }
 
-                // log.debug('allowButton', allowButton)
+                log.debug('allowButton', allowButton)
                 if (!allowButton) {
                     
                     context.form.clientScriptModulePath = 'SuiteScripts/abj_cs_hide_button.js';
-                    // log.debug('Client Script Loaded', 'Button will be hidden');
+                    log.debug('Client Script Loaded', 'Button will be hidden');
 
                     
                 } else {
