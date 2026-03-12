@@ -13,6 +13,7 @@ define(['N/record', 'N/file', 'N/format', 'N/log'], (record, file, format, log) 
                 value: sentAtDate,
                 type: format.Type.DATE
             });
+
             let fileName = `Webhook_Log_${new Date().getTime()}.json`;
             let jsonFile = file.create({
                 name: fileName,
@@ -21,7 +22,8 @@ define(['N/record', 'N/file', 'N/format', 'N/log'], (record, file, format, log) 
                 folder: 642 
             });
             let fileId = jsonFile.save();
-            log.debug('fileId', fileId)
+            log.debug('File Created', `ID: ${fileId}`);
+
             let customRec = record.create({
                 type: 'customtransaction_abj_integration_log',
                 isDynamic: true
@@ -37,23 +39,17 @@ define(['N/record', 'N/file', 'N/format', 'N/log'], (record, file, format, log) 
                 value: JSON.stringify(requestBody)
             });
 
-            
-            let recordId = customRec.save();
-            log.debug('recordId', recordId)
-            record.attach({
-                record: {
-                    type: 'file',
-                    id: fileId
-                },
-                to: {
-                    type: 'customtransaction_abj_integration_log',
-                    id: recordId
-                }
+            customRec.setValue({
+                fieldId: 'custbody_file_integration',
+                value: fileId
             });
+
+            let recordId = customRec.save();
+            log.debug('Record Created', `ID: ${recordId}`);
 
             return {
                 status: "success",
-                message: "Record created successfully",
+                message: "Record created and file linked successfully",
                 recordId: recordId,
                 fileId: fileId
             };
