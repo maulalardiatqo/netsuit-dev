@@ -29,51 +29,31 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function(search
             }));
         }
 
-        const firstResults = searchLoad.run().getRange({ start: 0, end: 1000 });
-        if (firstResults.length === 0) return [];
 
-        const internalIds = firstResults.map(res => res.id);
-        log.debug('internalIds', internalIds)
-        const amountMap = {};
-        const secondarySearch = search.load({ id: 'customsearch_sos_wht__2_2' });
-        
-        secondarySearch.filters.push(search.createFilter({
-            name: 'internalid',
-            operator: search.Operator.ANYOF,
-            values: internalIds
-        }));
-        log.debug('secondarySearch', secondarySearch)
-       secondarySearch.run().each(res => {
-        log.debug('res', res)
-            let recordId = res.getValue(res.columns[0]); 
-            let amountValue = res.getValue(res.columns[1]);
-            log.debug('amountValue', amountValue)
-            
-            if (recordId) {
-                amountMap[recordId] = amountValue;
-            }
-            return true;
-        });
-
-        return firstResults.map(res => {
-            let data = JSON.parse(JSON.stringify(res));
-            data.dpp_amount_custom = amountMap[res.id] || 0; 
-            return data;
-        });
+        return searchLoad;
     }
 
     function map(context) {
         const result = JSON.parse(context.value);
         const values = result.values;
+        log.debug('values', values);
 
-        let dppValue = Number(result.dpp_amount_custom);
-        log.debug('dppValue',dppValue) 
+        let dppValue = Number(values["amount.applyingTransaction"]);
+        log.debug('dppValue', dppValue);
+        
         if (!isNaN(dppValue)) {
             let decimalPart = dppValue % 1;
             dppValue = (decimalPart > 0.5) ? Math.ceil(dppValue) : Math.floor(dppValue);
         }
 
-        let tanggalPemotongan = values["applyingTransaction.trandate"];
+        const getText = (val) => {
+            if (typeof val === 'object' && val !== null) {
+                return val.text || val.value || "";
+            }
+            return val || "";
+        };
+
+        let tanggalPemotongan = values["trandate.applyingTransaction"];
         if (tanggalPemotongan && typeof tanggalPemotongan === 'string') {
             let parts = tanggalPemotongan.split('/');
             if (parts.length === 3) {
@@ -90,19 +70,19 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function(search
         }
 
         const rowData = {
-            masaPajak: values.custbody_sos_masa_pajak,
-            tahunPajak: values.custbody_sos_tahun_pajak,
+            masaPajak: getText(values.custbody_sos_masa_pajak),
+            tahunPajak: getText(values.custbody_sos_tahun_pajak),
             npwp: values.custbody_sos_npwp_vendor,
             idTkuPenerima: values.custbody_sos_id_tku_penerima_penghasil,
-            fasilitas: values.custbody_sos_fasilitas,
-            kodeObj: values.custbody_sos_kode_obj_pajak,
+            fasilitas: getText(values.custbody_sos_fasilitas),
+            kodeObj: getText(values.custbody_sos_kode_obj_pajak),
             dpp: dppValue,
             tarif: values.custbody_sos_tarif,
-            jenisDokRef: values.custbody_sos_jenis_dok_ref,
+            jenisDokRef: getText(values.custbody_sos_jenis_dok_ref),
             nomorDokRef: values.custbody_sos_no_sp2d,   
             tanggalDok: tanggalDok,
             idTkuPemotong: values.custbody_id_tku_pemotong,
-            opsiPembayaran: values.custbody_sos_opsi_pembayaran,
+            opsiPembayaran: getText(values.custbody_sos_opsi_pembayaran),
             nomorSP2D: values.custbody_sos_no_sp2d,
             docNumber : values.tranid,
             tanggalPemotongan: tanggalPemotongan

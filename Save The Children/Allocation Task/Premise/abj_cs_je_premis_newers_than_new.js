@@ -4,9 +4,9 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message"], 
+define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message"],
 function (runtime, log, url, currentRecord, currency, record, search, message) {
-    
+
     var records = currentRecord.get();
     var processMsg;
 
@@ -18,7 +18,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
         var rec = context.currentRecord;
         var amountAllocated = rec.getValue('custbody_abj_amount_to_allocate');
         var cForm = rec.getValue('customform');
-        
+
         if (cForm == 140) {
             var fieldName = context.fieldId;
             var sublistFieldName = context.sublistId;
@@ -81,7 +81,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
         var searchSof = search.load({ id: 'customsearch_sof_premise' });
         var sofResult = [];
         searchSof.run().each(function (result) {
-            sofResult.push({ 
+            sofResult.push({
                 sofId: result.getValue({ name: 'internalid' }),
                 projectId: result.getValue({ name: 'custrecord_sof_project' })
             });
@@ -107,92 +107,105 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
         prosesRecursive(rec, sofResult, accountHeader, accountHeaderText, periodText, idDea, 0);
     }
 
-    function prosesRecursive(rec, sofResult, accountHeader, accountHeaderText, periodText, idDea, index) {
-        var headerCurrency = rec.getValue('currency');
-        var memoSet = 'Allocation Premise ' + accountHeaderText + ' ' + periodText;
-        var costCenterIdDepartment = 17;
-        var projectCodeIdClass = 12;
-
-        if (index >= sofResult.length) {
-            addFinalCreditLine(rec, accountHeader, memoSet, costCenterIdDepartment, projectCodeIdClass, idDea);
+    function prosesRecursive(rec, lines, accountHeader, accountHeaderText, periodText, idDea, index) {
+        const sublistId = 'line';
+        if (index >= lines.length) {
+            addFinalCreditLine(rec, accountHeader, accountHeaderText, periodText, idDea);
             return;
         }
 
-        var item = sofResult[index];
-        try {
-            rec.selectNewLine({ sublistId: 'line' });
-            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account', value: accountHeader });
-            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'debit', value: 0 }); 
-            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'department', value: costCenterIdDepartment });
+        const lineData = lines[index];
+        const headerCurrency = rec.getValue('currency');
+        const memoSet = 'Allocation Premise ' + accountHeaderText + ' ' + periodText;
 
-            if (item.projectId) {
-                rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'entity', value: item.projectId });
+        try {
+            rec.selectNewLine({ sublistId: sublistId });
+
+            safeSet(rec, sublistId, 'account', accountHeader, false);
+            safeSet(rec, sublistId, 'debit', 0);
+            safeSet(rec, sublistId, 'department', 17, false);
+
+            if (lineData.projectId) {
+                safeSet(rec, sublistId, 'entity', lineData.projectId, false);
             }
 
-            setTimeout(function () {
+            setTimeout(function() {
                 try {
-                    rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_sof', value: item.sofId });
-
-                    var lineCur = rec.getCurrentSublistValue({ sublistId: 'line', fieldId: 'account_cur' });
-                    if (!lineCur && headerCurrency) {
-                        rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account_cur', value: headerCurrency });
-                    }
-
-                    rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'class', value: projectCodeIdClass });
-                    rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'memo', value: memoSet });
-
+                    safeSet(rec, sublistId, 'cseg_stc_sof', lineData.sofId, false);
+                    
+                    safeSet(rec, sublistId, 'class', 12);
+                    safeSet(rec, sublistId, 'memo', memoSet);
+                    
                     if (idDea) {
-                        rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_segmentdea', value: idDea, ignoreFieldChange: true });
+                        safeSet(rec, sublistId, 'cseg_stc_segmentdea', idDea);
                     }
 
+                    var lineCur = rec.getCurrentSublistValue({ sublistId: sublistId, fieldId: 'account_cur' });
+                    if (!lineCur && headerCurrency) {
+                        safeSet(rec, sublistId, 'account_cur', headerCurrency);
+                    }
+
+                    rec.commitLine({ sublistId: sublistId });
+                    
                     setTimeout(function() {
-                        rec.commitLine({ sublistId: 'line' });
-                        prosesRecursive(rec, sofResult, accountHeader, accountHeaderText, periodText, idDea, index + 1);
-                    }, 400);
+                        prosesRecursive(rec, lines, accountHeader, accountHeaderText, periodText, idDea, index + 1);
+                    }, 100);
 
                 } catch (e) {
-                    log.error('Error line ' + index, e);
-                    prosesRecursive(rec, sofResult, accountHeader, accountHeaderText, periodText, idDea, index + 1);
+                    log.error('Error in Timeout line ' + index, e);
+                    prosesRecursive(rec, lines, accountHeader, accountHeaderText, periodText, idDea, index + 1);
                 }
-            }, 500); 
+            }, 200);
 
-        } catch (e) {
-            log.error('Critical Error', e);
+        } catch (err) {
+            log.error('Error processing line ' + index, err);
+            prosesRecursive(rec, lines, accountHeader, accountHeaderText, periodText, idDea, index + 1);
         }
     }
 
-    function addFinalCreditLine(rec, accountHeader, memoSet, dept, clss, idDea) {
+    function addFinalCreditLine(rec, accountHeader, accountHeaderText, periodText, idDea) {
         try {
-            var headerCurrency = rec.getValue('currency');
-            rec.selectNewLine({ sublistId: 'line' });
-            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account', value: accountHeader });
-            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'credit', value: 0 });
-            
-            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'department', value: dept, ignoreFieldChange: false });
-            
-            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'entity', value: 3763 });
-            setTimeout(function() {
+            const sublistId = 'line';
+            const headerCurrency = rec.getValue('currency');
+            const memoSet = 'Allocation Premise ' + accountHeaderText + ' ' + periodText;
 
-                rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_sof', value: '58', ignoreFieldChange: false });
-                var lineCur = rec.getCurrentSublistValue({ sublistId: 'line', fieldId: 'account_cur' });
-                if (!lineCur && headerCurrency) {
-                    rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account_cur', value: headerCurrency });
-                }
-                
-                rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'class', value: clss });
-                rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'memo', value: memoSet });
-                rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_drc_segmen', value: 3, ignoreFieldChange: true });
+            rec.selectNewLine({ sublistId: sublistId });
+            safeSet(rec, sublistId, 'account', accountHeader, false);
+            safeSet(rec, sublistId, 'credit', 0);
+            safeSet(rec, sublistId, 'department', 17, false);
+            safeSet(rec, sublistId, 'entity', 3763, false)
+            setTimeout(function() {
+                safeSet(rec, sublistId, 'cseg_stc_sof', '58', false);
+                safeSet(rec, sublistId, 'class', 12);
+                safeSet(rec, sublistId, 'memo', memoSet);
+                safeSet(rec, sublistId, 'cseg_stc_drc_segmen', 3);
 
                 if (idDea) {
-                    rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_segmentdea', value: idDea, ignoreFieldChange: true });
+                    safeSet(rec, sublistId, 'cseg_stc_segmentdea', idDea);
                 }
 
-                rec.commitLine({ sublistId: 'line' });
+                if (headerCurrency) {
+                    safeSet(rec, sublistId, 'account_cur', headerCurrency);
+                }
+
+                rec.commitLine({ sublistId: sublistId });
                 if (processMsg) processMsg.hide();
                 alert('Generate Completed');
-            }, 400);
+            }, 300);
         } catch (e) {
             log.error('Error Credit Line', e);
+        }
+    }
+
+    function safeSet(rec, sublist, fieldId, value, ignoreChange = true) {
+        if (value !== null && value !== undefined && value !== '') {
+            rec.setCurrentSublistValue({
+                sublistId: sublist,
+                fieldId: fieldId,
+                value: value,
+                ignoreFieldChange: ignoreChange,
+                forceSyncSourcing: true
+            });
         }
     }
 
@@ -216,7 +229,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
             rec.selectLine({ sublistId: 'line', line: creditLineIndex });
             rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'credit', value: totalDebit });
             rec.commitLine({ sublistId: 'line' });
-        } catch (e) { console.log('Error calculate', e); }
+        } catch (e) { log.error('Error calculate', e); }
     }
 
     function saveRecord(context) {
