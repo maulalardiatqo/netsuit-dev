@@ -49,9 +49,8 @@ define(['N/record', 'N/file', 'N/format', 'N/log'], (record, file, format, log) 
 
             return {
                 status: "success",
-                message: "Record created and file linked successfully",
-                recordId: recordId,
-                fileId: fileId
+                message: "Record created successfully",
+                recordId: recordId
             };
 
         } catch (e) {
