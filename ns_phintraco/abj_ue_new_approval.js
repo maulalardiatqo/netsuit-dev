@@ -29,13 +29,28 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
     const afterSubmit = (context) => {
         try {
             if(context.type === context.UserEventType.EDIT){
+                var form = context.form;
                 const recordV = context.newRecord;
                 const oldRec = context.oldRecord;
+                const newApp = recordV.getValue('approvalstatus')
+                const oldApp = oldRec.getValue('approvalstatus');
+                
                 const idRec = recordV.id
                 const rec = record.load({
                     type : recordV.type,
                     id : idRec
                 })
+
+                const isEverApprove = rec.getValue('custbody_ever_approve');
+                log.debug('isEverApprove', isEverApprove)
+                if(isEverApprove == false && oldApp == '1' && newApp == '2' ){
+                    rec.setValue({
+                        fieldId : 'custbody_ever_approve',
+                        value : true
+                    })
+                    rec.save()
+                }
+
 
             }
         }catch(e){
@@ -91,9 +106,9 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                     });
                     context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
                 }
-                // if (currentRole == roleAdmin && (cekIdWeb != '' || cekIdWeb != null)) {
-                //     return; 
-                // }
+                if (currentRole == roleAdmin && (cekIdWeb != '' || cekIdWeb != null)) {
+                    return; 
+                }
                 if(cekIdWeb && cekAppralStat != '2' && !cekResubmit && cekAppralStat != '3' && cekAfterRecall == false){
                     form.addButton({
                         id: 'custpage_button_recall',
@@ -174,6 +189,24 @@ define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (rec
                     fieldId : 'custbody_abj_revision_code',
                     value : ''
                 })
+                rec.setValue({
+                    fieldId : 'custbody_ever_approve',
+                    value : false
+                })
+                
+            }
+            if(context.type === context.UserEventType.EDIT){
+                var form = context.form;
+                const rec = context.newRecord;
+
+                const isEverApprove = rec.getValue('custbody_ever_approve');
+                log.debug('isEverApprove', isEverApprove)
+                if(isEverApprove){
+                    let field = form.getField({ id: 'custbody_ever_approve' });
+                    if (field) {
+                        field.updateDisplayType({ displayType: 'disabled' }); 
+                    }
+                }
                 
             }
         }catch(e){
