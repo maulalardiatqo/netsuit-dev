@@ -244,6 +244,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     return{
         fieldChanged : fieldChanged,
         validateLine : validateLine,
-        saveRecord : saveRecord
+        saveRecord : saveRecord,
     }
 });

@@ -188,85 +188,147 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 value : totalAmount
             });
     }
-function transExp(data, transData) {
-    log.debug('Masuk transExp', 'Total data: ' + data.length);
-
-    function parseDate(dateStr) {
-        if (!dateStr) return new Date();
-        try {
-            var parts = dateStr.split('/');
-            if (parts.length !== 3) return new Date();
-            var dt = new Date(parts[2], parts[1] - 1, parts[0]);
-            return isNaN(dt.getTime()) ? new Date() : dt;
-        } catch (e) { return new Date(); }
-    }
-
-    var currentUser = runtime.getCurrentUser();
-
-    // --- 1. SET HEADER (Entity HARUS paling pertama) ---
-    // Gunakan ignoreFieldChange: true untuk mencegah tabrakan sourcing
-    transData.setValue({ fieldId: 'entity', value: currentUser.id, ignoreFieldChange: true });
-    transData.setValue({ fieldId: 'custbody_id_to', value: data[0].idTor, ignoreFieldChange: true });
-    transData.setValue({ fieldId: 'custbody_stc_link_to_tor', value: data[0].idTor, ignoreFieldChange: true });
-    transData.setValue({ fieldId: 'trandate', value: parseDate(data[0].date), ignoreFieldChange: true });
-    transData.setValue({ fieldId: 'department', value: data[0].costCenter, ignoreFieldChange: true });
-    transData.setValue({ fieldId: 'class', value: data[0].projectCode || '114', ignoreFieldChange: true });
-    transData.setValue({ fieldId: 'location', value: '3', ignoreFieldChange: true });
-    transData.setValue({ fieldId: 'cseg_stc_sof', value: data[0].sof || '66', ignoreFieldChange: true });
-
-    var totalAmount = 0;
-
-    // --- 2. LOOP SUBLIST ---
-    for (var i = 0; i < data.length; i++) {
-        var lineData = data[i];
-
-        // Paksa insert line untuk memastikan line i benar-benar ada
-        try {
-            transData.insertLine({
-                sublistId: 'expense',
-                line: i
-            });
-
-            // URUTAN INI SANGAT PENTING:
-            // 1. Kategori (Trigger Akun)
-            transData.setSublistValue({
-                sublistId: 'expense',
-                fieldId: 'category',
-                line: i,
-                value: '1' // Pastikan ID ini valid di sistem Anda
-            });
-
-            // 2. Tanggal & Amount
-            var lineDate = parseDate(data[0].date);
-            transData.setSublistValue({ sublistId: 'expense', fieldId: 'expensedate', line: i, value: lineDate });
-            transData.setSublistValue({ sublistId: 'expense', fieldId: 'amount', line: i, value: lineData.amount });
-
-            // 3. Project/Customer (Jika ada)
-            if (lineData.project) {
-                transData.setSublistValue({ sublistId: 'expense', fieldId: 'customer', line: i, value: lineData.project });
+    function transExp(data, transData) {
+        log.debug('Masuk transExp Safe Mode', 'Total baris: ' + data.length);
+        function parseDate(dateStr) {
+            if (!dateStr) return new Date();
+            try {
+                var parts = dateStr.split('/');
+                if (parts.length !== 3) return new Date();
+                var dt = new Date(parts[2], parts[1] - 1, parts[0]);
+                if (isNaN(dt.getTime())) return new Date();
+                return dt;
+            } catch (e) {
+                return new Date();
             }
-
-            // 4. Klasifikasi baris
-            if (lineData.costCenter) {
-                transData.setSublistValue({ sublistId: 'expense', fieldId: 'department', line: i, value: lineData.costCenter });
-            }
-            
-            // 5. Custom Segment (Contoh SOF)
-            if (lineData.sof) {
-                transData.setSublistValue({ sublistId: 'expense', fieldId: 'cseg_stc_sof', line: i, value: lineData.sof });
-            }
-
-            totalAmount += Number(lineData.amount || 0);
-
-        } catch (lineError) {
-            log.error('Gagal di line ' + i, lineError.message);
         }
-    }
+        var itemIds = [];
+        for (var j = 0; j < data.length; j++) {
+            if (data[j].item) itemIds.push(data[j].item);
+        }
+        var itemAccountMap = {};
+        var uniqueAccountIds = [];
 
-    // Set total di body
-    transData.setValue({ fieldId: 'custbody_amount_from_tor', value: totalAmount });
-    log.debug('Finish transExp', 'Total: ' + totalAmount);
-}
+        if (itemIds.length > 0) {
+            search.create({
+                type: "item",
+                filters: [["internalid", "anyof", itemIds]],
+                columns: ["expenseaccount"]
+            }).run().each(function(result) {
+                var accId = result.getValue('expenseaccount');
+                itemAccountMap[result.id] = accId;
+                if (accId && uniqueAccountIds.indexOf(accId) === -1) {
+                    uniqueAccountIds.push(accId);
+                }
+                return true;
+            });
+        }
+
+
+
+        var accountCategoryMap = {};
+        if (uniqueAccountIds.length > 0) {
+            var tempCatCount = {};
+            search.create({
+                type: "expensecategory",
+                filters: [["account", "anyof", uniqueAccountIds]],
+                columns: ["internalid", "account"]
+            }).run().each(function(result) {
+                var catId = result.getValue('internalid');
+                var accId = result.getValue('account');
+                if (!tempCatCount[accId]) tempCatCount[accId] = { count: 0, catId: null };
+                tempCatCount[accId].count++;
+                tempCatCount[accId].catId = catId;
+                return true;
+            });
+
+
+
+            for (var acc in tempCatCount) {
+                if (tempCatCount[acc].count === 1) {
+                    accountCategoryMap[acc] = tempCatCount[acc].catId;
+                }
+            }
+        }
+
+        var currentUser = runtime.getCurrentUser();
+
+        function safeSet(field, val) {
+            if (val !== null && val !== undefined && val !== '') {
+                try {
+                    transData.setValue({
+                        fieldId: field,
+                        value: val,
+                        ignoreFieldChange: true
+                    });
+                } catch (e) {
+                    log.error('Gagal set field: ' + field, e.message);
+                }
+            }
+        }
+        safeSet('custbody_id_to', data[0].idTor);
+        safeSet('custbody_stc_link_to_tor', data[0].idTor);
+        safeSet('custbody_stc_expense_report_type', '1');
+        safeSet('entity', currentUser.id);
+        safeSet('expensereportcurrency', '1');
+        safeSet('trandate', parseDate(data[0].date));
+        safeSet('department', data[0].costCenter);
+        safeSet('class', data[0].projectCode || '114');
+        safeSet('location', '3');
+        safeSet('cseg_stc_sof', data[0].sof || '66');
+        if (data[0].timeFrom) safeSet('custbody_stc_activity_date_from', parseDate(data[0].timeFrom));
+        if (data[0].timeTo) safeSet('custbody_stc_activity_date_to', parseDate(data[0].timeTo));
+        var totalAmount = 0
+        // for (var i = 0; i < data.length; i++) {
+        //     var lineData = data[i];
+        //     var expAcc = (lineData.item && itemAccountMap[lineData.item]) ? itemAccountMap[lineData.item] : null;
+
+        //     var category = (expAcc && accountCategoryMap[expAcc]) ? accountCategoryMap[expAcc] : null;
+        //     function safeSublist(field, val) {
+
+        //         if (val !== null && val !== undefined && val !== '') {
+        //             try {
+        //                 transData.setSublistValue({
+        //                     sublistId: 'expense',
+        //                     fieldId: field,
+        //                     line: i,
+        //                     value: val
+        //                 });
+        //             } catch (e) {
+        //                 log.debug('Skip line field ' + field, e.message);
+        //             }
+        //         }
+        //     }
+
+        //     safeSublist('expensedate', parseDate(data[0].date));
+        //     log.debug('category', category)
+        //     safeSublist('category', '1');
+        //     if (lineData.noTor) safeSublist('memo', lineData.noTor);
+        //     totalAmount = Number(totalAmount) + Number(lineData.amount)
+        //     safeSublist('amount', lineData.amount);
+        //     if (lineData.costCenter) safeSublist('department', lineData.costCenter);
+        //     if (lineData.projectCode) safeSublist('class', lineData.projectCode);
+
+        //     safeSublist('currency', '1');
+        //     safeSublist('expenseaccount', '488');
+        //     if (lineData.project) safeSublist('customer', lineData.project);
+        //     if (lineData.projectTask) {
+        //         safeSublist('projecttask', lineData.projectTask);
+        //         safeSublist('custrecord_tare_project_task', lineData.projectTask);
+        //     }
+        //     if(lineData.activityCode){
+        //         safeSublist('cseg_paactivitycode', lineData.activityCode)
+        //     }
+        //     if(lineData.bussinessUnit){
+        //         safeSublist('cseg1', lineData.bussinessUnit)
+        //     }
+
+        //     if (lineData.drc) safeSublist('cseg_stc_drc_segmen', lineData.drc);
+        //     if (lineData.dea) safeSublist('cseg_stc_segmentdea', lineData.dea);
+        //     if (lineData.sof) safeSublist('cseg_stc_sof', lineData.sof);
+        // }
+        safeSet('custbody_amount_from_tor', totalAmount);
+    }
     function transPR(data, transData){
             var createPr = transData
             createPr.setValue({
@@ -596,11 +658,11 @@ function transExp(data, transData) {
                         var transactionType = obj.transactionType;
                         log.debug('Processing Transaction Type', transactionType);
 
-                        // Routing Logic
-                        // Asumsi: variable 'transData' adalah context.newRecord yang sudah didefinisikan sebelumnya
                         if (transactionType == '1') {
                             transPO(dataParsing, transData);
                         } else if (transactionType == '2') {
+                            // context.form.clientScriptModulePath = "SuiteScripts/abj_cs_set_exp_report.js"
+                            // log.debug('cek exp')
                             transExp(dataParsing, transData);
                         } else if (transactionType == '3') {
                             transPR(dataParsing, transData);
