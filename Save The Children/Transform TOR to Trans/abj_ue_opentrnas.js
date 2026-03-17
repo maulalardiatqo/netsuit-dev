@@ -280,29 +280,36 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         if (data[0].timeTo) safeSet('custbody_stc_activity_date_to', parseDate(data[0].timeTo));
         var totalAmount = 0
         // for (var i = 0; i < data.length; i++) {
+        //     try {
+        //         transData.insertLine({
+        //             sublistId: 'expense',
+        //             line: i
+        //         });
+        //     } catch (e) {
+        //         log.error('Gagal insert baris ke-' + i, e.message);
+        //     }
         //     var lineData = data[i];
         //     var expAcc = (lineData.item && itemAccountMap[lineData.item]) ? itemAccountMap[lineData.item] : null;
 
         //     var category = (expAcc && accountCategoryMap[expAcc]) ? accountCategoryMap[expAcc] : null;
         //     function safeSublist(field, val) {
-
         //         if (val !== null && val !== undefined && val !== '') {
         //             try {
         //                 transData.setSublistValue({
         //                     sublistId: 'expense',
         //                     fieldId: field,
-        //                     line: i,
+        //                     line: i, 
         //                     value: val
         //                 });
         //             } catch (e) {
-        //                 log.debug('Skip line field ' + field, e.message);
+        //                 log.debug('Skip line field ' + field + ' di baris ' + i, e.message);
         //             }
         //         }
         //     }
 
         //     safeSublist('expensedate', parseDate(data[0].date));
-        //     log.debug('category', category)
-        //     safeSublist('category', '1');
+        //     // log.debug('category', category)
+        //     // safeSublist('category', '1');
         //     if (lineData.noTor) safeSublist('memo', lineData.noTor);
         //     totalAmount = Number(totalAmount) + Number(lineData.amount)
         //     safeSublist('amount', lineData.amount);
