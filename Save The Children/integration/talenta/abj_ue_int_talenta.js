@@ -5,7 +5,7 @@
 define(['N/task', 'N/log'], (task, log) => {
 
     const afterSubmit = (context) => {
-        if (context.type !== context.UserEventType.CREATE) return;
+        if (context.type !== context.UserEventType.CREATE || context.type !== context.UserEventType.EDIT) return;
 
         try {
             const newRecord = context.newRecord;

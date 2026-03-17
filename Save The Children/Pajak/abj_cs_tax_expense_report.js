@@ -44,9 +44,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         var parsedDate = parseDateString(data[0].date);
                         safeSublist('expensedate', parsedDate);
                     }
-
+                    safeSublist('category', '1');
                     safeSublist('currency', '1');
-                    safeSublist('expenseaccount', '488'); 
+                    safeSublist('expenseaccount', '281'); 
                     
                     if (lineData.noTor) safeSublist('memo', lineData.noTor);
                     
@@ -69,7 +69,11 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     if (lineData.sof) safeSublist('cseg_stc_sof', lineData.sof);
                     rec.commitLine({ sublistId: 'expense' });
                 }
-
+                var cekLine = rec.getLineCount({
+                    sublistId : 'expense'
+                });
+                console.log('cekLine', cekLine)
+                log.debug('cekLine', cekLine)
                 rec.setValue({
                     fieldId: 'custbody_amount_from_tor',
                     value: totalAmount
