@@ -79,6 +79,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 });
                 createPO.setSublistValue({
                     sublistId : 'item',
+                    fieldId   : 'description',
+                    line      : indexL,
+                    value     : data[i].description
+                });
+                createPO.setSublistValue({
+                    sublistId : 'item',
                     fieldId   : 'amount',
                     line      : indexL,
                     value     : data[i].amount
@@ -378,6 +384,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             var indexL = 0;
             var totalEstimate = 0
             for(var i = 0; i < data.length; i++){
+                log.debug('additional value', {desc : data[i].description, qty: data[i].qty, uom : data[i].uom, unitCost : data[i].unitCost})
                 createPr.insertLine({ 
                     sublistId: 'item',
                     line : indexL
@@ -388,13 +395,40 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     line : indexL,
                     value     : data[i].item
                 });
-                 createPr.setSublistValue({
+
+                createPr.setSublistValue({
                     sublistId : 'item',
                     fieldId   : 'quantity',
                     line      : indexL,
-                    value     : '1'
+                    value     : data[i].qty
                 });
+                createPr.setSublistValue({
+                    sublistId : 'item',
+                    fieldId   : 'description',
+                    line      : indexL,
+                    value     : data[i].description
+                })
+                if(data[i].uom){
+                    createPr.setSublistValue({
+                        sublistId : 'item',
+                        fieldId   : 'units',
+                        line      : indexL,
+                        value     : data[i].uom
+                    });
+                }
                 
+                createPr.setSublistValue({
+                    sublistId : 'item',
+                    fieldId : 'estimatedrate',
+                    line : indexL,
+                    value : data[i].unitCost
+                })
+                createPr.setSublistValue({
+                    sublistId : 'item',
+                    fieldId : 'estimatedamount',
+                    line : indexL,
+                    value : data[i].amount
+                })
                 createPr.setSublistValue({
                     sublistId : 'item',
                     fieldId   : 'amount',
@@ -402,12 +436,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     value     : data[i].amount
                 });
                 totalEstimate = Number(totalEstimate) + Number(data[i].amount)
-                createPr.setSublistValue({
-                    sublistId : 'item',
-                    fieldId : 'estimatedamount',
-                    line : indexL,
-                    value : data[i].amount
-                })
                 createPr.setSublistValue({
                     sublistId : 'item',
                     fieldId   : 'taxcode',
@@ -443,18 +471,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     fieldId   : 'currency',
                     line : indexL,
                     value     : '1'
-                });
-                createPr.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'estimatedamount',
-                    line : indexL,
-                    value     : data[i].amount
-                });
-                createPr.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'estimatedrate',
-                    line : indexL,
-                    value     : data[i].amount
                 });
                 createPr.setSublistValue({
                     sublistId : 'item',
@@ -596,7 +612,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 
                 createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_category', line: i, value: category });
             }
-            createTar.setSublistValue({sublistId : sublistId, fieldId : 'custrecord_tare_memo', line : i, value : '-'})
+            if(rowData.description){
+                createTar.setSublistValue({sublistId : sublistId, fieldId : 'custrecord_tare_memo', line : i, value : rowData.description})
+            }
             if (rowData.project) {
                 createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_donor', line: i, value: rowData.project });
             }

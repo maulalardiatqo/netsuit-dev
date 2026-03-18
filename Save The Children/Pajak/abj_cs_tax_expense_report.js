@@ -54,6 +54,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     safeSublist('amount', lineData.amount);
 
                     if (lineData.costCenter) safeSublist('department', lineData.costCenter);
+                    if (lineData.description) safeSublist('description', lineData.description);
                     if (lineData.projectCode) safeSublist('class', lineData.projectCode);
                     if (lineData.project) safeSublist('customer', lineData.project);
                     

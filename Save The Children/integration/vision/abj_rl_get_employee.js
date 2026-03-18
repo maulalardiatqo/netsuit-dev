@@ -81,11 +81,8 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
                 var phone = result.getValue({
                     name: 'phone'
                 });
-                var altPhone = result.getValue({
-                    name: 'altphone'
-                });
-                var fax = result.getValue({
-                    name: 'fax'
+                var department = result.getValue({
+                    name: 'department'
                 });
                 var supervisor = result.getValue({
                     name: 'supervisor'
@@ -93,20 +90,21 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
                 var title = result.getValue({
                     name: 'title'
                 });
-                var altemail = result.getValue({
-                    name: 'altemail'
-                });
+                var idName = result.getValue({
+                    name: "formulatext",
+                    formula: "{entityid} || ' ' || {firstname} || ' ' || {lastname}",
+                    label: "ID Name"
+                })
                 results.push({
                     internalId: internalId || '',
                     entityId: entityId || '',
                     altName: altName || '',
                     email: email || '',
-                    altemail : altemail || '',
                     phone : phone || '',
-                    altPhone : altPhone || '',
-                    fax : fax || '',
+                    department : department || '',
                     supervisor : supervisor || '',
-                    title : title
+                    title : title || '',
+                    idName : idName || ''
                 });
             });
             log.debug('results', results)

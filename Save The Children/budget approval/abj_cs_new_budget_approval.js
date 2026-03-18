@@ -114,8 +114,10 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
                 var projectCode = rec.getSublistValue({ sublistId: sublistId, fieldId: 'class', line: i }) || '';
                 
                 var groupKey = sofId + '_' + costCenter + '_' + projectCode;
-
-                var amountField = (sublistId === 'item') ? ((type == 'cutrprch108' || type == 'purchreq') ? 'estimatedamount' : 'grossamt') : ((type == 'exprept' || type == 'purchreq') ? 'estimatedamount' : 'grossamt');
+                log.debug('type', type)
+                var amountField = (sublistId === 'item') 
+                ? ((type === 'cutrprch108' || type === 'purchreq') ? 'estimatedamount' : 'grossamt') 
+                : (type === 'exprept' ? 'amount' : (type === 'purchreq' ? 'estimatedamount' : 'grossamt'));
                 var amount = parseFloat(rec.getSublistValue({ sublistId: sublistId, fieldId: amountField, line: i })) || 0;
                 log.debug('amount', amount)
                 var statusLine = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custcol_stc_approval_status_line', line: i });
@@ -164,6 +166,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
                 'projectCode' : data.projectCode
             })
             var bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.costCenter, data.projectCode);
+            log.debug('bhApprover', bhApprover)
             var finApprover = null;
 
             if (['vendbill', 'purchreq', 'purchord', 'exprept'].includes(type)) {

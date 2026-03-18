@@ -133,7 +133,27 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                                 sublistId : 'recmachcustrecord_tori_id',
                                 fieldId : 'custrecord_tor_activity_code',
                                 line : i
-                            })
+                            }),
+                            description : recLoad.getSublistValue({
+                                sublistId : 'recmachcustrecord_tori_id',
+                                fieldId : 'custrecord_tor_description',
+                                line : i
+                            }),
+                            unitCost : recLoad.getSublistValue({
+                                sublistId : 'recmachcustrecord_tori_id',
+                                fieldId : 'custrecord_tor_unit_cost',
+                                line : i
+                            }),
+                            qty : recLoad.getSublistValue({
+                                sublistId : 'recmachcustrecord_tori_id',
+                                fieldId : 'custrecord_tor_quantity',
+                                line : i
+                            }),
+                            uom : recLoad.getSublistValue({
+                                sublistId : 'recmachcustrecord_tori_id',
+                                fieldId : 'custrecord_tor_uom',
+                                line : i
+                            }),
                         });
                     }
                 }
