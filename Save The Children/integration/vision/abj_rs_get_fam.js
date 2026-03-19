@@ -75,10 +75,7 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
                        assetCareTakerId : result.getValue({ name: 'custrecord_assetcaretaker' }),
                        assetCareTakerName : result.getText({ name: 'custrecord_assetcaretaker' }),
                     } ,     
-                    location : {
-                        locationId:       result.getValue({ name: 'custrecord_assetlocation' }),
-                        locationName:     result.getText({ name: 'custrecord_assetlocation' }),
-                    },
+                    location : result.getValue({ name: 'custrecord_assetphysicallocn' }),
                     
                     lastModified:     result.getValue({ name: 'lastmodified' }),
                     description:      result.getValue({ name: 'custrecord_assetdescr' }),

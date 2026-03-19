@@ -6,8 +6,8 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
 
     function pageInit(context) {}
 
-    function getBudgetHolderApproval(paramSof, paramAccount, paramAmount, createdBy, costCenter, projectCode) {
-        log.debug('params BH', {paramSof: paramSof, paramAccount: paramAccount, paramAmount: paramAmount, costCenter: costCenter, projectCode: projectCode});
+    function getBudgetHolderApproval(paramSof, paramAccount, paramAmount, createdBy, costCenter, projectCode, groupLevel) {
+        log.debug('params BH', {paramSof: paramSof, paramAccount: paramAccount, paramAmount: paramAmount, costCenter: costCenter, projectCode: projectCode, groupLevel: groupLevel});
         
         function runSearch(useAccount) {
             var filters = [
@@ -15,6 +15,13 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
                 ["custrecord_stc_max_limit_amnt", "greaterthanorequalto", paramAmount], "AND",
                 ["isinactive", "is", "F"]
             ];
+
+            if (groupLevel >= 2 && costCenter) {
+                filters.push("AND", ["custrecord_stc_bh_cost_center", "anyof", costCenter]);
+            }
+            if (groupLevel === 3 && projectCode) {
+                filters.push("AND", ["custrecord_stc_bh_project_code", "anyof", projectCode]);
+            }
             if (useAccount && paramAccount) {
                 filters.push("AND", ["custrecord_stc_account", "is", paramAccount]);
             }
@@ -37,17 +44,20 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
                     var mtrxPC = results[i].getValue("custrecord_stc_bh_project_code");
                     var approverId = results[i].getValue("custrecord_stc_bdgt_hldr_approval");
 
-                    if (mtrxCC == costCenter && mtrxPC == projectCode) {
-                        if (approverId != createdBy) return approverId;
+                    if (groupLevel === 1) {
+                        if (!mtrxCC && !mtrxPC && approverId != createdBy) return approverId;
+                    } else if (groupLevel === 2) {
+                        if (mtrxCC == costCenter && !mtrxPC && approverId != createdBy) return approverId;
+                    } else if (groupLevel === 3) {
+                        if (mtrxCC == costCenter && mtrxPC == projectCode && approverId != createdBy) return approverId;
                     }
                 }
+                
                 for (var j = 0; j < results.length; j++) {
                     var mtrxCCG = results[j].getValue("custrecord_stc_bh_cost_center");
                     var mtrxPCG = results[j].getValue("custrecord_stc_bh_project_code");
                     var apprvId = results[j].getValue("custrecord_stc_bdgt_hldr_approval");
-                    if (!mtrxCCG && !mtrxPCG) {
-                        if (apprvId != createdBy) return apprvId;
-                    }
+                    if (!mtrxCCG && !mtrxPCG && apprvId != createdBy) return apprvId;
                 }
             }
             return null;
@@ -58,15 +68,25 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
         return approval;
     }
 
-    function getFinanceMatric(sofId, amount, createdBy, costCenter, projectCode) {
-        log.debug('params FA', {sofId : sofId, amount : amount, createdBy : createdBy, costCenter : costCenter, projectCode : projectCode})
+    function getFinanceMatric(sofId, amount, createdBy, costCenter, projectCode, groupLevel) {
+        log.debug('params FA', {sofId : sofId, amount : amount, createdBy : createdBy, costCenter : costCenter, projectCode : projectCode, groupLevel: groupLevel});
+        
+        var filters = [
+            ["custrecord_stc_sof_mtrx_finance", "anyof", sofId], "AND",
+            ["custrecord_finance_max_amnt", "greaterthanorequalto", amount], "AND",
+            ["isinactive", "is", "F"]
+        ];
+
+        if (groupLevel >= 2 && costCenter) {
+            filters.push("AND", ["custrecord_stc_fa_cost_center", "anyof", costCenter]);
+        }
+        if (groupLevel === 3 && projectCode) {
+            filters.push("AND", ["custrecord_stc_fa_project_code", "anyof", projectCode]);
+        }
+
         var customrecord_stc_apprvl_mtrix_financeSearchObj = search.create({
             type: "customrecord_stc_apprvl_mtrix_finance",
-            filters: [
-                ["custrecord_stc_sof_mtrx_finance", "anyof", sofId], "AND",
-                ["custrecord_finance_max_amnt", "greaterthanorequalto", amount], "AND",
-                ["isinactive", "is", "F"]
-            ],
+            filters: filters,
             columns: [
                 search.createColumn({ name: "custrecord_finance_max_amnt", sort: search.Sort.ASC }),
                 search.createColumn({ name: "custrecord_stc_apprvl_finance" }),
@@ -81,17 +101,20 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
                 var mtrxCC = results[i].getValue("custrecord_stc_fa_cost_center");
                 var mtrxPC = results[i].getValue("custrecord_stc_fa_project_code");
                 var apprvFinance = results[i].getValue("custrecord_stc_apprvl_finance");
-                if (mtrxCC == costCenter && mtrxPC == projectCode) {
-                    if (apprvFinance != createdBy) return apprvFinance;
+
+                if (groupLevel === 1) {
+                    if (!mtrxCC && !mtrxPC && apprvFinance != createdBy) return apprvFinance;
+                } else if (groupLevel === 2) {
+                    if (mtrxCC == costCenter && !mtrxPC && apprvFinance != createdBy) return apprvFinance;
+                } else if (groupLevel === 3) {
+                    if (mtrxCC == costCenter && mtrxPC == projectCode && apprvFinance != createdBy) return apprvFinance;
                 }
             }
             for (var j = 0; j < results.length; j++) {
                 var mtrxCCG = results[j].getValue("custrecord_stc_fa_cost_center");
                 var mtrxPCG = results[j].getValue("custrecord_stc_fa_project_code");
                 var apprvFinanceG = results[j].getValue("custrecord_stc_apprvl_finance");
-                if (!mtrxCCG && !mtrxPCG) {
-                    if (apprvFinanceG != createdBy) return apprvFinanceG;
-                }
+                if (!mtrxCCG && !mtrxPCG && apprvFinanceG != createdBy) return apprvFinanceG;
             }
         }
         return null;
@@ -113,13 +136,40 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
                 var costCenter = rec.getSublistValue({ sublistId: sublistId, fieldId: 'department', line: i }) || '';
                 var projectCode = rec.getSublistValue({ sublistId: sublistId, fieldId: 'class', line: i }) || '';
                 
-                var groupKey = sofId + '_' + costCenter + '_' + projectCode;
-                log.debug('type', type)
+                var groupKey = sofId;
+                var groupLevel = 1;
+
+                var sofLookup = search.lookupFields({
+                    type: 'customrecord_cseg_stc_sof', 
+                    id: sofId,
+                    columns: ['custrecord_stc_sof_kreasi']
+                });
+                var isSofKreasi = sofLookup.custrecord_stc_sof_kreasi;
+                log.debug('isSofKreasi', isSofKreasi);
+
+                if (isSofKreasi === true || isSofKreasi === 'T') {
+                    groupKey = sofId + '_' + costCenter;
+                    groupLevel = 2;
+                    if (costCenter) {
+                        var deptLookup = search.lookupFields({
+                            type: 'department',
+                            id: costCenter,
+                            columns: ['custrecord_stc_kreasi']
+                        });
+                        var isKreasi = deptLookup.custrecord_stc_kreasi;
+                        log.debug('isKreasi', isKreasi);
+                        if (isKreasi === true || isKreasi === 'T') {
+                            groupKey = sofId + '_' + costCenter + '_' + projectCode;
+                            groupLevel = 3;
+                        }
+                    }
+                }
+
                 var amountField = (sublistId === 'item') 
-                ? ((type === 'cutrprch108' || type === 'purchreq') ? 'estimatedamount' : 'grossamt') 
-                : (type === 'exprept' ? 'amount' : (type === 'purchreq' ? 'estimatedamount' : 'grossamt'));
+                    ? ((type === 'cutrprch108' || type === 'purchreq') ? 'estimatedamount' : 'grossamt') 
+                    : (type === 'exprept' ? 'amount' : (type === 'purchreq' ? 'estimatedamount' : 'grossamt'));
+                
                 var amount = parseFloat(rec.getSublistValue({ sublistId: sublistId, fieldId: amountField, line: i })) || 0;
-                log.debug('amount', amount)
                 var statusLine = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custcol_stc_approval_status_line', line: i });
                 var statusFa = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custcol_stc_apprvl_sts_fa', line: i });
 
@@ -128,8 +178,9 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
                         sofId: sofId, 
                         total: 0, 
                         account: null, 
-                        costCenter: costCenter, 
-                        projectCode: projectCode, 
+                        costCenter: (groupLevel >= 2) ? costCenter : null, 
+                        projectCode: (groupLevel === 3) ? projectCode : null, 
+                        groupLevel: groupLevel,
                         lines: [] 
                     };
                 }
@@ -150,28 +201,23 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
                             groupMap[groupKey].account = response.body || '';
                         }
                     } else {
-                        groupMap[groupKey].account = rec.getSublistValue({ sublistId: 'expense', fieldId: (type == 'exprept' || type == 'purchreq') ? 'expenseaccount' : 'account', line: i });
+                        var fieldAcc = (type == 'exprept' || type == 'purchreq') ? 'expenseaccount' : 'account';
+                        groupMap[groupKey].account = rec.getSublistValue({ sublistId: 'expense', fieldId: fieldAcc, line: i });
                     }
                 }
             }
         });
+        log.debug('groupMap length', groupMap.length)
         log.debug('groupMap', groupMap)
         for (var key in groupMap) {
             var data = groupMap[key];
-            log.debug('data params', {
-                'sofId' : data.sofId,
-                'account' : data.account,
-                'total' : data.total,
-                'costCenter' : data.costCenter,
-                'projectCode' : data.projectCode
-            })
-            var bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.costCenter, data.projectCode);
-            log.debug('bhApprover', bhApprover)
+            
+            var bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.costCenter, data.projectCode, data.groupLevel);
+            log.debug('bhApprover', bhApprover);
+            
             var finApprover = null;
-
             if (['vendbill', 'purchreq', 'purchord', 'exprept'].includes(type)) {
-                finApprover = getFinanceMatric(data.sofId, data.total, createdBy, data.costCenter, data.projectCode);
-                log.debug('finApprover', finApprover)
+                finApprover = getFinanceMatric(data.sofId, data.total, createdBy, data.costCenter, data.projectCode, data.groupLevel);
             }
 
             data.lines.forEach(function(item) {
@@ -185,7 +231,6 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https
                         rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_approval_status_line', value: "1" });
                     }
                     if (!isFa2 && finApprover) {
-                        log.debug('masuk set approver fa')
                         rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_approver_fa', value: finApprover });
                         rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_apprvl_sts_fa', value: "1" });
                     }
