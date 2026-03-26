@@ -111,7 +111,7 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
 
             setTimeout(function() {
                 processLine(index + 1);
-            }, 100);
+            }, 300);
 
         } catch (err) {
             console.error(`Error processing line ${index}`, err);

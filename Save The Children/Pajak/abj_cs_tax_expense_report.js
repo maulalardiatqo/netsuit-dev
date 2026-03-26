@@ -5,86 +5,109 @@
  */
 
 define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog", "N/https"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog, https) {
-    function pageInit(scriptContext) {
-        var rec = scriptContext.currentRecord;
-        log.debug('trigerred')
-        var urlParams = new URLSearchParams(window.location.search);
-        console.log('urlParams', urlParams)
-        log.debug('urlParams', urlParams)
-        var rawData = urlParams.get('dataParamsString');
-        console.log('rawData', rawData)
+   function pageInit(scriptContext) {
+        const rec = scriptContext.currentRecord;
+        log.debug('trigerred');
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const rawData = urlParams.get('dataParamsString');
+        
+        console.log('rawData', rawData);
 
         if (!rawData) return;
 
         try {
-            var data = JSON.parse(rawData);
+            const data = JSON.parse(rawData);
             if (data && data.length > 0) {
-                
-                var totalAmount = 0;
-
-                for (var i = 0; i < data.length; i++) {
-                    var lineData = data[i];
-                    rec.selectNewLine({ sublistId: 'expense' });
-
-                    var safeSublist = function(field, val) {
-                        if (val !== null && val !== undefined && val !== '') {
-                            try {
-                                rec.setCurrentSublistValue({
-                                    sublistId: 'expense',
-                                    fieldId: field,
-                                    value: val,
-                                    ignoreFieldChange: false 
-                                });
-                            } catch (err) {
-                                console.error('Gagal set field sublist: ' + field, err.message);
-                            }
-                        }
-                    };
-                    if (data[0].date) {
-                        var parsedDate = parseDateString(data[0].date);
-                        safeSublist('expensedate', parsedDate);
-                    }
-                    safeSublist('category', '1');
-                    safeSublist('currency', '1');
-                    safeSublist('expenseaccount', '281'); 
-                    
-                    if (lineData.noTor) safeSublist('memo', lineData.noTor);
-                    
-                    totalAmount += Number(lineData.amount || 0);
-                    safeSublist('amount', lineData.amount);
-
-                    if (lineData.costCenter) safeSublist('department', lineData.costCenter);
-                    if (lineData.description) safeSublist('description', lineData.description);
-                    if (lineData.projectCode) safeSublist('class', lineData.projectCode);
-                    if (lineData.project) safeSublist('customer', lineData.project);
-                    
-                    if (lineData.projectTask) {
-                        safeSublist('projecttask', lineData.projectTask);
-                        safeSublist('custrecord_tare_project_task', lineData.projectTask);
-                    }
-                    
-                    if (lineData.activityCode) safeSublist('cseg_paactivitycode', lineData.activityCode);
-                    if (lineData.bussinessUnit) safeSublist('cseg1', lineData.bussinessUnit);
-                    if (lineData.drc) safeSublist('cseg_stc_drc_segmen', lineData.drc);
-                    if (lineData.dea) safeSublist('cseg_stc_segmentdea', lineData.dea);
-                    if (lineData.sof) safeSublist('cseg_stc_sof', lineData.sof);
-                    rec.commitLine({ sublistId: 'expense' });
-                }
-                var cekLine = rec.getLineCount({
-                    sublistId : 'expense'
-                });
-                console.log('cekLine', cekLine)
-                log.debug('cekLine', cekLine)
-                rec.setValue({
-                    fieldId: 'custbody_amount_from_tor',
-                    value: totalAmount
-                });
-
-                console.log('Proses Transform Berhasil. Total Baris: ' + data.length);
+                processDataAsync(data, rec);
             }
         } catch (e) {
             console.error('Error parsing dataParamsString', e);
         }
+    }
+
+    async function processDataAsync(data, rec) {
+        let totalAmount = 0;
+
+        for (let i = 0; i < data.length; i++) {
+            let lineData = data[i];
+            
+            rec.selectNewLine({ sublistId: 'expense' });
+
+            const forceSet = (field, val, ignore) => {
+                if (val !== null && val !== undefined && val !== '') {
+                    rec.setCurrentSublistValue({
+                        sublistId: 'expense',
+                        fieldId: field,
+                        value: val,
+                        ignoreFieldChange: ignore
+                    });
+                }
+            };
+
+            forceSet('expenseaccount', '281', true); 
+            forceSet('currency', '1', true);
+            
+            if (data[0].date) {
+                let parsedDate = parseDateString(data[0].date);
+                forceSet('expensedate', parsedDate, true);
+            }
+
+            if (lineData.project) {
+                forceSet('customer', lineData.project, false); 
+                
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                if (lineData.projectTask) {
+                    rec.setCurrentSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'projecttask',
+                        value: lineData.projectTask,
+                        ignoreFieldChange: true 
+                    });
+                }
+            }
+
+            if (lineData.amount) {
+                totalAmount += Number(lineData.amount);
+                forceSet('amount', lineData.amount, true);
+            }
+            
+            if (lineData.description) {
+                forceSet('memo', lineData.description, true);
+            }
+
+            if (lineData.costCenter) forceSet('department', lineData.costCenter, true);
+            if (lineData.projectCode) forceSet('class', lineData.projectCode, true);
+            if (lineData.sof) forceSet('cseg_stc_sof', lineData.sof, true);
+            if (lineData.activityCode) forceSet('cseg_paactivitycode', lineData.activityCode, true);
+            if (lineData.bussinessUnit) forceSet('cseg1', lineData.bussinessUnit, true);
+            if (lineData.drc) forceSet('cseg_stc_drc_segmen', lineData.drc, true);
+            if (lineData.dea) forceSet('cseg_stc_segmentdea', lineData.dea, true);
+
+            let finalAcc = rec.getCurrentSublistValue({ sublistId: 'expense', fieldId: 'expenseaccount' });
+            if (!finalAcc || finalAcc != '281') {
+                forceSet('expenseaccount', '281', true);
+            }
+
+            try {
+                rec.commitLine({ sublistId: 'expense' });
+                console.log('Baris ' + i + ' Berhasil Commit. Task ID: ' + lineData.projectTask);
+                log.debug('Line Committed', 'Index: ' + i);
+            } catch (e) {
+                console.error('Gagal Commit Baris ' + i + ': ' + e.message);
+                log.debug('Commit Failed', e.message);
+                rec.cancelLine({ sublistId: 'expense' });
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        rec.setValue({
+            fieldId: 'custbody_amount_from_tor',
+            value: totalAmount,
+            ignoreFieldChange: true
+        });
     }
 
     function parseDateString(dateStr) {

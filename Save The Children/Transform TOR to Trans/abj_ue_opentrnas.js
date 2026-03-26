@@ -66,7 +66,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     sublistId : 'item',
                     fieldId   : 'quantity',
                     line      : indexL,
-                    value     : '1'
+                    value     : data[i].qty
                 });
                 log.debug('data[i].amount', data[i].amount)
                 var amount = data[i].amount
@@ -74,6 +74,27 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 createPO.setSublistValue({
                     sublistId : 'item',
                     fieldId   : 'rate',
+                    line      : indexL,
+                    value     : data[i].unitCost
+                });
+                if(data[i].uom){
+                    createPO.setSublistValue({
+                        sublistId : 'item',
+                        fieldId   : 'units',
+                        line      : indexL,
+                        value     : data[i].uom
+                    });
+                }
+                
+                createPO.setSublistValue({
+                    sublistId : 'item',
+                    fieldId   : 'estimaterate',
+                    line      : indexL,
+                    value     : data[i].unitCost
+                });
+                createPO.setSublistValue({
+                    sublistId : 'item',
+                    fieldId   : 'estimateamount',
                     line      : indexL,
                     value     : data[i].amount
                 });
@@ -726,115 +747,6 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     cekIdTOR = rec.getValue('custrecord_tar_link_to_tor');
                 }
 
-                if(recType == 'purchaserequisition'){
-                    if (cekIdTOR) {
-                        var cekLinePR = rec.getLineCount({
-                            sublistId: 'item'
-                        });
-
-                        if (cekLinePR > 0) {
-                            var allLineTor = [];
-                            for (var p = 0; p < cekLinePR; p++) {
-                                var idTorInPr = rec.getSublistValue({
-                                    sublistId: 'item',
-                                    fieldId: 'custcolid_line_tor',
-                                    line: p
-                                });
-                                
-                                if (idTorInPr) {
-                                    allLineTor.push(String(idTorInPr)); 
-                                }
-                            }
-                            if (allLineTor.length > 0) {
-                                var recLoad = record.load({
-                                    type: 'customrecord_tor',
-                                    id: cekIdTOR
-                                });
-
-                                var cekLine = recLoad.getLineCount({
-                                    sublistId: 'recmachcustrecord_tori_id'
-                                });
-
-                                if (cekLine > 0) {
-                                    var isChanged = false;
-
-                                    for (var i = 0; i < cekLine; i++) {
-                                        var torLineId = recLoad.getSublistValue({
-                                            sublistId: 'recmachcustrecord_tori_id',
-                                            fieldId: 'id',
-                                            line: i
-                                        });
-                                        if (allLineTor.indexOf(String(torLineId)) > -1) {
-                                            
-                                            recLoad.setSublistValue({
-                                                sublistId: 'recmachcustrecord_tori_id',
-                                                fieldId: 'custrecord_tor_link_trx_no',
-                                                line: i,
-                                                value: idRec
-                                            });
-                                            
-                                            isChanged = true;
-                                        }
-                                    }
-                                    if (isChanged) {
-                                        recLoad.save();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                }else{
-                    log.debug('cekIdTOR', cekIdTOR)
-                    
-                    if(cekIdTOR){
-                        var recLoad = record.load({
-                            type : 'customrecord_tor',
-                            id : cekIdTOR
-                        });
-                        var cekLine = recLoad.getLineCount({
-                            sublistId : 'recmachcustrecord_tori_id'
-                        });
-                        if(cekLine > 0){
-                            for(var i = 0; i < cekLine; i++){
-                                var transactionType = recLoad.getSublistValue({
-                                    sublistId : 'recmachcustrecord_tori_id',
-                                    fieldId   : 'custrecord_tor_transaction_type',
-                                    line      : i
-                                });
-                                log.debug('typeToCheck', typeToCheck)
-                    log.debug('transactionType', transactionType)
-                                if(transactionType == typeToCheck){
-                                    var fieldToSet = 'custrecord_tor_link_trx_no'
-                                    if(transactionType == '4'){
-                                        fieldToSet = 'custrecord_tor_link_tar'
-                                    }
-                                    recLoad.setSublistValue({
-                                        sublistId : 'recmachcustrecord_tori_id',
-                                        fieldId   : fieldToSet,
-                                        line      : i,
-                                        value     : idRec
-                                    });
-                                }
-                            }
-                        }
-                        recLoad.save();
-                    }
-                }
-                
-            }catch(e){
-                log.debug('error', e)
-            }
-        }
-        if(context.type == context.UserEventType.DELETE){
-            try{
-                var rec  = context.newRecord;
-                var idRec = rec.id;
-                log.debug('idRec', idRec)
-                var recType = rec.type;
-                log.debug('recType', recType)
-                var typeToCheck = ''  
-                var cekIdTOR = rec.getValue('custbody_id_to');
                 if (recType == 'purchaserequisition') {
                     if (cekIdTOR) {
                         var cekLinePR = rec.getLineCount({
@@ -849,12 +761,11 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                                     fieldId: 'custcolid_line_tor',
                                     line: p
                                 });
-                                
+
                                 if (idTorInPr) {
                                     allLineTor.push(String(idTorInPr));
                                 }
                             }
-
                             if (allLineTor.length > 0) {
                                 var recLoad = record.load({
                                     type: 'customrecord_tor',
@@ -874,19 +785,32 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                                             fieldId: 'id',
                                             line: i
                                         });
-
+                                        
                                         if (allLineTor.indexOf(String(torLineId)) > -1) {
-                                            // Unlink: Set value menjadi kosong
-                                            recLoad.setSublistValue({
+                                            var existingValues = recLoad.getSublistValue({
                                                 sublistId: 'recmachcustrecord_tori_id',
                                                 fieldId: 'custrecord_tor_link_trx_no',
-                                                line: i,
-                                                value: '' 
-                                            });
-                                            isChanged = true;
+                                                line: i
+                                            }) || [];
+
+                                            if (!Array.isArray(existingValues)) {
+                                                existingValues = existingValues ? [existingValues] : [];
+                                            }
+
+                                            if (existingValues.indexOf(idRec.toString()) === -1) {
+                                                existingValues.push(idRec.toString());
+                                                
+                                                recLoad.setSublistValue({
+                                                    sublistId: 'recmachcustrecord_tori_id',
+                                                    fieldId: 'custrecord_tor_link_trx_no',
+                                                    line: i,
+                                                    value: existingValues
+                                                });
+                                                
+                                                isChanged = true;
+                                            }
                                         }
                                     }
-
                                     if (isChanged) {
                                         recLoad.save();
                                     }
@@ -894,11 +818,235 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                             }
                         }
                     }
+                }else{
+                    log.debug('cekIdTOR', cekIdTOR)
+                    
+                    if (cekIdTOR) {
+                        var recLoad = record.load({
+                            type: 'customrecord_tor',
+                            id: cekIdTOR
+                        });
+                        var cekLine = recLoad.getLineCount({
+                            sublistId: 'recmachcustrecord_tori_id'
+                        });
+
+                        if (cekLine > 0) {
+                            for (var i = 0; i < cekLine; i++) {
+                                var transactionType = recLoad.getSublistValue({
+                                    sublistId: 'recmachcustrecord_tori_id',
+                                    fieldId: 'custrecord_tor_transaction_type',
+                                    line: i
+                                });
+
+                                if (transactionType == typeToCheck) {
+                                    var fieldToSet = (transactionType == '4') ? 'custrecord_tor_link_tar' : 'custrecord_tor_link_trx_no';
+                                    var existingValues = recLoad.getSublistValue({
+                                        sublistId: 'recmachcustrecord_tori_id',
+                                        fieldId: fieldToSet,
+                                        line: i
+                                    }) || []; 
+                                    if (!Array.isArray(existingValues)) {
+                                        existingValues = existingValues ? [existingValues] : [];
+                                    }
+                                    if (existingValues.indexOf(idRec.toString()) === -1) {
+                                        existingValues.push(idRec.toString());
+                                    }
+
+                                    recLoad.setSublistValue({
+                                        sublistId: 'recmachcustrecord_tori_id',
+                                        fieldId: fieldToSet,
+                                        line: i,
+                                        value: existingValues 
+                                    });
+                                }
+                            }
+                        }
+                        recLoad.save();
+                    }
                 }
+                
             }catch(e){
                 log.debug('error', e)
             }
         }
+        if(context.type == context.UserEventType.EDIT){
+            var rec  = context.newRecord;
+            var idRec = rec.id;
+            log.debug('idRec', idRec)
+            var recType = rec.type;
+            if(recType == 'customrecord_tar'){
+                var cekIdTOR = rec.getValue('custrecord_tar_link_to_tor');
+                if(cekIdTOR){
+                    var recLoad = record.load({
+                            type: 'customrecord_tor',
+                            id: cekIdTOR
+                        });
+                        var cekLine = recLoad.getLineCount({
+                            sublistId: 'recmachcustrecord_tori_id'
+                        });
+
+                        if (cekLine > 0) {
+                            for (var i = 0; i < cekLine; i++) {
+                                var transactionType = recLoad.getSublistValue({
+                                    sublistId: 'recmachcustrecord_tori_id',
+                                    fieldId: 'custrecord_tor_transaction_type',
+                                    line: i
+                                });
+
+                                if (transactionType == typeToCheck) {
+                                    var fieldToSet = (transactionType == '4') ? 'custrecord_tor_link_tar' : 'custrecord_tor_link_trx_no';
+
+                                    // 1. Ambil nilai yang sudah ada (hasilnya berupa Array)
+                                    var existingValues = recLoad.getSublistValue({
+                                        sublistId: 'recmachcustrecord_tori_id',
+                                        fieldId: fieldToSet,
+                                        line: i
+                                    }) || []; // Jika null, jadikan array kosong
+
+                                    // Pastikan existingValues adalah array (NetSuite terkadang mengembalikan string jika hanya 1 nilai)
+                                    if (!Array.isArray(existingValues)) {
+                                        existingValues = existingValues ? [existingValues] : [];
+                                    }
+
+                                    // 2. Tambahkan idRec jika belum ada di dalam array (mencegah duplikat)
+                                    if (existingValues.indexOf(idRec.toString()) === -1) {
+                                        existingValues.push(idRec.toString());
+                                    }
+
+                                    // 3. Set kembali sebagai Array
+                                    recLoad.setSublistValue({
+                                        sublistId: 'recmachcustrecord_tori_id',
+                                        fieldId: fieldToSet,
+                                        line: i,
+                                        value: existingValues 
+                                    });
+                                }
+                            }
+                        }
+                        recLoad.save();   
+                }
+            }
+        }
+        if (context.type == context.UserEventType.DELETE) {
+            try {
+                var rec = context.oldRecord; 
+                var idRec = rec.id;
+                var recType = rec.type;
+                
+                log.debug('DELETE Event', {type: recType, id: idRec});
+
+                if (recType == 'purchaserequisition') {
+                    var cekIdTOR = rec.getValue('custbody_id_to'); 
+                    if (cekIdTOR) {
+                        var cekLinePR = rec.getLineCount({ sublistId: 'item' });
+                        var allLineTor = [];
+                        for (var p = 0; p < cekLinePR; p++) {
+                            var idTorInPr = rec.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcolid_line_tor',
+                                line: p
+                            });
+                            if (idTorInPr) allLineTor.push(String(idTorInPr));
+                        }
+
+                        if (allLineTor.length > 0) {
+                            processUnlink(cekIdTOR, idRec, allLineTor, 'custrecord_tor_link_trx_no');
+                        }
+                    }
+                }
+
+                // LOGIKA UNTUK CUSTOM RECORD TAR
+                if (recType == 'customrecord_tar') {
+                    var cekIdTOR = rec.getValue('custrecord_tar_link_to_tor');
+                    if (cekIdTOR) {
+                        // Untuk TAR, biasanya kita meng-unlink semua line yang tadinya terhubung ke TAR ini di TOR
+                        var recLoadTOR = record.load({
+                            type: 'customrecord_tor',
+                            id: cekIdTOR
+                        });
+                        var toriLineCount = recLoadTOR.getLineCount({ sublistId: 'recmachcustrecord_tori_id' });
+                        var isChanged = false;
+
+                        for (var i = 0; i < toriLineCount; i++) {
+                            var existingValues = recLoadTOR.getSublistValue({
+                                sublistId: 'recmachcustrecord_tori_id',
+                                fieldId: 'custrecord_tor_link_tar',
+                                line: i
+                            }) || [];
+
+                            if (!Array.isArray(existingValues)) {
+                                existingValues = existingValues ? [existingValues] : [];
+                            }
+
+                            // Buang idRec dari array
+                            var updatedValues = existingValues.filter(function(val) {
+                                return val != String(idRec);
+                            });
+
+                            if (updatedValues.length !== existingValues.length) {
+                                recLoadTOR.setSublistValue({
+                                    sublistId: 'recmachcustrecord_tori_id',
+                                    fieldId: 'custrecord_tor_link_tar',
+                                    line: i,
+                                    value: updatedValues
+                                });
+                                isChanged = true;
+                            }
+                        }
+                        if (isChanged) recLoadTOR.save();
+                    }
+                }
+
+            } catch (e) {
+                log.error('Error on DELETE', e);
+            }
+        }
+
+
+function processUnlink(torId, recordToRemove, linesToMatch, fieldId) {
+    log.debug('unlink tor', torId)
+    var recLoad = record.load({
+        type: 'customrecord_tor',
+        id: torId
+    });
+    var cekLine = recLoad.getLineCount({ sublistId: 'recmachcustrecord_tori_id' });
+    var isChanged = false;
+
+    for (var i = 0; i < cekLine; i++) {
+        var torLineId = recLoad.getSublistValue({
+            sublistId: 'recmachcustrecord_tori_id',
+            fieldId: 'id',
+            line: i
+        });
+
+        if (linesToMatch.indexOf(String(torLineId)) > -1) {
+            var existingValues = recLoad.getSublistValue({
+                sublistId: 'recmachcustrecord_tori_id',
+                fieldId: fieldId,
+                line: i
+            }) || [];
+
+            if (!Array.isArray(existingValues)) {
+                existingValues = existingValues ? [existingValues] : [];
+            }
+
+            var updatedValues = existingValues.filter(function(val) {
+                return val != String(recordToRemove);
+            });
+
+            if (updatedValues.length !== existingValues.length) {
+                recLoad.setSublistValue({
+                    sublistId: 'recmachcustrecord_tori_id',
+                    fieldId: fieldId,
+                    line: i,
+                    value: updatedValues
+                });
+                isChanged = true;
+            }
+        }
+    }
+    if (isChanged) recLoad.save();
+}
     }
     return {
         beforeLoad: beforeLoad,

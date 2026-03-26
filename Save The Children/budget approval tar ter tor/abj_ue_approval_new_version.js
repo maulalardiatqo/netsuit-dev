@@ -34,6 +34,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                 var isItem = true
                 if(recType == 'customrecord_tar'){
                     sublistExpense = 'recmachcustrecord_tar_e_id'
+                    fieldTriggerBudget = 'custrecord_tar_approved_by_budget_holder'
                     isItem = false
                 }
                 if(recType == 'customrecord_ter'){
@@ -55,6 +56,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                     fieldApprovalStatusFA = 'custrecord_tori_approval_status_fa'
                     isItem = true
                 }
+                log.debug('fieldTriggerBudget', fieldTriggerBudget)
                 var cekisAppBgt = recBefLoad.getValue(fieldTriggerBudget)
                 let allowButton = false;
                 if(isItem){

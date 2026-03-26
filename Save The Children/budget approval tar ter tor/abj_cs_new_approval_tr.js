@@ -68,141 +68,317 @@ function(currentRecord, search, https, url, runtime, log) {
             }
         }
     };
+function getTarAmount(id) {
+        let alocatAmount = 0;
+        let idArray = [];
 
-    function getBudgetHolderApproval(paramSof, paramAccount, paramAmount, createdBy, costCenter, projectCode) {
-        log.debug('params Budget', { paramSof, paramAccount, paramAmount, createdBy, costCenter, projectCode})
-        function runSearch(useAccount) {
-            let filters = [
-                ["custrecord_stc_sof", "is", paramSof], "AND",
-                ["custrecord_stc_max_limit_amnt", "greaterthanorequalto", paramAmount], "AND",
-                ["isinactive", "is", "F"]
-            ];
-            if (useAccount && paramAccount) filters.push("AND", ["custrecord_stc_account", "is", paramAccount]);
-
-            let searchObj = search.create({
-                type: "customrecord_stc_apprv_matrix_bdgt_holdr",
-                filters: filters,
-                columns: [
-                    { name: "custrecord_stc_max_limit_amnt", sort: search.Sort.ASC },
-                    "custrecord_stc_bdgt_hldr_approval",
-                    "custrecord_stc_bh_cost_center",
-                    "custrecord_stc_bh_project_code"
-                ]
-            });
-
-            let results = searchObj.run().getRange({ start: 0, end: 100 });
-            
-            for (let res of results) {
-                let mtrxCC = res.getValue("custrecord_stc_bh_cost_center");
-                let mtrxPC = res.getValue("custrecord_stc_bh_project_code");
-                let approver = res.getValue("custrecord_stc_bdgt_hldr_approval");
-                if (mtrxCC == costCenter && mtrxPC == projectCode && approver != createdBy) return approver;
-            }
-            for (let res of results) {
-                if (!res.getValue("custrecord_stc_bh_cost_center") && !res.getValue("custrecord_stc_bh_project_code")) {
-                    let approver = res.getValue("custrecord_stc_bdgt_hldr_approval");
-                    if (approver != createdBy) return approver;
-                }
-            }
-            return null;
+        if (id) {
+            if (Array.isArray(id)) idArray = id;
+            else if (typeof id === 'string') idArray = id.split(',');
+            else idArray = [id];
         }
-        return runSearch(true) || runSearch(false);
-    }
 
-    function getFinanceMatric(sofId, amount, createdBy, costCenter, projectCode) {
-        log.debug('params FA', {sofId : sofId, amount : amount, createdBy : createdBy, costCenter : costCenter, projectCode : projectCode})
-        let searchObj = search.create({
-            type: "customrecord_stc_apprvl_mtrix_finance",
-            filters: [
-                ["custrecord_stc_sof_mtrx_finance", "anyof", sofId], "AND",
-                ["custrecord_finance_max_amnt", "greaterthanorequalto", amount], "AND",
-                ["isinactive", "is", "F"]
-            ],
-            columns: ["custrecord_stc_apprvl_finance", "custrecord_stc_fa_cost_center", "custrecord_stc_fa_project_code"]
+        if (idArray.length === 0) return 0;
+
+        const tarSearch = search.create({
+            type: "customrecord_tar",
+            filters: [["internalid", "anyof", idArray]],
+            columns: [
+                search.createColumn({
+                    name: "custrecord_tare_amount",
+                    join: "CUSTRECORD_TAR_E_ID"
+                })
+            ]
         });
-        let results = searchObj.run().getRange({ start: 0, end: 100 });
-        for (let res of results) {
-            let mtrxCC = res.getValue("custrecord_stc_fa_cost_center");
-            let mtrxPC = res.getValue("custrecord_stc_fa_project_code");
-            let approver = res.getValue("custrecord_stc_apprvl_finance");
-            if (mtrxCC == costCenter && mtrxPC == projectCode && approver != createdBy) return approver;
+
+        tarSearch.run().each(function(result) {
+            let amt = result.getValue({
+                name: "custrecord_tare_amount",
+                join: "CUSTRECORD_TAR_E_ID"
+            }) || 0;
+            alocatAmount += Number(amt);
+            return true;
+        });
+        log.debug('alocatAmount', alocatAmount)
+        return alocatAmount;
+    }
+function getBudgetHolderApproval(paramSof, paramAccount, paramAmount, createdBy, costCenter, projectCode, groupLevel) {
+    log.debug('params BH', { paramSof, paramAccount, paramAmount, costCenter, projectCode, groupLevel });
+
+    function runSearch(useAccount) {
+        let filters = [
+            ["custrecord_stc_sof", "is", paramSof], "AND",
+            ["custrecord_stc_max_limit_amnt", "greaterthanorequalto", paramAmount], "AND",
+            ["isinactive", "is", "F"]
+        ];
+
+        // Filter dinamis berdasarkan Group Level
+        if (groupLevel >= 2 && costCenter) {
+            filters.push("AND", ["custrecord_stc_bh_cost_center", "anyof", costCenter]);
         }
+        if (groupLevel === 3 && projectCode) {
+            filters.push("AND", ["custrecord_stc_bh_project_code", "anyof", projectCode]);
+        }
+        if (useAccount && paramAccount) {
+            filters.push("AND", ["custrecord_stc_account", "is", paramAccount]);
+        }
+
+        let searchObj = search.create({
+            type: "customrecord_stc_apprv_matrix_bdgt_holdr",
+            filters: filters,
+            columns: [
+                { name: "custrecord_stc_max_limit_amnt", sort: search.Sort.ASC },
+                "custrecord_stc_bdgt_hldr_approval",
+                "custrecord_stc_bh_cost_center",
+                "custrecord_stc_bh_project_code"
+            ]
+        });
+
+        let results = searchObj.run().getRange({ start: 0, end: 100 });
+        
+        // Loop 1: Cek kecocokan spesifik sesuai level
         for (let res of results) {
-            if (!res.getValue("custrecord_stc_fa_cost_center") && !res.getValue("custrecord_stc_fa_project_code")) {
-                let approver = res.getValue("custrecord_stc_apprvl_finance");
-                if (approver != createdBy) return approver;
+            let mtrxCC = res.getValue("custrecord_stc_bh_cost_center");
+            let mtrxPC = res.getValue("custrecord_stc_bh_project_code");
+            let approverId = res.getValue("custrecord_stc_bdgt_hldr_approval");
+
+            if (groupLevel === 1) {
+                if (!mtrxCC && !mtrxPC && approverId != createdBy) return approverId;
+            } else if (groupLevel === 2) {
+                if (mtrxCC == costCenter && !mtrxPC && approverId != createdBy) return approverId;
+            } else if (groupLevel === 3) {
+                if (mtrxCC == costCenter && mtrxPC == projectCode && approverId != createdBy) return approverId;
+            }
+        }
+
+        // Loop 2: Fallback ke Global (tanpa CC & PC) jika tidak ketemu di level spesifik
+        for (let res of results) {
+            if (!res.getValue("custrecord_stc_bh_cost_center") && !res.getValue("custrecord_stc_bh_project_code")) {
+                let apprvId = res.getValue("custrecord_stc_bdgt_hldr_approval");
+                if (apprvId != createdBy) return apprvId;
             }
         }
         return null;
     }
 
-    function saveRecord(context) {
-        const rec = context.currentRecord;
-        const typeRec = rec.type;
-        const config = recordConfig[typeRec];
-        if (!config) return true;
+    return runSearch(true) || runSearch(false);
+}
 
-        const createdBy = rec.getValue(config.createdField);
-        const groupMap = {};
+function getFinanceMatric(sofId, amount, createdBy) {
+    log.debug('params FA (Global)', { sofId, amount, createdBy });
+    
+    let filters = [
+        ["custrecord_stc_sof_mtrx_finance", "anyof", sofId], "AND",
+        ["custrecord_finance_max_amnt", "greaterthanorequalto", amount], "AND",
+        ["isinactive", "is", "F"]
+    ];
 
-        Object.keys(config.sublists).forEach(subType => {
-            const subConf = config.sublists[subType];
-            const lineCount = rec.getLineCount({ sublistId: subConf.id });
+    let searchObj = search.create({
+        type: "customrecord_stc_apprvl_mtrix_finance",
+        filters: filters,
+        columns: [
+            { name: "custrecord_finance_max_amnt", sort: search.Sort.ASC },
+            "custrecord_stc_apprvl_finance"
+        ]
+    });
 
-            for (let i = 0; i < lineCount; i++) {
-                let sofId = rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.sof, line: i });
-                if (!sofId) continue;
+    let results = searchObj.run().getRange({ start: 0, end: 100 });
+    
+    if (results && results.length > 0) {
+        for (let i = 0; i < results.length; i++) {
+            let apprvFinance = results[i].getValue("custrecord_stc_apprvl_finance");
+            if (apprvFinance != createdBy) {
+                return apprvFinance;
+            }
+        }
+    }
 
-                let cc = rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.cc, line: i }) || '';
-                let pc = rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.pc, line: i }) || '';
-                let amount = parseFloat(rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.amt, line: i })) || 0;
-                let status = rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.sts, line: i });
-                
-                let groupKey = `${sofId}_${cc}_${pc}`;
+    return null;
+}
 
-                if (!groupMap[groupKey]) {
-                    groupMap[groupKey] = { sofId: sofId, total: 0, account: null, cc: cc, pc: pc, lines: [] };
-                }
+function saveRecord(context) {
+    const rec = context.currentRecord;
+    const typeRec = rec.type;
+    const config = recordConfig[typeRec];
+    if (!config) return true;
 
-                groupMap[groupKey].total += amount;
-                groupMap[groupKey].lines.push({ sublistId: subConf.id, line: i, conf: subConf, currentStatus: status });
+    const createdBy = rec.getValue(config.createdField);
+    const groupMap = {};
+    const financeMap = {}; // Map khusus untuk akumulasi total per SOF
 
-                if (!groupMap[groupKey].account) {
-                    if (subType === 'item') {
-                        let itemId = rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.item, line: i });
-                        const sUrl = url.resolveScript({ scriptId: "customscript_abj_sl_get_item", deploymentId: "customdeploy_abj_sl_get_item", params: { custscript_item_id: itemId } });
-                        groupMap[groupKey].account = https.get({ url: sUrl }).body || '';
-                    } else {
-                        groupMap[groupKey].account = rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.acc, line: i });
+    Object.keys(config.sublists).forEach(subType => {
+        const subConf = config.sublists[subType];
+        const lineCount = rec.getLineCount({ sublistId: subConf.id });
+
+        for (let i = 0; i < lineCount; i++) {
+            let sofId = rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.sof, line: i });
+            if (!sofId) continue;
+
+            let cc = rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.cc, line: i }) || '';
+            let pc = rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.pc, line: i }) || '';
+            let amount = parseFloat(rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.amt, line: i })) || 0;
+            let status = rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.sts, line: i });
+            let statusFa = subConf.faSts ? rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.faSts, line: i }) : '2';
+
+            let groupLevel = 1;
+            let sofLookup = search.lookupFields({
+                type: 'customrecord_cseg_stc_sof',
+                id: sofId,
+                columns: ['custrecord_stc_sof_kreasi']
+            });
+
+            if (sofLookup.custrecord_stc_sof_kreasi === true || sofLookup.custrecord_stc_sof_kreasi === 'T') {
+                groupLevel = 2;
+                if (cc) {
+                    let deptLookup = search.lookupFields({
+                        type: 'department',
+                        id: cc,
+                        columns: ['custrecord_stc_kreasi']
+                    });
+                    if (deptLookup.custrecord_stc_kreasi === true || deptLookup.custrecord_stc_kreasi === 'T') {
+                        groupLevel = 3;
                     }
                 }
             }
+
+            let groupKey = (groupLevel === 1) ? sofId : (groupLevel === 2 ? `${sofId}_${cc}` : `${sofId}_${cc}_${pc}`);
+            
+            if (!groupMap[groupKey]) {
+                groupMap[groupKey] = { 
+                    sofId: sofId, total: 0, account: null, cc: (groupLevel >= 2) ? cc : null, 
+                    pc: (groupLevel === 3) ? pc : null, groupLevel: groupLevel, lines: [] 
+                };
+            }
+            groupMap[groupKey].total += amount;
+            groupMap[groupKey].lines.push({ 
+                sublistId: subConf.id, line: i, conf: subConf, 
+                currentStatus: status, currentStatusFa: statusFa 
+            });
+
+            if (!financeMap[sofId]) financeMap[sofId] = 0;
+            financeMap[sofId] += amount;
+
+            if (!groupMap[groupKey].account) {
+                if (subType === 'item') {
+                    let itemId = rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.item, line: i });
+                    const sUrl = url.resolveScript({ 
+                        scriptId: "customscript_abj_sl_get_item", deploymentId: "customdeploy_abj_sl_get_item", 
+                        params: { custscript_item_id: itemId } 
+                    });
+                    groupMap[groupKey].account = https.get({ url: sUrl }).body || '';
+                } else {
+                    groupMap[groupKey].account = rec.getSublistValue({ sublistId: subConf.id, fieldId: subConf.acc, line: i });
+                }
+            }
+        }
+    });
+
+    Object.keys(groupMap).forEach(key => {
+        const data = groupMap[key];
+        
+        const bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.cc, data.pc, data.groupLevel);
+        
+        const totalFinanceAmount = financeMap[data.sofId];
+        log.debug('paramsFA', {SOFID : data.sofId, totalFinanceAmount : totalFinanceAmount, createdBy : createdBy})
+        const finApprover = getFinanceMatric(data.sofId, totalFinanceAmount, createdBy);
+
+        log.debug('Approvers Logic', {
+            groupKey: key,
+            amountBH: data.total,
+            amountFin: totalFinanceAmount,
+            finApprover: finApprover
         });
 
-        Object.keys(groupMap).forEach(key => {
-            const data = groupMap[key];
-            const bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.cc, data.pc);
-            log.debug('bhApprover', bhApprover)
-            const finApprover = getFinanceMatric(data.sofId, data.total, createdBy, data.cc, data.pc);
-            log.debug('finApprover', finApprover)
+        data.lines.forEach(item => {
+            let isApprovedBH = (item.currentStatus == "2" || item.currentStatus == 2);
+            let isApprovedFA = (item.currentStatusFa == "2" || item.currentStatusFa == 2);
 
-            data.lines.forEach(item => {
-                if (item.currentStatus != "2" && item.currentStatus != 2) {
-                    rec.selectLine({ sublistId: item.sublistId, line: item.line });
+            if (!isApprovedBH || !isApprovedFA) {
+                rec.selectLine({ sublistId: item.sublistId, line: item.line });
+                
+                if (!isApprovedBH) {
                     rec.setCurrentSublistValue({ sublistId: item.sublistId, fieldId: item.conf.apprv, value: bhApprover || '' });
                     rec.setCurrentSublistValue({ sublistId: item.sublistId, fieldId: item.conf.sts, value: '1' });
-
-                    if (item.conf.faApprv && finApprover) {
-                        rec.setCurrentSublistValue({ sublistId: item.sublistId, fieldId: item.conf.faApprv, value: finApprover });
-                        rec.setCurrentSublistValue({ sublistId: item.sublistId, fieldId: item.conf.faSts, value: '1' });
-                    }
-                    rec.commitLine({ sublistId: item.sublistId });
                 }
-            });
-        });
 
-        return true;
+                if (!isApprovedFA && item.conf.faApprv && finApprover) {
+                    rec.setCurrentSublistValue({ sublistId: item.sublistId, fieldId: item.conf.faApprv, value: finApprover });
+                    rec.setCurrentSublistValue({ sublistId: item.sublistId, fieldId: item.conf.faSts, value: '1' });
+                }
+                rec.commitLine({ sublistId: item.sublistId });
+            }
+        });
+    });
+
+    if (typeRec == 'customrecord_tar') {
+        const torId = rec.getValue('custrecord_tar_link_to_tor');
+        const currentTarId = rec.id; 
+
+        if (torId) {
+            let totalAmountTOR = 0;
+            let totalAmountOtherTars = 0;
+
+            const torSearch = search.create({
+                type: "customrecord_tor",
+                filters: [
+                    ["custrecord_tori_id.custrecord_tor_transaction_type", "anyof", "4"],
+                    "AND",
+                    ["internalid", "anyof", torId]
+                ],
+                columns: [
+                    { name: "custrecord_tori_amount", join: "CUSTRECORD_TORI_ID" },
+                    { name: "custrecord_tor_link_tar", join: "CUSTRECORD_TORI_ID" }
+                ]
+            });
+
+            torSearch.run().each(function(result) {
+                let amtTor = result.getValue({ name: "custrecord_tori_amount", join: "CUSTRECORD_TORI_ID" }) || 0;
+                totalAmountTOR += Number(amtTor);
+
+                let cekTar = result.getValue({ name: "custrecord_tor_link_tar", join: "CUSTRECORD_TORI_ID" });
+                if (cekTar) {
+                    let tarIds = [];
+                    if (Array.isArray(cekTar)) tarIds = cekTar;
+                    else if (typeof cekTar === 'string') tarIds = cekTar.split(',');
+                    else tarIds = [cekTar];
+
+                    let otherTarIds = tarIds.filter(id => id != currentTarId);
+
+                    if (otherTarIds.length > 0) {
+                        totalAmountOtherTars += getTarAmount(otherTarIds);
+                    }
+                }
+                return true;
+            });
+
+            let remainingQuota = Number(totalAmountTOR) - Number(totalAmountOtherTars);
+            let currentTarInputAmount = 0;
+            let sublistId = 'recmachcustrecord_tar_e_id';
+            let lineCount = rec.getLineCount({ sublistId: sublistId });
+
+            for (let i = 0; i < lineCount; i++) {
+                let lineAmt = rec.getSublistValue({
+                    sublistId: sublistId,
+                    fieldId: 'custrecord_tare_amount',
+                    line: i
+                }) || 0;
+                currentTarInputAmount += Number(lineAmt);
+            }
+
+            if (totalAmountTOR === 0 || remainingQuota < 0) {
+                alert('Total amount TAR in TOR Record is 0 or already fully allocated.');
+                return false;
+            }
+
+            if (currentTarInputAmount > remainingQuota) {
+                alert('Total Amount in this TAR (' + currentTarInputAmount + ') exceeds remaining quota in TOR (' + remainingQuota + ')');
+                return false;
+            }
+        }
     }
+
+    return true;
+}
 
     return { pageInit: (ctx) => {}, saveRecord: saveRecord };
 });

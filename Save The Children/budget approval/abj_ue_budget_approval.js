@@ -616,100 +616,100 @@ function beforeLoad(context) {
                     return;
                 }
             }
-            if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.COPY) {
+            // if (context.type === context.UserEventType.CREATE || context.type === context.UserEventType.COPY) {
 
-                log.debug('triggered')
+            //     log.debug('triggered')
 
-                const newRecord = context.newRecord;
-                const recId = newRecord.id;
-                const recType = newRecord.type;
-                const rec = record.load({ type: recType, id: recId, isDynamic: true });
+            //     const newRecord = context.newRecord;
+            //     const recId = newRecord.id;
+            //     const recType = newRecord.type;
+            //     const rec = record.load({ type: recType, id: recId, isDynamic: true });
                 
-                const createdBy = rec.getValue('custbody_stc_create_by');
-                const groupMap = {};
-                rec.setValue({
-                    fieldId : "custbody_stc_approved_by_finance",
-                    value : false
-                });
-                const sublists = ['item', 'expense'];
-                sublists.forEach((sublistId) => {
-                    const lineCount = rec.getLineCount({ sublistId: sublistId });
-                    for (let i = 0; i < lineCount; i++) {
-                        let sofId = rec.getSublistValue({ sublistId: sublistId, fieldId: 'cseg_stc_sof', line: i });
-                        if (!sofId) continue;
+            //     const createdBy = rec.getValue('custbody_stc_create_by');
+            //     const groupMap = {};
+            //     rec.setValue({
+            //         fieldId : "custbody_stc_approved_by_finance",
+            //         value : false
+            //     });
+            //     const sublists = ['item', 'expense'];
+            //     sublists.forEach((sublistId) => {
+            //         const lineCount = rec.getLineCount({ sublistId: sublistId });
+            //         for (let i = 0; i < lineCount; i++) {
+            //             let sofId = rec.getSublistValue({ sublistId: sublistId, fieldId: 'cseg_stc_sof', line: i });
+            //             if (!sofId) continue;
 
-                        let costCenter = rec.getSublistValue({ sublistId: sublistId, fieldId: 'department', line: i }) || '';
-                        let projectCode = rec.getSublistValue({ sublistId: sublistId, fieldId: 'class', line: i }) || '';
-                        let groupKey = `${sofId}_${costCenter}_${projectCode}`;
-                        let amountField = (sublistId === 'item') ? 
-                            (['purchreq', 'purchord'].includes(recType) ? 'estimatedamount' : 'grossamt') : 
-                            (['purchreq', 'purchord'].includes(recType) ? 'estimatedamount' : 'grossamt');
+            //             let costCenter = rec.getSublistValue({ sublistId: sublistId, fieldId: 'department', line: i }) || '';
+            //             let projectCode = rec.getSublistValue({ sublistId: sublistId, fieldId: 'class', line: i }) || '';
+            //             let groupKey = `${sofId}_${costCenter}_${projectCode}`;
+            //             let amountField = (sublistId === 'item') ? 
+            //                 (['purchreq', 'purchord'].includes(recType) ? 'estimatedamount' : 'grossamt') : 
+            //                 (['purchreq', 'purchord'].includes(recType) ? 'estimatedamount' : 'grossamt');
                         
-                        let amount = parseFloat(rec.getSublistValue({ sublistId: sublistId, fieldId: amountField, line: i })) || 0;
-                        let statusLine = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custcol_stc_approval_status_line', line: i });
-                        let statusFa = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custcol_stc_apprvl_sts_fa', line: i });
+            //             let amount = parseFloat(rec.getSublistValue({ sublistId: sublistId, fieldId: amountField, line: i })) || 0;
+            //             let statusLine = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custcol_stc_approval_status_line', line: i });
+            //             let statusFa = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custcol_stc_apprvl_sts_fa', line: i });
 
-                        if (!groupMap[groupKey]) {
-                            groupMap[groupKey] = { 
-                                sofId: sofId, total: 0, account: null, costCenter: costCenter, projectCode: projectCode, lines: [] 
-                            };
-                        }
+            //             if (!groupMap[groupKey]) {
+            //                 groupMap[groupKey] = { 
+            //                     sofId: sofId, total: 0, account: null, costCenter: costCenter, projectCode: projectCode, lines: [] 
+            //                 };
+            //             }
                         
-                        groupMap[groupKey].total += amount;
-                        groupMap[groupKey].lines.push({ sublist: sublistId, line: i, statusLine: statusLine, statusFa: statusFa });
+            //             groupMap[groupKey].total += amount;
+            //             groupMap[groupKey].lines.push({ sublist: sublistId, line: i, statusLine: statusLine, statusFa: statusFa });
 
-                        if (!groupMap[groupKey].account) {
-                            if (sublistId === 'item') {
-                                let itemId = rec.getSublistValue({ sublistId: 'item', fieldId: 'item', line: i });
-                                if (itemId) {
-                                    let suiteletUrl = url.resolveScript({
-                                        scriptId: "customscript_abj_sl_get_item",
-                                        deploymentId: "customdeploy_abj_sl_get_item",
-                                        params: { custscript_item_id: itemId },
-                                        returnExternalUrl: true
-                                    });
-                                    let response = https.get({ url: suiteletUrl });
-                                    groupMap[groupKey].account = response.body || '';
-                                }
-                            } else {
-                                groupMap[groupKey].account = rec.getSublistValue({ sublistId: 'expense', fieldId: (['exprept', 'purchreq'].includes(recType)) ? 'expenseaccount' : 'account', line: i });
-                            }
-                        }
-                    }
-                });
-                for (let key in groupMap) {
-                    let data = groupMap[key];
-                    let bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.costCenter, data.projectCode);
-                    let finApprover = null;
-                    log.debug('bhApprover', bhApprover)
-                    log.debug('recType',recType)
-                    if (['vendorbill', 'purchaserequisition', 'purchaseorder', 'expensereport'].includes(recType)) {
-                        log.debug('masuk kondisi')
-                        finApprover = getFinanceMatric(data.sofId, data.total, createdBy, data.costCenter, data.projectCode);
-                    }
-                    log.debug('finApprover', finApprover)
-                    data.lines.forEach((item) => {
-                        let isLine2 = (item.statusLine == "2" || item.statusLine == 2);
-                        let isFa2 = (item.statusFa == "2" || item.statusFa == 2);
+            //             if (!groupMap[groupKey].account) {
+            //                 if (sublistId === 'item') {
+            //                     let itemId = rec.getSublistValue({ sublistId: 'item', fieldId: 'item', line: i });
+            //                     if (itemId) {
+            //                         let suiteletUrl = url.resolveScript({
+            //                             scriptId: "customscript_abj_sl_get_item",
+            //                             deploymentId: "customdeploy_abj_sl_get_item",
+            //                             params: { custscript_item_id: itemId },
+            //                             returnExternalUrl: true
+            //                         });
+            //                         let response = https.get({ url: suiteletUrl });
+            //                         groupMap[groupKey].account = response.body || '';
+            //                     }
+            //                 } else {
+            //                     groupMap[groupKey].account = rec.getSublistValue({ sublistId: 'expense', fieldId: (['exprept', 'purchreq'].includes(recType)) ? 'expenseaccount' : 'account', line: i });
+            //                 }
+            //             }
+            //         }
+            //     });
+            //     for (let key in groupMap) {
+            //         let data = groupMap[key];
+            //         let bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.costCenter, data.projectCode);
+            //         let finApprover = null;
+            //         log.debug('bhApprover', bhApprover)
+            //         log.debug('recType',recType)
+            //         if (['vendorbill', 'purchaserequisition', 'purchaseorder', 'expensereport'].includes(recType)) {
+            //             log.debug('masuk kondisi')
+            //             finApprover = getFinanceMatric(data.sofId, data.total, createdBy, data.costCenter, data.projectCode);
+            //         }
+            //         log.debug('finApprover', finApprover)
+            //         data.lines.forEach((item) => {
+            //             let isLine2 = (item.statusLine == "2" || item.statusLine == 2);
+            //             let isFa2 = (item.statusFa == "2" || item.statusFa == 2);
 
-                        if (!isLine2 || !isFa2) {
-                            rec.selectLine({ sublistId: item.sublist, line: item.line });
-                            if (!isLine2) {
-                                rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_approver_linetrx', value: bhApprover || '' });
-                                rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_approval_status_line', value: "1" });
-                            }
-                            if (!isFa2 && finApprover) {
-                                rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_approver_fa', value: finApprover });
-                                rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_apprvl_sts_fa', value: "1" });
-                            }
-                            rec.commitLine({ sublistId: item.sublist });
-                        }
-                    });
-                }
+            //             if (!isLine2 || !isFa2) {
+            //                 rec.selectLine({ sublistId: item.sublist, line: item.line });
+            //                 if (!isLine2) {
+            //                     rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_approver_linetrx', value: bhApprover || '' });
+            //                     rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_approval_status_line', value: "1" });
+            //                 }
+            //                 if (!isFa2 && finApprover) {
+            //                     rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_approver_fa', value: finApprover });
+            //                     rec.setCurrentSublistValue({ sublistId: item.sublist, fieldId: 'custcol_stc_apprvl_sts_fa', value: "1" });
+            //                 }
+            //                 rec.commitLine({ sublistId: item.sublist });
+            //             }
+            //         });
+            //     }
 
-                rec.save({ ignoreMandatoryFields: true });
+            //     rec.save({ ignoreMandatoryFields: true });
                 
-            }
+            // }
 
 
         

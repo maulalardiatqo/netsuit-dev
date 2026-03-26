@@ -54,8 +54,9 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                         fieldId: 'custrecord_tor_link_trx_no',
                         line: i
                     });
-
-                    if (!cekLink) {
+                    console.log('cekLink', cekLink)
+                    
+                        console.log('masuk eksekusi')
                         dataTransform.push({
                             noTor : noTor,
                             date: date,
@@ -156,10 +157,10 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                             }),
                         });
                     }
-                }
+                
             }
         }
-
+        console.log('dataTransform', dataTransform)
         return dataTransform;
     }
 
