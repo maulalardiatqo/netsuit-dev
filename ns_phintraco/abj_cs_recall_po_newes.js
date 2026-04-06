@@ -29,6 +29,13 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/url', 'N/https'],
                 const result = JSON.parse(response.body);
 
                 if (result.status === 'success' || result.po_id) {
+                    record.submitFields({
+                        type: rec.type,
+                        id: rec.id,
+                        values: {
+                            'custbody_abj_revision': false,
+                        }
+                    });
                     dialog.alert({
                         title: 'Success',
                         message: 'Data berhasil dikirim ke Website.'
@@ -160,22 +167,20 @@ define(['N/currentRecord', 'N/record', 'N/ui/dialog', 'N/url', 'N/https'],
 
                 if (result.status === 'success') {
                     // Kalkulasi Revision Code untuk update di NS
-                    let currentRev = rec.getValue('custbody_abj_revision_code') || '';
-                    let nextRev = currentRev ? 'R' + (parseInt(currentRev.replace('R', '')) + 1) : 'R1';
 
                     record.submitFields({
                         type: rec.type,
                         id: rec.id,
                         values: {
                             'custbody_abj_ready_resubmit': false,
-                            'custbody_abj_revision_code': nextRev,
-                            'approvalstatus': '1'
+                            'approvalstatus': '1',
+                            'custbody_abj_revision' : true
                         }
                     });
 
                     dialog.alert({
                         title: 'Success',
-                        message: 'Revisi ' + nextRev + ' berhasil dikirim.'
+                        message: 'Revisi berhasil dikirim.'
                     }).then(() => {
                         location.reload();
                     });

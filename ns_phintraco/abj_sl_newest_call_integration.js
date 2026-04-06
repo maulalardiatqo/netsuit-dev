@@ -19,8 +19,10 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                 let result = {};
 
                 const currentRev = rec.getValue('custbody_abj_revision_code');
+                const old_id_web = rec.getValue('custbody_id_web') || null;
+                log.debug('currentRev', currentRev)
                 let nextRevCode = currentRev ? 'R' + (parseInt(currentRev.replace(/\D/g, '') || 0) + 1) : 'R1';
-
+                log.debug('nextRevCode', nextRevCode)
                 switch (action) {
                     case 'submitApp':
                         // Create Record baru di website
@@ -53,7 +55,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
 
                     case 'resubmitRevission':
                         // Create Record baru + parameter revision_code
-                        result = sendFullData(rec, 'create', nextRevCode, 'APPROVAL PROCESS');
+                        result = sendFullData(rec, 'create', nextRevCode, 'APPROVAL PROCESS', old_id_web);
                         if (result.status === 'success' || result.status === 'success') {
                             const newIdWeb = result.new_po_id || result.po_id;
                             rec.setValue({ fieldId: 'custbody_id_web', value: newIdWeb });
@@ -94,7 +96,8 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
     /**
      * PENGIRIMAN DATA LENGKAP (REFRACTORED)
      */
-    function sendFullData(rec, endpointAction, revisionCode, customStatus) {
+    function sendFullData(rec, endpointAction, revisionCode, customStatus, old_id_web) {
+        log.debug('old_id_web', old_id_web)
         // Look up Creator Web ID
         let created_by_web = '';
         const creatorNs = rec.getValue('custbody_abj_creator');
@@ -122,8 +125,8 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             date: rec.getValue('trandate'),
             memo: rec.getValue('memo') || '',
             categoryPo: rec.getValue('custbodykategori_po') || '',
-            product: rec.getValue('custbody17') || '',
-            subProduct: rec.getValue('custbodysub_produk') || '',
+            product: rec.getText('custbody17') || '',
+            subProduct: rec.getText('custbodysub_produk') || '',
             noAf: rec.getText('custbody_po_no_af') || '',
             lineCode: rec.getValue('custbody_po_line_code') || '',
             itemAf: rec.getText('custbody_po_af_item_af') || '',
@@ -135,7 +138,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             itemBc: rec.getText('custbody_p_item_bc') || '',
             signPo: rec.getValue('custbody_sign_po') || '',
             subsidiry: rec.getValue('subsidiary') || '',
-            location: rec.getValue('location') || '',
+            location: rec.getText('location') || '',
             class: rec.getValue('class') || '',
             department: rec.getValue('department') || '',
             currency: rec.getValue('currency') || '',
@@ -151,6 +154,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             project_segment: rec.getText('cseg1') || '',
             note_pc: rec.getValue('custbody_po_note_pc') || '',
             note_bc: rec.getValue('custbody_po_note_bc') || '',
+            old_id_web : old_id_web || '',
 
             // Sublists & Complex Data
             line_items: getLineItems(rec),

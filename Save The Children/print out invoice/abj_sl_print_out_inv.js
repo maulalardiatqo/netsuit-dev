@@ -57,6 +57,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     name: "internalid",
                     join: "customerMain",
                 })
+                var noAgreement = headerRec.getValue({
+                    name : "custbody12"
+                })
                 var donorContact = ""
                 var idContact = ""
                 if(donorId){
@@ -229,7 +232,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var xml = "";
                 var header = "";
                 var body = "";
-                var headerHeight = '33%';
+                var headerHeight = '35%';
                 var style = "";
                 var footer = "";
                 var pdfFile = null;
@@ -301,7 +304,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 header += "<tr style='height:60px;'>"
                 header += "<td style=' border-bottom: 1px solid black;'>Attn :</td>"
-                header += "<td style='border-right: 1px solid black; border-bottom: 1px solid black; font-weight:bold;' colspan='2'><span>"+escapeXmlSymbols(donorContact)+"</span><br/><span>"+escapeXmlSymbols(dContactTitle)+"</span></td>"
+                header += "<td style='border-right: 1px solid black; border-bottom: 1px solid black; font-weight:bold;' colspan='2'>"+escapeXmlSymbols(dContactName)+"</td>"
                 header += "<td></td>"
                 header += "</tr>"
 
@@ -328,6 +331,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 header += "<td></td>"
                 header += "<td style='font-weight:bold;'>SOF</td>"
                 header += "<td style='border: 1px solid black; align:center; font-weight:bold;'>"+escapeXmlSymbols(sof)+"</td>"
+                header += "</tr>"
+                header += "<tr style='height:5px;'>"
+                header += "</tr>"
+
+                header += "<tr style=''>"
+                header += "<td></td>"
+                header += "<td style='font-weight:bold;'>NO AGREEMENT</td>"
+                header += "<td style='border: 1px solid black; align:center; font-weight:bold;'>"+escapeXmlSymbols(noAgreement)+"</td>"
                 header += "</tr>"
                 header += "<tr style='height:5px;'>"
                 header += "</tr>"

@@ -92,6 +92,7 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
                 if (idUser == approver) {
                     log.debug('Match Approver', `Line ${i} cocok dengan user ${approver}`);
                     log.debug('statusLine', statusLine)
+                    log.debug('device_info', device_info)
                     recPo.setSublistValue({
                         sublistId: 'recmachcustrecord_abj_a_id',
                         fieldId: 'custrecord_abj_status_approve',
@@ -106,7 +107,7 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
                     });
                     recPo.setSublistValue({
                         sublistId: 'recmachcustrecord_abj_a_id',
-                        fieldId: 'custrecord_af_approval_device',
+                        fieldId: 'custrecord_abj_device',
                         value: device_info,
                         line: i
                     });

@@ -2,7 +2,7 @@
  * @NApiVersion 2.1
  * @NScriptType UserEventScript
  */
-define(['N/record', 'N/search', 'N/runtime'], (record, search, runtime) => {
+define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, search, runtime, serverWidget) => {
 
     const beforeLoad = (context) => {
         try {
@@ -14,14 +14,17 @@ define(['N/record', 'N/search', 'N/runtime'], (record, search, runtime) => {
                 const idWeb = newRecord.getValue('custbody_id_web');
                 const isAfterRecall = newRecord.getValue('custbody_after_recall');
                 const readyResubmit = newRecord.getValue('custbody_abj_ready_resubmit');
+                const isEverApprove = newRecord.getValue('custbody_ever_approve');
+                const isAfterRevision = newRecord.getValue('custbody_abj_revision');
+                const isAfterEdit = newRecord.getValue('custbody_after_edit_save');
+                log.debug('condition', {isEverApprove : isEverApprove, isAfterRecall : isAfterRecall, readyResubmit : readyResubmit, isAfterRevision : isAfterRevision})
                 const currentRole = runtime.getCurrentUser().role;
-                const roleAdmin = 3;
+                const roleAdmin = 2;
 
                 let hasAttach = checkAttachment(recId);
                 let hasApprover = checkApprover(recId);
 
-                // --- 1. SUBMIT AWAL ---
-                if (!idWeb && appStatus == '1' && hasAttach && hasApprover) {
+                if ((!idWeb && appStatus == '1' && hasAttach && hasApprover)) {
                     form.addButton({
                         id: 'custpage_btn_submit_app',
                         label: 'Submit For Approval',
@@ -29,23 +32,24 @@ define(['N/record', 'N/search', 'N/runtime'], (record, search, runtime) => {
                     });
                 }
                 log.debug('isAfterRecall', isAfterRecall)
-                // --- 2. RECALL ---
                 if (idWeb && appStatus == '1' && !isAfterRecall) {
                     if (currentRole != roleAdmin) {
                         form.removeButton('edit');
+                        form.addButton({
+                            id: 'custpage_btn_recall',
+                            label: 'Recall',
+                            functionName: 'recall()'
+                        });
                     }
-                    form.addButton({
-                        id: 'custpage_btn_recall',
-                        label: 'Recall',
-                        functionName: 'recall()'
-                    });
+                    
                 }
 
                 // --- 3. RESUBMIT APPROVAL (Setelah Reject atau Recall + Save) ---
-                if (readyResubmit && (appStatus == '3' || (appStatus == '1' && isAfterRecall))) {
+                log.debug('readyResubmit', readyResubmit)
+                if (readyResubmit && (appStatus == '3' || (appStatus == '1' && isAfterRecall) || (appStatus == '1' && currentRole == roleAdmin))) {
                     form.addButton({
                         id: 'custpage_btn_resubmit_app',
-                        label: 'Submit For Approval',
+                        label: 'Resubmit For Approval',
                         functionName: 'resubmitApproval()'
                     });
                 }
@@ -62,10 +66,25 @@ define(['N/record', 'N/search', 'N/runtime'], (record, search, runtime) => {
 
                 form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js";
             }
+            if(type === context.UserEventType.EDIT){
+                const isEverApprove = newRecord.getValue('custbody_ever_approve');
+                if(isEverApprove){
+                    let fieldCreator = context.form.getField({
+                        id: 'custbody_abj_creator'
+                    });
 
-            // Reset flags saat Copy
+                    // Pastikan field ditemukan sebelum melakukan update
+                    if (fieldCreator) {
+                        fieldCreator.updateDisplayType({
+                            displayType: serverWidget.FieldDisplayType.DISABLED
+                        });
+                        
+                        log.debug('UI Change', 'Field custbody_abj_creator has been disabled.');
+                    }
+                }
+            }
             if (type === context.UserEventType.COPY) {
-                const fieldsToReset = ['custbody_id_web', 'custbody_after_recall', 'custbody_ever_approve', 'custbody_abj_revision_code', 'custbody_abj_ready_resubmit'];
+                const fieldsToReset = ['custbody_id_web', 'custbody_after_recall', 'custbody_ever_approve', 'custbody_abj_revision_code', 'custbody_abj_ready_resubmit', 'custbody_abj_revision', 'custbody_after_edit_save'];
                 fieldsToReset.forEach(f => newRecord.setValue(f, (f === 'custbody_id_web' || f === 'custbody_abj_revision_code') ? '' : false));
             }
 
@@ -81,20 +100,20 @@ define(['N/record', 'N/search', 'N/runtime'], (record, search, runtime) => {
                 const appStatus = newRec.getValue('approvalstatus');
                 const isAfterRecall = newRec.getValue('custbody_after_recall');
                 const idWeb = newRec.getValue('custbody_id_web');
+                const isEverApprove = newRec.getValue('custbody_ever_approve');
+                const roleAdmin = 2;
+                const currentRole = runtime.getCurrentUser().role;
 
                 let updateValues = {};
 
-                // Logic Flag Ready Resubmit (Untuk Reject, Recall, dan Approved)
-                // Jika user melakukan edit pada record yang statusnya sudah final (Reject/Approve) atau sedang Recall
-                if (idWeb && (appStatus == '3' || appStatus == '2' || (appStatus == '1' && isAfterRecall))) {
+                if (idWeb && (appStatus == '3' || appStatus == '2' || (appStatus == '1' && isAfterRecall) || (appStatus == '1' && currentRole == roleAdmin) )) {
+                    log.debug('masuk kondisi ready resubmit')
                     updateValues['custbody_abj_ready_resubmit'] = true;
                 }
-
-                // Logic Ever Approve
                 if (appStatus == '2' && !newRec.getValue('custbody_ever_approve')) {
                     updateValues['custbody_ever_approve'] = true;
                 }
-
+                
                 if (Object.keys(updateValues).length > 0) {
                     record.submitFields({
                         type: newRec.type,
@@ -107,8 +126,6 @@ define(['N/record', 'N/search', 'N/runtime'], (record, search, runtime) => {
             log.error('Error afterSubmit', e);
         }
     };
-
-    // Helper functions (checkAttachment & checkApprover) tetap sama...
     function checkAttachment(recId) {
         return search.create({
             type: 'customrecord_attachment',
