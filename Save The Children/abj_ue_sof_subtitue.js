@@ -17,9 +17,11 @@ define(["N/record", "N/search", "N/log"], function (record, search, log) {
             var recId = rec.id;
 
             var isCamAllocation = rec.getValue('custrecord_stc_non_premise_alloction');
+            log.debug('isCamAllocation', isCamAllocation)
             if (!isCamAllocation) return;
 
             var cekSubtitue = rec.getValue('custrecord_stc_subtitute_sof');
+            log.debug('cekSubtitue', cekSubtitue)
             if (!cekSubtitue) return;
 
             var recLoad = record.load({

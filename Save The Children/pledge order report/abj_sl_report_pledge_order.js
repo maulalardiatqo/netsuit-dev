@@ -23,9 +23,12 @@ define(['N/ui/serverWidget', 'N/search', 'N/url'], (serverWidget, search, url) =
             sublist.addField({ id: 'col_sof', type: serverWidget.FieldType.TEXT, label: 'SOF' });
             sublist.addField({ id: 'col_amt_po', type: serverWidget.FieldType.CURRENCY, label: 'Pledge Order' });
             sublist.addField({ id: 'col_invoice', type: serverWidget.FieldType.CURRENCY, label: 'Invoice' });
+            sublist.addField({ id: 'col_percent_invoice', type: serverWidget.FieldType.TEXT, label: '% Invoice' });
             sublist.addField({ id: 'col_receipt', type: serverWidget.FieldType.CURRENCY, label: 'Receipt Payment' });
-            sublist.addField({ id: 'col_spending', type: serverWidget.FieldType.CURRENCY, label: 'Sepending Amount' });
-            sublist.addField({ id: 'col_percent', type: serverWidget.FieldType.TEXT, label: 'Prosent' });
+            
+            sublist.addField({ id: 'col_percent_receipt', type: serverWidget.FieldType.TEXT, label: '% Receipt Payment' });
+            sublist.addField({ id: 'col_spending', type: serverWidget.FieldType.CURRENCY, label: 'Spending Amount' });
+            sublist.addField({ id: 'col_percent', type: serverWidget.FieldType.TEXT, label: '% Spending Amount' });
 
             let allData = fetchDataFromSearches();
 
@@ -55,7 +58,15 @@ define(['N/ui/serverWidget', 'N/search', 'N/url'], (serverWidget, search, url) =
                 sublist.setSublistValue({ id: 'col_sof', line: index, value: row.sof || ' ' });
                 sublist.setSublistValue({ id: 'col_amt_po', line: index, value: row.amtPo.toString() });
                 sublist.setSublistValue({ id: 'col_invoice', line: index, value: row.invoice.toString() });
+                var invoice = Number(row.invoice) || 0;
+                var amtPo = Number(row.amtPo) || 0;
+                var present_inv = (amtPo !== 0) ? (invoice / amtPo * 100) : 0;
+                sublist.setSublistValue({ id: 'col_percent_invoice', line: index, value: (present_inv ? present_inv.toFixed(2) + '%' : '0%') });
                 sublist.setSublistValue({ id: 'col_receipt', line: index, value: row.receipt.toString() });
+                var receipt = Number(row.receipt) || 0;
+                var inv = Number(row.invoice) || 0;
+                var present_receipt = (receipt !== 0) ? (receipt / inv * 100) : 0;
+                sublist.setSublistValue({ id: 'col_percent_receipt', line: index, value: (present_receipt ? present_receipt.toFixed(2) + '%' : '0%') });
                 sublist.setSublistValue({ id: 'col_spending', line: index, value: row.spending.toString() });
                 sublist.setSublistValue({ id: 'col_percent', line: index, value: row.percent || '0%' });
             });
