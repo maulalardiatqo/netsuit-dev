@@ -60,80 +60,84 @@ define(["N/record", "N/search"], function(
                     log.debug('data pendukung', { entity : entity, billingSchedule : billingSchedule, paymentRemarks : paymentRemarks})
                     return true;
                 });
-                if(isToValidate){
-                    let dataMap = {};
+                if (isToValidate) {
+                    let dataMap = {}; 
+                    
                     const search1 = search.create({
                         type: "transaction",
                         filters: [["type","anyof","SalesOrd","CustInvc"], "AND", ["mainline","is","T"], "AND", ["jobmain.internalid","anyof",projectName]],
                         columns: [
                             search.createColumn({ name: "altname", join: "jobMain", summary: "GROUP" }),
-                            search.createColumn({ name: "formulacurrency", summary: "SUM", formula: "SUM(NVL(CASE WHEN {recordType} = 'salesorder' THEN {amount} END, 0))" }),
-                            search.createColumn({ name: "formulacurrency", summary: "SUM", formula: "SUM(NVL(CASE WHEN {recordType} = 'invoice' THEN {amount} END, 0))" })
+                            search.createColumn({ name: "formulacurrency", summary: "SUM", formula: "NVL(CASE WHEN {recordType} = 'salesorder' THEN {amount} END, 0)" }),
+                            search.createColumn({ name: "formulacurrency", summary: "SUM", formula: "NVL(CASE WHEN {recordType} = 'invoice' THEN {amount} END, 0)" })
                         ]
                     });
 
                     search1.run().each(function(res) {
                         let jobName = res.getValue({ name: "altname", join: "jobMain", summary: "GROUP" });
-                        if (jobName) {
-                            dataMap[jobName] = {
-                                sof: jobName,
-                                amtPo: parseFloat(res.getValue(res.columns[1])) || 0,
-                                invoice: parseFloat(res.getValue(res.columns[2])) || 0,
-                                receipt: 0, 
-                                spending: 0, 
-                                debit: 0,    
-                                percent: '0%'
-                            };
-                        }
-                        return true;
+                        dataMap = {
+                            sof: jobName,
+                            amtPo: parseFloat(res.getValue(res.columns[1])) || 0,
+                            invoice: parseFloat(res.getValue(res.columns[2])) || 0,
+                            receipt: 0, 
+                            spending: 0, 
+                            debit: 0,    
+                            percent: '0%'
+                        };
+                        return false; 
                     });
 
                     const search2 = search.create({
                         type: "transaction",
                         filters: [["type","anyof","ExpRept","VendBill"], "AND", ["mainline","is","F"], "AND", ["job.internalid","anyof",projectName]],
                         columns: [
-                            search.createColumn({ name: "altname", join: "job", summary: "GROUP" }),
-                            search.createColumn({ name: "formulacurrency", summary: "SUM", formula: "SUM(NVL(CASE WHEN {recordType} IN ('vendbill','expensereport') THEN {amount} END, 0))" })
+                            search.createColumn({ name: "formulacurrency", summary: "SUM", formula: "NVL(CASE WHEN {recordType} IN ('vendbill','expensereport') THEN {amount} END, 0)" })
                         ]
                     });
 
                     search2.run().each(function(res) {
-                        let jobName = res.getValue({ name: "altname", join: "job", summary: "GROUP" });
-                        if (dataMap[jobName]) {
-                            dataMap[jobName].spending = parseFloat(res.getValue(res.columns[1])) || 0;
-                        }
-                        return true;
+                        dataMap.spending = parseFloat(res.getValue(res.columns[0])) || 0;
+                        return false;
                     });
 
                     const search3 = search.create({
                         type: "journalentry",
                         filters: [["type","anyof","Journal"], "AND", ["debitamount","greaterthan","0.00"], "AND", ["job.internalid","anyof",projectName]],
                         columns: [
-                            search.createColumn({ name: "altname", join: "job", summary: "GROUP" }),
                             search.createColumn({ name: "debitamount", summary: "SUM" })
                         ]
                     });
 
                     search3.run().each(function(res) {
-                        let jobName = res.getValue({ name: "altname", join: "job", summary: "GROUP" });
-                        let debitAmt = parseFloat(res.getValue(res.columns[1])) || 0;
+                        let debitAmt = parseFloat(res.getValue(res.columns[0])) || 0;
+                        dataMap.receipt = debitAmt; 
                         
-                        if (dataMap[jobName]) {
-                            dataMap[jobName].receipt = debitAmt; 
-                            
-                            if (debitAmt > 0) {
-                                let calcPercent = (dataMap[jobName].spending / debitAmt) * 100;
-                                dataMap[jobName].percent = calcPercent.toFixed(2) + '%';
-                            } else {
-                                dataMap[jobName].percent = '0%';
-                            }
+                        if (debitAmt > 0) {
+                            let calcPercent = (dataMap.spending / debitAmt) * 100;
+                            dataMap.percent = calcPercent.toFixed(2);
+                        } else {
+                            dataMap.percent = 0;
                         }
-                        return true;
+                        return false;
                     });
                     
-                log.debug('dataMap', dataMap)
-                var currentProsent = dataMap.percent
-                log.debug('currentProsent', currentProsent)
+                    log.debug('dataMap', dataMap);
+                    
+                    var currentProsent = dataMap.percent;
+                    var numbRemarks = Number(remarks);
+                    log.debug('numbRemarks', numbRemarks)
+                    log.debug('currentProsent', currentProsent);
+                    if(currentProsent < numbRemarks){
+                        log.debug('masuk validasi')
+                        context.form.removeButton({ id: 'nextbill' });
+
+                        context.form.addButton({
+                            id: 'custpage_next_bill_custom',
+                            label: 'Next Bill',
+                            functionName: 'alertValidation' 
+                        });
+                        context.form.clientScriptModulePath = 'SuiteScripts/abj_cs_validate_nextbill.js';
+                    }
                 }
             }
         }catch(e){
