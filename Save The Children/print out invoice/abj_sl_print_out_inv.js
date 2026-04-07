@@ -5,7 +5,37 @@
 // This sample shows how to render search results into a PDF file.
 define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/config', 'N/format', 'N/email', 'N/runtime'],
     function(render, search, record, log, file, http, config, format, email, runtime) {
-
+        function getEmpData(empId){
+            var empName = ""
+            var empSignature = ""
+            var empTitle = ""
+            var fileTTD;
+            var urlTTD = '';
+            if(empId){
+                var recEmp = record.load({
+                    type : "employee",
+                    id : empId
+                });
+                empName = recEmp.getValue("altname");
+                log.debug('empName', empName)
+                empSignature = recEmp.getValue("custentity_stc_signature")
+                log.debug('empSignature', empSignature)
+                if (empSignature) {
+                    fileTTD = file.load({
+                        id: empSignature
+                    });
+                    //get url
+                    urlTTD = fileTTD.url.replace(/&/g, "&amp;");
+                }
+                empTitle = recEmp.getValue('title')
+            }
+            log.debug('urlTTD', urlTTD)
+            return{
+                empName : empName,
+                empTitle : empTitle,
+                urlTTD : urlTTD
+            }
+        }
         function escapeXmlSymbols(input) {
             if (!input || typeof input !== "string") {
                 return input;
@@ -59,6 +89,12 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 })
                 var noAgreement = headerRec.getValue({
                     name : "custbody12"
+                })
+                var approved1 = headerRec.getValue({
+                    name : "custbody_app1"
+                });
+                var approved2 = headerRec.getValue({
+                    name : "custbodyapp2"
                 })
                 var donorContact = ""
                 var idContact = ""
@@ -141,30 +177,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 log.debug('coa data', {bankName : bankName, bankAddress : bankAddress, accountName : accountName, accountNumber : accountNumber, swiftCode : swiftCode})
                 var status = headerRec.getValue({ name : "statusref"});
                 var empId = headerRec.getValue({ name : "createdby"});
-                var empName = ""
-                var empSignature = ""
-                var empTitle = ""
-                var fileTTD;
-                var urlTTD = '';
-                if(empId){
-                    var recEmp = record.load({
-                        type : "employee",
-                        id : empId
-                    });
-                    empName = recEmp.getValue("nameorig");
-                    log.debug('empName', empName)
-                    empSignature = recEmp.getValue("custentity_stc_signature")
-                    log.debug('empSignature', empSignature)
-                    if (empSignature) {
-                        fileTTD = file.load({
-                            id: empSignature
-                        });
-                        //get url
-                        urlTTD = fileTTD.url.replace(/&/g, "&amp;");
-                    }
-                    empTitle = recEmp.getValue('title')
-                }
-                log.debug('urlTTD', urlTTD)
+
                 // comp information
                 var companyInfo = config.load({
                     type: config.Type.COMPANY_INFORMATION
@@ -457,15 +470,32 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tr>"
 
                 body += "<tr>"
-                body += "<td colspan='2'></td>"
-                body += "<td style='font-weight:bold;'> Yayasan Save The Children Indonesia, </td>"
+                body += "<td colspan='2' style='font-weight:bold;'> Yayasan Save The Children Indonesia, </td>"
+                body += "<td></td>"
                 body += "</tr>"
 
                 body += "<tr>"
-                body += "<td colspan='2'></td>"
-                log.debug('urlTTD', urlTTD);
-                if (urlTTD) {
-                    body += "<td style='align:center;'><img style='height:80px; width:80px; object-fit:cover;' src='" + urlTTD + "' /></td>";
+                var dataApp1 = getEmpData(approved1)
+                var dataApp2 = getEmpData(approved2)
+                log.debug('data approver', {dataApp1 : dataApp1, dataApp2 : dataApp2})
+                
+                var empName1 = dataApp1.empName || '-';
+                var empTitle1 = dataApp1.empTitle || '';
+                var urlTTD1 = dataApp1.urlTTD ||  '';
+
+                var empName2 = dataApp2.empName || '';
+                var empTitle2 = dataApp2.empTitle || '';
+                var urlTTD2 = dataApp2.urlTTD ||  '';
+                
+                
+                if (urlTTD1) {
+                    body += "<td style='align:center;'><img style='height:80px; width:80px; object-fit:cover;' src='" + urlTTD1 + "' /></td>";
+                }else{
+                    body += "<td></td>"
+                }
+                body += "<td colspan='1'></td>"
+                if (urlTTD2) {
+                    body += "<td style='align:center;'><img style='height:80px; width:80px; object-fit:cover;' src='" + urlTTD2 + "' /></td>";
                 }else{
                     body += "<td></td>"
                 }
@@ -473,13 +503,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "</tr>"
 
                 body += "<tr>"
-                body += "<td colspan='2'></td>"
-                body += "<td style='align:center; border-bottom:1px solid black'>"+escapeXmlSymbols(empName)+"</td>"
+                body += "<td style='align:center; border-bottom:1px solid black'>"+empName1+"</td>"
+                body += "<td colspan='1'></td>"
+                body += "<td style='align:center; border-bottom:1px solid black'>"+empName2+"</td>"
                 body += "</tr>"
 
                 body += "<tr>"
-                body += "<td colspan='2'></td>"
-                body += "<td style='align:center;'>"+escapeXmlSymbols(empTitle)+"</td>"
+                body += "<td style='align:center;'>"+empTitle1+"</td>"
+                body += "<td colspan='1'></td>"
+                body += "<td style='align:center;'>"+empTitle2+"</td>"
                 body += "</tr>"
 
                 
