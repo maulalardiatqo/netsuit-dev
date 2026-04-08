@@ -130,10 +130,15 @@ define(["N/record", "N/search"], function(
                     if(currentProsent < numbRemarks){
                         log.debug('masuk validasi')
                         context.form.removeButton({ id: 'nextbill' });
-
+                        context.form.removeButton({id : 'billremaining'});
                         context.form.addButton({
                             id: 'custpage_next_bill_custom',
                             label: 'Next Bill',
+                            functionName: 'alertValidation' 
+                        });
+                        context.form.addButton({
+                            id: 'custpage_bill_remain_custom',
+                            label: 'Bill Remaining',
                             functionName: 'alertValidation' 
                         });
                         context.form.clientScriptModulePath = 'SuiteScripts/abj_cs_validate_nextbill.js';
