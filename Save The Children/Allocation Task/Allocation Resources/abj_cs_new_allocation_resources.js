@@ -103,7 +103,8 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     });
                     return true;
                 });
-
+                console.log('filter total hours', {periodFields : periodFields, costCenterHead})
+                console.log('allSofData', allSofData)
                 if (allSofData.length > 0) {
                     var allDataMaster = [];
                     var search580 = search.load({ id: 'customsearch580' });
@@ -138,7 +139,9 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     var totalHourFiltered = dataValid.reduce(function(sum, row) {
                         return sum + row.numberHour;
                     }, 0);
+                    log.debug('totalHourFiltered', totalHourFiltered)
 
+                    console.log('totalHourFiltered', totalHourFiltered)
                     if (totalHourFiltered > 0) {
                         var dataToProcess = [];
                         var runningTotalPct = 0;
