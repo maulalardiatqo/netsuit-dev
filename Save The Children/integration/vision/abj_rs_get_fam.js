@@ -41,9 +41,9 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
             pageIndex = (pageIndex && pageIndex >= 0) ? pageIndex : 0;
 
             var invSearch = search.load({
-                id: 'customsearch636'
+                id: 'customsearch656'
             });
-
+            // in SB : customsearch656 in prod : customsearch636
             var pagedData = invSearch.runPaged({
                 pageSize: pageSize
             });
