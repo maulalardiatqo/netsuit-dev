@@ -19,7 +19,7 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
                 const isAfterEdit = newRecord.getValue('custbody_after_edit_save');
                 log.debug('condition', {isEverApprove : isEverApprove, isAfterRecall : isAfterRecall, readyResubmit : readyResubmit, isAfterRevision : isAfterRevision})
                 const currentRole = runtime.getCurrentUser().role;
-                const roleAdmin = 2;
+                const roleAdmin = 3;
 
                 let hasAttach = checkAttachment(recId);
                 let hasApprover = checkApprover(recId);
@@ -101,7 +101,7 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
                 const isAfterRecall = newRec.getValue('custbody_after_recall');
                 const idWeb = newRec.getValue('custbody_id_web');
                 const isEverApprove = newRec.getValue('custbody_ever_approve');
-                const roleAdmin = 2;
+                const roleAdmin = 3;
                 const currentRole = runtime.getCurrentUser().role;
 
                 let updateValues = {};
