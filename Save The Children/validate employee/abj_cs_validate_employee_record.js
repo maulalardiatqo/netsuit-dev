@@ -4,7 +4,169 @@
  * @NScriptType ClientScript
  * @NModuleScope SameAccount
  */
-define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime', 'N/currentRecord'], (search, dialog, log, runtime, currentRecord) => {
+define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime', 'N/currentRecord', 'N/ui/message', 'N/url', 'N/https', 'N/format'], (search, dialog, log, runtime, currentRecord, message, url, https, format) => {
+    function getEmployeeBalance(employeeId) {
+        var todayUtc = new Date();
+        var date = format.format({
+            value: todayUtc,
+            type: format.Type.DATE
+        });
+
+        var allCAIds = [];
+        var totalCAAmount = 0;
+
+        var caSearch = search.create({
+            type: 'expensereport',
+            filters: [
+                ['mainline', 'is', true], 'AND',
+                ['custbody_stc_expense_report_type', 'is', 1], 'AND',
+                ['trandate', 'onorbefore', date], 'AND',
+                ['approvalstatus', 'is', 2], 'AND',
+                ['status', 'noneof', 'ExpRept:V'], 'AND',
+                ['entity', 'anyof', employeeId]
+            ],
+            columns: ['amount']
+        });
+
+        caSearch.run().each(function(res) {
+            allCAIds.push(res.id);
+            totalCAAmount += parseFloat(res.getValue('amount')) || 0;
+            return true;
+        });
+
+        if (allCAIds.length === 0) {
+            return { balance: 0, caAmount: 0, realization: 0, deposit: 0 };
+        }
+
+        var totalRealization = 0;
+        var realizSearch = search.create({
+            type: 'expensereport',
+            filters: [
+                ['mainline', 'is', false], 'AND', ['taxline', 'is', false], 'AND',
+                ['trandate', 'onorbefore', date], 'AND',
+                ['approvalstatus', 'is', 2]
+            ],
+            columns: [
+                'amount', 
+                'customform', 
+                'custbody_stc_link_expense_report', 
+                'custbody_stc_link_expense_report_prtnr'
+            ]
+        });
+
+        realizSearch.run().each(function(res) {
+            var amount = parseFloat(res.getValue('amount')) || 0;
+            if (amount < 0) return true; 
+
+            var customForm = res.getValue('customform');
+            var caId;
+
+            if (Number(customForm) == 139) {
+                caId = res.getValue('custbody_stc_link_expense_report_prtnr');
+            } else {
+                caId = res.getValue('custbody_stc_link_expense_report');
+            }
+
+            if (caId && allCAIds.indexOf(caId) !== -1) {
+                totalRealization += amount;
+            }
+            return true;
+        });
+
+        var totalDeposit = 0;
+        var depositSearch = search.create({
+            type: 'deposit',
+            filters: [
+                ['mainline', 'is', true], 'AND',
+                ['custbody_stc_tipe_deposit', 'is', 1], 'AND',
+                ['custbody_stc_link_ca_deposit', 'anyof', allCAIds], 'AND',
+                ['trandate', 'onorbefore', date]
+            ],
+            columns: ['amount']
+        });
+
+        depositSearch.run().each(function(res) {
+            totalDeposit += parseFloat(res.getValue('amount')) || 0;
+            return true;
+        });
+
+        var balance = totalCAAmount - totalRealization - totalDeposit;
+
+        return {
+            employeeId: employeeId,
+            caAmount: totalCAAmount,
+            realization: totalRealization,
+            deposit: totalDeposit,
+            balance: balance < 0 ? 0 : balance 
+        };
+    }
+    function disableButton() {
+        var btn = document.getElementById('custpage_button_resignation');
+        if (btn) {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+        }
+    }
+    function resignation(regId){
+        try {
+            disableButton();
+            var rec = currentRecord.get();
+            var empId = rec.id;
+
+            var msg = message.create({
+                title: 'Please wait',
+                message: 'Processing resignation...',
+                type: message.Type.INFORMATION
+            });
+
+            msg.show({ duration: 0 });
+
+            var suiteletUrl = url.resolveScript({
+                scriptId: 'customscript_abj_sl_resign_emp',
+                deploymentId: 'customdeploy_abj_sl_resign_emp',
+                params: {
+                    regId: regId,
+                    empId: empId
+                }
+            });
+
+            setTimeout(function () {
+
+                var response = https.get({
+                    url: suiteletUrl
+                });
+
+                msg.hide();
+
+                var result;
+                try {
+                    result = JSON.parse(response.body);
+                } catch (e) {
+                    result = {
+                        success: false,
+                        message: 'Invalid response from server'
+                    };
+                }
+
+                dialog.alert({
+                    title: result.success ? 'Success' : 'Error',
+                    message: result.message || 'No message'
+                }).then(function () {
+                    location.reload();
+                });
+
+            }, 100);
+
+        } catch (e) {
+            console.error(e);
+
+            dialog.alert({
+                title: 'Error',
+                message: e.message
+            });
+        }
+    }
     function cekKondisiInactive(rec){
         try{
             var isValidate = false
@@ -145,6 +307,29 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime', 'N/currentRecord'], (se
                     });
                 }
             }
+            if (context.fieldId == 'custentity_stc_finance_advance') {
+                var currec = context.currentRecord;
+                
+                var isChecked = currec.getValue({ fieldId: 'custentity_stc_finance_advance' });
+                
+                if (isChecked) {
+                    var idEmp = currec.id;
+                    
+                    var cekBalance = getEmployeeBalance(idEmp);
+                    console.log('cekBalance', cekBalance);
+
+                    if (cekBalance.balance > 0) {
+                        alert('Tidak dapat mencentang Finance Advance. Masih ada sisa balance: ' + cekBalance.balance);
+                        
+                        currec.setValue({
+                            fieldId: 'custentity_stc_finance_advance',
+                            value: false,
+                            ignoreFieldChange: true
+                        });
+                    }
+                }
+            }
+            
 
         }catch(e){
             console.log('error', e)
@@ -152,7 +337,7 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime', 'N/currentRecord'], (se
     }
     const saveRecord = (context) => {
         try {
-
+            return true
         }catch(e){
             console.log('eroor', e)
         }
@@ -160,6 +345,7 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime', 'N/currentRecord'], (se
 
     return{
         saveRecord : saveRecord,
-        fieldChanged : fieldChanged
+        fieldChanged : fieldChanged,
+        resignation : resignation
     }
 });
