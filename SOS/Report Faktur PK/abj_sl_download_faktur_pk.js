@@ -23,24 +23,34 @@ define(['N/task', 'N/search', 'N/record', 'N/log', 'N/runtime'], function(task, 
             var action = request.parameters.action;
             var taskId = request.parameters.taskId || '';
             if (action === 'start') {
-                var mrTask = task.create({
-                    taskType: task.TaskType.MAP_REDUCE,
-                    scriptId: 'customscript_abj_mr_download_faktur_pk',
-                    // deploymentId: 'customdeploy_abj_mr_export_xml_pph',
-                    params: {
-                        custscript_subs_id: subsId,
-                        custscript_date_from_pk: dateFrom,
-                        custscript_date_to_pk: dateTo,
-                        custscript_npwp_pk: npwp,
-                        custscript_id_cust_rec_pk : idRecord,
-                        custscript_job_action_pk : jobAction
+                try {
+                    var mrTask = task.create({
+                        taskType: task.TaskType.MAP_REDUCE,
+                        scriptId: 'customscript_abj_mr_download_faktur_pk',
+                        params: {
+                            custscript_subs_id: subsId,
+                            custscript_date_from_pk: dateFrom,
+                            custscript_date_to_pk: dateTo,
+                            custscript_npwp_pk: npwp,
+                            custscript_id_cust_rec_pk : idRecord,
+                            custscript_job_action_pk : jobAction
+                        }
+                    });
+
+                    taskId = mrTask.submit();
+
+                    pageContent = '<p>Please Wait. Process task is running...</p>' +
+                                '<p>Click the button below to check if the file is ready.</p>';
+
+                } catch (e) {
+                    if (e.name === 'NO_DEPLOYMENTS_AVAILABLE') {
+                        // Pesan jika 10 deployment ternyata penuh semua
+                        pageContent = '<p style="color: red;">Antrian penuh. Mohon tunggu beberapa saat dan coba klik tombol Start lagi.</p>';
+                    } else {
+                        // Pesan untuk error lainnya
+                        pageContent = '<p style="color: red;">Terjadi kesalahan: ' + e.message + '</p>';
                     }
-                });
-
-                taskId = mrTask.submit();
-
-                pageContent = '<p>Pleas Wait Process task is running...</p>' +
-                '<p>Click the button below to check if the file is ready.</p>';
+                }
 
             }
             var contine_file = 'PK_' + idRecord

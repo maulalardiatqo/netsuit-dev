@@ -173,7 +173,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
                     createRec.setCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "cseg_stc_sof",
-                        value: "20"
+                        value: "615"
                     });
                     createRec.commitLine({ sublistId: 'item' });
                     
@@ -227,7 +227,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
                 createRec.setCurrentSublistValue({
                     sublistId: "item",
                     fieldId: "cseg_stc_sof",
-                    value: "66"
+                    value: "615"
                 });
                 createRec.commitLine({ sublistId: 'item' });
 
@@ -311,7 +311,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
             });
             createRec.setValue({
                 fieldId: "cseg_stc_sof",
-                value: "66",
+                value: "615",
                 ignoreFieldChange: false,
             });
             
@@ -387,7 +387,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
                     createRec.setCurrentSublistValue({
                         sublistId: "item",
                         fieldId: "cseg_stc_sof",
-                        value: "20",
+                        value: "615",
                         ignoreFieldChange : true
                     });
                     createRec.commitLine({ sublistId: 'item' });
@@ -441,7 +441,7 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
                 createRec.setCurrentSublistValue({
                     sublistId: "item",
                     fieldId: "cseg_stc_sof",
-                    value: 66,
+                    value: 615,
                 });
                 createRec.commitLine({ sublistId: 'item' });
             });

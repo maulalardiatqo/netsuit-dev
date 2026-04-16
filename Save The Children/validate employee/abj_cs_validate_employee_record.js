@@ -271,7 +271,7 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime', 'N/currentRecord', 'N/u
                 var isValidate = cekKondisiInactive(context.currentRecord);
                 console.log('isValidate', isValidate)
                 if(!isValidate){
-                    alert('Masih ada validasi yang belum terselesaikan')
+                    alert('Status karyawan tidak dapat diubah menjadi nonaktif sebelum semua item checklist offboarding diselesaikan')
                     context.currentRecord.setValue({
                         fieldId : 'isinactive',
                         value : false,
@@ -285,7 +285,7 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime', 'N/currentRecord', 'N/u
                 var isVlidate = cekTDU(idEmp);
                 console.log('isVlidate', isVlidate)
                 if(!isVlidate){
-                    alert('Masih ada validasi yang belum terselesaikan')
+                    alert('Checklist TDU untuk proses offboarding tidak dapat dilakukan karena masih terdapat aset yang terdaftar pada karyawan')
                     context.currentRecord.setValue({
                         fieldId : 'custentity_stc_tdu_asset',
                         value : false,
@@ -299,7 +299,7 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime', 'N/currentRecord', 'N/u
                 var isVlidate = cekSuply(idEmp);
                 console.log('isVlidate', isVlidate)
                 if(!isVlidate){
-                    alert('Masih ada validasi yang belum terselesaikan')
+                    alert('Checklist Supply Chain untuk proses offboarding tidak dapat dilakukan karena masih terdapat aset supply chain yang terdaftar pada karyawan')
                     context.currentRecord.setValue({
                         fieldId : 'custentity_stc_supply_chain',
                         value : false,
@@ -319,7 +319,7 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime', 'N/currentRecord', 'N/u
                     console.log('cekBalance', cekBalance);
 
                     if (cekBalance.balance > 0) {
-                        alert('Tidak dapat mencentang Finance Advance. Masih ada sisa balance: ' + cekBalance.balance);
+                        alert('Checklist Finance Advance tidak dapat dilakukan karena masih terdapat sisa saldo sebesar Rp ' + cekBalance.balance + 'pada karyawan');
                         
                         currec.setValue({
                             fieldId: 'custentity_stc_finance_advance',
