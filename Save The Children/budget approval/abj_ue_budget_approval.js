@@ -36,21 +36,44 @@ function beforeLoad(context) {
                             line: i
                         });
 
-                        var appSubtitue
-                        if(approver){
-                            log.debug('approver', approver)
+                        var appSubtitue;
+                        if (approver) {
+                            log.debug('approver', approver);
                             var empLook = search.lookupFields({
                                 type: "employee",
                                 id: approver,
-                                columns: ["custentity_stc_subtitute_apprvl"],
+                                columns: ["custentity_stc_subtitute_apprvl", "custentity_stc_delgtion_date_from", "custentity_stc_delegation_date_to"],
                             });
-                            var firstCek = empLook.custentity_stc_subtitute_apprvl
-                            log.debug('firstCek', firstCek)
-                            if(firstCek.length > 0){
-                                appSubtitue = firstCek[0].value;
-                                log.debug('appSubtitue', appSubtitue)
+
+                            var firstCek = empLook.custentity_stc_subtitute_apprvl;
+                            var delegateFromStr = empLook.custentity_stc_delgtion_date_from; // "01/04/2026"
+                            var delegateToStr = empLook.custentity_stc_delegation_date_to;     // "18/04/2026"
+
+                            if (firstCek && firstCek.length > 0 && delegateFromStr && delegateToStr) {
+                                
+                                // 1. Ambil tanggal hari ini (tanpa jam agar perbandingan akurat)
+                                var today = new Date();
+                                today.setHours(0, 0, 0, 0);
+
+                                // 2. Fungsi pembantu untuk convert string "DD/MM/YYYY" ke Date Object
+                                var parseDate = function(str) {
+                                    var parts = str.split('/');
+                                    return new Date(parts[2], parts[1] - 1, parts[0]);
+                                };
+
+                                var dFrom = parseDate(delegateFromStr);
+                                var dTo = parseDate(delegateToStr);
+
+                                // 3. Cek apakah hari ini berada di dalam range (Inclusive)
+                                if (today >= dFrom && today <= dTo) {
+                                    appSubtitue = firstCek[0].value;
+                                    log.debug('Status', 'Masuk Range Delegasi. Substitute Assigned.');
+                                } else {
+                                    log.debug('Status', 'Di luar periode delegasi. Substitute Ignored.');
+                                }
                             }
                             
+                            log.debug('Final appSubtitue', appSubtitue);
                         }
                         const approvalStatus = rec.getSublistValue({
                             sublistId: 'item',

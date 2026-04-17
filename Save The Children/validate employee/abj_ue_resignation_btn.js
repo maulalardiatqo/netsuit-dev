@@ -10,15 +10,19 @@ define(["N/runtime", "N/log"], (runtime, log) => {
             var form = context.form;
             var rec = context.newRecord;
             var cekResignation = rec.getValue('custentity_resignation_employee');
+            var cekInactive = rec.getValue('isinactive');
             log.debug('cekResignation', cekResignation)
-            if(cekResignation){
-                form.addButton({
-                id: 'custpage_button_resignation',
-                label: "Resignation",
-                functionName: `resignation('${cekResignation}')`
-            });
-            context.form.clientScriptModulePath = "SuiteScripts/abj_cs_validate_employee_record.js"
+            if(cekInactive){
+                if(cekResignation){
+                    form.addButton({
+                    id: 'custpage_button_resignation',
+                    label: "Approver Replacement Process",
+                    functionName: `resignation('${cekResignation}')`
+                });
+                context.form.clientScriptModulePath = "SuiteScripts/abj_cs_validate_employee_record.js"
+                }
             }
+            
         
         }
 }

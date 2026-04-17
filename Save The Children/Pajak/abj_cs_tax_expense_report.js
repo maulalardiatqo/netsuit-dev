@@ -5,7 +5,25 @@
  */
 
 define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog", "N/https"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog, https) {
-   function pageInit(scriptContext) {
+   function getNextFridayObject(dateString) {
+        var parts = dateString.split('/');
+        var day = parseInt(parts[0], 10);
+        var month = parseInt(parts[1], 10) - 1; 
+        var year = parseInt(parts[2], 10);
+
+        var d = new Date(year, month, day);
+
+        var daysUntilFriday = (5 - d.getDay() + 7) % 7;
+
+        if (daysUntilFriday === 0) {
+            daysUntilFriday = 7;
+        }
+
+        d.setDate(d.getDate() + daysUntilFriday);
+
+        return d;
+    }
+    function pageInit(scriptContext) {
         const rec = scriptContext.currentRecord;
         log.debug('trigerred');
         
@@ -21,6 +39,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             if (data && data.length > 0) {
                 processDataAsync(data, rec);
             }
+            var cekDatetran = rec.getValue('trandate');
+            console.log('cekDatetran', cekDatetran)
         } catch (e) {
             console.error('Error parsing dataParamsString', e);
         }
@@ -235,7 +255,19 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             
                 }
             }
-            
+            if(context.fieldId == 'trandate'){
+                var cekDate = currentRecordObj.getText('trandate');
+                console.log('cekDate', cekDate)
+                var nextFriday = getNextFridayObject(cekDate)
+                console.log('nextFriday', nextFriday)
+                if(nextFriday){
+                    currentRecordObj.setValue({
+                        fieldId : 'duedate',
+                        value : nextFriday,
+                        ignoreFieldChange : true
+                    })
+                }
+            }
         }catch(e){
             log.debug('error', e)
         }
@@ -347,7 +379,17 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
         }
 
-       
+        var cekDate = currentRecordObj.getText('trandate');
+                console.log('cekDate', cekDate)
+                var nextFriday = getNextFridayObject(cekDate)
+                console.log('nextFriday', nextFriday)
+                if(nextFriday){
+                    currentRecordObj.setValue({
+                        fieldId : 'duedate',
+                        value : nextFriday,
+                        ignoreFieldChange : true
+                    })
+                }
         return true
     }
     return{

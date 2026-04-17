@@ -265,70 +265,136 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime', 'N/currentRecord', 'N/u
             console.log('error', e)
         }
     }
+    function unchekList(rec){
+        console.log('inactive called')
+        rec.setValue({
+            fieldId : 'custentity_stc_tdu_asset',
+            value : false
+        })
+         rec.setValue({
+            fieldId : 'custentity_stc_supply_chain',
+            value : false
+        })
+        rec.setValue({
+            fieldId : 'custentity_stc_finance_advance',
+            value : false
+        })
+        rec.setValue({
+            fieldId : 'custentity_stc_hr',
+            value : false
+        })
+    }
     const fieldChanged = (context) => {
+        var rec = context.currentRecord
         try{
             if(context.fieldId == 'isinactive'){
-                var isValidate = cekKondisiInactive(context.currentRecord);
-                console.log('isValidate', isValidate)
-                if(!isValidate){
-                    alert('Status karyawan tidak dapat diubah menjadi nonaktif sebelum semua item checklist offboarding diselesaikan')
-                    context.currentRecord.setValue({
-                        fieldId : 'isinactive',
-                        value : false,
-                        ignoreFieldChange: true
-                    });
-                }
-            }
-            if(context.fieldId == 'custentity_stc_tdu_asset'){
-                var currec = context.currentRecord
-                var idEmp = currec.id
-                var isVlidate = cekTDU(idEmp);
-                console.log('isVlidate', isVlidate)
-                if(!isVlidate){
-                    alert('Checklist TDU untuk proses offboarding tidak dapat dilakukan karena masih terdapat aset yang terdaftar pada karyawan')
-                    context.currentRecord.setValue({
-                        fieldId : 'custentity_stc_tdu_asset',
-                        value : false,
-                        ignoreFieldChange: true
-                    });
-                }
-            }
-            if(context.fieldId == 'custentity_stc_supply_chain'){
-                var currec = context.currentRecord
-                var idEmp = currec.id
-                var isVlidate = cekSuply(idEmp);
-                console.log('isVlidate', isVlidate)
-                if(!isVlidate){
-                    alert('Checklist Supply Chain untuk proses offboarding tidak dapat dilakukan karena masih terdapat aset supply chain yang terdaftar pada karyawan')
-                    context.currentRecord.setValue({
-                        fieldId : 'custentity_stc_supply_chain',
-                        value : false,
-                        ignoreFieldChange: true
-                    });
-                }
-            }
-            if (context.fieldId == 'custentity_stc_finance_advance') {
-                var currec = context.currentRecord;
-                
-                var isChecked = currec.getValue({ fieldId: 'custentity_stc_finance_advance' });
-                
-                if (isChecked) {
-                    var idEmp = currec.id;
-                    
-                    var cekBalance = getEmployeeBalance(idEmp);
-                    console.log('cekBalance', cekBalance);
-
-                    if (cekBalance.balance > 0) {
-                        alert('Checklist Finance Advance tidak dapat dilakukan karena masih terdapat sisa saldo sebesar Rp ' + cekBalance.balance + 'pada karyawan');
-                        
-                        currec.setValue({
-                            fieldId: 'custentity_stc_finance_advance',
-                            value: false,
+                var cekIsInactive =  rec.getValue('isinactive');
+                if(!cekIsInactive){
+                    unchekList(rec)
+                }else{
+                    var isValidate = cekKondisiInactive(context.currentRecord);
+                    console.log('isValidate', isValidate)
+                    if(!isValidate){
+                        alert('Status karyawan tidak dapat diubah menjadi nonaktif sebelum semua item checklist offboarding diselesaikan')
+                        context.currentRecord.setValue({
+                            fieldId : 'isinactive',
+                            value : false,
                             ignoreFieldChange: true
                         });
                     }
                 }
+                
             }
+            if(context.fieldId == 'custentity_stc_tdu_asset'){
+                var cekIsInactive =  rec.getValue('isinactive');
+                if(cekIsInactive){
+                    context.currentRecord.setValue({
+                        fieldId : 'custentity_stc_tdu_asset',
+                        value : true,
+                        ignoreFieldChange: true
+                    });
+                }else{
+                    var currec = context.currentRecord
+                    var idEmp = currec.id
+                    var isVlidate = cekTDU(idEmp);
+                    console.log('isVlidate', isVlidate)
+                    if(!isVlidate){
+                        alert('Checklist TDU untuk proses offboarding tidak dapat dilakukan karena masih terdapat aset yang terdaftar pada karyawan')
+                        context.currentRecord.setValue({
+                            fieldId : 'custentity_stc_tdu_asset',
+                            value : false,
+                            ignoreFieldChange: true
+                        });
+                    }
+                }
+                
+            }
+            if(context.fieldId == 'custentity_stc_supply_chain'){
+                 var cekIsInactive =  rec.getValue('isinactive');
+                if(cekIsInactive){
+                    context.currentRecord.setValue({
+                        fieldId : 'custentity_stc_supply_chain',
+                        value : true,
+                        ignoreFieldChange: true
+                    });
+                }else{
+                    var currec = context.currentRecord
+                    var idEmp = currec.id
+                    var isVlidate = cekSuply(idEmp);
+                    console.log('isVlidate', isVlidate)
+                    if(!isVlidate){
+                        alert('Checklist Supply Chain untuk proses offboarding tidak dapat dilakukan karena masih terdapat aset supply chain yang terdaftar pada karyawan')
+                        context.currentRecord.setValue({
+                            fieldId : 'custentity_stc_supply_chain',
+                            value : false,
+                            ignoreFieldChange: true
+                        });
+                    }
+                }
+                
+            }
+            if (context.fieldId == 'custentity_stc_finance_advance') {
+                var cekIsInactive =  rec.getValue('isinactive');
+                if(cekIsInactive){
+                    rec.setValue({
+                            fieldId: 'custentity_stc_finance_advance',
+                            value: true,
+                            ignoreFieldChange: true
+                        });
+                }else{
+                    var currec = context.currentRecord;
+                
+                    var isChecked = currec.getValue({ fieldId: 'custentity_stc_finance_advance' });
+                    
+                    if (isChecked) {
+                        var idEmp = currec.id;
+                        
+                        var cekBalance = getEmployeeBalance(idEmp);
+                        console.log('cekBalance', cekBalance);
+
+                        if (cekBalance.balance > 0) {
+                            alert('Checklist Finance Advance tidak dapat dilakukan karena masih terdapat sisa saldo sebesar Rp ' + cekBalance.balance + 'pada karyawan');
+                            
+                            currec.setValue({
+                                fieldId: 'custentity_stc_finance_advance',
+                                value: false,
+                                ignoreFieldChange: true
+                            });
+                        }
+                    }
+                }
+                
+            }
+             if (context.fieldId == 'custentity_stc_hr') {
+                var cekIsInactive =  rec.getValue('isinactive');
+                if(cekIsInactive){
+                    rec.setValue({
+                            fieldId: 'custentity_stc_hr',
+                            value: true,
+                            ignoreFieldChange: true
+                        });
+                }
+             }
             
 
         }catch(e){
