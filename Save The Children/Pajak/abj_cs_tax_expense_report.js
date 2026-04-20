@@ -390,6 +390,41 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         ignoreFieldChange : true
                     })
                 }
+                var cekExpType = currentRecordObj.getValue('custbody_stc_expense_report_type');
+                if(cekExpType == '1'){
+                    var cekEmp = currentRecordObj.getValue('entity');
+                    if(entity){
+                        const employeeSearchObj = search.create({
+                        type: "employee",
+                        filters:
+                        [
+                            ["internalid","anyof",entity]
+                        ],
+                        columns:
+                        [
+                            search.createColumn({name: "employeetype", label: "Employee Type"}),
+                            search.createColumn({name: "custentity_stc_exclude_max_advnc", label: "STC - Exclude Max Advance"}),
+                            search.createColumn({name: "custentity_stc_exc_max_adv_amt", label: "STC - Exclude Max Advance Amount"})
+                        ]
+                        });
+                        const searchResultCount = employeeSearchObj.runPaged().count;
+                        log.debug("employeeSearchObj result count",searchResultCount);
+                        employeeSearchObj.run().each(function(result){
+                            var empType = result.getValue({
+                                name: "employeetype"
+                            })
+                            var isMaxAdvance = result.getValue({
+                                name : "custentity_stc_exclude_max_advnc"
+                            })
+                            var maxAmount = result.getValue({
+                                name  : "custentity_stc_exc_max_adv_amt"
+                            })
+                            return true;
+                        });
+                    }
+
+                    return true
+                }
         return true
     }
     return{

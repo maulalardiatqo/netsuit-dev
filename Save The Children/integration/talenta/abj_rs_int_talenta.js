@@ -2,12 +2,15 @@
  * @NApiVersion 2.1
  * @NScriptType Restlet
  */
-define(['N/record', 'N/file', 'N/format', 'N/log'], (record, file, format, log) => {
+define(['N/record', 'N/file', 'N/format', 'N/log', 'N/https'], (record, file, format, log, https) => {
 
     const post = (requestBody) => {
         try {
             log.audit('Webhook Received', requestBody);
-
+            log.debug({
+                title: 'Request Details',
+                details: `Type of Request Body: ${typeof requestBody}`
+            });
             let sentAtDate = new Date(requestBody.sent_at);
             let formattedDate = format.parse({
                 value: sentAtDate,

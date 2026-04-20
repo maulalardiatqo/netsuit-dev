@@ -5,7 +5,44 @@
 define(['N/currentRecord', 'N/ui/dialog', 'N/log', 'N/search', 'N/url', 'N/https'], function(currentRecord, dialog, log, search, url, https) {
 
     function pageInit(context) {}
+    function getSubtitue(empId){
+        log.debug('empId', empId);
+        var appSubtitue
+        var empLook = search.lookupFields({
+            type: "employee",
+            id: empId,
+            columns: ["custentity_stc_subtitute_apprvl", "custentity_stc_delgtion_date_from", "custentity_stc_delegation_date_to"],
+        });
 
+        var firstCek = empLook.custentity_stc_subtitute_apprvl;
+        var delegateFromStr = empLook.custentity_stc_delgtion_date_from; 
+        var delegateToStr = empLook.custentity_stc_delegation_date_to;   
+
+        if (firstCek && firstCek.length > 0 && delegateFromStr && delegateToStr) {
+            
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // 2. Fungsi pembantu untuk convert string "DD/MM/YYYY" ke Date Object
+            var parseDate = function(str) {
+                var parts = str.split('/');
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            };
+
+            var dFrom = parseDate(delegateFromStr);
+            var dTo = parseDate(delegateToStr);
+
+            // 3. Cek apakah hari ini berada di dalam range (Inclusive)
+            if (today >= dFrom && today <= dTo) {
+                appSubtitue = firstCek[0].value;
+                log.debug('Status', 'Masuk Range Delegasi. Substitute Assigned.');
+            } else {
+                log.debug('Status', 'Di luar periode delegasi. Substitute Ignored.');
+            }
+
+        }
+        return appSubtitue
+    }
     function getBudgetHolderApproval(paramSof, paramAccount, paramAmount, createdBy, costCenter, projectCode, groupLevel) {
         log.debug('params BH', {paramSof: paramSof, paramAccount: paramAccount, paramAmount: paramAmount, costCenter: costCenter, projectCode: projectCode, groupLevel: groupLevel});
         
@@ -184,11 +221,22 @@ function saveRecord(context) {
     for (var key in groupMap) {
         var data = groupMap[key];
         var bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.costCenter, data.projectCode, data.groupLevel);
-        
+        if(bhApprover){
+            var cekSubtitue = getSubtitue(bhApprover)
+            if(cekSubtitue){
+                bhApprover = cekSubtitue
+            }
+        }
         var totalFinanceForSof = financeMap[data.sofId];
         var finApprover = null;
         if (['vendbill', 'purchreq', 'purchord', 'exprept'].includes(type)) {
             finApprover = getFinanceMatric(data.sofId, totalFinanceForSof, createdBy);
+            if(finApprover){
+                var cekSubFA = getSubtitue(finApprover)
+                if(cekSubFA){
+                    finApprover = cekSubFA
+                }
+            }
         }
 
         data.lines.forEach(function(item) {
