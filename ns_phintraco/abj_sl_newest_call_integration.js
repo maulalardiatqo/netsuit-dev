@@ -155,6 +155,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             note_pc: rec.getValue('custbody_po_note_pc') || '',
             note_bc: rec.getValue('custbody_po_note_bc') || '',
             old_id_web : old_id_web || '',
+            jenis_po : rec.getText('custbody6') || '',
 
             // Sublists & Complex Data
             line_items: getLineItems(rec),

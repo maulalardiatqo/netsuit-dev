@@ -67,7 +67,7 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
                 form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js";
             }
             if(type === context.UserEventType.EDIT){
-                const isEverApprove = newRecord.getValue('custbody_ever_approve');
+                const isEverApprove = newRecord.getValue('custbody_id_web');
                 if(isEverApprove){
                     let fieldCreator = context.form.getField({
                         id: 'custbody_abj_creator'
