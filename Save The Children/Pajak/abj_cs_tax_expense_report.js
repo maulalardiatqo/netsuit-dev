@@ -380,51 +380,62 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         }
 
         var cekDate = currentRecordObj.getText('trandate');
-                console.log('cekDate', cekDate)
-                var nextFriday = getNextFridayObject(cekDate)
-                console.log('nextFriday', nextFriday)
-                if(nextFriday){
-                    currentRecordObj.setValue({
-                        fieldId : 'duedate',
-                        value : nextFriday,
-                        ignoreFieldChange : true
-                    })
+        console.log('cekDate', cekDate)
+        var nextFriday = getNextFridayObject(cekDate)
+        console.log('nextFriday', nextFriday)
+        if(nextFriday){
+            currentRecordObj.setValue({
+                fieldId : 'duedate',
+                value : nextFriday,
+                ignoreFieldChange : true
+            })
+        }
+        var cekExpType = currentRecordObj.getValue('custbody_stc_expense_report_type');
+        if (cekExpType == '1') {
+            var entity = currentRecordObj.getValue('entity');
+            var cekTotalExp = parseFloat(currentRecordObj.getValue('total')) || 0;
+            
+            console.log('cekTotalExp', cekTotalExp);
+
+            if (entity) {
+                var empLookup = search.lookupFields({
+                    type: search.Type.EMPLOYEE,
+                    id: entity,
+                    columns: [
+                        'custentity_stc_employee_type',
+                        'custentity_stc_exclude_max_advnc',
+                        'custentity_stc_exc_max_adv_amt',
+                        'custentity_stc_lv_employee'
+                    ]
+                });
+
+                var empType = empLookup.custentity_stc_employee_type.length > 0 ? empLookup.custentity_stc_employee_type[0].value : empLookup.custentity_stc_employee_type;
+                var isMaxAdvance = empLookup.custentity_stc_exclude_max_advnc;
+                var maxAmount = parseFloat(empLookup.custentity_stc_exc_max_adv_amt) || 0;
+                var lvEmployee = empLookup.custentity_stc_lv_employee.length > 0 ? empLookup.custentity_stc_lv_employee[0].value : empLookup.custentity_stc_lv_employee;
+
+                console.log('cekKondisi :', { empType: empType, isMaxAdvance: isMaxAdvance, maxAmount: maxAmount, lvEmployee: lvEmployee });
+
+                if (empType == '1' && (isMaxAdvance === true || isMaxAdvance === 'T') && cekTotalExp > maxAmount) {
+                    alert('The advance amount can`t be greater than Max Exclude Advance Amount');
+                    return false;
                 }
-                var cekExpType = currentRecordObj.getValue('custbody_stc_expense_report_type');
-                if(cekExpType == '1'){
-                    var cekEmp = currentRecordObj.getValue('entity');
-                    if(entity){
-                        const employeeSearchObj = search.create({
-                        type: "employee",
-                        filters:
-                        [
-                            ["internalid","anyof",entity]
-                        ],
-                        columns:
-                        [
-                            search.createColumn({name: "employeetype", label: "Employee Type"}),
-                            search.createColumn({name: "custentity_stc_exclude_max_advnc", label: "STC - Exclude Max Advance"}),
-                            search.createColumn({name: "custentity_stc_exc_max_adv_amt", label: "STC - Exclude Max Advance Amount"})
-                        ]
-                        });
-                        const searchResultCount = employeeSearchObj.runPaged().count;
-                        log.debug("employeeSearchObj result count",searchResultCount);
-                        employeeSearchObj.run().each(function(result){
-                            var empType = result.getValue({
-                                name: "employeetype"
-                            })
-                            var isMaxAdvance = result.getValue({
-                                name : "custentity_stc_exclude_max_advnc"
-                            })
-                            var maxAmount = result.getValue({
-                                name  : "custentity_stc_exc_max_adv_amt"
-                            })
-                            return true;
-                        });
+                if (empType == '1' && (isMaxAdvance === false || isMaxAdvance === 'F')) {
+                    
+                    if (['4', '5', '6'].indexOf(lvEmployee.toString()) !== -1 && cekTotalExp > 30000000) {
+                        alert('The advance amount can`t be greater than 30 million');
+                        return false;
                     }
 
-                    return true
+                    if (['2', '3'].indexOf(lvEmployee.toString()) !== -1 && cekTotalExp > 50000000) {
+                        alert('The advance amount can`t be greater than 50 million');
+                        return false;
+                    }
                 }
+            }
+        }
+
+        
         return true
     }
     return{

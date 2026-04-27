@@ -41,7 +41,7 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
             pageIndex = (pageIndex && pageIndex >= 0) ? pageIndex : 0;
 
             var invSearch = search.load({
-                id: 'customsearch656'
+                id: 'customsearch636'
             });
             // in SB : customsearch656 in prod : customsearch636
             var pagedData = invSearch.runPaged({
@@ -100,7 +100,11 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
                         businessUnitId:    result.getValue({ name: 'cseg1' }),
                         businessUnitName: result.getText({ name: 'cseg1' }),
                     },
-                    
+                    sof : {
+                        sofId : result.getValue({name :'cseg_stc_sof'}),
+                        sofName : result.getText({name :'cseg_stc_sof'})
+
+                    },
                     quantity:         result.getValue({ name: 'custrecord_ncfar_quantity' })
                 };
                 Object.keys(row).forEach(key => row[key] = row[key] || '');

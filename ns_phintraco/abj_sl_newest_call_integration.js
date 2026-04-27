@@ -109,7 +109,66 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             });
             created_by_web = lookup.custrecord_id_users_web;
         }
+        var shipping_address
+        var no_iso
+        var subsidiry = rec.getValue('subsidiary')
+        if(subsidiry){
+             const subsidiarySearchObj = search.create({
+            type: "subsidiary",
+            filters:
+            [
+                ["internalid","anyof",subsidiry]
+            ],
+            columns:
+            [
+                search.createColumn({
+                    name: "address",
+                    join: "shippingAddress",
+                    label: " Address"
+                }),
+                search.createColumn({name: "custrecord_no_iso_po", label: "No ISO PO"})
+            ]
+            });
+            const searchResultCount = subsidiarySearchObj.runPaged().count;
+            log.debug("subsidiarySearchObj result count",searchResultCount);
+            subsidiarySearchObj.run().each(function(result){
+                no_iso = result.getValue({
+                    name : 'custrecord_no_iso_po'
+                }) || ''
+                shipping_address = result.getValue({
+                    name: "address",
+                    join: "shippingAddress",
+                }) ||  ''
+            return true;
+            });
 
+        }
+        var bill_address
+        var vendor = rec.getValue('entity')
+        if(vendor){
+            const vendorSearchObj = search.create({
+            type: "vendor",
+            filters:
+            [
+                ["internalid","anyof","1013"]
+            ],
+            columns:
+            [
+                search.createColumn({name: "billaddress", label: "Billing Address"})
+            ]
+            });
+            const searchResultCount = vendorSearchObj.runPaged().count;
+            log.debug("vendorSearchObj result count",searchResultCount);
+            vendorSearchObj.run().each(function(result){
+                bill_address = result.getValue({
+                    name: "billaddress"
+                })
+            return true;
+            });
+        }
+        log.debug('databaru', {
+            shipping_address : shipping_address, no_iso : no_iso, bill_address : bill_address
+        })
         const payload = {
             // Meta & Parameters
             action_type: endpointAction, 
@@ -156,6 +215,13 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             note_bc: rec.getValue('custbody_po_note_bc') || '',
             old_id_web : old_id_web || '',
             jenis_po : rec.getText('custbody6') || '',
+            po_term : rec.getValue('terms') || '',
+            po_shipment : rec.getValue('incoterm') || '',
+            po_duedate : rec.getValue('duedate') ||  '',
+            po_ppn : rec.getValue('taxtotal'),
+            shipping_address : shipping_address || '',
+             no_iso : no_iso || '',
+             bill_address : bill_address || '',
 
             // Sublists & Complex Data
             line_items: getLineItems(rec),

@@ -32,7 +32,7 @@ if __name__ == "__main__":
             idle_time = get_idle_time()
             print(f"Idle time: {idle_time:.2f} seconds")
 
-            if idle_time >= 3:  # Jika idle lebih dari atau sama dengan 3 detik, gerakkan mouse
+            if idle_time >= 2:  # Jika idle lebih dari atau sama dengan 3 detik, gerakkan mouse
                 print("Mouse moved to prevent idle state.")
                 move_mouse()
 

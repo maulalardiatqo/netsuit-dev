@@ -3,7 +3,21 @@
  * @NScriptType Restlet
  */
 define(['N/record', 'N/log', 'N/error', 'N/search'], (record, log, error, search) => {
-
+    const getFileType = (fileName) => {
+        const ext = fileName.split('.').pop().toLowerCase();
+        const typeMap = {
+            'png': file.Type.PNGIMAGE,
+            'jpg': file.Type.JPGIMAGE,
+            'jpeg': file.Type.JPGIMAGE,
+            'pdf': file.Type.PDF,
+            'txt': file.Type.PLAINTEXT,
+            'csv': file.Type.CSV,
+            'xls': file.Type.EXCEL,
+            'xlsx': file.Type.EXCEL,
+            'zip': file.Type.ZIP
+        };
+        return typeMap[ext] || file.Type.PLAINTEXT; 
+    };
     /**
      * Fungsi utama untuk menangani request GET dari CI3
      */
@@ -13,6 +27,8 @@ define(['N/record', 'N/log', 'N/error', 'N/search'], (record, log, error, search
             const userNsId = request.users_id;
             const email = request.email;
             const fullname = request.fullname;
+            const signatureBase64 = request.signature_data; 
+            const fileName = request.file_name || 'signature.png';
             const isDelete = request.isDelete;
 
             log.debug('Request diterima dari CI3', request);
@@ -55,7 +71,23 @@ define(['N/record', 'N/log', 'N/error', 'N/search'], (record, log, error, search
                     log.error("Error deleting user", e);
                 }
             } else {
-                // === CREATE USER BARU ===
+               let signatureFileId = null;
+
+                if (signatureBase64) {
+                    const dynamicType = getFileType(fileName);
+                    log.debug('dynamicType', dynamicType);
+                    log.debug('fileName', fileName)
+                    const fileObj = file.create({
+                        name: fileName,
+                        fileType: dynamicType, 
+                        contents: signatureBase64,
+                        folder: 123, 
+                        isOnline: true
+                    });
+                    signatureFileId = fileObj.save();
+                    log.debug('File Tersimpan', 'ID File: ' + signatureFileId);
+                }
+
                 const rec = record.create({
                     type: recordType,
                     isDynamic: true,
@@ -65,13 +97,16 @@ define(['N/record', 'N/log', 'N/error', 'N/search'], (record, log, error, search
                 rec.setValue({ fieldId: 'custrecord_id_users_web', value: userNsId });
                 rec.setValue({ fieldId: 'custrecord_users_web_name', value: fullname });
                 rec.setValue({ fieldId: 'custrecord_users_web_email', value: email });
+                
+                if (signatureFileId) {
+                    rec.setValue({ fieldId: 'custrecord_signature', value: signatureFileId });
+                }
 
                 recId = rec.save({ enableSourcing: true, ignoreMandatoryFields: true });
 
                 log.audit('User baru dibuat', `ID: ${recId}`);
             }
 
-            // Kembalikan response ke CI3
             return {
                 success: true,
                 message: isDelete ? 'User berhasil dihapus di NetSuite' : 'User berhasil dibuat di NetSuite',
