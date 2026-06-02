@@ -68,277 +68,148 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime'], (search, log, htt
         }
     };
 
-    // const beforeSubmit = (scriptContext) => {
-    //     const { newRecord, type, UserEventType } = scriptContext;
-    //     if (type !== UserEventType.CREATE && type !== UserEventType.EDIT && type !== UserEventType.COPY) return;
-
-    //     const recType = newRecord.type;
-    //     const config = recordConfig[recType];
-    //     if (!config) return;
-
-    //     const createdBy = newRecord.getValue(config.createdField) || runtime.getCurrentUser().id;
-    //     const groupMap = {};
-    //     const financeMap = {};
-
-    //     Object.keys(config.sublists).forEach(subType => {
-    //         const subConf = config.sublists[subType];
-    //         const lineCount = newRecord.getLineCount({ sublistId: subConf.id });
-
-    //         for (let i = 0; i < lineCount; i++) {
-    //             const sofId = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.sof, line: i });
-    //             if (!sofId) continue;
-
-    //             const cc = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.cc, line: i }) || '';
-    //             const pc = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.pc, line: i }) || '';
-    //             const amount = parseFloat(newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.amt, line: i })) || 0;
-    //             const status = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.sts, line: i });
-    //             const statusFa = subConf.faSts ? newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.faSts, line: i }) : '2';
-
-    //             let groupLevel = 1;
-    //             const sofLookup = search.lookupFields({
-    //                 type: 'customrecord_cseg_stc_sof',
-    //                 id: sofId,
-    //                 columns: ['custrecord_stc_sof_kreasi']
-    //             });
-
-    //             if (sofLookup.custrecord_stc_sof_kreasi === true || sofLookup.custrecord_stc_sof_kreasi === 'T') {
-    //                 groupLevel = 2;
-    //                 if (cc) {
-    //                     const deptLookup = search.lookupFields({
-    //                         type: 'department',
-    //                         id: cc,
-    //                         columns: ['custrecord_stc_kreasi']
-    //                     });
-    //                     if (deptLookup.custrecord_stc_kreasi === true || deptLookup.custrecord_stc_kreasi === 'T') {
-    //                         groupLevel = 3;
-    //                     }
-    //                 }
-    //             }
-
-    //             const groupKey = (groupLevel === 1) ? sofId : (groupLevel === 2 ? `${sofId}_${cc}` : `${sofId}_${cc}_${pc}`);
-
-    //             if (!groupMap[groupKey]) {
-    //                 groupMap[groupKey] = {
-    //                     sofId, total: 0, account: null, cc: (groupLevel >= 2) ? cc : null,
-    //                     pc: (groupLevel === 3) ? pc : null, groupLevel, lines: []
-    //                 };
-    //             }
-    //             groupMap[groupKey].total += amount;
-    //             groupMap[groupKey].lines.push({ sublistId: subConf.id, line: i, conf: subConf, status, statusFa });
-
-    //             if (!financeMap[sofId]) financeMap[sofId] = 0;
-    //             financeMap[sofId] += amount;
-
-    //             if (!groupMap[groupKey].account) {
-    //                 if (subType === 'item') {
-    //                     const itemId = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.item, line: i });
-    //                     if (itemId) {
-    //                         const suiteletUrl = url.resolveScript({
-    //                             scriptId: "customscript_abj_sl_get_item",
-    //                             deploymentId: "customdeploy_abj_sl_get_item",
-    //                             params: { custscript_item_id: itemId },
-    //                             returnExternalUrl: true
-    //                         });
-    //                         const response = https.get({ url: suiteletUrl });
-    //                         groupMap[groupKey].account = response.body || '';
-    //                     }
-    //                 } else {
-    //                     groupMap[groupKey].account = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.acc, line: i });
-    //                 }
-    //             }
-    //         }
-    //     });
-
-    //     Object.keys(groupMap).forEach(key => {
-    //         const data = groupMap[key];
-    //         log.debug('params BH', {sofId : data.sofId, account : data. account, totalAmount : data.total, createdBy : createdBy, costCenter : data.cc, projectCode : data.pc, groupLevel : data.groupLevel})
-    //         var bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.cc, data.pc, data.groupLevel);
-    //         log.debug('bhApprover', bhApprover)
-    //         if(bhApprover){
-    //             var cekBhSubtitue = getSubtitue(bhApprover)
-    //             log.debug('cekBhSubtitue', cekBhSubtitue)
-    //             if(cekBhSubtitue){
-    //                 bhApprover = cekBhSubtitue
-    //             }
-    //         }
-    //         const totalFinanceAmount = financeMap[data.sofId];
-    //         log.debug('params FA', {sofId : data.sofId, totalFinanceAmount : totalFinanceAmount, createdBy : createdBy})
-    //         var finApprover = getFinanceMatric(data.sofId, totalFinanceAmount, createdBy);
-    //         log.debug('finApprover', finApprover)
-    //         if(finApprover){
-    //             var cekFinApprover = getSubtitue(finApprover);
-    //             log.debug('cekFinApprover', cekFinApprover)
-    //             if(cekFinApprover){
-    //                 finApprover = cekFinApprover
-    //             }
-    //         }
-    //         log.debug('Processing Group', { key, totalBH: data.total, totalFin: totalFinanceAmount });
-
-    //         data.lines.forEach(item => {
-    //             const isLineApproved = (item.status == "2" || item.status == 2);
-    //             const isFaApproved = (item.statusFa == "2" || item.statusFa == 2);
-
-    //             if (!isLineApproved) {
-    //                 newRecord.setSublistValue({ sublistId: item.sublistId, fieldId: item.conf.apprv, line: item.line, value: bhApprover || '' });
-    //                 newRecord.setSublistValue({ sublistId: item.sublistId, fieldId: item.conf.sts, line: item.line, value: "1" });
-    //             }
-
-    //             if (!isFaApproved && item.conf.faApprv && finApprover) {
-    //                 newRecord.setSublistValue({ sublistId: item.sublistId, fieldId: item.conf.faApprv, line: item.line, value: finApprover });
-    //                 newRecord.setSublistValue({ sublistId: item.sublistId, fieldId: item.conf.faSts, line: item.line, value: "1" });
-    //             }
-    //         });
-    //     });
-    // };
     const beforeSubmit = (scriptContext) => {
-    const { newRecord, oldRecord, type, UserEventType } = scriptContext;
-    if (type !== UserEventType.CREATE && type !== UserEventType.EDIT && type !== UserEventType.COPY) return;
+        const { newRecord, oldRecord, type, UserEventType } = scriptContext;
+        if (type !== UserEventType.CREATE && type !== UserEventType.EDIT && type !== UserEventType.COPY) return;
 
-    const recType = newRecord.type;
-    const config = recordConfig[recType];
-    if (!config) return;
+        const recType = newRecord.type;
+        const recId = newRecord.id
+        const config = recordConfig[recType];
+        if (!config) return;
 
-    const createdBy = newRecord.getValue(config.createdField) || runtime.getCurrentUser().id;
-    const groupMap = {};
-    const financeMap = {};
+        const createdBy = newRecord.getValue(config.createdField) || runtime.getCurrentUser().id;
+        const groupMap = {};
+        const financeMap = {};
 
-    Object.keys(config.sublists).forEach(subType => {
-        const subConf = config.sublists[subType];
-        const lineCount = newRecord.getLineCount({ sublistId: subConf.id });
-        const oldLineCount = oldRecord ? oldRecord.getLineCount({ sublistId: subConf.id }) : 0;
+        Object.keys(config.sublists).forEach(subType => {
+            const subConf = config.sublists[subType];
+            const lineCount = newRecord.getLineCount({ sublistId: subConf.id });
+            const oldLineCount = oldRecord ? oldRecord.getLineCount({ sublistId: subConf.id }) : 0;
 
-        for (let i = 0; i < lineCount; i++) {
-            const sofId = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.sof, line: i });
-            if (!sofId) continue;
+            for (let i = 0; i < lineCount; i++) {
+                const sofId = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.sof, line: i });
+                if (!sofId) continue;
 
-            const cc = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.cc, line: i }) || '';
-            const pc = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.pc, line: i }) || '';
-            const amount = parseFloat(newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.amt, line: i })) || 0;
-            const status = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.sts, line: i });
-            const statusFa = subConf.faSts ? newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.faSts, line: i }) : '2';
+                let lineAccount = '';
+                if (subType === 'item') {
+                    const itemId = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.item, line: i });
+                    if (itemId) {
+                        const itemLookup = search.lookupFields({
+                            type: search.Type.ITEM,
+                            id: itemId,
+                            columns: ['expenseaccount']
+                        });
+                        lineAccount = (itemLookup.expenseaccount && itemLookup.expenseaccount[0]) ? itemLookup.expenseaccount[0].value : '';
+                    }
+                } else {
+                    lineAccount = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.acc, line: i });
+                }
 
-            let isChanged = true;
-            if (type === UserEventType.EDIT && oldRecord) {
-                if (i < oldLineCount) {
+                const cc = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.cc, line: i }) || '';
+                const pc = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.pc, line: i }) || '';
+                const amount = parseFloat(newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.amt, line: i })) || 0;
+                const status = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.sts, line: i });
+                const statusFa = subConf.faSts ? newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.faSts, line: i }) : '2';
+
+                let isChanged = true;
+                if (type === UserEventType.EDIT && oldRecord && i < oldLineCount) {
                     const oldSof = oldRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.sof, line: i });
                     const oldCc = oldRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.cc, line: i }) || '';
                     const oldPc = oldRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.pc, line: i }) || '';
                     const oldAmount = parseFloat(oldRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.amt, line: i })) || 0;
-                    
-                    let oldAcc = '';
-                    let newAcc = '';
+
+                    let oldVal = '';
+                    let newVal = '';
                     if (subType === 'item') {
-                        oldAcc = oldRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.item, line: i });
-                        newAcc = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.item, line: i });
+                        oldVal = oldRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.item, line: i });
+                        newVal = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.item, line: i });
                     } else {
-                        oldAcc = oldRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.acc, line: i });
-                        newAcc = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.acc, line: i });
+                        oldVal = oldRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.acc, line: i });
+                        newVal = lineAccount;
                     }
 
-                    if (sofId === oldSof && cc === oldCc && pc === oldPc && amount === oldAmount && newAcc === oldAcc) {
+                    if (sofId === oldSof && cc === oldCc && pc === oldPc && amount === oldAmount && newVal === oldVal) {
                         isChanged = false;
                     }
                 }
-            }
 
-            let groupLevel = 1;
-            const sofLookup = search.lookupFields({
-                type: 'customrecord_cseg_stc_sof',
-                id: sofId,
-                columns: ['custrecord_stc_sof_kreasi']
-            });
+                let groupLevel = 1;
+                const sofLookup = search.lookupFields({
+                    type: 'customrecord_cseg_stc_sof',
+                    id: sofId,
+                    columns: ['custrecord_stc_sof_kreasi']
+                });
 
-            if (sofLookup.custrecord_stc_sof_kreasi === true || sofLookup.custrecord_stc_sof_kreasi === 'T') {
-                groupLevel = 2;
-                if (cc) {
-                    const deptLookup = search.lookupFields({
-                        type: 'department',
-                        id: cc,
-                        columns: ['custrecord_stc_kreasi']
-                    });
-                    if (deptLookup.custrecord_stc_kreasi === true || deptLookup.custrecord_stc_kreasi === 'T') {
-                        groupLevel = 3;
-                    }
-                }
-            }
-
-            const groupKey = (groupLevel === 1) ? sofId : (groupLevel === 2 ? `${sofId}_${cc}` : `${sofId}_${cc}_${pc}`);
-
-            if (!groupMap[groupKey]) {
-                groupMap[groupKey] = {
-                    sofId, total: 0, account: null, cc: (groupLevel >= 2) ? cc : null,
-                    pc: (groupLevel === 3) ? pc : null, groupLevel, lines: []
-                };
-            }
-            groupMap[groupKey].total += amount;
-            groupMap[groupKey].lines.push({ sublistId: subConf.id, line: i, conf: subConf, status, statusFa, isChanged });
-
-            if (!financeMap[sofId]) financeMap[sofId] = 0;
-            financeMap[sofId] += amount;
-
-            if (!groupMap[groupKey].account) {
-                if (subType === 'item') {
-                    const itemId = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.item, line: i });
-                    if (itemId) {
-                        const suiteletUrl = url.resolveScript({
-                            scriptId: "customscript_abj_sl_get_item",
-                            deploymentId: "customdeploy_abj_sl_get_item",
-                            params: { custscript_item_id: itemId },
-                            returnExternalUrl: true
+                if (sofLookup.custrecord_stc_sof_kreasi === true || sofLookup.custrecord_stc_sof_kreasi === 'T') {
+                    groupLevel = 2;
+                    if (cc) {
+                        const deptLookup = search.lookupFields({
+                            type: 'department',
+                            id: cc,
+                            columns: ['custrecord_stc_kreasi']
                         });
-                        const response = https.get({ url: suiteletUrl });
-                        groupMap[groupKey].account = response.body || '';
+                        if (deptLookup.custrecord_stc_kreasi === true || deptLookup.custrecord_stc_kreasi === 'T') {
+                            groupLevel = 3;
+                        }
                     }
-                } else {
-                    groupMap[groupKey].account = newRecord.getSublistValue({ sublistId: subConf.id, fieldId: subConf.acc, line: i });
-                }
-            }
-        }
-    });
-
-    Object.keys(groupMap).forEach(key => {
-        const data = groupMap[key];
-
-        const anyLineChanged = data.lines.some(l => l.isChanged === true);
-        if (!anyLineChanged && type === UserEventType.EDIT) {
-            log.debug('No Change Detected', 'Skipping logic for group: ' + key);
-            return; 
-        }
-
-        var bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.cc, data.pc, data.groupLevel);
-        if(bhApprover){
-            var cekBhSubtitue = getSubtitue(bhApprover)
-            if(cekBhSubtitue) bhApprover = cekBhSubtitue;
-        }
-
-        const totalFinanceAmount = financeMap[data.sofId];
-        var finApprover = getFinanceMatric(data.sofId, totalFinanceAmount, createdBy, recType);
-        if(finApprover){
-            var cekFinApprover = getSubtitue(finApprover);
-            if(cekFinApprover) finApprover = cekFinApprover;
-        }
-
-        data.lines.forEach(item => {
-            if (item.isChanged) {
-                const isLineApproved = (item.status == "2" || item.status == 2);
-                const isFaApproved = (item.statusFa == "2" || item.statusFa == 2);
-
-                if (!isLineApproved) {
-                    newRecord.setSublistValue({ sublistId: item.sublistId, fieldId: item.conf.apprv, line: item.line, value: bhApprover || '' });
-                    newRecord.setSublistValue({ sublistId: item.sublistId, fieldId: item.conf.sts, line: item.line, value: "1" });
                 }
 
-                if (!isFaApproved && item.conf.faApprv && finApprover) {
-                    newRecord.setSublistValue({ sublistId: item.sublistId, fieldId: item.conf.faApprv, line: item.line, value: finApprover });
-                    newRecord.setSublistValue({ sublistId: item.sublistId, fieldId: item.conf.faSts, line: item.line, value: "1" });
+                const groupKey = (groupLevel === 1) ? sofId : (groupLevel === 2 ? `${sofId}_${cc}` : `${sofId}_${cc}_${pc}`);
+
+                if (!groupMap[groupKey]) {
+                    groupMap[groupKey] = {
+                        sofId, total: 0, account: lineAccount, cc: (groupLevel >= 2) ? cc : null,
+                        pc: (groupLevel === 3) ? pc : null, groupLevel, lines: []
+                    };
                 }
+                groupMap[groupKey].total += amount;
+                groupMap[groupKey].lines.push({ sublistId: subConf.id, line: i, conf: subConf, status, statusFa, isChanged });
+
+                if (!financeMap[sofId]) financeMap[sofId] = 0;
+                financeMap[sofId] += amount;
             }
         });
-    });
-};
-    function getSubtitue(empId){
+
+        Object.keys(groupMap).forEach(key => {
+            const data = groupMap[key];
+            const anyLineChanged = data.lines.some(l => l.isChanged === true);
+            if (!anyLineChanged && type === UserEventType.EDIT) return;
+
+            let bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.cc, data.pc, data.groupLevel);
+            if (bhApprover) {
+                log.debug('recId', recId)
+                let cekBhSubtitue = getSubtitue(bhApprover, recType, recId,type, UserEventType);
+                if (cekBhSubtitue) bhApprover = cekBhSubtitue;
+            }
+
+            const totalFinanceAmount = financeMap[data.sofId];
+            let finApprover = getFinanceMatric(data.sofId, totalFinanceAmount, createdBy, recType);
+            if (finApprover) {
+                let cekFinApprover = getSubtitue(finApprover, recType, recId,type, UserEventType);
+                if (cekFinApprover) finApprover = cekFinApprover;
+            }
+
+            data.lines.forEach(item => {
+                // if (item.isChanged) {
+                    const isLineApproved = (item.status == "2" || item.status == 2);
+                    const isFaApproved = (item.statusFa == "2" || item.statusFa == 2);
+
+                    if (!isLineApproved) {
+                        newRecord.setSublistValue({ sublistId: item.sublistId, fieldId: item.conf.apprv, line: item.line, value: bhApprover || '' });
+                        newRecord.setSublistValue({ sublistId: item.sublistId, fieldId: item.conf.sts, line: item.line, value: "1" });
+                    }
+
+                    if (!isFaApproved && item.conf.faApprv && finApprover) {
+                        newRecord.setSublistValue({ sublistId: item.sublistId, fieldId: item.conf.faApprv, line: item.line, value: finApprover });
+                        newRecord.setSublistValue({ sublistId: item.sublistId, fieldId: item.conf.faSts, line: item.line, value: "1" });
+                    }
+                // }
+            });
+        });
+    };
+    function getSubtitue(empId, recType, recId, type, UserEventType){
         log.debug('empId', empId);
-        var appSubtitue
+        var appSubtitue;
         var empLook = search.lookupFields({
             type: "employee",
             id: empId,
@@ -350,29 +221,61 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime'], (search, log, htt
         var delegateToStr = empLook.custentity_stc_delegation_date_to;   
 
         if (firstCek && firstCek.length > 0 && delegateFromStr && delegateToStr) {
+            log.debug('masuk date empsubtitue');
+            var createdDate; 
             
-            var today = new Date();
-            today.setHours(0, 0, 0, 0);
-
             var parseDate = function(str) {
                 var parts = str.split('/');
                 return new Date(parts[2], parts[1] - 1, parts[0]);
             };
 
+            if (type === UserEventType.CREATE || type === UserEventType.COPY) {
+                createdDate = new Date(); 
+                createdDate.setHours(0, 0, 0, 0);
+            } else {
+                const customrecord_terSearchObj = search.create({
+                    type: recType,
+                    filters: [["internalid", "anyof", recId]],
+                    columns: [search.createColumn({name: "created", label: "Date Created"})]
+                });
+                
+                customrecord_terSearchObj.run().each(function(result){
+                    var rawDateStr = result.getValue('created').split(' ')[0]; 
+                    createdDate = parseDate(rawDateStr);
+                    return false; 
+                });
+            }
+
             var dFrom = parseDate(delegateFromStr);
             var dTo = parseDate(delegateToStr);
-            log.debug('perbandingan date', {today : today, dFrom : dFrom, dTo : dTo})
-            if (today >= dFrom && today <= dTo) {
+            
+            dFrom.setHours(0, 0, 0, 0);
+            dTo.setHours(23, 59, 59, 999);
+            if (type !== UserEventType.CREATE && type !== UserEventType.COPY) {
+                createdDate.setHours(12, 0, 0, 0);
+            }
+
+            log.debug('perbandingan date', {createdDate : createdDate, dFrom : dFrom, dTo : dTo});
+            
+            if (createdDate >= dFrom && createdDate <= dTo) {
                 appSubtitue = firstCek[0].value;
                 log.debug('Status', 'Masuk Range Delegasi. Substitute Assigned.');
             } else {
                 log.debug('Status', 'Di luar periode delegasi. Substitute Ignored.');
             }
-
         }
-        return appSubtitue
+        return appSubtitue;
     }
     const getBudgetHolderApproval = (paramSof, paramAccount, paramAmount, createdBy, costCenter, projectCode, groupLevel) => {
+        log.debug('filterSearchBH Approfer', {
+            paramSof : paramSof,
+            paramAccount : paramAccount,
+            paramAmount : paramAmount,
+            createdBy : createdBy,
+            costCenter : costCenter,
+            projectCode : projectCode,
+            groupLevel : groupLevel
+        })
         const runSearch = (useAccount) => {
             let filters = [
                 ["custrecord_stc_sof", "anyof", paramSof], "AND",
@@ -390,6 +293,7 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime'], (search, log, htt
             });
 
             const results = searchObj.run().getRange({ start: 0, end: 100 });
+            log.debug('results', results)
             if (results && results.length > 0) {
                 for (let res of results) {
                     let mtrxCC = res.getValue("custrecord_stc_bh_cost_center");

@@ -10,9 +10,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var searchSvp = search.lookupFields({
                 type: "employee",
                 id: id,
-                columns: ["altname"],
+                columns: ["firstname"],
             });
-            empName = searchSvp.altname;
+            empName = searchSvp.firstname;
             return empName
         }
         function escapeXmlSymbols(input) {
@@ -51,11 +51,35 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         type : 'customrecord_tar',
                         id : recid
                     });
+                    var createdDate = ""
+                     var systemnoteSearchObj = search.create({
+                        type: "systemnote",
+                        filters: [
+                            ["recordtype", "anyof", "309"],
+                            "AND",
+                            ["type", "is", "T"],
+                            "AND",
+                            ["newvalue", "is", recid]
+                        ],
+                        columns: [
+                            search.createColumn({
+                                name: "date",
+                                sort: search.Sort.DESC 
+                            })
+                        ]
+                    });
+
+                    systemnoteSearchObj.run().each(function (result) {
+                        createdDate = result.getValue("date");
+                        return false; 
+                    });
                     var nomor = recLoad.getValue('name');
                     var date = recLoad.getValue('custrecord_tar_date');
                     var staffId = recLoad.getValue('custrecord_tar_staf_id');
+                    log.debug('staffId', staffId)
                     var staffName = recLoad.getText('custrecord_tar_staf_name');
                     var title = recLoad.getValue('custrecord_tar_title');
+                    log.debug('title', title)
                     var mobilePhone = recLoad.getValue('custrecord_tar_mobile_phone');
                     var emrContactName = recLoad.getValue('custrecord_tar_emergency_contact_name');
                     var emrContactNo = recLoad.getValue('custrecord_tar_emergency_contact_no');
@@ -335,7 +359,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<td style='border: 1px solid black;'>Staff ID:</td>"
                         body += "<td style='border: 1px solid black; border-left:none;'>"+escapeXmlSymbols(staffId)+"</td>"
                         body += "<td style='border: 1px solid black; border-left:none;'>Title:</td>"
-                        body += "<td style='border: 1px solid black; border-left:none;' colspan='2'></td>"
+                        body += "<td style='border: 1px solid black; border-left:none;' colspan='2'>"+escapeXmlSymbols(title)+"</td>"
                         body += "</tr>"
 
                         body += "<tr>"
@@ -502,7 +526,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
 						body += "<tbody>";
 						body += "<tr>"
-						body += "<td><i>Created By :</i><b>"+createdby+"</b></td>";
+						body += "<td><i>Created By :</i><b>"+createdby+" at "+createdDate+"</b></td>";
 						body += "</tr>"
 
 						// status = 2 (approved)

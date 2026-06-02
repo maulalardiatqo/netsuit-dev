@@ -1,0 +1,291 @@
+/**
+ * @NApiVersion 2.1
+ * @NScriptType MapReduceScript
+ */
+
+define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function(search, runtime, file, log, format) {
+
+    function getInputData() {
+        const script = runtime.getCurrentScript();
+        const subsidiary = script.getParameter({ name: 'custscript_subsidiary' });
+        const dateFrom = script.getParameter({ name: 'custscript_date_from' });
+        const dateTo = script.getParameter({ name: 'custscript_date_to' });
+        log.debug('subsidiary', subsidiary)
+        const searchLoad = search.load({ id: 'customsearch_tal_id_bppu_to_xml' });
+
+        if (subsidiary) {
+            searchLoad.filters.push(search.createFilter({
+                name: "subsidiary",
+                operator: search.Operator.ANYOF,
+                values: subsidiary
+            }));
+        }
+        if (dateFrom && dateTo) {
+            searchLoad.filters.push(search.createFilter({
+                name: "trandate",
+                operator: search.Operator.WITHIN,
+                values: [dateFrom, dateTo]
+            }));
+        }
+        log.debug('searchLoad', searchLoad)
+
+        return searchLoad;
+    }
+
+   function map(context) {
+        const result = JSON.parse(context.value);
+        log.debug('result', result)
+        const values = result.values;
+        log.debug('values', values)
+       
+        let dppValue = Number(values.fxamount);
+        if (!isNaN(dppValue)) {
+            let decimalPart = dppValue % 1;
+            if (decimalPart > 0.5) {
+                dppValue = Math.ceil(dppValue);
+            } else {
+                dppValue = Math.floor(dppValue);
+            }
+        }
+
+        let tanggalPemotongan = values["trandate"];
+        log.debug('tanggalPemotongan sebelum format', tanggalPemotongan);
+
+        if (tanggalPemotongan) {
+            let parts = tanggalPemotongan.split('/');
+            if (parts.length === 3) {
+                let month = parts[0]; // MM
+                let day   = parts[1]; // DD
+                let year  = parts[2]; // YYYY
+                
+                tanggalPemotongan = `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+
+            }
+        }
+        let tanggalDok = values.trandate;
+        log.debug('tanggalDok awal', tanggalDok);
+
+        if (tanggalDok) {
+            let parts = tanggalDok.split('/');
+            if (parts.length === 3) {
+                let month = parts[0]; // MM
+                let day   = parts[1]; // DD
+                let year  = parts[2]; // YYYY
+
+                tanggalDok = `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+            }
+        }
+
+        log.debug('tanggalDok hasil', tanggalDok);
+        function pickValue(bodyVal, lineVal) {
+            if (Array.isArray(bodyVal)) {
+                return bodyVal.length ? bodyVal : lineVal;
+            }
+            return bodyVal ? bodyVal : lineVal;
+        }
+        const rowData = {
+            masaPajak: values.custbody_sos_masa_pajak ? values.custbody_sos_masa_pajak.text : "", 
+            tahunPajak: values.custbody_sos_tahun_pajak ? values.custbody_sos_tahun_pajak.text : "",
+            fasilitas: values.custbody_sos_fasilitas ? values.custbody_sos_fasilitas.text : "",
+            kodeObj: values.custbody_sos_kode_obj_pajak ? values.custbody_sos_kode_obj_pajak.text : "",
+            jenisDokRef: values.custbody_sos_jenis_dok_ref ? values.custbody_sos_jenis_dok_ref.text : "",
+            opsiPembayaran: values.custbody_sos_opsi_pembayaran ? values.custbody_sos_opsi_pembayaran.text : "",
+            
+            nomorDokRef: values.transactionnumber || "",   
+            npwp: values.custbody_sos_npwp_vendor || "",
+            tarif: values.custbody_sos_tarif || "0",
+            idTkuPenerima: values.custbody_sos_id_tku_penerima_penghasil || "",
+            dpp: dppValue,
+            tanggalDok: tanggalDok,
+            idTkuPemotong: values.custbody_id_tku_pemotong || "",
+            nomorSP2D: values.custbody_sos_no_sp2d || "",
+            tanggalPemotongan: tanggalDok
+        };
+        // const rowData = {
+        //     masaPajak: pickValue(values.custbody_stc_masa_pajak, values.custcol_stc_masa_pajak_line),
+        //     tahunPajak: pickValue(values.custbody_stc_tahun_pajak, values.custcol_stc_tahun_pajak_line),
+        //     fasilitas: pickValue(values.custbody_stc_fasilitas, values.custcol_stc_fasilitas_line),
+        //     kodeObj: pickValue(values.custbody_stc_kode_obj_pajak, values.custcol_stc_kode_obj_pjk_line),
+        //     jenisDokRef: values.custbody_stc_jenis_dok_ref || values.custcol_stc_jenis_dok_line,
+        //     opsiPembayaran: pickValue(values.custbody_stc_opsi_pembayaran, values.custcol_stc_opsi_pembayaran_line),
+        //     nomorDokRef: values.transactionnumber || values.transactionnumber,   
+        //     npwp: values.custbody_stc_npwp_vendor || values.custcol_stc_npwp_line,
+        //     tarif: values.custbody_stc_tarif || values.custcol_stc_tarif_line,
+        //     idTkuPenerima : values.custbody_stc_id_tku_penerima_penghasil || values.custcol_stc_id_tku_penerima_penghasil,
+        //     dpp: dppValue,
+        //     tanggalDok: tanggalDok,
+        //     idTkuPemotong: values.custbody_id_tku_pemotong || values.custcol_stc_id_tku_pemotong_line,
+        //     nomorSP2D: values.custbody_stc_no_sp2d || values.custcol_stc_nomor_sp2d_line,
+        //     tanggalPemotongan: tanggalDok
+        // };
+
+        log.debug('rowData', rowData)
+        context.write({ key: 'bpu_group', value: JSON.stringify(rowData) });
+    }
+
+
+    function reduce(context) {
+        const jobAction = runtime.getCurrentScript().getParameter({ name: 'custscript_job_action' });
+        const idRecord = runtime.getCurrentScript().getParameter({ name: 'custscript_id_cust_rec' });
+        const npwpPemotong = runtime.getCurrentScript().getParameter({ name: 'custscript_npwp' });
+
+        log.debug('reduce Stage - jobAction', jobAction);
+
+        if (jobAction === 'xml') {
+            let xmlRows = '';
+            context.values.forEach(function (row) {
+    const data = JSON.parse(row);
+    log.debug('data', data);
+
+    function safe(value) {
+        return value !== undefined && value !== null && value !== '' ? value : 'N/A';
+    }
+
+             xmlRows += `
+                    <Bpu>
+                        <TaxPeriodMonth>${safe(data?.masaPajak?.[0]?.text)}</TaxPeriodMonth>
+                        <TaxPeriodYear>${safe(data?.tahunPajak?.[0]?.text)}</TaxPeriodYear>
+                        <CounterpartTin>${safe(data?.npwp)}</CounterpartTin>
+                        <IDPlaceOfBusinessActivityOfIncomeRecipient>${safe(data?.idTkuPenerima)}</IDPlaceOfBusinessActivityOfIncomeRecipient>
+                        <TaxCertificate>${safe(data?.fasilitas?.[0]?.text)}</TaxCertificate>
+                        <TaxObjectCode>${safe(data?.kodeObj?.[0]?.value)}</TaxObjectCode>
+                        <TaxBase>${safe(data?.dpp)}</TaxBase>
+                        <Rate>${safe(data?.tarif)}</Rate>
+                        <Document>${safe(data?.jenisDokRef?.[0]?.text)}</Document>
+                        <DocumentNumber>${safe(data?.nomorDokRef)}</DocumentNumber>
+                        <DocumentDate>${safe(data?.tanggalDok)}</DocumentDate>
+                        <IDPlaceOfBusinessActivity>${safe(data?.idTkuPemotong)}</IDPlaceOfBusinessActivity>
+                        <GovTreasurerOpt>${safe(data?.opsiPembayaran?.[0]?.text)}</GovTreasurerOpt>
+                        <SP2DNumber>${safe(data?.nomorSP2D)}</SP2DNumber>
+                        <WithholdingDate>${safe(data?.tanggalPemotongan)}</WithholdingDate>
+                    </Bpu>`;
+            });
+
+            const fullXML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                <BpuBulk xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                    <TIN>${npwpPemotong}</TIN>
+                    <ListOfBpu>${xmlRows}</ListOfBpu>
+                </BpuBulk>`;
+
+            const xmlFile = file.create({
+                name: `BPPU_XML_PPh23_${idRecord}.xml`,
+                fileType: file.Type.XMLDOC,
+                contents: fullXML,
+                encoding: file.Encoding.UTF8,
+                folder: 2184
+            });
+
+            const fileId = xmlFile.save();
+            log.audit('XML File Saved', `File ID: ${fileId}`);
+        }
+
+        else if (jobAction === 'excel') {
+
+            let xmlStr = `<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>
+            <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+            xmlns:o="urn:schemas-microsoft-com:office:office"
+            xmlns:x="urn:schemas-microsoft-com:office:excel"
+            xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+            xmlns:html="http://www.w3.org/TR/REC-html40">
+            <Styles>
+                <Style ss:ID="Header">
+                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+                    <Font ss:Bold="1" ss:Color="#FFFFFF"/>
+                    <Interior ss:Color="#28ADFA" ss:Pattern="Solid"/>
+                    <Borders>
+                        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+                        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+                        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+                        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+                    </Borders>
+                </Style>
+                <Style ss:ID="RowEven">
+                    <Interior ss:Color="#DDEEFF" ss:Pattern="Solid"/>
+                </Style>
+                <Style ss:ID="RowOdd">
+                    <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+                </Style>
+            </Styles>
+            <Worksheet ss:Name="DATA">
+            <Table>`;
+
+            // Baris 1: A1 & B1 merge, C1 isi NPWP
+            xmlStr += `
+            <Row>
+                <Cell ss:MergeAcross="1"><Data ss:Type="String">NPWP Pemotong</Data></Cell>
+                <Cell><Data ss:Type="String">${npwpPemotong}</Data></Cell>
+            </Row>`;
+
+            // Baris 2 kosong
+            xmlStr += `<Row/>`;
+
+            // Baris 3: Header mulai dari kolom B
+            xmlStr += `
+            <Row>
+                <Cell/><Cell ss:StyleID="Header"><Data ss:Type="String">Masa Pajak</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">Tahun Pajak</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">NPWP</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">ID TKU Penerima</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">Fasilitas</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">Kode Obj</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">DPP</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">Tarif</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">Jenis Dok. Referensi</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">Nomor Dok. Referensi</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">Tanggal Dok</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">ID TKU Pemotong</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">Opsi Pembayaran (IP)</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">Nomor SP2D (IP)</Data></Cell>
+                <Cell ss:StyleID="Header"><Data ss:Type="String">Tanggal Pemotongan</Data></Cell>
+            </Row>`;
+
+            // Data rows
+            let rowIndex = 0;
+            var dataContex = context.values;
+            log.debug('dataContex', dataContex)
+            context.values.forEach(function (row) {
+                const data = JSON.parse(row);
+                log.debug('data', data)
+                const styleRow = (rowIndex % 2 === 0) ? 'RowEven' : 'RowOdd';
+                xmlStr += `<Row><Cell/>`; 
+                [
+                    'masaPajak', 'tahunPajak', 'npwp', 'idTkuPenerima', 'fasilitas',
+                    'kodeObj', 'dpp', 'tarif', 'jenisDokRef', 'nomorDokRef',
+                    'tanggalDok', 'idTkuPemotong', 'opsiPembayaran', 'nomorSP2D', 'tanggalPemotongan'
+                ].forEach(key => {
+                    let value = data[key];
+
+                    if (Array.isArray(value) && value.length > 0 && value[0].text) {
+                        value = value[0].text;
+                    } else if (Array.isArray(value) && value.length === 0) {
+                        value = '-';
+                    } else if (value && typeof value === 'object') {
+                        value = JSON.stringify(value);
+                    }
+
+                    xmlStr += `<Cell ss:StyleID="${styleRow}"><Data ss:Type="String">${value || '-'}</Data></Cell>`;
+                });
+                xmlStr += `</Row>`;
+                rowIndex++;
+            });
+
+            xmlStr += `
+            </Table>
+            </Worksheet>
+            </Workbook>`;
+
+            const excelFile = file.create({
+                name: `BPPU_Excel_PPh23_${idRecord}.xls`,
+                fileType: file.Type.PLAINTEXT,
+                contents: xmlStr,
+                encoding: file.Encoding.UTF8,
+                folder: 2184
+            });
+
+            const fileId = excelFile.save();
+            log.audit('Excel File Saved', `File ID: ${fileId}`);
+        }
+    }
+
+    return { getInputData, map, reduce };
+});

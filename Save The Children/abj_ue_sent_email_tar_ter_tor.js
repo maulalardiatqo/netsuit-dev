@@ -185,7 +185,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
                     + '&rectype=314&whence=';
                     transName = 'Term of References (TOR)'
                     fieldTrigerBudget = 'custrecord_tor_sent_email_budget_hldr'
-                    fieldTriggerFa = 'custrecord_tor_sent_email_finc'
+                    fieldTriggerFa = 'custrecord_tor_approved_by_budget_h'
                     fieldCreatedBy = 'custrecord_tor_create_by'
                     fieldNameActifity = 'custrecord_tor_name_of_activity'
                     fieldDate = 'custrecord_tor_date'
@@ -215,20 +215,32 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
                     fieldApproverFaExp = 'custrecord_tar_approver_fa'
                     fieldPurpose = 'custrecord_ter_purpose_of_travel'
                     fieldTrigerBudget = 'custrecord_ter_sent_email_bdgt_hldr'
-                    fieldTriggerFa = 'custrecord_ter_sent_email_finc'
+                    fieldTriggerFa = 'custrecord_ter_approved_by_budget_h'
                     fieldTravelTo = 'custrecord_ter_travel_to'
                 }
                 log.debug('transType', transType)
-
-                var newTrigger = recLoad.getValue(fieldTrigerBudget);
-                var oldTrigger = recOld.getValue(fieldTrigerBudget);
-                log.debug('newTrigger', {
-                    newTrigger : newTrigger,
-                    oldTrigger : oldTrigger
-                });
+                if(fieldTrigerBudget){
+                    log.debug('fieldTrigerBudget', fieldTrigerBudget)
+                    var newTrigger = recLoad.getValue(fieldTrigerBudget);
+                    log.debug('newTrigger', newTrigger)
+                    var oldTrigger = recOld.getValue(fieldTrigerBudget);
+                    log.debug('oldTrigger', oldTrigger)
+                }
+                
                 if(fieldTriggerFa){
-                    var newtriggerFA = recLoad.getValue(fieldTriggerFa);
+                    log.debug('fieldTriggerFa', fieldTriggerFa)
+                    
                     var oldtriggerFA = recOld.getValue(fieldTriggerFa);
+                    log.debug('oldtriggerFA', oldtriggerFA)
+                    var lookupField = search.lookupFields({
+                        type: rec.type,
+                        id: rec.id,
+                        columns: [fieldTriggerFa]
+                    });
+                    
+                    var newTriggerFA = lookupField[fieldTriggerFa];
+                    log.debug('newTriggerFA', newTriggerFA)
+                    
                 }
                 
                 var trandId = recLoad.getValue('name')
@@ -238,9 +250,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
                     var empLook = search.lookupFields({
                         type: "employee",
                         id: createdBy,
-                        columns: ["altname"],
+                        columns: ["firstname"],
                     });
-                    empName = empLook.altname
+                    empName = empLook.firstname
                 }
                 log.debug('empName', empName)
                 if(fieldNameActifity){
@@ -255,7 +267,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
                 if(fieldPurpose){
                     var purpose = recLoad.getValue(fieldPurpose)
                 }
-                var trandate = recLoad.getText(fieldDate)
+                let trandateRaw = rec.getValue(fieldDate);
+                log.debug('trandateRaw', trandateRaw)
+            const trandate = trandateRaw ? trandateRaw.toString() : '-';
+            log.debug('trandate', trandate)
                 if(oldTrigger == false && newTrigger == true){
                     log.debug('masuk kondisi budget')
                     if(sublistItem){
@@ -347,7 +362,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
                 }
                 if(fieldTriggerFa){
                     var allApproverFa = []
-                    if(oldtriggerFA == false && newtriggerFA == true){
+                    if(oldtriggerFA == false && newTriggerFA == true){
+                        log.debug('masuk kondisi eksekusi FA')
                         if(sublistItem){
                             var cekLineItemFA = recLoad.getLineCount({
                                 sublistId : sublistItem

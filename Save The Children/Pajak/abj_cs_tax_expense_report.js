@@ -64,7 +64,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     });
                 }
             };
-
+            forceSet('category', '1', true)
             forceSet('expenseaccount', '281', true); 
             forceSet('currency', '1', true);
             
@@ -398,39 +398,51 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             console.log('cekTotalExp', cekTotalExp);
 
             if (entity) {
-                var empLookup = search.lookupFields({
-                    type: search.Type.EMPLOYEE,
-                    id: entity,
-                    columns: [
-                        'custentity_stc_employee_type',
-                        'custentity_stc_exclude_max_advnc',
-                        'custentity_stc_exc_max_adv_amt',
-                        'custentity_stc_lv_employee'
-                    ]
-                });
+                try {
+                    const suiteletUrl = url.resolveScript({
+                        scriptId: 'customscript_abj_sl_get_employee_data',
+                        deploymentId: 'customdeploy_abj_sl_get_employee_data',
+                        params: {
+                            employee_id: entity
+                        }
+                    });
 
-                var empType = empLookup.custentity_stc_employee_type.length > 0 ? empLookup.custentity_stc_employee_type[0].value : empLookup.custentity_stc_employee_type;
-                var isMaxAdvance = empLookup.custentity_stc_exclude_max_advnc;
-                var maxAmount = parseFloat(empLookup.custentity_stc_exc_max_adv_amt) || 0;
-                var lvEmployee = empLookup.custentity_stc_lv_employee.length > 0 ? empLookup.custentity_stc_lv_employee[0].value : empLookup.custentity_stc_lv_employee;
-
-                console.log('cekKondisi :', { empType: empType, isMaxAdvance: isMaxAdvance, maxAmount: maxAmount, lvEmployee: lvEmployee });
-
-                if (empType == '1' && (isMaxAdvance === true || isMaxAdvance === 'T') && cekTotalExp > maxAmount) {
-                    alert('The advance amount can`t be greater than Max Exclude Advance Amount');
-                    return false;
-                }
-                if (empType == '1' && (isMaxAdvance === false || isMaxAdvance === 'F')) {
-                    
-                    if (['4', '5', '6'].indexOf(lvEmployee.toString()) !== -1 && cekTotalExp > 30000000) {
-                        alert('The advance amount can`t be greater than 30 million');
-                        return false;
+                    const response = https.get({ url: suiteletUrl });
+                    console.log('response', response)
+                    if (response.body === 'no_data') {
+                        return true; 
                     }
+                    const data = JSON.parse(response.body);
+                    console.log('data', data)
+                    const empType = data.empType;
+                    const isMaxAdvance = data.isMaxAdvance;
+                    const maxAmount = data.maxAmount;
+                    const lvEmployee = data.lvEmployee;
 
-                    if (['2', '3'].indexOf(lvEmployee.toString()) !== -1 && cekTotalExp > 50000000) {
-                        alert('The advance amount can`t be greater than 50 million');
-                        return false;
+                    console.log('Data dari Suitelet:', data);
+                    if (empType == '1' && (isMaxAdvance === true || isMaxAdvance === 'T')) {
+                        if (cekTotalExp > maxAmount) {
+                            alert('The advance amount can\'t be greater than Max Exclude Advance Amount (' + maxAmount + ')');
+                            return false;
+                        }
                     }
+                    if (empType == '1' && (isMaxAdvance === false || isMaxAdvance === 'F')) {
+                        
+                        const level = lvEmployee.toString();
+
+                        if (['4', '5', '6'].includes(level) && cekTotalExp > 30000000) {
+                            console.log('masuk kondisi ini')
+                            alert('The advance amount can\'t be greater than 30 million');
+                            return false;
+                        }
+
+                        if (['2', '3'].includes(level) && cekTotalExp > 50000000) {
+                            alert('The advance amount can\'t be greater than 50 million');
+                            return false;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error calling Suitelet', e);
                 }
             }
         }

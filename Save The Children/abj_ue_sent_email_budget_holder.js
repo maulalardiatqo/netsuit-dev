@@ -107,8 +107,16 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
                     linkTrans = 'https://11635025.app.netsuite.com/app/accounting/transactions/exprept.nl?id=' + rec.id
                 }
                 log.debug('transType', transType)
-                var newtriggerFA = recLoad.getValue('custbody_stc_sent_email_finance');
-                var oldtriggerFA = recOld.getValue('custbody_stc_sent_email_finance');
+                // var newtriggerFA = recLoad.getValue('custbody_stc_approval_budget_holder');
+                var fieldTriggerFa = 'custbody_stc_approval_budget_holder'
+                var lookupField = search.lookupFields({
+                        type: rec.type,
+                        id: rec.id,
+                        columns: [fieldTriggerFa]
+                    });
+                    
+                var newtriggerFA = lookupField[fieldTriggerFa];
+                var oldtriggerFA = recOld.getValue('custbody_stc_approval_budget_holder');
                 var trandId = recLoad.getValue('tranid')
                 var createdBy = recLoad.getValue('custbody_stc_create_by');
                 var empName
@@ -116,13 +124,17 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
                     var empLook = search.lookupFields({
                         type: "employee",
                         id: createdBy,
-                        columns: ["altname"],
+                        columns: ["firstname"],
                     });
-                    empName = empLook.altname
+                    empName = empLook.firstname
                 }
                 log.debug('empName', empName)
                 var memo = recLoad.getValue('memo');
-                var trandate = recLoad.getText('trandate')
+                
+                let trandateRaw = rec.getValue('trandate');
+                log.debug('trandateRaw', trandateRaw)
+            const trandate = trandateRaw ? trandateRaw.toString() : '-';
+            log.debug('trandate', trandate)
                 var totalAmount = recLoad.getValue('total')
                     
                 if(oldTrigger == false && newTrigger == true){
@@ -187,6 +199,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
                 }
                 var allApproverFa = []
                 if(oldtriggerFA == false && newtriggerFA == true){
+                    log.debug('eksekusi FA email', {oldtriggerFA : oldtriggerFA, newtriggerFA : newtriggerFA})
                     var cekLineItemFA = recLoad.getLineCount({
                         sublistId : 'item'
                     });

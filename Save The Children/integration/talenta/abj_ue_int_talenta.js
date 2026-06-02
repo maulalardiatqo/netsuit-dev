@@ -5,27 +5,30 @@
 define(['N/task', 'N/log'], (task, log) => {
 
     const afterSubmit = (context) => {
-        if (context.type !== context.UserEventType.CREATE || context.type !== context.UserEventType.EDIT) return;
+        log.debug('context.type', context.type)
+        if(context.type == context.UserEventType.CREATE || context.type == context.UserEventType.EDIT){
+            try {
+                log.debug('triggered')
+                const newRecord = context.newRecord;
+                const logId = newRecord.id;
+                log.debug('logId', logId)
+                const mrTask = task.create({
+                    taskType: task.TaskType.MAP_REDUCE,
+                    scriptId: 'customscript_abj_mr_int_talenta', 
+                    // deploymentId: 'customdeploy_abj_process_payroll_mr',
+                    params: {
+                        custscript_abj_log_id: logId 
+                    }
+                });
 
-        try {
-            const newRecord = context.newRecord;
-            const logId = newRecord.id;
+                const taskId = mrTask.submit();
+                log.audit('Map/Reduce Triggered', `Log ID: ${logId} | Task ID: ${taskId}`);
 
-            const mrTask = task.create({
-                taskType: task.TaskType.MAP_REDUCE,
-                scriptId: 'customscript_abj_mr_int_talenta', 
-                // deploymentId: 'customdeploy_abj_process_payroll_mr',
-                params: {
-                    custscript_abj_log_id: logId 
-                }
-            });
-
-            const taskId = mrTask.submit();
-            log.audit('Map/Reduce Triggered', `Log ID: ${logId} | Task ID: ${taskId}`);
-
-        } catch (e) {
-            log.error('Failed to trigger Map/Reduce', e.message);
+            } catch (e) {
+                log.error('Failed to trigger Map/Reduce', e.message);
+            }
         }
+       
     };
 
     return { afterSubmit };

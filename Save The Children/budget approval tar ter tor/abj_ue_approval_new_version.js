@@ -70,18 +70,18 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 line: i
                             });
                             var appSubtitue
-                            if(approver){
-                                var empLook = search.lookupFields({
-                                    type: "employee",
-                                    id: approver,
-                                    columns: ["custentity_stc_subtitute_apprvl"],
-                                });
-                                var firstCek = empLook.custentity_stc_subtitute_apprvl
-                                if(firstCek.length > 0){
-                                    appSubtitue = firstCek[0].value;
-                                }
+                            // if(approver){
+                            //     var empLook = search.lookupFields({
+                            //         type: "employee",
+                            //         id: approver,
+                            //         columns: ["custentity_stc_subtitute_apprvl"],
+                            //     });
+                            //     var firstCek = empLook.custentity_stc_subtitute_apprvl
+                            //     if(firstCek.length > 0){
+                            //         appSubtitue = firstCek[0].value;
+                            //     }
                                 
-                            }
+                            // }
                             const approvalStatus = recBefLoad.getSublistValue({
                                 sublistId: sublistItem,
                                 fieldId: approvalStatusField,
@@ -92,27 +92,28 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 fieldId: approverFAfield,
                                 line: i
                             });
-                            // log.debug('approverFA', approverFA)
+                            log.debug('approverFA', approverFA)
                             var appFASubtitue
-                            if(approverFA){
-                                var appFALook = search.lookupFields({
-                                    type: "employee",
-                                    id: approverFA,
-                                    columns: ["custentity_stc_subtitute_apprvl"],
-                                });
-                                var firstCekFa = appFALook.custentity_stc_subtitute_apprvl
-                                // log.debug('firstCekFa', firstCekFa)
-                                if(firstCekFa.length > 0){
-                                    appFASubtitue = firstCekFa[0].value;
-                                }
+                            // if(approverFA){
+                            //     var appFALook = search.lookupFields({
+                            //         type: "employee",
+                            //         id: approverFA,
+                            //         columns: ["custentity_stc_subtitute_apprvl"],
+                            //     });
+                            //     var firstCekFa = appFALook.custentity_stc_subtitute_apprvl
+                            //     // log.debug('firstCekFa', firstCekFa)
+                            //     if(firstCekFa.length > 0){
+                            //         appFASubtitue = firstCekFa[0].value;
+                            //     }
                                 
-                            }
+                            // }
                            
                             const approverSatatusFA = recBefLoad.getSublistValue({
                                 sublistId: sublistItem,
                                 fieldId: fieldApprovalStatusFA,
                                 line: i
                             });
+                            log.debug('approverSatatusFA', approverSatatusFA)
                             if(recType == 'customrecord_tor' || recType == 'customrecord_ter'){
                                 // log.debug('cekisAppBgt', cekisAppBgt)
                                 if ((Number(approver) === Number(employeeId) &&
@@ -123,7 +124,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                         break;
                                     }
                                 if(cekisAppBgt){
-                                    log.debug('data cek', {cekisAppBgt : cekisAppBgt, appFASubtitue : appFASubtitue, employeeId : employeeId, approverSatatusFA : approverSatatusFA})
+                                    log.debug('data cek FA', {cekisAppBgt : cekisAppBgt, appFASubtitue : appFASubtitue, employeeId : employeeId, approverSatatusFA : approverSatatusFA})
                                     if((Number(approverFA) === Number(employeeId) && Number(approverSatatusFA) === 1) || (Number(appFASubtitue) === Number(employeeId) && Number(approverSatatusFA) === 1)){
 
                                         // log.debug('masuk kondisi approve FA')
@@ -181,20 +182,20 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 const row = results[e];
                                 const approver = row.getValue(approverField);
                                 var appSubtitue
-                                if(approver){
-                                    // log.debug('approver', approver)
-                                    var empLook = search.lookupFields({
-                                        type: "employee",
-                                        id: approver,
-                                        columns: ["custentity_stc_subtitute_apprvl"],
-                                    });
-                                    var firstCek = empLook.custentity_stc_subtitute_apprvl
-                                    if(firstCek.length> 0){
-                                        appSubtitue = firstCek[0].value;
-                                        // log.debug('appSubtitue', appSubtitue)
-                                    }
+                                // if(approver){
+                                //     // log.debug('approver', approver)
+                                //     var empLook = search.lookupFields({
+                                //         type: "employee",
+                                //         id: approver,
+                                //         columns: ["custentity_stc_subtitute_apprvl"],
+                                //     });
+                                //     var firstCek = empLook.custentity_stc_subtitute_apprvl
+                                //     if(firstCek.length> 0){
+                                //         appSubtitue = firstCek[0].value;
+                                //         // log.debug('appSubtitue', appSubtitue)
+                                //     }
                                     
-                                }
+                                // }
                                 const approvalStatus = row.getValue(approvalStatusField);
                                 if(approvalFaField){
                                     var approverFA = row.getValue(approvalFaField);
@@ -265,20 +266,20 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 line: j
                             });
                              var appSubtitue
-                            if(approver){
-                                // log.debug('approver', approver)
-                                var empLook = search.lookupFields({
-                                    type: "employee",
-                                    id: approver,
-                                    columns: ["custentity_stc_subtitute_apprvl"],
-                                });
-                                var firstCek = empLook.custentity_stc_subtitute_apprvl
-                                if(firstCek.length > 0){
-                                    appSubtitue = firstCek[0].value;
-                                    // log.debug('appSubtitue', appSubtitue)
-                                }
+                            // if(approver){
+                            //     // log.debug('approver', approver)
+                            //     var empLook = search.lookupFields({
+                            //         type: "employee",
+                            //         id: approver,
+                            //         columns: ["custentity_stc_subtitute_apprvl"],
+                            //     });
+                            //     var firstCek = empLook.custentity_stc_subtitute_apprvl
+                            //     if(firstCek.length > 0){
+                            //         appSubtitue = firstCek[0].value;
+                            //         // log.debug('appSubtitue', appSubtitue)
+                            //     }
                                 
-                            }
+                            // }
                             const approvalStatus = recBefLoad.getSublistValue({
                                 sublistId: 'recmachcustrecord_tar_id_ter',
                                 fieldId: 'custrecord_tare_approval_status',
@@ -299,20 +300,20 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime"], function(
                                 line: j
                             });
                             var appFaSubtitue
-                            if(approverFA){
+                            // if(approverFA){
                                 
-                                var empLook = search.lookupFields({
-                                    type: "employee",
-                                    id: approverFA,
-                                    columns: ["custentity_stc_subtitute_apprvl"],
-                                });
-                                var firstCek = empLook.custentity_stc_subtitute_apprvl
-                                if(firstCek.length > 0){
-                                    appFaSubtitue = firstCek[0].value;
+                            //     var empLook = search.lookupFields({
+                            //         type: "employee",
+                            //         id: approverFA,
+                            //         columns: ["custentity_stc_subtitute_apprvl"],
+                            //     });
+                            //     var firstCek = empLook.custentity_stc_subtitute_apprvl
+                            //     if(firstCek.length > 0){
+                            //         appFaSubtitue = firstCek[0].value;
                                     
-                                }
+                            //     }
                                 
-                            }
+                            // }
                             const approvalStatusFA = recBefLoad.getSublistValue({
                                 sublistId: 'recmachcustrecord_tar_id_ter',
                                 fieldId: 'custrecord_tar_apprvl_sts_fa',

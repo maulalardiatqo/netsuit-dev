@@ -8,551 +8,244 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
     function pageInit(context) {
         console.log("Page init: script aktif");
     }
-    function transform(){
+
+    function getData(transType) {
         var records = currentRecord.get();
         var recId = records.id;
+
         console.log('recId', recId);
+        console.log('transType', transType);
 
-        const button = document.getElementById('custpage_btn_transform');
-        if (button) {
-            button.disabled = true;
-            button.value = 'Sedang Diproses...';
+        if (!recId) return [];
 
-            var processMsg = message.create({
-                title: "Processing",
-                message: "mohon tunggu...",
-                type: message.Type.INFORMATION
-            });
-            processMsg.show();
-
-            setTimeout(function () {
-                try {
-                    processTransaction(processMsg, recId, button);
-                } catch (e) {
-                    processMsg.hide();
-                    console.error("Error", e);
-                    dialog.alert({
-                        title: "Error",
-                        message: "Terjadi kesalahan: " + e.message
-                    });
-                    button.disabled = false;
-                    button.value = 'Transform';
-                }
-            }, 500);
-        }
-    }
-    function expTrans(data, processMsg){
-        // data = array hasil grouping
-        try{
-            console.log('EXP TRANS DATA', data);
-            console.log('data[0].emp', data[0].emp)
-            var createExp = record.create({
-                type : 'expensereport',
-                isDynamic : true
-            });
-
-            createExp.setValue({
-                fieldId : 'custbody_stc_expense_report_type',
-                value : '2'
-            });
-            
-            // createExp.setValue({
-            //     fieldId : 'expensereportcurrency',
-            //     value : 1
-            // });
-            createExp.setValue({
-                fieldId : 'entity',
-                value : data[0].emp
-            });
-            console.log('set employee')
-            createExp.setValue({
-                fieldId : 'advanceaccount',
-                value : '119'
-            });
-            console.log('set advance account')
-            createExp.setValue({
-                fieldId : 'account',
-                value : '118'
-            });
-            console.log('set account')
-            createExp.setValue({
-                fieldId : 'trandate',
-                value : data[0].date
-            });
-            createExp.setValue({
-                fieldId : 'department',
-                value : data[0].costCenter
-            });
-            createExp.setValue({
-                fieldId : 'class',
-                value : data[0].projectCode || '114'
-            });
-            createExp.setValue({
-                fieldId : 'location',
-                value : '3'
-            });
-            createExp.setValue({
-                fieldId : 'cseg_stc_sof',
-                value : data[0].sof || '66'
-            });
-            var cekAccountafter = createExp.getValue('account');
-            console.log('cekAccountafter',cekAccountafter)
-            for(var i = 0; i < data.length; i++){
-                createExp.selectNewLine({ sublistId: 'expense' });
-                createExp.setCurrentSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'amount',
-                    value     : data[i].amount
-                });
-
-                createExp.setCurrentSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'department',
-                    value     : data[i].costCenter
-                });
-                createExp.setCurrentSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'class',
-                    value     : data[i].projectCode
-                });
-                createExp.setCurrentSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'currency',
-                    value     : '1'
-                });
-                createExp.setCurrentSublistValue({
-                    sublistId : 'expense',
-                    fieldId   : 'expenseaccount',
-                    value     : '488'
-                });
-                console.log('before commit')
-
-                createExp.commitLine({ sublistId: 'expense' });
-            }
-
-            var expId = createExp.save();
-            console.log('Expense Report created', expId);
-            return expId
-        }catch(e){
-            log.debug('error', e);
-            processMsg.hide();
-            console.error("Error saat membuat Transform:", e);
-            dialog.alert({
-                title: "Error",
-                message: "Terjadi kesalahan saat Transform " + e.message
-            });
-            button.disabled = false;
-            button.value = 'Transform';
-        }
-        
-    }
-
-
-    function prTrans(data, processMsg){
-        console.log('PR TRANS DATA', data);
-        try{
-            var createPr = record.create({
-                type : 'purchaserequisition',
-                isDynamic : true
-            });
-            createPr.setValue({
-                fieldId : 'entity',
-                value : data[0].emp
-            });
-            console.log('set employee')
-            createPr.setValue({
-                fieldId : 'custbody_stc_pr_category',
-                value : '1'
-            });
-            createPr.setValue({
-                fieldId : 'trandate',
-                value : data[0].date
-            });
-            createPr.setValue({
-                fieldId : 'department',
-                value : data[0].costCenter
-            });
-            createPr.setValue({
-                fieldId : 'class',
-                value : data[0].projectCode || '114'
-            });
-            createPr.setValue({
-                fieldId : 'location',
-                value : '3'
-            });
-            createPr.setValue({
-                fieldId : 'cseg_stc_sof',
-                value : data[0].sof || '66'
-            });
-            for(var i = 0; i < data.length; i++){
-                createPr.selectNewLine({ sublistId: 'item' });
-                createPr.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'item',
-                    value     : data[i].item
-                });
-                createPr.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'amount',
-                    value     : data[i].amount
-                });
-
-                createPr.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'department',
-                    value     : data[i].costCenter
-                });
-                createPr.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'class',
-                    value     : data[i].projectCode
-                });
-                createPr.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'currency',
-                    value     : '1'
-                });
-                createPr.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'estimatedamount',
-                    value     : data[i].amount
-                });
-                createPr.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'estimatedrate',
-                    value     : data[i].amount
-                });
-                createPr.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'custcol_stc_approval_status_line',
-                    value     : '1'
-                });
-                createPr.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'custcol_stc_approver_linetrx',
-                    value     : data[i].approver
-                });
-                console.log('before commit')
-
-                createPr.commitLine({ sublistId: 'item' });
-            }
-
-            var prId = createPr.save();
-            return prId
-
-        }catch(e){
-            log.debug('error', e);
-            processMsg.hide();
-            console.error("Error saat membuat Transform:", e);
-            dialog.alert({
-                title: "Error",
-                message: "Terjadi kesalahan saat Transform " + e.message
-            });
-            button.disabled = false;
-            button.value = 'Transform';
-        }
-    }
-
-    function poTrans(data, processMsg){
-         try{
-            console.log('EXP TRANS DATA', data);
-            console.log('data[0].emp', data[0].emp)
-            var createPO = record.create({
-                type : 'purchaseorder',
-                isDynamic : true
-            });
-
-            createPO.setValue({
-                fieldId : 'custbody_stc_expense_report_type',
-                value : '2'
-            });
-            createPO.setValue({
-                fieldId : 'entity',
-                value : "1529"
-            });
-            createPO.setValue({
-                fieldId : 'trandate',
-                value : data[0].date
-            });
-            createPO.setValue({
-                fieldId : 'department',
-                value : data[0].costCenter
-            });
-            createPO.setValue({
-                fieldId : 'class',
-                value : data[0].projectCode || '114'
-            });
-            createPO.setValue({
-                fieldId : 'location',
-                value : '3'
-            });
-            createPO.setValue({
-                fieldId : 'cseg_stc_sof',
-                value : data[0].sof || '66'
-            });
-            var cekAccountafter = createPO.getValue('account');
-            console.log('cekAccountafter',cekAccountafter)
-            for(var i = 0; i < data.length; i++){
-                createPO.selectNewLine({ sublistId: 'item' });
-                createPO.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'item',
-                    value     : data[i].item
-                });
-                createPO.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'amount',
-                    value     : data[i].amount
-                });
-
-                createPO.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'department',
-                    value     : data[i].costCenter
-                });
-                createPO.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'class',
-                    value     : data[i].projectCode
-                });
-                createPO.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'currency',
-                    value     : '1'
-                });
-                // createPO.setCurrentSublistValue({
-                //     sublistId : 'item',
-                //     fieldId   : 'cseg_stc_drc_segmen',
-                //     value     : data[i].drc
-                // });
-                // createPO.setCurrentSublistValue({
-                //     sublistId : 'item',
-                //     fieldId   : 'cseg_stc_segmentdea',
-                //     value     : data[i].dea
-                // });
-                createPO.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'cseg_stc_sof',
-                    value     : data[i].sof
-                });
-                createPO.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'custcol_stc_approval_status_line',
-                    value     : '1'
-                });
-                createPO.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'custcol_stc_approver_linetrx',
-                    value     : data[i].approver
-                });
-                createPO.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'custcol_stc_apprvl_sts_fa',
-                    value     : '1'
-                });
-                createPO.setCurrentSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'custcol_stc_approver_fa',
-                    value     : data[i].approverFa
-                });
-                console.log('before commit')
-
-                createPO.commitLine({ sublistId: 'item' });
-            }
-
-            var poId = createPO.save();
-            return poId
-        }catch(e){
-            log.debug('error', e);
-            processMsg.hide();
-            console.error("Error saat membuat Transform:", e);
-            dialog.alert({
-                title: "Error",
-                message: "Terjadi kesalahan saat Transform " + e.message
-            });
-            button.disabled = false;
-            button.value = 'Transform';
-        }
-    }
-    function updateLinkTrx(rec, trxType, trxId){
-        if(!trxId) return;
-
-        var lineCount = rec.getLineCount({
-            sublistId : 'recmachcustrecord_tori_id'
+        var recLoad = record.load({
+            type: 'customrecord_tor',
+            id: recId
         });
 
-        for(var i = 0; i < lineCount; i++){
-            var type = rec.getSublistValue({
-                sublistId : 'recmachcustrecord_tori_id',
-                fieldId   : 'custrecord_tor_transaction_type',
-                line      : i
-            });
+        var date = recLoad.getText('custrecord_tor_date');
+        var emp  = recLoad.getValue('custrecord_tor_create_by');
+        var timeFrom = recLoad.getText('custrecord_tor_timeline_p_from');
+        var timeTo = recLoad.getText('custrecord_tor_timeline_period_to');
+        var noTor = recLoad.getValue('name');
 
-            if(type == trxType){
-                rec.setSublistValue({
-                    sublistId : 'recmachcustrecord_tori_id',
-                    fieldId   : 'custrecord_tor_link_trx_no',
-                    line      : i,
-                    value     : trxId
+        var cekLine = recLoad.getLineCount({
+            sublistId: 'recmachcustrecord_tori_id'
+        });
+
+        console.log('cekLine', cekLine);
+
+        var dataTransform = [];
+
+        // --- VARIABEL KHUSUS UNTUK GROUPING EXPENSE REPORT ---
+        var linkedExpenseIds = [];
+        var sofLineCountMap = {}; // Menyimpan total baris per SOF {"ID_SOF": total_line}
+        var sofTorAmountMap = {}; // Menyimpan total nominal budget TOR asli {"ID_SOF": total_amt}
+        var expenseSummaryMap = {}; // Menyimpan nominal terpakai dari search {"ID_SOF": amt_terpakai}
+        // -----------------------------------------------------
+
+        if (cekLine > 0) {
+            // STEP 1: Loop Pertama untuk Mengumpulkan Data Dasar & Grouping Awal
+            for (var i = 0; i < cekLine; i++) {
+                var transactionType = recLoad.getSublistValue({
+                    sublistId: 'recmachcustrecord_tori_id',
+                    fieldId: 'custrecord_tor_transaction_type',
+                    line: i
+                });
+
+                if (transactionType === transType) {
+                    var sof = recLoad.getSublistValue({
+                        sublistId: 'recmachcustrecord_tori_id',
+                        fieldId: 'custrecord_tor_project',
+                        line: i
+                    });
+
+                    var amount = parseFloat(recLoad.getSublistValue({
+                        sublistId: 'recmachcustrecord_tori_id',
+                        fieldId: 'custrecord_tori_amount',
+                        line: i
+                    })) || 0;
+
+                    var cekLink = recLoad.getSublistValue({
+                        sublistId: 'recmachcustrecord_tori_id',
+                        fieldId: 'custrecord_tor_link_trx_no',
+                        line: i
+                    });
+
+                    var createdTransTAR = recLoad.getSublistValue({
+                        sublistId: 'recmachcustrecord_tori_id',
+                        fieldId: 'custrecord_tor_link_tar',
+                        line: i
+                    });
+
+                    // Logika Khusus Tipe Expense '2' untuk mengumpulkan ID Dokumen Terkait dan menghitung baris
+                    if (transType === '2' && sof) {
+                        var sofStr = sof.toString();
+
+                        // 1. Hitung akumulasi budget TOR asli per SOF
+                        if (!sofTorAmountMap[sofStr]) sofTorAmountMap[sofStr] = 0;
+                        sofTorAmountMap[sofStr] += amount;
+
+                        // 2. Hitung ada berapa baris line yang menggunakan SOF ini
+                        if (!sofLineCountMap[sofStr]) sofLineCountMap[sofStr] = 0;
+                        sofLineCountMap[sofStr] += 1;
+
+                        // 3. Bersihkan format ID Expense Report penampung terlink agar tidak rusak/duplikat
+                        if (cekLink && cekLink !== '') {
+                            var cleanExpenseId = Array.isArray(cekLink) ? cekLink[0] : cekLink;
+                            if (cleanExpenseId && linkedExpenseIds.indexOf(cleanExpenseId.toString()) === -1) {
+                                linkedExpenseIds.push(cleanExpenseId.toString());
+                            }
+                        }
+                    }
+
+                    // Push object sementara (nilai amount nanti akan kita timpa/update khusus untuk tipe '2')
+                    dataTransform.push({
+                        noTor : noTor,
+                        date: date,
+                        emp: emp,
+                        timeFrom : timeFrom,
+                        timeTo : timeTo,
+                        dea: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tor_dea', line: i }),
+                        drc: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tor_drc', line: i }),
+                        project: sof,
+                        projectTask: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tor_project_task', line: i }),
+                        transactionType: transactionType,
+                        idTor : recId,
+                        amount: amount, // Nilai default asal
+                        approver: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_approver', line: i }),
+                        approverFa: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_approver_fa', line: i }),
+                        costCenter: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_cost_center', line: i }),
+                        item: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_item', line: i }),
+                        projectCode: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_project_code', line: i }),
+                        sof: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_source_of_funding', line: i }),
+                        bussinessUnit: recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_business_unit', line : i }),
+                        idLine : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'id', line : i }),
+                        activityCode : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_activity_code', line : i }),
+                        description : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_description', line : i }),
+                        unitCost : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_unit_cost', line : i }),
+                        qty : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_quantity', line : i }),
+                        uom : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_uom', line : i })
+                    });
+                }
+            }
+
+            // STEP 2: Cari Penggunaan Terpakai via Saved Search (Hanya jika tipe '2' dan memiliki Dokumen Link)
+            if (transType === '2' && linkedExpenseIds.length > 0) {
+                console.log('Menjalankan Search Expense Report untuk IDs:', linkedExpenseIds);
+                
+                var expensereportSearchObj = search.create({
+                    type: "expensereport",
+                    filters: [
+                        ["type", "anyof", "ExpRept"], "AND", 
+                        ["internalid", "anyof", linkedExpenseIds], "AND", 
+                        ["mainline", "is", "F"]
+                    ],
+                    columns: [
+                        search.createColumn({name: "amount", label: "Amount"}),
+                        search.createColumn({name: "internalid", join: "customer"})
+                    ]
+                });
+
+                expensereportSearchObj.run().each(function(result) {
+                    var expAmount = parseFloat(result.getValue({ name: 'amount' })) || 0;
+                    var expSof = result.getValue({ name: 'internalid', join: 'customer' });
+                    if (expSof) {
+                        var expSofStr = expSof.toString();
+                        if (!expenseSummaryMap[expSofStr]) expenseSummaryMap[expSofStr] = 0;
+                        expenseSummaryMap[expSofStr] += expAmount;
+                    }
+                    return true;
+                });
+                console.log('Expense Terpakai Map:', expenseSummaryMap);
+            }
+
+            // STEP 3: Hitung Pembagian Saldo Rata Khusus untuk Tipe Expense '2'
+            if (transType === '2') {
+                dataTransform.forEach(function(item) {
+                    if (item.project) {
+                        var itemSofStr = item.project.toString();
+                        var totalTorBudget = sofTorAmountMap[itemSofStr] || 0;
+                        var totalUsedBudget = expenseSummaryMap[itemSofStr] || 0;
+                        var totalLinesForThisSof = sofLineCountMap[itemSofStr] || 1;
+
+                        // Rumus Pembagian Rata Sisa Nominal Budget
+                        var remainingBudget = totalTorBudget - totalUsedBudget;
+                        if (remainingBudget < 0) remainingBudget = 0; // proteksi minus
+
+                        var allocatedAmountPerLine = remainingBudget / totalLinesForThisSof;
+                        
+                        // Perbarui nilai target limit sisa yang dibagi rata untuk baris ini
+                        item.amount = allocatedAmountPerLine;
+                        
+                        // Opsional tambahan: Anda juga bisa menitipkan nilai limit murni per SOF 
+                        // ke parameter objek agar dibaca otomatis oleh field custom 'custcol_amount_limit_from_tor' di baris item
+                        item.custcol_amount_limit_from_tor = allocatedAmountPerLine; 
+                    }
                 });
             }
         }
+        
+        console.log('dataTransform Final Result:', dataTransform);
+        return dataTransform;
     }
 
-    function processTransaction(processMsg, recId, button){
-        try{
-            var recLoad = record.load({
-                type : 'customrecord_tor',
-                id : recId
-            });
-
-            var date = recLoad.getText('custrecord_tor_date');
-            var emp  = recLoad.getValue('custrecord_tor_create_by');
-
-            var cekLine = recLoad.getLineCount({
-                sublistId : 'recmachcustrecord_tori_id'
-            });
-            console.log('cekLine', cekLine)
-            // object grouping
-            var groupedData = {
-                2 : [], // EXP
-                3 : [], // PR
-                1 : []  // PO
-            };
-
-            if(cekLine > 0){
-                for(var i = 0; i < cekLine; i++){
-                    var transactionType = recLoad.getSublistValue({
-                        sublistId : 'recmachcustrecord_tori_id',
-                        fieldId   : 'custrecord_tor_transaction_type',
-                        line      : i
-                    });
-
-                    if(!transactionType) continue;
-                    var cekLink = recLoad.getSublistValue({
-                        sublistId : 'recmachcustrecord_tori_id',
-                        fieldId   : 'custrecord_tor_link_trx_no',
-                        line      : i
-                    });
-                    if(!cekLink){
-                        var data = {
-                            date : date,
-                            emp  : emp,
-                            dea  : recLoad.getSublistValue({
-                                sublistId : 'recmachcustrecord_tori_id',
-                                fieldId   : 'custrecord_tor_dea',
-                                line      : i
-                            }),
-                            drc : recLoad.getSublistValue({
-                                sublistId : 'recmachcustrecord_tori_id',
-                                fieldId   : 'custrecord_tor_drc',
-                                line      : i
-                            }),
-                            project : recLoad.getSublistValue({
-                                sublistId : 'recmachcustrecord_tori_id',
-                                fieldId   : 'custrecord_tor_project',
-                                line      : i
-                            }),
-                            projectTask : recLoad.getSublistValue({
-                                sublistId : 'recmachcustrecord_tori_id',
-                                fieldId   : 'custrecord_tor_project_task',
-                                line      : i
-                            }),
-                            transactionType : transactionType,
-                            amount : recLoad.getSublistValue({
-                                sublistId : 'recmachcustrecord_tori_id',
-                                fieldId   : 'custrecord_tori_amount',
-                                line      : i
-                            }),
-                            approver : recLoad.getSublistValue({
-                                sublistId : 'recmachcustrecord_tori_id',
-                                fieldId   : 'custrecord_tori_approver',
-                                line      : i
-                            }),
-                            approverFa : recLoad.getSublistValue({
-                                sublistId : 'recmachcustrecord_tori_id',
-                                fieldId   : 'custrecord_tori_approver_fa',
-                                line      : i
-                            }),
-                            costCenter : recLoad.getSublistValue({
-                                sublistId : 'recmachcustrecord_tori_id',
-                                fieldId   : 'custrecord_tori_cost_center',
-                                line      : i
-                            }),
-                            item : recLoad.getSublistValue({
-                                sublistId : 'recmachcustrecord_tori_id',
-                                fieldId   : 'custrecord_tori_item',
-                                line      : i
-                            }),
-                            projectCode : recLoad.getSublistValue({
-                                sublistId : 'recmachcustrecord_tori_id',
-                                fieldId   : 'custrecord_tori_project_code',
-                                line      : i
-                            }),
-                            sof : recLoad.getSublistValue({
-                                sublistId : 'recmachcustrecord_tori_id',
-                                fieldId   : 'custrecord_tori_source_of_funding',
-                                line      : i
-                            })
-                        };
-                        if(groupedData[transactionType]){
-                            groupedData[transactionType].push(data);
-                        }
-                    }
-                    
-                }
-            }
-            var expId, prId, poId;
-
-            if(groupedData[3].length > 0){
-                prId = prTrans(groupedData[3], processMsg);
-            }
-
-            if(groupedData[2].length > 0){
-                expId = expTrans(groupedData[2], processMsg);
-            }
-
-            if(groupedData[1].length > 0){
-                poId = poTrans(groupedData[1], processMsg);
-            }
-            if(expId){
-                updateLinkTrx(recLoad, 2, expId);
-            }
-
-            if(prId){
-                updateLinkTrx(recLoad, 3, prId);
-            }
-
-            if(poId){
-                updateLinkTrx(recLoad, 1, poId);
-            }
-            recLoad.save({
-                ignoreMandatoryFields : true
-            });
-            var successMsg = message.create({
-                title: "Success",
-                message: "Berhasil Transform",
-                type: message.Type.CONFIRMATION
-            });
-            successMsg.show({ duration: 5000 });
-            setTimeout(function () {
-                window.location.reload();
-            }, 1500);
-        }catch(e){
-            log.debug('error', e);
-            processMsg.hide();
-            console.error("Error saat membuat Transform:", e);
-            dialog.alert({
-                title: "Error",
-                message: "Terjadi kesalahan saat Transform " + e.message
-            });
-            button.disabled = false;
-            button.value = 'Transform';
-        }
+    function transformPO(){
+        var dataParams = getData('1');
+        console.log('dataParams', dataParams);
+        var dataParamsString = JSON.stringify(dataParams);
+        var createURL = url.resolveRecord({
+            recordType: "purchaseorder",
+            isEditMode: true,
+            params: {
+                cf: 130,  
+                dataParamsString : dataParamsString
+            },
+        });
+        window.open(createURL, "_blank");
     }
 
-     return {
-        pageInit: pageInit,
-        transform: transform,
+    function transformPR(){
+        var dataParams = getData('3');
+        var dataParamsString = JSON.stringify(dataParams);
+        console.log('dataParamsString', dataParamsString);
+        var createURL = url.resolveRecord({
+            recordType: "purchaserequisition",
+            isEditMode: true,
+            params: { dataParamsString },
+        });
+        window.open(createURL, "_blank");
+    }
+
+    function transformTar(){
+        var dataParams = getData('4');
+        var dataParamsString = JSON.stringify(dataParams);
+        console.log('dataParamsString', dataParamsString);
+        var createURL = url.resolveRecord({
+            recordType: "customrecord_tar",
+            isEditMode: true,
+            params: { dataParamsString },
+        });
+        window.open(createURL, "_blank");
+    }
+
+    function transformExp(){
+        var dataParams = getData('2');
+        console.log('dataParams', dataParams);
+        var dataParamsString = JSON.stringify(dataParams);
+        var createURL = url.resolveRecord({
+            recordType: "expensereport",
+            isEditMode: true,
+            params: { dataParamsString },
+        });
+        window.open(createURL, "_blank");
+    }
+
+    return {
+        pageInit : pageInit,
+        transformPO : transformPO,
+        transformPR : transformPR,
+        transformExp : transformExp,
+        transformTar : transformTar
     };
 });

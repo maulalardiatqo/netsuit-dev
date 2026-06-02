@@ -5,6 +5,32 @@
  */
 
 define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog", "N/https"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog, https) {
+    function validateLine(context){
+        var rec = context.currentRecord;
+        var sublistName = context.sublistId;
+
+        if (sublistName === 'item') {
+            var estimatedamount = rec.getCurrentSublistValue({
+                sublistId : sublistName,
+                fieldId : 'estimatedamount'
+            })
+            var estimatedRate = rec.getCurrentSublistValue({
+                sublistId : sublistName,
+                fieldId : 'estimatedrate'
+            })
+            console.log('estimatedamount', estimatedamount)
+             if(estimatedRate == '' || estimatedRate == null || estimatedRate == 0){
+                alert("estimated rate is mandatory");
+                return false
+            }
+            if(estimatedamount == '' || estimatedamount == null || estimatedamount == 0){
+                alert("estimated amount is mandatory");
+                return false
+            }
+           
+        }
+        return true
+    }
     function saveRecord(context){
         var rec = context.currentRecord;
         var cekDueDate = rec.getValue('duedate');
@@ -100,6 +126,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         return true
     }
     return{
-        saveRecord : saveRecord
+        saveRecord : saveRecord,
+        validateLine : validateLine
     }
 })

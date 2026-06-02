@@ -49,15 +49,18 @@ define(["N/record", "N/search"], function(
                     var paymentRemarks = result.getValue({
                         name : "custbody11"
                     })
+                    
                     if(applyingType == 'OrdBill'){
+                        log.debug('paymentRemarks', paymentRemarks)
+                        log.debug("applyingType", applyingType);
+                    log.debug('data pendukung', { entity : entity, billingSchedule : billingSchedule, paymentRemarks : paymentRemarks})
                         if(billingSchedule == '7'){
                             isToValidate = true
                             projectName = entity
                             remarks = paymentRemarks
                         }
                     }
-                    log.debug("applyingType", applyingType);
-                    log.debug('data pendukung', { entity : entity, billingSchedule : billingSchedule, paymentRemarks : paymentRemarks})
+                    
                     return true;
                 });
                 if (isToValidate) {
@@ -122,7 +125,7 @@ define(["N/record", "N/search"], function(
                     });
                     
                     log.debug('dataMap', dataMap);
-                    
+                    log.debug('remarks', remarks)
                     var currentProsent = dataMap.percent;
                     var numbRemarks = Number(remarks);
                     log.debug('numbRemarks', numbRemarks)

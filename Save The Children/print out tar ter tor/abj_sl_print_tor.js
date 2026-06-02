@@ -10,32 +10,64 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             var searchSvp = search.lookupFields({
                 type: "employee",
                 id: id,
-                columns: ["altname"],
+                columns: ["firstname"],
             });
-            empName = searchSvp.altname;
+            empName = searchSvp.firstname;
             return empName
         }
-        function repairRichText(input) {
-            if (!input || typeof input !== "string") {
-                return "";
-            }
+        // function repairRichText(input) {
+        //     if (!input || typeof input !== "string") {
+        //         return "";
+        //     }
 
-            return input
-                // 1. AMANKAN AMPERSAND (&)
-                // Regex ini mencari '&' yang TIDAK diikuti oleh kode entity (seperti &nbsp; atau &lt;)
-                // Jadi "Tom & Jerry" berubah jadi "Tom &amp; Jerry", tapi "&nbsp;" tetap "&nbsp;"
-                .replace(/&(?![a-zA-Z0-9#]+;)/g, "&amp;")
+        //     return input
+        //         // 1. AMANKAN AMPERSAND (&)
+        //         // Regex ini mencari '&' yang TIDAK diikuti oleh kode entity (seperti &nbsp; atau &lt;)
+        //         // Jadi "Tom & Jerry" berubah jadi "Tom &amp; Jerry", tapi "&nbsp;" tetap "&nbsp;"
+        //         .replace(/&(?![a-zA-Z0-9#]+;)/g, "&amp;")
 
-                // 2. PERBAIKI TAG <br> (HTML biasa <br>, XML butuh <br/>)
-                .replace(/<br\s*\/?>/gi, "<br/>")
+        //         // 2. PERBAIKI TAG <br> (HTML biasa <br>, XML butuh <br/>)
+        //         .replace(/<br\s*\/?>/gi, "<br/>")
 
-                // 3. PERBAIKI TAG <img> (jika ada gambar, harus ditutup slash)
-                .replace(/<img([^>]+)>/gi, "<img$1 />")
+        //         // 3. PERBAIKI TAG <img> (jika ada gambar, harus ditutup slash)
+        //         .replace(/<img([^>]+)>/gi, "<img$1 />")
                 
-                // 4. (Opsional) Hapus atribut class/style jika sering bikin error
-                // .replace(/\sclass="[^"]*"/g, "") 
-                ;
-        }
+        //         // 4. (Opsional) Hapus atribut class/style jika sering bikin error
+        //         // .replace(/\sclass="[^"]*"/g, "") 
+        //         ;
+        // }
+        function repairRichText(input) {
+    if (!input || typeof input !== "string") {
+        return "";
+    }
+
+    return input
+        // A. BUANG TAG SAMPAH yang merusak CSS tabel utama Anda
+        .replace(/<meta[^>]*>/gi, "")
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+        
+        // B. BERSIHKAN ATRIBUT INLINE (seperti font-family bawaan yang bikin berantakan)
+        // Ini opsional, aktifkan jika jenis huruf di tabel Anda ingin seragam
+        .replace(/\sstyle="[^"]*"/gi, "") 
+        .replace(/\sclass="[^"]*"/gi, "")
+
+        // C. AMANKAN SIMBOL AMPERSAND (&) agar tidak error XML
+        // Menghindari double-encoding pada &amp; atau &lt; yang sudah valid
+        .replace(/&(?!(#[0-9]+|[a-zA-Z0-9]+);)/g, "&amp;")
+
+        // D. VALIDASI SELF-CLOSING TAGS (Standar wajib XML)
+        .replace(/<br\s*\/?>/gi, "<br/>")
+        .replace(/<hr\s*\/?>/gi, "<hr/>")
+        .replace(/<img([^>]*?)\s*\/?>/gi, "<img$1 />")
+        
+        // E. BUANG PARAGRAF KOSONG YANG TIDAK PERLU
+        .replace(/<p>\s*<\/p>/gi, "")
+        .replace(/<p>&nbsp;<\/p>/gi, "")
+        
+        // F. BERSIHKAN KARAKTER GAIB (Control Characters)
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+        .trim();
+}
         function escapeXmlSymbols(input) {
             if (!input || typeof input !== "string") {
                 return input;
@@ -127,7 +159,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             "AND",
                             ["type", "is", "T"],
                             "AND",
-                            ["newvalue", "is", "4"]
+                            ["newvalue", "is", recid]
                         ],
                         columns: [
                             search.createColumn({
@@ -548,7 +580,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                         xml += "<body font-size='10' style='font-family: Tahoma,sans-serif; height: 29.7cm; width: 21cm;' " +
                             "header='nlheader' header-height='" + headerHeight + "' " +
-                            "footer='nlfooter' footer-height='0%' " + 
+                            "footer='nlfooter' footer-height='2%' " + 
                             "margin-left='0.7cm' margin-right='0.7cm'>";
 
                         xml += body;

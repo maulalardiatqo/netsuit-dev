@@ -10,13 +10,16 @@ define(["N/runtime", "N/log"], (runtime, log) => {
         var form = context.form;
         var rec = context.newRecord;
         var currentUserRole = runtime.getCurrentUser().role;
-
-        form.addButton({
-            id: 'custpage_button_po',
-            label: "Print Invoice",
-            functionName: "printPDF()"
-        });
-        context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_inv.js"
+        var cekApproval = rec.getValue('approvalstatus')
+        if(cekApproval == '2'){
+            form.addButton({
+                id: 'custpage_button_po',
+                label: "Print Invoice",
+                functionName: "printPDF()"
+            });
+            context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_inv.js"
+        }
+       
         }
 }
 return {

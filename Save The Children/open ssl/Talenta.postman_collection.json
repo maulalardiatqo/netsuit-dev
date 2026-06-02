@@ -1,0 +1,189 @@
+{
+  "info": {
+    "_postman_id": "d51792d3-2e3b-4717-aee9-46743303a43e",
+    "name": "Talenta",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "32909335"
+  },
+  "item": [
+    {
+      "name": "POST - JE Create",
+      "request": {
+        "auth": {
+          "type": "oauth1",
+          "oauth1": [
+            {
+              "key": "addParamsToHeader",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "key": "tokenSecret",
+              "value": "9ab51d4ae2d6233fc78c5730a554b92326c1f88f4eaf9cae48ded0b4e04cd094",
+              "type": "string"
+            },
+            {
+              "key": "token",
+              "value": "8eb3db050ebe7ca8daba3818994991d154e01f17c20db70fecee804643c75f7b",
+              "type": "string"
+            },
+            {
+              "key": "signatureMethod",
+              "value": "HMAC-SHA256",
+              "type": "string"
+            },
+            {
+              "key": "consumerSecret",
+              "value": "2451daa3b3ffbc88417d02a3b74f6dd0e1e3712880ebb8ca8b096a426daf378b",
+              "type": "string"
+            },
+            {
+              "key": "consumerKey",
+              "value": "8ba9c6a88b2277b808561aaeda69351a97ddadbe5e24381de059af35b8968d6c",
+              "type": "string"
+            },
+            {
+              "key": "realm",
+              "value": "11635025",
+              "type": "string"
+            },
+            {
+              "key": "version",
+              "value": "1.0",
+              "type": "string"
+            },
+            {
+              "key": "addEmptyParamsToSign",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"company_id\": 1212,\r\n  \"sent_at\": \"2024-12-23T10:00:00Z\",\r\n  \"period\": {\r\n    \"start_date\": \"2024-12-01\",\r\n    \"end_date\": \"2024-12-31\"\r\n  },\r\n  \"items\": [\r\n    {\r\n      \"employee\": {\r\n        \"user_id\": 1212,\r\n        \"employee_id\": \"asep\",\r\n        \"employee_name\": \"emp001\",\r\n        \"job_position\": \"Driver\",\r\n        \"job_level\": \"Staff\",\r\n        \"employment_status\": \"Permanent\",\r\n        \"organization_name\": \"HRD\",\r\n        \"branch\": \"Pusat\",\r\n        \"cost_center\": null,\r\n        \"sbu\": [\r\n          {\r\n            \"key\": \"BusinessUnit\",\r\n            \"value\": \"Logistics\"\r\n          },\r\n          {\r\n            \"key\": \"Region\",\r\n            \"value\": \"Jakarta\"\r\n          }\r\n        ]\r\n      },\r\n      \"components\": {\r\n        \"allowances\": [\r\n          {\r\n            \"name\": \"Basic Salary\",\r\n            \"amount\": 7000000\r\n          }\r\n          \r\n        ],\r\n        \"deductions\": [\r\n          {\r\n            \"name\": \"BPJSK Employee\",\r\n            \"amount\": 7000000\r\n          }\r\n        ],\r\n        \"benefits\": [\r\n          \r\n        ]\r\n      }\r\n    }\r\n  ]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://11635025.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=982&deploy=1",
+          "protocol": "https",
+          "host": [
+            "11635025",
+            "restlets",
+            "api",
+            "netsuite",
+            "com"
+          ],
+          "path": [
+            "app",
+            "site",
+            "hosting",
+            "restlet.nl"
+          ],
+          "query": [
+            {
+              "key": "script",
+              "value": "982"
+            },
+            {
+              "key": "deploy",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "EMPLOYEE",
+      "request": {
+        "auth": {
+          "type": "oauth1",
+          "oauth1": [
+            {
+              "key": "consumerSecret",
+              "value": "z3APzzuW1EEJQuyizjsa7axLCID3bs02",
+              "type": "string"
+            },
+            {
+              "key": "consumerKey",
+              "value": "LIy5DvVtRFgIjsgN",
+              "type": "string"
+            },
+            {
+              "key": "realm",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "key": "addParamsToHeader",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "key": "tokenSecret",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "key": "token",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "key": "signatureMethod",
+              "value": "HMAC-SHA256",
+              "type": "string"
+            },
+            {
+              "key": "version",
+              "value": "1.0",
+              "type": "string"
+            },
+            {
+              "key": "addEmptyParamsToSign",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.mekari.com/v2/talenta/v2/employee",
+          "protocol": "https",
+          "host": [
+            "api",
+            "mekari",
+            "com"
+          ],
+          "path": [
+            "v2",
+            "talenta",
+            "v2",
+            "employee"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

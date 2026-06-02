@@ -56,12 +56,43 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
         function onRequest(context) {
             try{
+                var logoUrl = '';
+				try {
+					var logoFile = file.load({
+						id: 4714
+					});
+					logoUrl = logoFile.url;
+				} catch(e) {
+					log.error('Logo Load Error', e);
+				}
                 var recid = context.request.parameters.recid;
                 log.debug('recid', recid)
                 if(recid){
                     var recLoad = record.load({
                         type : 'customrecord_ter',
                         id : recid
+                    });
+                    var createdDate = ""
+                     var systemnoteSearchObj = search.create({
+                        type: "systemnote",
+                        filters: [
+                            ["recordtype", "anyof", "312"],
+                            "AND",
+                            ["type", "is", "T"],
+                            "AND",
+                            ["newvalue", "is", recid]
+                        ],
+                        columns: [
+                            search.createColumn({
+                                name: "date",
+                                sort: search.Sort.DESC 
+                            })
+                        ]
+                    });
+
+                    systemnoteSearchObj.run().each(function (result) {
+                        createdDate = result.getValue("date");
+                        return false; 
                     });
                     var nomor = recLoad.getValue('name');
                     var date = recLoad.getValue('custrecord_ter_date');
@@ -72,7 +103,23 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var travelDateTo = recLoad.getValue('custrecord_ter_travel_date_to');
                     var createdby = recLoad.getText('custrecord_ter_created_by');
                     var approvBudgetHolderBy = recLoad.getText('custrecord_ter_approval_by_budget_holder');
-                    var approvBudgetHolderat = recLoad.getValue('custrecord_ter_last_approve_budget')
+                    var approvBudgetHolderat = recLoad.getText('custrecord_ter_last_approve_budget')
+                    var approverLineManager = recLoad.getText('custrecord_ter_next_approver')
+                    var approverLinemanagerAt = recLoad.getText('custrecord_ter_last_apprv_mngr')
+                    var approverFA = recLoad.getText('custrecord_ter_apprvl_by_finance');
+                    var approverFAat = recLoad.getText('custrecord_ter_last_apprv_finance')
+                    var tarId = recLoad.getValue('custrecord_ter_tar_no');
+                    var caAmount = 0;
+                    if(tarId){
+                        var recTar = record.load({
+                            type : 'customrecord_tar',
+                            id : tarId
+                        })
+                        var caTAR = recTar.getValue('custrecord_tar_advance_request_amount');
+                        if(caTAR){
+                            caAmount = Number(caTAR)
+                        }
+                    }
                     var dataPerdiem = [];
                     var countPerdiem = recLoad.getLineCount({
                         sublistId : "recmachcustrecord_terd_id"
@@ -134,11 +181,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 fieldId : 'custrecord_terd_deduction_totall',
                                 line : i
                             })
+                            log.debug('totalDiem', totalDiem)
                             var amountDiem = recLoad.getSublistValue({
                                 sublistId : 'recmachcustrecord_terd_id',
                                 fieldId : 'custrecord_terd_amount',
                                 line : i
                             })
+                            log.debug('amountDiem', amountDiem)
                             dataPerdiem.push({
                                 datePerDiem : formatDateToDDMMYYYY(datePerDiem),
                                 timePartDiem : timePartDiem,
@@ -155,6 +204,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             })
                         }
                     }
+                   
                     var dataTransport = [];
                     var countLineTransport = recLoad.getLineCount({
                         sublistId : 'recmachcustrecord_tar_id_ter'
@@ -193,7 +243,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         var xml = "";
                         var header = "";
                         var body = "";
-                        var headerHeight = '3%';
+                        var headerHeight = '8%';
                         var style = "";
                         var footer = "";
                         var pdfFile = null;
@@ -221,6 +271,15 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         // header
                         header += "<table class='tg' width='100%' style='table-layout:fixed; font-size:10px;'>";
                         header += "<tbody>";
+                        
+						header += "<tr>";
+						header += "<td style='width:100%; align:right; vertical-align:middle;'>";
+						if(logoUrl) {
+							header += "<img src='" + logoUrl.replace(/&/g, '&amp;') + "' style='width:27%; height:27%;' />";
+						}
+						header += "</td>";
+						header += "</tr>";
+
                         header += "<tr>"
                         header += "<td style='width:100%; align:center; font-weight:bold; font-size:16px;'>Travel Expense Report</td>"
                         header += "</tr>"
@@ -374,7 +433,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             })
                             body += "<tr>"
                             body += "<td style='border: 1px solid black; border-top:none; align:center;' colspan='14'>Total</td>"
-                            body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+formatNumber(amountDiem)+"</td>"
+                            body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+formatNumber(totalAmtDiem)+"</td>"
                             body += "</tr>"
                         }
                         body += "</tbody>";
@@ -436,6 +495,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             
                         }
                         var totalTer = Number(totalAmtDiem) + Number(totalAmtExp)
+                         var remainAmount = 0;
+                        if(caAmount > 0){
+                            remainAmount = Number(caAmount) - Number(totalTer)
+                        }
                         body += "<tr>"
                         body += "<td style='border: 1px solid black; border-top:none; align:center;' colspan='7'>Total TER</td>"
                         body += "<td style='border: 1px solid black; border-left:none; border-top:none; align:center;'>"+formatNumber(totalTer)+"</td>"
@@ -444,16 +507,37 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                         body += "</tbody>";
                         body += "</table>";
 
+                        body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:8px;\">";
+                        body += "<tbody>";
+                        body += "<tr>"
+                        body += "<td style='width:80%;'></td>"
+                        body += "<td style='width:20%;'></td>"
+                        body += "</tr>"
+
+                        body += "<tr>"
+                        body += "<td style='border: 1px solid black; border-right:none;'>Cash advance amount</td>"
+                        body += "<td style='border: 1px solid black; align:right'>"+formatNumber(caAmount)+"</td>"
+                        body += "</tr>"
+                        body += "<tr>"
+                        body += "<td style='border: 1px solid black; border-right:none; border-top:none; '>Remaining advance</td>"
+                        body += "<td style='border: 1px solid black; border-top:none;  align:right;'>"+formatNumber(remainAmount)+"</td>"
+                        body += "</tr>"
+                        body += "</tbody>";
+                        body += "</table>";
+
                         body += "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:9px;\">";
                         body += "<tbody>";
                         body += "<tr>"
-                        body += "<td><i>Created By :</i><b>"+createdby+"</b></td>";
+                        body += "<td><i>Created By :</i><b>"+createdby+" at "+createdDate+"</b></td>";
                         body += "</tr>"
                         body += "<tr>"
-                        body += "<td><i>Approved Supervisor By :</i><b></b></td>";
+                        body += "<td><i>Approved Supervisor By : </i><b>"+approverLineManager+" at "+approverLinemanagerAt+"</b></td>";
                         body += "</tr>"
                         body += "<tr>"
                         body += "<td><i>Approved Budget Holder By :</i><b>"+approvBudgetHolderBy+" at "+approvBudgetHolderat+"</b></td>";
+                        body += "</tr>"
+                        body += "<tr>"
+                        body += "<td><i>Approved Finance By :</i><b>"+approverFA+" at "+approverFAat+"</b></td>";
                         body += "</tr>"
                         body += "<tr>"
                         body += "<td>Disclaimer:</td>"

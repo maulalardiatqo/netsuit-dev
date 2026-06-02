@@ -61,7 +61,7 @@ define(["N/record", "N/search"], function(
                 log.debug('transType', TransType)
                 if(TransType){
                    if (context.type === context.UserEventType.EDIT) {
-                        const currentTranId = recordLoad.getValue('tranid') || ''; // Handle jika null
+                        const currentTranId = recordLoad.getValue('tranid') || '';
                         if (currentTranId.includes('CRV') || currentTranId.includes('CDV')) {
                             log.debug('Validation', 'Document already has CRV/CDV format. Script stopped.');
                             return; 

@@ -21,10 +21,6 @@ define(['N/ui/message', 'N/log'],
             toggleDiemFields(context.currentRecord, 'recmachcustrecord_tar_e_id')
         }
 
-        /**
-         * Dijalankan saat baris dipilih/diinisialisasi.
-         * Tujuannya: Set status disable sesuai data yang sudah tersimpan.
-         */
         function lineInit(context) {
             try {
                 if (context.sublistId === CONFIG.SUBLIST_ID) {
@@ -35,10 +31,6 @@ define(['N/ui/message', 'N/log'],
             }
         }
 
-        /**
-         * Dijalankan saat user merubah value field.
-         * Tujuannya: Merubah status disable secara realtime saat checkbox diklik.
-         */
         function fieldChanged(context) {
             try {
                 if (context.sublistId === CONFIG.SUBLIST_ID && context.fieldId === 'custrecord_tar_diem') {
@@ -62,7 +54,6 @@ define(['N/ui/message', 'N/log'],
 
                 if (fieldObj) {
                     fieldObj.isDisabled = shouldDisable;
-                    
                     if (shouldDisable) {
                         rec.setCurrentSublistValue({ sublistId: sublistId, fieldId: fieldId, value: '', ignoreFieldChange: true });
                     }
@@ -107,12 +98,12 @@ define(['N/ui/message', 'N/log'],
                 let itemPercentageMap = {};
 
                 for (let i = 0; i < lineCount; i++) {
-                    
                     const isDiemRaw = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_diem', line: i });
                     const isDiem = (isDiemRaw === true || isDiemRaw === 'T');
 
                     if (isDiem) {
                         const itemDiem = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_item_diem', line: i });
+                        const sof = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_donor', line: i });
                         const dateRtn = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_expctd_date_rtn', line: i });
                         const dateDepart = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_expctd_date_depart', line: i });
                         const pctRaw = rec.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_prcntg', line: i });
@@ -128,23 +119,28 @@ define(['N/ui/message', 'N/log'],
                         }
 
                         if (itemDiem) {
-                            if (!itemPercentageMap[itemDiem]) {
-                                itemPercentageMap[itemDiem] = 0;
+                            const groupKey = `${itemDiem}_${sof || 'NOSOF'}`;
+                            if (!itemPercentageMap[groupKey]) {
+                                itemPercentageMap[groupKey] = {
+                                    itemId: itemDiem,
+                                    sofId: sof || '-',
+                                    totalPct: 0
+                                };
                             }
-                            itemPercentageMap[itemDiem] += pctVal;
+                            itemPercentageMap[groupKey].totalPct += pctVal;
                         }
                     }
                 }
 
-                // --- VALIDASI 2: Cek Total Persentase > 100% ---
-                for (let itemId in itemPercentageMap) {
-                    if (itemPercentageMap[itemId] > 100) {
-                        alert(`Validation Error: Total Percentage for Item Diem (ID: ${itemId}) exceeds 100%. Current total: ${itemPercentageMap[itemId]}%`);
+                for (let key in itemPercentageMap) {
+                    const group = itemPercentageMap[key];
+                    if (group.totalPct > 100) {
+                        alert(`Validation Error: Total Percentage for Item Diem (ID: ${group.itemId}) with SOF (ID: ${group.sofId}) exceeds 100%. Current total: ${group.totalPct}%`);
                         return false; 
                     }
                 }
 
-                return true; // Save berhasil jika semua lolos
+                return true;
 
             } catch (e) {
                 log.error('Error in saveRecord', e);
@@ -155,8 +151,8 @@ define(['N/ui/message', 'N/log'],
 
         return {
             pageInit: pageInit,
-            lineInit: lineInit,        // Tambahkan ini
-            fieldChanged: fieldChanged, // Tambahkan ini
+            lineInit: lineInit,        
+            fieldChanged: fieldChanged, 
             validateLine: validateLine,
             saveRecord: saveRecord
         };

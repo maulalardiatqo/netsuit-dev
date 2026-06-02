@@ -10,7 +10,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
         return parseFloat(percentStr.replace('%', ''));
     }
     function processLine(index, dataList) {
-
         if (index >= dataList.length) {
             console.log('ALL LINES SUCCESSFULLY COMMITTED');
             return;
@@ -18,8 +17,8 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
 
         var curRec = currentRecord.get();
         var data = dataList[index];
-        
-        log.debug('Processing line', {index : index, data : data});
+
+        console.log('Processing line', index + 1);
 
         curRec.selectNewLine({
             sublistId: 'recmachcustrecord_tar_id_ter'
@@ -146,7 +145,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                 curRec.setCurrentSublistValue({ 
                     sublistId : 'recmachcustrecord_tar_id_ter', 
                     fieldId : 'custrecord_tar_dea',
-                    value : data.dea 
+                     value : data.dea 
                 }) 
             }
             curRec.setCurrentSublistValue({
@@ -259,7 +258,9 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     [
                         ["custrecord_tar_e_id","anyof",tarNo],
                         "AND", 
-                        ["custrecord_tar_diem","is","F"]
+                        ["custrecord_tar_diem","is","F"],
+                        "AND",
+                        ["custrecord_stc_cover_by_company","is","F"]
                     ],
                     columns:
                     [
@@ -396,7 +397,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                                 }
                             }
                         }
-                        log.debug('allData', allData)
+                        console.log('allData', allData)
                         addLines(allData);
 
                     }
@@ -410,7 +411,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                     var expDateReturn = curRec.getText('custrecord_link_ter_expctd_return')
                     var keyA = dateFrom + '-' + dateTo
                     var keyB = expDateDep + '-' + expDateReturn
-                    log.debug('data banding', {
+                    console.log('data banding', {
                         keyA : keyA, keyB : keyB
                     })
                     if(keyA != keyB){

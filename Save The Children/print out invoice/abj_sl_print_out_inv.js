@@ -16,7 +16,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     type : "employee",
                     id : empId
                 });
-                empName = recEmp.getValue("altname");
+                empName = recEmp.getValue("firstname");
                 log.debug('empName', empName)
                 empSignature = recEmp.getValue("custentity_stc_signature")
                 log.debug('empSignature', empSignature)
@@ -88,13 +88,13 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     join: "customerMain",
                 })
                 var noAgreement = headerRec.getValue({
-                    name : "custbody12"
+                    name : "custbody22"
                 })
                 var approved1 = headerRec.getValue({
-                    name : "custbody_app1"
+                    name : "custbody24"
                 });
                 var approved2 = headerRec.getValue({
-                    name : "custbodyapp2"
+                    name : "custbody25"
                 })
                 var donorContact = ""
                 var idContact = ""
@@ -108,7 +108,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     })
                     if(cekLineDonor > 0){
                         for(var i = 0; i < cekLineDonor; i++){
-                         idContact = recCust.getSublistValue({
+                            idContact = recCust.getSublistValue({
                                 sublistId : "contactroles",
                                 fieldId : "contact",
                                 line : i
@@ -153,7 +153,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 }
                 log.debug('donorContact', donorContact)
                 var tranId = headerRec.getValue({name : "tranid"})
-                var sof = headerRec.getText({ name : "cseg_stc_sof"});
+                var sof = headerRec.getValue({ 
+                      name: "companyname",
+                    join: "jobMain",
+                }) || '';
+                log.debug('sof', sof)
                 var tranDate = headerRec.getValue({ name : "trandate"});
                 var coaId = headerRec.getValue({name : "custbodystc_bank_account"});
                 var terms = headerRec.getText({ name : "terms"})

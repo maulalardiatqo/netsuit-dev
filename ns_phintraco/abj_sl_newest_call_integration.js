@@ -111,9 +111,40 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
         }
         var shipping_address
         var no_iso
+        var fieldNoIso 
+        var isNoSO = true
         var subsidiry = rec.getValue('subsidiary')
+        log.debug('subsidiry', subsidiry)
         if(subsidiry){
-             const subsidiarySearchObj = search.create({
+            if(subsidiry == '1' || subsidiry == '4'){
+                var cekKondisi = rec.getValue('custbody6');
+                log.debug('cekKondisi', cekKondisi)
+                if(cekKondisi == '1'){
+                    fieldNoIso = 'custrecord_no_iso_po'
+                }else if(cekKondisi == '2'){
+                    fieldNoIso = 'custrecord_no_iso_po_2'
+                }else{
+                    isNoSO = false
+                }
+            }else if(subsidiry == '6'){
+                var cekKondisi = rec.getValue('custbody_docser_series');
+                if(cekKondisi){
+                    if(cekKondisi.includes('PO/UM/ASP')){
+                        log.debug('masuk sini PO/UM/ASP');
+                        fieldNoIso = 'custrecord_no_iso_po_2'
+                    }else{
+                        fieldNoIso = 'custrecord_no_iso_po'
+                    }
+                }else{
+                     fieldNoIso = 'custrecord_no_iso_po_2'
+                }
+            }else{
+                 fieldNoIso = 'custrecord_no_iso_po'
+            }
+            // untuk no iso 
+            // field : custbody_docser_series, custbody6
+            log.debug('fieldNoIso', fieldNoIso)
+            const subsidiarySearchObj = search.create({
             type: "subsidiary",
             filters:
             [
@@ -126,14 +157,14 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                     join: "shippingAddress",
                     label: " Address"
                 }),
-                search.createColumn({name: "custrecord_no_iso_po", label: "No ISO PO"})
+                search.createColumn({name: fieldNoIso, label: "No ISO PO"})
             ]
             });
             const searchResultCount = subsidiarySearchObj.runPaged().count;
             log.debug("subsidiarySearchObj result count",searchResultCount);
             subsidiarySearchObj.run().each(function(result){
                 no_iso = result.getValue({
-                    name : 'custrecord_no_iso_po'
+                    name : fieldNoIso
                 }) || ''
                 shipping_address = result.getValue({
                     name: "address",
@@ -143,6 +174,15 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             });
 
         }
+        if(isNoSO == false){
+            no_iso = ""
+        }
+        var discountValue
+        var cekDiscount = rec.getValue('custbody14_2');
+        var subtotal = rec.getValue('subtotal')
+        if(cekDiscount && Number(cekDiscount) > 0){
+            discountValue = Number(cekDiscount) - Number(subtotal)
+        }   
         var bill_address
         var vendor = rec.getValue('entity')
         if(vendor){
@@ -150,7 +190,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             type: "vendor",
             filters:
             [
-                ["internalid","anyof","1013"]
+                ["internalid","anyof",vendor]
             ],
             columns:
             [
@@ -206,22 +246,27 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             created_by: created_by_web,
             customForm: rec.getValue('customform') || '',
             customform_text: rec.getText('customform') || '',
-            series: rec.getValue('custbody_docser_series') || '',
-            refertosc: rec.getValue('custbody_ph_refertosc') || '',
-            refertopr: rec.getValue('custbodycustbody_ph_refertopr') || '',
+            series: rec.getText('custbody_docser_series') || '',
+            refertosc: rec.getText('custbody_ph_refertosc') || '',
+            refertopr: rec.getText('custbodycustbody_ph_refertopr') || '',
             budgetcost_period: rec.getText('custbody_bc_period') || '',
             project_segment: rec.getText('cseg1') || '',
             note_pc: rec.getValue('custbody_po_note_pc') || '',
             note_bc: rec.getValue('custbody_po_note_bc') || '',
             old_id_web : old_id_web || '',
             jenis_po : rec.getText('custbody6') || '',
-            po_term : rec.getValue('terms') || '',
-            po_shipment : rec.getValue('incoterm') || '',
+            po_term : rec.getText('terms') || '',
+            po_shipment : rec.getText('incoterm') || '',
             po_duedate : rec.getValue('duedate') ||  '',
             po_ppn : rec.getValue('taxtotal'),
             shipping_address : shipping_address || '',
-             no_iso : no_iso || '',
-             bill_address : bill_address || '',
+            no_iso : no_iso || '',
+            bill_address : bill_address || '',
+            subtotal : rec.getValue('subtotal') || '',
+            discount_header : discountValue || '',
+            nextapprover : rec.getText('nextapprover') || '',
+            approve_time : rec.getValue('custbodyph_timestamp') || '',
+
 
             // Sublists & Complex Data
             line_items: getLineItems(rec),
@@ -267,7 +312,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                 no_pc: rec.getSublistText({ sublistId: 'item', fieldId: 'custcol_p_line_no_pc', line: i }),
                 item_pc: rec.getSublistText({ sublistId: 'item', fieldId: 'custcol_p_line_item_pc', line: i }),
                 line_code_pc: rec.getSublistValue({ sublistId: 'item', fieldId: 'custcol_p_line_line_code_pc', line: i }),
-                sub_product: rec.getSublistValue({ sublistId: 'item', fieldId: 'custcolsub_produk_line', line: i }),
+                sub_product: rec.getSublistText({ sublistId: 'item', fieldId: 'custcolsub_produk_line', line: i }),
                 descItem: rec.getSublistValue({ sublistId: 'item', fieldId: 'description', line: i }),
                 taxCode: rec.getSublistText({ sublistId: 'item', fieldId: 'taxcode', line: i }),
                 taxRate: rec.getSublistText({ sublistId: 'item', fieldId: 'taxrate1', line: i }),

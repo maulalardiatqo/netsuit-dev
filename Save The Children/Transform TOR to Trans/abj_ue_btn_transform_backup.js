@@ -1,0 +1,142 @@
+/**
+ * @NApiVersion 2.1
+ * @NScriptType UserEventScript
+ * @NModuleScope SameAccount
+ */
+
+define(["N/runtime", "N/log", "N/record"], (runtime, log, record) => {
+    function beforeLoad(context) {
+        if (context.type === context.UserEventType.VIEW) {
+            var form = context.form;
+            var rec = context.newRecord;
+            var recLoad = record.load({
+                type : 'customrecord_tor',
+                id : rec.id
+            })
+            var showBtnPR = false
+            var showBtnExp = false
+            var showBtnPO = false
+            var showBtnTar = false
+            var status = recLoad.getValue('custrecord_tor_status');
+            if(status == '2'){
+                var allLine = recLoad.getLineCount({
+                    sublistId : 'recmachcustrecord_tori_id'
+                })
+                log.debug('allLine', allLine)
+                if(allLine > 0){
+                    for(var i = 0; i < allLine; i ++){
+                        var cekTransType = recLoad.getSublistValue({
+                            sublistId : 'recmachcustrecord_tori_id',
+                            fieldId : 'custrecord_tor_transaction_type',
+                            line : i
+                        })
+                        
+                        var createdTrans = recLoad.getSublistValue({
+                            sublistId : 'recmachcustrecord_tori_id',
+                            fieldId : 'custrecord_tor_link_trx_no',
+                            line : i
+                        })
+                        var createdTransTAR = recLoad.getSublistValue({
+                            sublistId : 'recmachcustrecord_tori_id',
+                            fieldId : 'custrecord_tor_link_tar',
+                            line : i
+                        })
+                        log.debug('createdTransTAR', createdTransTAR)
+                        log.debug('cekTransType', cekTransType)
+                        if(cekTransType == '1' && (createdTrans == '' || createdTrans == null)){
+                            showBtnPO = true
+                        }
+                        if(cekTransType == '2'){
+                            if(createdTrans == '' || createdTrans == null){
+                                showBtnExp = true
+                            }else{
+                                var sof = recLoad.getSublistValue({
+                                    sublistId : 'recmachcustrecord_tori_id',
+                                    fieldId : 'custrecord_tor_project',
+                                    line : i
+                                })
+                                var amount = recLoad.getSublistValue({
+                                    sublistId : 'recmachcustrecord_tori_id',
+                                    fieldId : 'custrecord_tori_amount',
+                                    line : i
+                                })
+                                log.debug('createdTrans', createdTrans)
+                                const expensereportSearchObj = search.create({
+                                    type: "expensereport",
+                                    filters:
+                                    [
+                                        ["type","anyof","ExpRept"], 
+                                        "AND", 
+                                        ["internalid","anyof","55563"], 
+                                        "AND", 
+                                        ["mainline","is","F"]
+                                    ],
+                                    columns:
+                                    [
+                                        search.createColumn({name: "amount", label: "Amount"}),
+                                        search.createColumn({
+                                            name: "internalid",
+                                            join: "customer",
+                                            label: "Internal ID"
+                                        })
+                                    ]
+                                    });
+                                    const searchResultCount = expensereportSearchObj.runPaged().count;
+                                    log.debug("expensereportSearchObj result count",searchResultCount);
+                                    expensereportSearchObj.run().each(function(result){
+                                    // .run().each has a limit of 4,000 results
+                                    return true;
+                                    });
+
+                            }
+                        }
+                        if(cekTransType == '3' && (createdTrans == '' || createdTrans == null)){
+                            showBtnPR = true
+                        }
+                        if(cekTransType == '4' && (createdTransTAR == '' || createdTransTAR == null)){
+                            log.debug('masuk kondisi', createdTransTAR)
+                            showBtnTar = true
+                        }
+                    }
+                }
+                
+                if(showBtnPR){
+                    form.addButton({
+                        id: 'custpage_btn_transform_pr',
+                        label: "Transform PR",
+                        functionName: "transformPR()"
+                    });
+                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_transform_transaction.js"
+                }
+                if(showBtnPO){
+                    form.addButton({
+                        id: 'custpage_btn_transform_po',
+                        label: "Transform PO",
+                        functionName: "transformPO()"
+                    });
+                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_transform_transaction.js"
+                }
+                if(showBtnExp){
+                    form.addButton({
+                        id: 'custpage_btn_transform_exp',
+                        label: "Transform Expense Management",
+                        functionName: "transformExp()"
+                    });
+                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_transform_transaction.js"
+                }
+                if(showBtnTar){
+                    form.addButton({
+                        id: 'custpage_btn_transform_tar',
+                        label: "Transform TAR",
+                        functionName: "transformTar()"
+                    });
+                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_transform_transaction.js"
+                }
+            }
+            
+        }
+    }
+    return{
+        beforeLoad : beforeLoad
+    }
+});

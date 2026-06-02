@@ -25,7 +25,7 @@ define(['N/search', 'N/format', 'N/ui/message', 'N/log', 'N/url', 'N/https'],
 
                 const msg = message.create({ 
                     title: 'Processing', 
-                    message: 'Generating Per Diem lines... Please wait.', 
+                    message: 'Generating Business Travel lines..Please Wait', 
                     type: message.Type.INFORMATION 
                 });
                 msg.show();

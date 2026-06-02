@@ -61,20 +61,38 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
             var projectTotal = recLoad.getValue('projectedtotal') || "";
             var date = recLoad.getValue('custbody_stc_tar_date') || "";
             var icr = recLoad.getValue('custbody_stc_icr') || "";
+            var grantType = recLoad.getValue('custbody_stc_grant_opp_grant_type')
+            var estimatedTheme = recLoad.getValue('custbody4')
+            var donor = recLoad.getValue('entity')
             var projectId = recLoad.getValue('job');
             var startDate 
             var enddate
+            var projectManager
             if(projectId){
                 var fieldLookUpSection = search.lookupFields({
                     type: "job",
                     id: projectId,
-                    columns: ["startdate", "enddate"],
+                    columns: ["startdate", "enddate", "projectmanager"],
                 });
                 startDate = fieldLookUpSection.startdate;
                 enddate = fieldLookUpSection.enddate;
+                if (fieldLookUpSection.projectmanager && fieldLookUpSection.projectmanager.length > 0) {
+                    projectManager = fieldLookUpSection.projectmanager[0].value; 
+                }
             }
-
-            console.log('Data yang diambil:', { titel, company, details, projectTotal, date, icr, startDate, enddate, projectId });
+            var donorCategor
+            if(donor){
+                var lookupDonor = search.lookupFields({
+                    type: "customer",
+                    id: donor,
+                    columns: ["category"],
+                });
+                if (lookupDonor.category && lookupDonor.category.length > 0) {
+                    donorCategor = lookupDonor.category[0].value; 
+                }
+            }
+            console.log('donorCategor', donorCategor)
+            console.log('Data yang diambil:', { titel, company, details, projectTotal, date, icr, startDate, enddate, projectId, projectManager });
 
             if (!titel) {
                 processMsg.hide();
@@ -104,15 +122,36 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
             var recCreate = record.create({
                 type: "customrecord_cseg_stc_sof"
             });
-            recCreate.setValue({ fieldId: "name", value: titel });
-            recCreate.setValue({ fieldId: "custrecord8", value: company });
-            recCreate.setValue({ fieldId: "custrecord3", value: details });
-            recCreate.setValue({ fieldId: "custrecord4", value: projectTotal });
-            recCreate.setValue({ fieldId: "custrecord5", value: startDateObj });
-            recCreate.setValue({ fieldId: "custrecord12", value: icr });
+            console.log('cek all value :' ,{
+                titel : titel,
+                company : company,
+                details : details,
+                projectTotal : projectTotal,
+                startDateObj : startDateObj,
+                icr : icr,
+                recId : recId,
+                projectId : projectId,
+                endDateObj : endDateObj,
+                projectManager : projectManager,
+                grantType : grantType,
+                estimatedTheme : estimatedTheme,
+                donor : donor,
+                donorCategor : donorCategor
+            })
+            recCreate.setValue({ fieldId: "name", value: titel || ''});
+            recCreate.setValue({ fieldId: "custrecord8", value: company || ''});
+            recCreate.setValue({ fieldId: "custrecord3", value: details || '' });
+            recCreate.setValue({ fieldId: "custrecord4", value: projectTotal || ''});
+            recCreate.setValue({ fieldId: "custrecord5", value: startDateObj || ''});
+            recCreate.setValue({ fieldId: "custrecord12", value: icr || ''});
             recCreate.setValue({ fieldId: "custrecordstc_sof_createdfrom", value: recId });
-            recCreate.setValue({ fieldId: "custrecord_sof_project", value: projectId });
-            recCreate.setValue({ fieldId: "custrecord6", value: endDateObj });
+            recCreate.setValue({ fieldId: "custrecord_sof_project", value: projectId || ''});
+            recCreate.setValue({ fieldId: "custrecord6", value: endDateObj || '' });
+            recCreate.setValue({ fieldId: "custrecord2", value: projectManager || ''})
+            recCreate.setValue({ fieldId: "custrecord34", value: grantType || ''})
+            recCreate.setValue({ fieldId: "custrecord46", value: estimatedTheme || ''})
+            recCreate.setValue({ fieldId: "custrecord8", value: donor || ''})
+            recCreate.setValue({ fieldId: "custrecord43", value: donorCategor || ''})
 
             var sofId = recCreate.save();
 

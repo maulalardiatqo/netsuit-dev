@@ -29,6 +29,7 @@ define(['N/ui/serverWidget', 'N/search', 'N/url'], (serverWidget, search, url) =
             sublist.addField({ id: 'col_percent_receipt', type: serverWidget.FieldType.TEXT, label: '% Receipt Payment' });
             sublist.addField({ id: 'col_spending', type: serverWidget.FieldType.CURRENCY, label: 'Spending Amount' });
             sublist.addField({ id: 'col_percent', type: serverWidget.FieldType.TEXT, label: '% Spending Amount' });
+            sublist.addField({ id: 'col_balance', type: serverWidget.FieldType.CURRENCY, label: 'Balance' });
 
             let allData = fetchDataFromSearches();
 
@@ -69,6 +70,8 @@ define(['N/ui/serverWidget', 'N/search', 'N/url'], (serverWidget, search, url) =
                 sublist.setSublistValue({ id: 'col_percent_receipt', line: index, value: (present_receipt ? present_receipt.toFixed(2) + '%' : '0%') });
                 sublist.setSublistValue({ id: 'col_spending', line: index, value: row.spending.toString() });
                 sublist.setSublistValue({ id: 'col_percent', line: index, value: row.percent || '0%' });
+                var balance = (Number(row.receipt) - Number(row.spending)) || 0
+                sublist.setSublistValue({ id: 'col_balance', line: index, value: balance.toString() });
             });
 
             response.writePage(form);

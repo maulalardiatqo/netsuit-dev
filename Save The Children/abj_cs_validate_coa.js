@@ -107,20 +107,20 @@ define(['N/search', 'N/ui/dialog', 'N/log', 'N/runtime'], (search, dialog, log, 
         }
 
         // --- VALIDASI 2: Fixed Asset Logic ---
-        let faShow = accData[FIELDS.ACCOUNT.FA_SHOW]; 
-        if (Array.isArray(faShow) && faShow.length > 0) faShow = faShow[0].value; 
+        // let faShow = accData[FIELDS.ACCOUNT.FA_SHOW]; 
+        // if (Array.isArray(faShow) && faShow.length > 0) faShow = faShow[0].value; 
         
-        const isPropCode = accData[FIELDS.ACCOUNT.PROP_CODE];
-        log.debug('faShow', faShow)
-        if ((faShow.length > 0) || isPropCode === true) {
-            log.debug('masuk kondisi')
-            const relAsset = currRecord.getCurrentSublistValue({ sublistId, fieldId: FIELDS.LINE.REL_ASSET });
+        // const isPropCode = accData[FIELDS.ACCOUNT.PROP_CODE];
+        // log.debug('faShow', faShow)
+        // if ((faShow.length > 0) || isPropCode === true) {
+        //     log.debug('masuk kondisi')
+        //     const relAsset = currRecord.getCurrentSublistValue({ sublistId, fieldId: FIELDS.LINE.REL_ASSET });
             
-            if (!relAsset) {
-                alert('Please Enter the Related Asset Field');
-                return false;
-            }
-        }
+        //     if (!relAsset) {
+        //         alert('Please Enter the Related Asset Field');
+        //         return false;
+        //     }
+        // }
 
         return true;
     };
