@@ -179,12 +179,12 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                     itemName,
                     getText(v.custbody_sos_nama_satuan_ukur),
                     removeDecimal(v.fxrate) || '',
-                    v.quantity || '',
+                    Math.abs(v.quantity) || '',
                     removeDecimal(v.discountamount) || '',
-                    removeDecimal(v.fxamount) || '',
-                    removeDecimal(v.fxamount) || '',
+                    removeDecimal(Math.abs(v.fxamount)) || '',
+                    removeDecimal(Math.abs(v.fxamount)) || '',
                     cleanRate || '',
-                    removeDecimal(v.formulacurrency) || '0',
+                    removeDecimal(Math.abs(v.formulacurrency)) || '0',
                     '0',
                     '0',
                 ];
@@ -245,12 +245,12 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 xmlParts.push(`<Name>${itemName}</Name>`);
                 xmlParts.push(`<Unit>${getText(v.custbody_sos_nama_satuan_ukur)}</Unit>`);
                 xmlParts.push(`<Price>${removeDecimal(v.fxrate) || '0'}</Price>`);
-                xmlParts.push(`<Qty>${v.quantity || '0'}</Qty>`);
+                xmlParts.push(`<Qty>${Math.abs(v.quantity) || '0'}</Qty>`);
                 xmlParts.push(`<TotalDiscount>${removeDecimal(v.discountamount) || '0'}</TotalDiscount>`);
-                xmlParts.push(`<TaxBase>${removeDecimal(v.fxamount) || '0'}</TaxBase>`);
-                xmlParts.push(`<OtherTaxBase>${removeDecimal(v.fxamount) || '0'}</OtherTaxBase>`);
+                xmlParts.push(`<TaxBase>${removeDecimal(Math.abs(v.fxamount)) || '0'}</TaxBase>`);
+                xmlParts.push(`<OtherTaxBase>${removeDecimal(Math.abs(v.fxamount)) || '0'}</OtherTaxBase>`);
                 xmlParts.push(`<VATRate>${cleanRate|| ''}</VATRate>`);
-                xmlParts.push(`<VAT>${removeDecimal(v.formulacurrency) || '0'}</VAT>`);
+                xmlParts.push(`<VAT>${removeDecimal(Math.abs(v.formulacurrency)) || '0'}</VAT>`);
                 xmlParts.push(`<STLGRate>0</STLGRate>`);
                 xmlParts.push(`<STLG>0</STLG>`);
                 xmlParts.push(`</GoodService>`);
@@ -304,7 +304,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 name: `Faktur PK_${idCustRec}.xls`,
                 fileType: file.Type.PLAINTEXT,
                 contents: content,
-                folder: 2183
+                folder: 2604
             });
             const fileId = excelFile.save();
             log.audit('Excel File Saved', `File ID: ${fileId}`);
@@ -329,7 +329,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function (searc
                 name: `Faktur PK_${idCustRec}.xml`,
                 fileType: file.Type.XMLDOC,
                 contents: finalXml.join('\n'),
-                folder: 2183
+                folder: 2604
             });
 
             const fileId = xmlFile.save();

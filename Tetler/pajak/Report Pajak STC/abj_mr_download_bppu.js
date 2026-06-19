@@ -172,7 +172,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function(search
                 fileType: file.Type.XMLDOC,
                 contents: fullXML,
                 encoding: file.Encoding.UTF8,
-                folder: 2184
+                folder: 2603
             });
 
             const fileId = xmlFile.save();
@@ -279,7 +279,7 @@ define(['N/search', 'N/runtime', 'N/file', 'N/log', 'N/format'], function(search
                 fileType: file.Type.PLAINTEXT,
                 contents: xmlStr,
                 encoding: file.Encoding.UTF8,
-                folder: 2184
+                folder: 2603
             });
 
             const fileId = excelFile.save();

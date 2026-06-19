@@ -13,19 +13,23 @@ define(["N/record", "N/search"], function(
             log.debug('context.type', context.type)
             if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.COPY || context.type == context.UserEventType.EDIT) {
                 var rec = context.newRecord;
-                var idRec = rec.id;
-                var recInv = record.load({
-                    type : rec.type,
-                    id : idRec,
-                });
-                var trandId = recInv.getValue('tranid')
-                if(trandId){
-                    recInv.setValue({
-                        fieldId : 'custbody_sos_no_dok_pembeli',
-                        value : trandId
-                    })
-                    recInv.save();
+                var cForm = rec.getValue('customform');
+                if(cForm == '126'){
+                    var idRec = rec.id;
+                    var recInv = record.load({
+                        type : rec.type,
+                        id : idRec,
+                    });
+                    var trandId = recInv.getValue('tranid')
+                    if(trandId){
+                        recInv.setValue({
+                            fieldId : 'custbody_sos_no_dok_pembeli',
+                            value : trandId
+                        })
+                        recInv.save();
+                    }
                 }
+                
             }
         }catch(e){
             log.debug('error', e)

@@ -17,7 +17,7 @@ define(['N/task', 'N/search', 'N/record', 'N/log', 'N/runtime'], function(task, 
         var pageContent = '';
 
         if (request.method === 'GET') {
-            var script = '526';
+            var script = '545';
             var deploy = '1'
             var action = request.parameters.action;
             var taskId = request.parameters.taskId || '';

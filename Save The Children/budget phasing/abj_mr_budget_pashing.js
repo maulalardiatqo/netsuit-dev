@@ -4,7 +4,13 @@
  * @NModuleScope Public
  */
 define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, log, runtime, search, record) {
-
+    function getChildText(text) {
+        const lastIndex = text.lastIndexOf(':');
+        if (lastIndex !== -1) {
+            return text.slice(lastIndex + 1).trim();
+        }
+        return text.trim();
+    }
     function getInputData() {
         log.debug('Start getInputData');
         try {
@@ -20,7 +26,7 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
                 type: 'customrecord_stc_draft_project_budget_he',
                 id: recId
             });
-
+            const SOFset = loadRec.getText('cseg_stc_sof')
             const grandModul = loadRec.getValue('custrecord_stc_grant_module_prj_budg');
             const startPeriod = loadRec.getValue('custrecord_stc_start_date_prj_budg'); 
             const endPeriod = loadRec.getValue('custrecord_stc_end_date_prj_budg');     
@@ -30,15 +36,18 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
                 return [];
             }
 
-            // =================================================================
-            // 1. AMBIL DATA PROJECT TASK (MAIN DATA) + DATA JOIN DARI COMPANY
-            // =================================================================
             var allProjectTask = [];
             var projectTaskDataMap = {};
 
             const projecttaskSearchObj = search.create({
                 type: "projecttask",
-                filters: [["project", "anyof", grandModul]],
+                filters: [
+                    ["project", "anyof", grandModul],
+                    "AND",
+                    ["custevent5","is","T"],
+                    "AND", 
+                    ["cseg_stc_segmentdea","noneof","@NONE@"]
+                ],
                 columns: [
                     search.createColumn({name: "internalid", label: "Internal ID"}),
                     search.createColumn({name: "title", label: "Name"}),
@@ -52,14 +61,13 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
             projecttaskSearchObj.run().each(function(result) {
                 var id = result.getValue({ name: "internalid" });
                 
-                // PERBAIKAN: Menyembuhkan logika OR (||) mapping agar tidak tertukar/tertimpa data kolom lain
                 projectTaskDataMap[id] = {
                     title: result.getValue({ name: "title" }) || '',
                     activityCode: result.getText({ name: "cseg_paactivitycode" }) || result.getValue({ name: "cseg_paactivitycode" }) || '',
                     drcSegment: result.getText({ name: "cseg_stc_drc_segmen" }) || result.getValue({ name: "cseg_stc_drc_segmen" }) || '',
                     deaSegment: result.getText({ name: "cseg_stc_segmentdea" }) || result.getValue({ name: "cseg_stc_segmentdea" }) || '',
                     awardManagement: result.getText({ name: "company" }) || result.getValue({ name: "company"}) || '',
-                    projectCode: result.getValue({ name: "company" }) || ''
+                    projectCode: result.getText({ name: "company" }) || ''
                 };
                 
                 allProjectTask.push(id);
@@ -73,85 +81,161 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
                 return [];
             }
 
-            // =================================================================
-            // 2. AMBIL DATA EXPENSE REPORT (Untuk Actual Usage Budget YTD)
-            // =================================================================
+            var filterStartDate = '';
+            var filterEndDate = '';
+            var periodNamesOrdered = [];
+
+            if (startPeriod || endPeriod) {
+                var periodFilters = [];
+                if (startPeriod && endPeriod) {
+                    periodFilters.push(["internalid", "anyof", [startPeriod, endPeriod]]);
+                } else if (startPeriod) {
+                    periodFilters.push(["internalid", "anyof", startPeriod]);
+                } else {
+                    periodFilters.push(["internalid", "anyof", endPeriod]);
+                }
+
+                const accountingperiodSearchObj = search.create({
+                    type: "accountingperiod",
+                    filters: periodFilters,
+                    columns: [
+                        search.createColumn({name: "internalid"}),
+                        search.createColumn({name: "startdate"}),
+                        search.createColumn({name: "enddate"})
+                    ]
+                });
+
+                accountingperiodSearchObj.run().each(function(result) {
+                    var pId = result.getValue({name: "internalid"});
+                    if (pId == startPeriod) {
+                        filterStartDate = result.getValue({name: "startdate"});
+                    }
+                    if (pId == endPeriod) {
+                        filterEndDate = result.getValue({name: "enddate"});
+                    }
+                    return true;
+                });
+                
+                if (startPeriod && startPeriod === endPeriod) {
+                    filterEndDate = filterStartDate;
+                }
+                
+                log.debug("Period Dates Resolved", "Start Date: " + filterStartDate + " | End Date: " + filterEndDate);
+
+                if (filterStartDate && filterEndDate) {
+                    search.create({
+                        type: "accountingperiod",
+                        filters: [
+                            ["isquarter", "is", "F"], "AND",
+                            ["isyear", "is", "F"], "AND",
+                            ["startdate", "onorafter", filterStartDate], "AND",
+                            ["enddate", "onorbefore", filterEndDate]
+                        ],
+                        columns: [
+                            search.createColumn({name: "startdate", sort: search.Sort.ASC}),
+                            search.createColumn({name: "periodname"})
+                        ]
+                    }).run().each(function(res) {
+                        periodNamesOrdered.push(res.getValue("periodname"));
+                        return true;
+                    });
+                }
+            }
+
             var expenseMap = {};
-            var expenseFilters = [
-                ["type", "anyof", "ExpRept"],
+            var transactionFilters = [
+                ["posting", "is", "T"],
                 "AND",
                 ["projecttask", "anyof", allProjectTask]
             ];
             
-            if (startPeriod && endPeriod) {
-                if (startPeriod === endPeriod) {
-                    expenseFilters.push("AND", ["postingperiod", "abs", startPeriod]);
-                }
-            } else if (startPeriod) {
-                expenseFilters.push("AND", ["postingperiod", "abs", startPeriod]);
+            if (filterStartDate && filterEndDate) {
+                transactionFilters.push("AND", ["trandate", "within", filterStartDate, filterEndDate]);
+            } else if (filterStartDate) {
+                transactionFilters.push("AND", ["trandate", "onorafter", filterStartDate]);
+            } else if (filterEndDate) {
+                transactionFilters.push("AND", ["trandate", "onorbefore", filterEndDate]);
             }
 
-            const expensereportSearchObj = search.create({
-                type: "expensereport",
-                filters: expenseFilters,
+            const transactionSearchObj = search.create({
+                type: "transaction",
+                filters: transactionFilters,
                 columns: [
-                    search.createColumn({name: "projecttask", summary: "GROUP"}),
-                    search.createColumn({name: "amount", summary: "SUM"})
+                    search.createColumn({ name: "projecttask", summary: "GROUP", label: "Project Task" }),
+                    search.createColumn({ name: "line.cseg_stc_sof", summary: "GROUP", label: "Award Management" }),
+                    search.createColumn({ name: "line.cseg_stc_segmentdea", summary: "GROUP", label: "DEA Segment" }),
+                    search.createColumn({ name: "line.cseg_stc_drc_segmen", summary: "GROUP", label: "DRC Segment" }),
+                    search.createColumn({ name: "postingperiod", summary: "GROUP", label: "Period" }),
+                    search.createColumn({
+                        name: "custcol_stc_amount_donor_curr",
+                        summary: "SUM",
+                        label: "STC - Amount Donor Currency"
+                    }),
                 ]
             });
 
-            expensereportSearchObj.run().each(function(result) {
+            const transCount = transactionSearchObj.runPaged().count;
+            log.debug("transactionSearchObj result count dengan filter tanggal", transCount);
+
+            transactionSearchObj.run().each(function(result) {
                 var cols = result.columns;
                 var pTask = result.getValue(cols[0]);
-                var sumAmount = Number(result.getValue(cols[1])) || 0;
-                expenseMap[pTask.toString()] = sumAmount;
+                var amountVal = Number(result.getValue(cols[5])) || 0;
+                log.debug('amountVal', amountVal)
+                if (pTask) {
+                    var keyStr = pTask.toString();
+                    if (!expenseMap[keyStr]) {
+                        expenseMap[keyStr] = 0;
+                    }
+                    expenseMap[keyStr] += amountVal;
+                }
                 return true;
             });
 
-            // =================================================================
-            // 3. AMBIL DATA PROJECT BUDGET (Untuk Remaining Budget)
-            // =================================================================
             var budgetMap = {};
             var budgetFilters = [
-                ["amounttype", "anyof", "Cost"],
-                "AND",
-                ["projecttask", "anyof", allProjectTask]
+                ["projecttask", "anyof", allProjectTask],
             ];
-            
-            // if (startPeriod && endPeriod) {
-            //     if (startPeriod === endPeriod) {
-            //         budgetFilters.push("AND", ["budgetperiod", "anyof", startPeriod]);
-            //     } else {
-            //         budgetFilters.push("AND", ["budgetperiod", "between", startPeriod, endPeriod]);
-            //     }
-            // } else if (startPeriod) {
-            //     budgetFilters.push("AND", ["budgetperiod", "anyof", startPeriod]);
-            // }
 
             const projectbudgetSearchObj = search.create({
                 type: "projectbudget",
                 filters: budgetFilters,
                 columns: [
-                    search.createColumn({name: "projecttask"}),
-                    search.createColumn({name: "eac"}) 
+                    search.createColumn({name: "id", label: "ID"}),
+                    search.createColumn({name: "project", label: "Grant Module"}),
+                    search.createColumn({name: "description", label: "Description"}),
+                    search.createColumn({name: "name", label: "Lines - Name"}),
+                    search.createColumn({name: "projecttask", label: "Lines - Project Task"}),
+                    search.createColumn({name: "totalcost", label: "Total Cost"}),
+                    search.createColumn({name: "totalrevenue", label: "Total Revenue"}),
+                    search.createColumn({name: "baseline", label: " Baseline"}),
+                    search.createColumn({name: "estimateatcompletion", label: "EAC"})
                 ]
             });
 
+            const budgetCount = projectbudgetSearchObj.runPaged().count;
+            log.debug("projectbudgetSearchObj result count", budgetCount);
+
             projectbudgetSearchObj.run().each(function(result) {
                 var pTask = result.getValue({name: "projecttask"});
-                var eacVal = Number(result.getValue({name: "eac"})) || 0;
-                budgetMap[pTask.toString()] = eacVal;
+                var totalCostVal = Number(result.getValue({name: "totalcost"})) || 0;
+                if (pTask) {
+                    budgetMap[pTask.toString()] = totalCostVal;
+                }
                 return true;
             });
 
-            // =================================================================
-            // 4. AMBIL DATA CHART OF ACCOUNTS (CoA) SEBAGAI DATA KEDUA
-            // =================================================================
             var coaResults = [];
             const accountSearchObj = search.create({
                 type: "account",
-                filters: [],
+                filters:
+                [
+                    ["type","noneof","Bank","AcctRec","OthCurrAsset","FixedAsset","OthAsset","AcctPay","CredCard","OthCurrLiab","LongTermLiab","Equity","NonPosting","Stat","UnbilledRec"], 
+                    "AND", 
+                    ["number","isnotempty",""]
+                ],
                 columns: [
+                    search.createColumn({name: "internalid", label: "Internal ID"}),
                     search.createColumn({name: "number", label: "Number"}),
                     search.createColumn({name: "name", label: "Name"}),
                     search.createColumn({name: "displayname", label: "Display Name"}),
@@ -162,6 +246,7 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
 
             accountSearchObj.run().each(function(result) {
                 coaResults.push({
+                    "Internal ID": result.getValue({name: "internalid"}) || '',
                     "Number": result.getValue({name: "number"}) || '',
                     "Name": result.getValue({name: "name"}) || '',
                     "Display Name": result.getValue({name: "displayname"}) || '',
@@ -171,32 +256,68 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
                 return true;
             });
 
-            // =================================================================
-            // 5. PACKING SEMUA DATA KE ARRAY UTAMA
-            // =================================================================
             var searchResults = [];
+            
+            var periodHeaderRow = {
+                "dataType": "PERIOD_HEADER_ROW",
+                "External ID": ""
+            };
+            for (var p = 1; p <= 60; p++) {
+                periodHeaderRow["Period " + p] = "";
+            }
+
+            var startColIndex = 1; 
+            if (periodNamesOrdered.length > 0) {
+                var firstPeriodName = periodNamesOrdered[0].toLowerCase();
+                
+                if (firstPeriodName.indexOf('jan') !== -1) startColIndex = 1;
+                else if (firstPeriodName.indexOf('feb') !== -1) startColIndex = 2;
+                else if (firstPeriodName.indexOf('mar') !== -1) startColIndex = 3;
+                else if (firstPeriodName.indexOf('apr') !== -1) startColIndex = 4;
+                else if (firstPeriodName.indexOf('may') !== -1 || firstPeriodName.indexOf('mei') !== -1) startColIndex = 5;
+                else if (firstPeriodName.indexOf('jun') !== -1) startColIndex = 6;
+                else if (firstPeriodName.indexOf('jul') !== -1) startColIndex = 7;
+                else if (firstPeriodName.indexOf('aug') !== -1) startColIndex = 8;
+                else if (firstPeriodName.indexOf('sep') !== -1) startColIndex = 9;
+                else if (firstPeriodName.indexOf('oct') !== -1) startColIndex = 10;
+                else if (firstPeriodName.indexOf('nov') !== -1) startColIndex = 11;
+                else if (firstPeriodName.indexOf('dec') !== -1) startColIndex = 12;
+            }
+
+            for (var i = 0; i < periodNamesOrdered.length; i++) {
+                var currentPeriodCol = startColIndex + i;
+                if (currentPeriodCol <= 60) {
+                    periodHeaderRow["Period " + currentPeriodCol] = periodNamesOrdered[i];
+                }
+            }
+            searchResults.push(periodHeaderRow);
             
             allProjectTask.forEach(function(taskId, index) {
                 var keyStr = taskId.toString();
                 var taskDetails = projectTaskDataMap[keyStr] || {};
                 
                 var counter = (index + 1).toString().padStart(5, '0');
-                var extId = 'recId_' + counter; 
+                var extId = recId + '-' + counter; 
+
+                var actualAmount = expenseMap[keyStr] || 0;
+                var baselineBudget = budgetMap[keyStr] || 0;
+                var remainingBudget = baselineBudget - actualAmount;
 
                 var rowData = {
                     "dataType": "BUDGET_REPORT",
                     "External ID": extId,
                     "Internal ID": Number(taskId),
                     "Bugdet Phasing Link Header Internal ID": recId,
-                    "Project Task": taskDetails.title || '',
+                    "Project Task": taskDetails.deaSegment || '',
                     "DEA Segment": taskDetails.deaSegment || '',
                     "DRC Segment": taskDetails.drcSegment || '',
                     "Activity Code": taskDetails.activityCode || '',
-                    "Award Management": taskDetails.awardManagement || '',
-                    "Project Code": taskDetails.projectCode || '',
-                    "Actual Usage Budget YTD": expenseMap[keyStr] || 0,
-                    "Remaining Budget": budgetMap[keyStr] || 0,
-                    "Cost Center": "", "SOF": "", "Account Budget": "", 
+                    "Award Management": SOFset || '',
+                    "Project Code": '',
+                    "Baseline Budget": baselineBudget,
+                    "Actual Usage Budget YTD": actualAmount,
+                    "Remaining Budget": remainingBudget,
+                    "Cost Center": "", "Account Budget": "", 
                     "Category": "", "Cost Category": "", "Requested Amount": 0, "SOF % - Non Project": "", 
                     "SOF % - Project": "", "Total Funded By CAM/ICR/IG": 0, "Quantity": 0, "Unit Cost": 0, 
                     "Unit Value": 0, "Component": "", "Remarks": ""
@@ -244,6 +365,7 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
         try {
             var budgetRows = [];
             var coaRows = [];
+            var periodHeaderRowObj = null;
 
             summary.output.iterator().each(function (key, value) {
                 var parsedData = JSON.parse(value);
@@ -251,10 +373,12 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
                     budgetRows.push(parsedData);
                 } else if (key === "COA_REPORT") {
                     coaRows.push(parsedData);
+                } else if (key === "PERIOD_HEADER_ROW") {
+                    periodHeaderRowObj = parsedData;
                 }
                 return true;
             });
-
+            log.debug('periodHeaderRowObj', periodHeaderRowObj)
             budgetRows.sort(function(a, b) {
                 return a["Internal ID"] - b["Internal ID"];
             });
@@ -265,7 +389,7 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
 
             var budgetHeaders = [
                 "External ID", "Bugdet Phasing Link Header Internal ID", "Project Task", "DEA Segment", 
-                "DRC Segment", "Cost Center", "Activity Code", "Award Management", "SOF", "Account Budget", 
+                "DRC Segment", "Cost Center", "Activity Code", "Award Management", "Account Budget", 
                 "Project Code", "Baseline Budget", "Actual Usage Budget YTD", "Remaining Budget", "Category", "Cost Category", 
                 "Requested Amount", "SOF % - Non Project", "SOF % - Project", "Total Funded By CAM/ICR/IG", 
                 "Quantity", "Unit Cost", "Unit Value", "Component", "Remarks", "Total Budget will Allocated"
@@ -275,12 +399,8 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
             for (var p = 1; p <= 60; p++) { periodHeaders.push("Period " + p); }
             budgetHeaders = budgetHeaders.concat(periodHeaders);
 
-            // Susun urutan Header Kolom Sheet 2 (Chart of Accounts)
-            var coaHeaders = ["Number", "Name", "Display Name", "Account Type", "Description"];
+            var coaHeaders = ["Internal ID","Number", "Name", "Display Name", "Account Type", "Description"];
 
-            // =================================================================
-            // MEMBANGUN STRUKTUR MULTI-SHEET XML SPREADSHEET
-            // =================================================================
             var xml = [];
             xml.push('<?xml version="1.0"?>');
             xml.push('<?mso-application progid="Excel.Sheet"?>');
@@ -290,7 +410,6 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
             xml.push('xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" '); 
             xml.push('xmlns:html="http://www.w3.org/TR/REC-html40">');
             
-            // Definisikan Style Background Abu-abu Keputihan (#EFEFEF)
             xml.push('<Styles>');
             xml.push('  <Style ss:ID="HeaderStyle">');
             xml.push('    <Font ss:Bold="1" ss:Color="#000000"/>');
@@ -299,15 +418,23 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
             xml.push('  </Style>');
             xml.push('</Styles>');
 
-            // -----------------------------------------------------------------
-            // SHEET 1: BUDGET REPORT
-            // -----------------------------------------------------------------
             xml.push('<Worksheet ss:Name="Budget Report"><Table> ');
             xml.push('<Row ss:Height="22">');
             for (var h = 0; h < budgetHeaders.length; h++) {
                 xml.push('<Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">' + escapeXml(budgetHeaders[h]) + '</Data></Cell>');
             }
             xml.push('</Row>');
+            log.debug('periodHeaderRowObj', periodHeaderRowObj)
+            if (periodHeaderRowObj) {
+                xml.push('<Row>');
+                for (var m = 0; m < budgetHeaders.length; m++) {
+                    var pVal = periodHeaderRowObj[budgetHeaders[m]];
+                    log.debug('pVal', pVal)
+                    if (pVal === null || pVal === undefined) { pVal = ''; }
+                    xml.push('<Cell><Data ss:Type="String">' + escapeXml(pVal.toString()) + '</Data></Cell>');
+                }
+                xml.push('</Row>');
+            }
 
             budgetRows.forEach(function(rowData) {
                 xml.push('<Row>');
@@ -321,9 +448,6 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
             });
             xml.push('</Table></Worksheet>');
 
-            // -----------------------------------------------------------------
-            // SHEET 2: CHART OF ACCOUNTS (CoA)
-            // -----------------------------------------------------------------
             xml.push('<Worksheet ss:Name="Chart of Accounts"><Table>');
             xml.push('<Row ss:Height="22">');
             for (var c = 0; c < coaHeaders.length; c++) {

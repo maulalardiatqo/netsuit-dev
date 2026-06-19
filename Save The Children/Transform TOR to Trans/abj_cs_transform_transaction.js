@@ -36,17 +36,36 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
         console.log('cekLine', cekLine);
 
         var dataTransform = [];
+        var linkedTrxIds = [];
+        var groupingTorAmountMap = {}; 
+        var groupingAllocatedAmountMap = {};
+        var groupingDataMap = {}; 
 
-        // --- VARIABEL KHUSUS UNTUK GROUPING EXPENSE REPORT ---
-        var linkedExpenseIds = [];
-        var sofLineCountMap = {}; // Menyimpan total baris per SOF {"ID_SOF": total_line}
-        var sofTorAmountMap = {}; // Menyimpan total nominal budget TOR asli {"ID_SOF": total_amt}
-        var expenseSummaryMap = {}; // Menyimpan nominal terpakai dari search {"ID_SOF": amt_terpakai}
-        // -----------------------------------------------------
+        var linkFieldId = (transType === '4') ? 'custrecord_tor_link_tar' : 'custrecord_tor_link_trx_no';
 
         if (cekLine > 0) {
-            // STEP 1: Loop Pertama untuk Mengumpulkan Data Dasar & Grouping Awal
             for (var i = 0; i < cekLine; i++) {
+                
+                var cekLink = recLoad.getSublistValue({
+                    sublistId: 'recmachcustrecord_tori_id',
+                    fieldId: linkFieldId,
+                    line: i
+                });
+
+                if (cekLink && cekLink !== '') {
+                    if (Array.isArray(cekLink)) {
+                        cekLink.forEach(function(singleId) {
+                            if (singleId && linkedTrxIds.indexOf(singleId.toString()) === -1) {
+                                linkedTrxIds.push(singleId.toString());
+                            }
+                        });
+                    } else {
+                        if (linkedTrxIds.indexOf(cekLink.toString()) === -1) {
+                            linkedTrxIds.push(cekLink.toString());
+                        }
+                    }
+                }
+
                 var transactionType = recLoad.getSublistValue({
                     sublistId: 'recmachcustrecord_tori_id',
                     fieldId: 'custrecord_tor_transaction_type',
@@ -60,47 +79,31 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                         line: i
                     });
 
+                    var item = recLoad.getSublistValue({
+                        sublistId: 'recmachcustrecord_tori_id',
+                        fieldId: 'custrecord_tori_item',
+                        line: i
+                    });
+
                     var amount = parseFloat(recLoad.getSublistValue({
                         sublistId: 'recmachcustrecord_tori_id',
                         fieldId: 'custrecord_tori_amount',
                         line: i
                     })) || 0;
 
-                    var cekLink = recLoad.getSublistValue({
+                    var allocated = parseFloat(recLoad.getSublistValue({
                         sublistId: 'recmachcustrecord_tori_id',
-                        fieldId: 'custrecord_tor_link_trx_no',
+                        fieldId: 'custrecord_amount_allocated',
                         line: i
-                    });
+                    })) || 0;
 
-                    var createdTransTAR = recLoad.getSublistValue({
+                    var idLine = recLoad.getSublistValue({
                         sublistId: 'recmachcustrecord_tori_id',
-                        fieldId: 'custrecord_tor_link_tar',
+                        fieldId: 'id',
                         line: i
-                    });
+                    })
 
-                    // Logika Khusus Tipe Expense '2' untuk mengumpulkan ID Dokumen Terkait dan menghitung baris
-                    if (transType === '2' && sof) {
-                        var sofStr = sof.toString();
-
-                        // 1. Hitung akumulasi budget TOR asli per SOF
-                        if (!sofTorAmountMap[sofStr]) sofTorAmountMap[sofStr] = 0;
-                        sofTorAmountMap[sofStr] += amount;
-
-                        // 2. Hitung ada berapa baris line yang menggunakan SOF ini
-                        if (!sofLineCountMap[sofStr]) sofLineCountMap[sofStr] = 0;
-                        sofLineCountMap[sofStr] += 1;
-
-                        // 3. Bersihkan format ID Expense Report penampung terlink agar tidak rusak/duplikat
-                        if (cekLink && cekLink !== '') {
-                            var cleanExpenseId = Array.isArray(cekLink) ? cekLink[0] : cekLink;
-                            if (cleanExpenseId && linkedExpenseIds.indexOf(cleanExpenseId.toString()) === -1) {
-                                linkedExpenseIds.push(cleanExpenseId.toString());
-                            }
-                        }
-                    }
-
-                    // Push object sementara (nilai amount nanti akan kita timpa/update khusus untuk tipe '2')
-                    dataTransform.push({
+                    var lineData = {
                         noTor : noTor,
                         date: date,
                         emp: emp,
@@ -112,11 +115,11 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                         projectTask: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tor_project_task', line: i }),
                         transactionType: transactionType,
                         idTor : recId,
-                        amount: amount, // Nilai default asal
+                        amount: amount, 
                         approver: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_approver', line: i }),
                         approverFa: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_approver_fa', line: i }),
                         costCenter: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_cost_center', line: i }),
-                        item: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_item', line: i }),
+                        item: item,
                         projectCode: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_project_code', line: i }),
                         sof: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_source_of_funding', line: i }),
                         bussinessUnit: recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_business_unit', line : i }),
@@ -125,71 +128,53 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                         description : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_description', line : i }),
                         unitCost : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_unit_cost', line : i }),
                         qty : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_quantity', line : i }),
-                        uom : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_uom', line : i })
-                    });
+                        uom : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_uom', line : i }),
+                        vendor : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_rpv_vendor', line : i}),
+                        idLine : idLine
+                    };
+
+                    var groupKey = (transType != '2') ? (idLine ? idLine.toString() : '') : (sof ? sof.toString() : '');
+
+                    if (groupKey) {
+                        console.log('amount', amount);
+                        console.log('allocated', allocated);
+
+                        if (!groupingTorAmountMap[groupKey]) groupingTorAmountMap[groupKey] = 0;
+                        groupingTorAmountMap[groupKey] += amount;
+                        groupingAllocatedAmountMap[groupKey] = allocated;
+
+                        if (!groupingDataMap[groupKey]) {
+                            var cleanTemplate = JSON.parse(JSON.stringify(lineData));
+                            cleanTemplate.amount = 0; 
+                            groupingDataMap[groupKey] = cleanTemplate;
+                        }
+                    }
                 }
             }
 
-            // STEP 2: Cari Penggunaan Terpakai via Saved Search (Hanya jika tipe '2' dan memiliki Dokumen Link)
-            if (transType === '2' && linkedExpenseIds.length > 0) {
-                console.log('Menjalankan Search Expense Report untuk IDs:', linkedExpenseIds);
-                
-                var expensereportSearchObj = search.create({
-                    type: "expensereport",
-                    filters: [
-                        ["type", "anyof", "ExpRept"], "AND", 
-                        ["internalid", "anyof", linkedExpenseIds], "AND", 
-                        ["mainline", "is", "F"]
-                    ],
-                    columns: [
-                        search.createColumn({name: "amount", label: "Amount"}),
-                        search.createColumn({name: "internalid", join: "customer"})
-                    ]
-                });
+            for (var groupKey in groupingDataMap) {
+                if (groupingDataMap.hasOwnProperty(groupKey)) {
+                    var itemData = groupingDataMap[groupKey];
+                    var totalTorBudget = groupingTorAmountMap[groupKey] || 0;
+                    var totalUsedBudget = groupingAllocatedAmountMap[groupKey] || 0;
+                    var remainingBudget = totalTorBudget - totalUsedBudget;
 
-                expensereportSearchObj.run().each(function(result) {
-                    var expAmount = parseFloat(result.getValue({ name: 'amount' })) || 0;
-                    var expSof = result.getValue({ name: 'internalid', join: 'customer' });
-                    if (expSof) {
-                        var expSofStr = expSof.toString();
-                        if (!expenseSummaryMap[expSofStr]) expenseSummaryMap[expSofStr] = 0;
-                        expenseSummaryMap[expSofStr] += expAmount;
+                    if (remainingBudget > 0) {
+                        itemData.amount = remainingBudget;
+                        itemData.custcol_amount_limit_from_tor = remainingBudget; 
+                        itemData.linkedTrxIds = linkedTrxIds;
+                        dataTransform.push(itemData);
+                    } else {
+                        console.log('Group Key ' + groupKey + ' dilewati karena budget sudah habis / 0.');
                     }
-                    return true;
-                });
-                console.log('Expense Terpakai Map:', expenseSummaryMap);
-            }
-
-            // STEP 3: Hitung Pembagian Saldo Rata Khusus untuk Tipe Expense '2'
-            if (transType === '2') {
-                dataTransform.forEach(function(item) {
-                    if (item.project) {
-                        var itemSofStr = item.project.toString();
-                        var totalTorBudget = sofTorAmountMap[itemSofStr] || 0;
-                        var totalUsedBudget = expenseSummaryMap[itemSofStr] || 0;
-                        var totalLinesForThisSof = sofLineCountMap[itemSofStr] || 1;
-
-                        // Rumus Pembagian Rata Sisa Nominal Budget
-                        var remainingBudget = totalTorBudget - totalUsedBudget;
-                        if (remainingBudget < 0) remainingBudget = 0; // proteksi minus
-
-                        var allocatedAmountPerLine = remainingBudget / totalLinesForThisSof;
-                        
-                        // Perbarui nilai target limit sisa yang dibagi rata untuk baris ini
-                        item.amount = allocatedAmountPerLine;
-                        
-                        // Opsional tambahan: Anda juga bisa menitipkan nilai limit murni per SOF 
-                        // ke parameter objek agar dibaca otomatis oleh field custom 'custcol_amount_limit_from_tor' di baris item
-                        item.custcol_amount_limit_from_tor = allocatedAmountPerLine; 
-                    }
-                });
+                }
             }
         }
         
         console.log('dataTransform Final Result:', dataTransform);
         return dataTransform;
     }
-
+    
     function transformPO(){
         var dataParams = getData('1');
         console.log('dataParams', dataParams);
@@ -241,11 +226,27 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
         window.open(createURL, "_blank");
     }
 
+    function transformPoVen(){
+        var dataParams = getData('5');
+        console.log('dataParams', dataParams);
+        var dataParamsString = JSON.stringify(dataParams);
+        var createURL = url.resolveRecord({
+            recordType: "purchaseorder",
+            isEditMode: true,
+            params: { 
+                cf: 130, 
+                dataParamsString: dataParamsString 
+            },
+        });
+        window.open(createURL, "_blank");
+    }
+
     return {
         pageInit : pageInit,
         transformPO : transformPO,
         transformPR : transformPR,
         transformExp : transformExp,
-        transformTar : transformTar
+        transformTar : transformTar,
+        transformPoVen : transformPoVen
     };
 });

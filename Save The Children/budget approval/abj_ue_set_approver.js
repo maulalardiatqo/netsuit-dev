@@ -2,9 +2,7 @@
  * @NApiVersion 2.1
  * @NScriptType UserEventScript
  */
-define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime'], (search, log, https, url, runtime) => {
-
-  
+define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime', 'N/record', 'N/format'], (search, log, https, url, runtime, record, format) => {
 
     const beforeSubmit = (scriptContext) => {
         const { newRecord, oldRecord, type, UserEventType } = scriptContext;
@@ -12,8 +10,11 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime'], (search, log, htt
         if (type !== UserEventType.CREATE && type !== UserEventType.EDIT && type !== UserEventType.COPY) return;
 
         const createdBy = newRecord.getValue('custbody_stc_create_by') || runtime.getCurrentUser().id;
-        const datecreated = newRecord.getValue('createddate');
+        
+        var recId = newRecord.id
+      
         const recType = newRecord.type;
+        const datecreated = newRecord.getValue('createddate');
         var poType = null
         if(recType == 'purchaseorder'){
             poType = newRecord.getValue('custbody_stc_po_type')
@@ -170,7 +171,8 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime'], (search, log, htt
             var bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.costCenter, data.projectCode, data.groupLevel);
             log.debug('bhApprover', bhApprover)
             if(bhApprover){
-                var cekBhSubtitue = getSubtitue(bhApprover, datecreated);
+                var cekBhSubtitue = getSubtitue(bhApprover, datecreated, format, type, UserEventType );
+                log.debug('cekBhSubtitue', cekBhSubtitue)
                 if(cekBhSubtitue) bhApprover = cekBhSubtitue;
             }
             
@@ -182,7 +184,8 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime'], (search, log, htt
             if (validFinanceTypes.includes(recType)) {
                 finApprover = getFinanceMatric(data.sofId, totalFinanceForSof, createdBy, recType, poType, data.projectCode);
                 if(finApprover){
-                    var cekFinSubtitue = getSubtitue(finApprover, datecreated);
+                    var cekFinSubtitue = getSubtitue(finApprover, datecreated, format, type, UserEventType );
+                    log.debug('cekFinSubtitue', cekFinSubtitue)
                     if(cekFinSubtitue) finApprover = cekFinSubtitue;
                 }
             }
@@ -204,9 +207,59 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime'], (search, log, htt
             });
         }
     };
-    function getSubtitue(empId, datecreated){
+    // function getSubtitue(empId, datecreated){
+    //     log.debug('empId', empId);
+    //     var appSubtitue
+    //     var empLook = search.lookupFields({
+    //         type: "employee",
+    //         id: empId,
+    //         columns: ["custentity_stc_subtitute_apprvl", "custentity_stc_delgtion_date_from", "custentity_stc_delegation_date_to"],
+    //     });
+
+    //     var firstCek = empLook.custentity_stc_subtitute_apprvl;
+    //     var delegateFromStr = empLook.custentity_stc_delgtion_date_from; 
+    //     var delegateToStr = empLook.custentity_stc_delegation_date_to;   
+
+    //     if (firstCek && firstCek.length > 0 && delegateFromStr && delegateToStr) {
+            
+    //         log.debug('delegateFromStr',delegateFromStr)
+    //         log.debug('delegateToStr', delegateToStr)
+    //         var convertToDDMMYYYY = function(dateInput) {
+    //             var d = new Date(dateInput);
+    //             var day = String(d.getDate()).padStart(2, '0');
+    //             var month = String(d.getMonth() + 1).padStart(2, '0'); 
+    //             var year = d.getFullYear();
+    //             return day + '/' + month + '/' + year;
+    //         };
+
+    //         var datecreatedStr = convertToDDMMYYYY(datecreated);
+    //         log.debug('datecreated (formatted)', datecreatedStr);
+    //         log.debug('datecreated', datecreated)
+    //         var parseDate = function(str) {
+    //             var parts = str.split('/');
+    //             return new Date(parts[2], parts[1] - 1, parts[0]);
+    //         };
+
+    //         var dFrom = parseDate(delegateFromStr);
+    //         var dTo = parseDate(delegateToStr);
+    //         var createdDate = parseDate(datecreatedStr)
+    //         log.debug('perbandingan date', {createdDate : createdDate, dFrom : dFrom, dTo : dTo})
+    //         if (createdDate >= dFrom && createdDate <= dTo) {
+    //             appSubtitue = firstCek[0].value;
+    //             log.debug('Status', 'Masuk Range Delegasi. Substitute Assigned.');
+    //         } else {
+    //             log.debug('Status', 'Di luar periode delegasi. Substitute Ignored.');
+    //         }
+
+    //     }
+    //     log.debug('appSubtitue', appSubtitue)
+    //     return appSubtitue
+    // }
+    function getSubtitue(empId, dateCreated, format, type, UserEventType){
+
         log.debug('empId', empId);
-        var appSubtitue
+        var appSubtitue;
+        
         var empLook = search.lookupFields({
             type: "employee",
             id: empId,
@@ -218,28 +271,51 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime'], (search, log, htt
         var delegateToStr = empLook.custentity_stc_delegation_date_to;   
 
         if (firstCek && firstCek.length > 0 && delegateFromStr && delegateToStr) {
-            
-            // var today = new Date();
-            // today.setHours(0, 0, 0, 0);
-            var datecreated = datecreated
-            var parseDate = function(str) {
-                var parts = str.split('/');
-                return new Date(parts[2], parts[1] - 1, parts[0]);
-            };
+            log.debug('masuk date empsubtitue');
+            var createdDate; 
 
-            var dFrom = parseDate(delegateFromStr);
-            var dTo = parseDate(delegateToStr);
-            var createdDate = parseDate(datecreated)
-            log.debug('perbandingan date', {createdDate : createdDate, dFrom : dFrom, dTo : dTo})
-            if (createdDate >= dFrom && createdDate <= dTo) {
+            var dFromObj = format.parse({ value: delegateFromStr, type: format.Type.DATE });
+            var dToObj = format.parse({ value: delegateToStr, type: format.Type.DATE });
+
+            if (type === UserEventType.CREATE || type === UserEventType.COPY) {
+                var todayStr = format.format({ value: new Date(), type: format.Type.DATE });
+                createdDate = format.parse({ value: todayStr, type: format.Type.DATE });
+            } else {
+                createdDate = dateCreated
+            }
+
+            var dapatkanAngkaTanggal = function(dateObj) {
+                if (!dateObj) return 0;
+                var yyyy = dateObj.getFullYear();
+                var mm = String(dateObj.getMonth() + 1).padStart(2, '0'); 
+                var dd = String(dateObj.getDate()).padStart(2, '0');
+                return parseInt(yyyy + mm + dd, 10); 
+            };
+            log.debug('createdDate', createdDate)
+            var tglCreated = dapatkanAngkaTanggal(createdDate);
+            var tglFrom = dapatkanAngkaTanggal(dFromObj);
+            var tglTo = dapatkanAngkaTanggal(dToObj);
+
+            if (tglCreated < tglFrom && (tglFrom - tglCreated === 1)) {
+                log.debug('Sistem info', 'Timezone server bergeser 1 hari. Menyelaraskan...');
+                tglFrom = tglCreated; 
+            }
+
+            log.debug('Pengecekan Angka Tanggal Murni', {
+                tglCreated: tglCreated, 
+                tglFrom: tglFrom, 
+                tglTo: tglTo
+            });
+            
+            if (tglCreated >= tglFrom && tglCreated <= tglTo) {
                 appSubtitue = firstCek[0].value;
                 log.debug('Status', 'Masuk Range Delegasi. Substitute Assigned.');
             } else {
                 log.debug('Status', 'Di luar periode delegasi. Substitute Ignored.');
             }
-
         }
-        return appSubtitue
+        log.debug('appSubtitue', appSubtitue);
+        return appSubtitue;
     }
     const getBudgetHolderApproval = (paramSof, paramAccount, paramAmount, createdBy, costCenter, projectCode, groupLevel) => {
         log.debug('paramBHapprover', {

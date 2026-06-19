@@ -172,7 +172,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     body += "</tr>";
                     body += "<tr>";
                     body += "<td></td>"
-                    body += "<td style='align:leftt'>No. Form : 012/ISS-LG/FF</td>"
+                    body += "<td style='align:leftt'>No. Form : 013/ISS-LG/FF</td>"
                     body += "</tr>";
                     body += "</tbody>";
                     body += "</table>";

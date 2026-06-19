@@ -6,7 +6,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/search'], (currentRecord, dialog, s
     const saveRecord = (context) => {
         const currentRec = currentRecord.get();
         var customForm = currentRec.getValue('customform');
-        if(customForm == '127'){
+        if(customForm == '126'){
                 var requiredFields = [
                     { id: 'custbody_sos_jenis_fp', label: 'Jenis Faktur' },
                     { id: 'custbody_sos_kode_transaksi_trx', label: 'Kode Transaksi' },

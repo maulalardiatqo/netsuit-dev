@@ -2,7 +2,7 @@
  * @NApiVersion 2.1
  * @NScriptType UserEventScript
  */
-define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime'], (search, log, https, url, runtime) => {
+define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime', 'N/format'], (search, log, https, url, runtime, format) => {
 
     const recordConfig = {
         'customrecord_tar': {
@@ -178,14 +178,17 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime'], (search, log, htt
             let bhApprover = getBudgetHolderApproval(data.sofId, data.account, data.total, createdBy, data.cc, data.pc, data.groupLevel);
             if (bhApprover) {
                 log.debug('recId', recId)
-                let cekBhSubtitue = getSubtitue(bhApprover, recType, recId,type, UserEventType);
+                let cekBhSubtitue = getSubtitue(bhApprover, recType, recId,type, UserEventType, format);
+                log.debug('cekBhSubtitue', cekBhSubtitue)
                 if (cekBhSubtitue) bhApprover = cekBhSubtitue;
             }
 
             const totalFinanceAmount = financeMap[data.sofId];
             let finApprover = getFinanceMatric(data.sofId, totalFinanceAmount, createdBy, recType);
             if (finApprover) {
-                let cekFinApprover = getSubtitue(finApprover, recType, recId,type, UserEventType);
+                log.debug('params getsubtitue FA', {finApprover : finApprover, recType : recType, type: type, UserEventType : UserEventType})
+                let cekFinApprover = getSubtitue(finApprover, recType, recId,type, UserEventType, format);
+                log.debug('cekFinApprover', cekFinApprover)
                 if (cekFinApprover) finApprover = cekFinApprover;
             }
 
@@ -207,65 +210,146 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime'], (search, log, htt
             });
         });
     };
-    function getSubtitue(empId, recType, recId, type, UserEventType){
-        log.debug('empId', empId);
-        var appSubtitue;
-        var empLook = search.lookupFields({
-            type: "employee",
-            id: empId,
-            columns: ["custentity_stc_subtitute_apprvl", "custentity_stc_delgtion_date_from", "custentity_stc_delegation_date_to"],
-        });
+    // function getSubtitue(empId, recType, recId, type, UserEventType){
+    //     log.debug('empId', empId);
+    //     var appSubtitue;
+    //     var empLook = search.lookupFields({
+    //         type: "employee",
+    //         id: empId,
+    //         columns: ["custentity_stc_subtitute_apprvl", "custentity_stc_delgtion_date_from", "custentity_stc_delegation_date_to"],
+    //     });
 
-        var firstCek = empLook.custentity_stc_subtitute_apprvl;
-        var delegateFromStr = empLook.custentity_stc_delgtion_date_from; 
-        var delegateToStr = empLook.custentity_stc_delegation_date_to;   
+    //     var firstCek = empLook.custentity_stc_subtitute_apprvl;
+    //     var delegateFromStr = empLook.custentity_stc_delgtion_date_from; 
+    //     var delegateToStr = empLook.custentity_stc_delegation_date_to;   
 
-        if (firstCek && firstCek.length > 0 && delegateFromStr && delegateToStr) {
-            log.debug('masuk date empsubtitue');
-            var createdDate; 
+    //     if (firstCek && firstCek.length > 0 && delegateFromStr && delegateToStr) {
+    //         log.debug('masuk date empsubtitue');
+    //         var createdDate; 
             
-            var parseDate = function(str) {
-                var parts = str.split('/');
-                return new Date(parts[2], parts[1] - 1, parts[0]);
-            };
+    //         var parseDate = function(str) {
+    //             var parts = str.split('/');
+    //             return new Date(parts[2], parts[1] - 1, parts[0]);
+    //         };
+    //         log.debug('UserEventType', UserEventType)
 
-            if (type === UserEventType.CREATE || type === UserEventType.COPY) {
-                createdDate = new Date(); 
-                createdDate.setHours(0, 0, 0, 0);
-            } else {
-                const customrecord_terSearchObj = search.create({
-                    type: recType,
-                    filters: [["internalid", "anyof", recId]],
-                    columns: [search.createColumn({name: "created", label: "Date Created"})]
-                });
+    //         if (type === UserEventType.CREATE || type === UserEventType.COPY) {
+    //             createdDate = new Date(); 
+    //             createdDate.setHours(0, 0, 0, 0);
+    //         } else {
+    //             const customrecord_terSearchObj = search.create({
+    //                 type: recType,
+    //                 filters: [["internalid", "anyof", recId]],
+    //                 columns: [search.createColumn({name: "created", label: "Date Created"})]
+    //             });
                 
-                customrecord_terSearchObj.run().each(function(result){
-                    var rawDateStr = result.getValue('created').split(' ')[0]; 
-                    createdDate = parseDate(rawDateStr);
-                    return false; 
-                });
-            }
+    //             customrecord_terSearchObj.run().each(function(result){
+    //                 var rawDateStr = result.getValue('created').split(' ')[0]; 
+    //                 createdDate = parseDate(rawDateStr);
+    //                 return false; 
+    //             });
+    //         }
 
-            var dFrom = parseDate(delegateFromStr);
-            var dTo = parseDate(delegateToStr);
+    //         var dFrom = parseDate(delegateFromStr);
+    //         var dTo = parseDate(delegateToStr);
             
-            dFrom.setHours(0, 0, 0, 0);
-            dTo.setHours(23, 59, 59, 999);
-            if (type !== UserEventType.CREATE && type !== UserEventType.COPY) {
-                createdDate.setHours(12, 0, 0, 0);
-            }
+    //         dFrom.setHours(0, 0, 0, 0);
+    //         dTo.setHours(23, 59, 59, 999);
+    //         if (type !== UserEventType.CREATE && type !== UserEventType.COPY) {
+    //             createdDate.setHours(12, 0, 0, 0);
+    //         }
 
-            log.debug('perbandingan date', {createdDate : createdDate, dFrom : dFrom, dTo : dTo});
+    //         log.debug('perbandingan date', {createdDate : createdDate, dFrom : dFrom, dTo : dTo});
             
-            if (createdDate >= dFrom && createdDate <= dTo) {
-                appSubtitue = firstCek[0].value;
-                log.debug('Status', 'Masuk Range Delegasi. Substitute Assigned.');
-            } else {
-                log.debug('Status', 'Di luar periode delegasi. Substitute Ignored.');
-            }
+    //         if (createdDate >= dFrom && createdDate <= dTo) {
+    //             appSubtitue = firstCek[0].value;
+    //             log.debug('Status', 'Masuk Range Delegasi. Substitute Assigned.');
+    //         } else {
+    //             log.debug('Status', 'Di luar periode delegasi. Substitute Ignored.');
+    //         }
+    //     }
+    //     log.debug('appSubtitue', appSubtitue)
+    //     return appSubtitue;
+    // }
+    // Pastikan modul 'N/format' dimasukkan ke dalam define/require di script utama Anda dan diberi nama parameter 'format'
+function getSubtitue(empId, recType, recId, type, UserEventType, format){
+    log.debug('empId', empId);
+    log.debug('empId', empId);
+    var appSubtitue;
+    
+    var empLook = search.lookupFields({
+        type: "employee",
+        id: empId,
+        columns: ["custentity_stc_subtitute_apprvl", "custentity_stc_delgtion_date_from", "custentity_stc_delegation_date_to"],
+    });
+
+    var firstCek = empLook.custentity_stc_subtitute_apprvl;
+    var delegateFromStr = empLook.custentity_stc_delgtion_date_from; 
+    var delegateToStr = empLook.custentity_stc_delegation_date_to;   
+
+    if (firstCek && firstCek.length > 0 && delegateFromStr && delegateToStr) {
+        log.debug('masuk date empsubtitue');
+        var createdDate; 
+
+        // 1. Ambil objek Date murni dari NetSuite
+        var dFromObj = format.parse({ value: delegateFromStr, type: format.Type.DATE });
+        var dToObj = format.parse({ value: delegateToStr, type: format.Type.DATE });
+
+        if (type === UserEventType.CREATE || type === UserEventType.COPY) {
+            var todayStr = format.format({ value: new Date(), type: format.Type.DATE });
+            createdDate = format.parse({ value: todayStr, type: format.Type.DATE });
+        } else {
+            const customrecord_terSearchObj = search.create({
+                type: recType,
+                filters: [["internalid", "anyof", recId]],
+                columns: [search.createColumn({name: "created", label: "Date Created"})]
+            });
+            
+            customrecord_terSearchObj.run().each(function(result){
+                var rawDateStr = result.getValue('created'); 
+                createdDate = format.parse({ value: rawDateStr, type: format.Type.DATETIME });
+                return false; 
+            });
         }
-        return appSubtitue;
+
+        // 2. SOLUSI JITU: Fungsi untuk reset tanggal menjadi string YYYYMMDD angka murni
+        // Cara ini akan membuang semua gangguan Jam, Menit, dan Timezone UTC (Z)
+        var dapatkanAngkaTanggal = function(dateObj) {
+            if (!dateObj) return 0;
+            var yyyy = dateObj.getFullYear();
+            var mm = String(dateObj.getMonth() + 1).padStart(2, '0'); // bulan 0-11
+            var dd = String(dateObj.getDate()).padStart(2, '0');
+            return parseInt(yyyy + mm + dd, 10); // Hasilnya berupa angka, contoh: 20260609
+        };
+
+        var tglCreated = dapatkanAngkaTanggal(createdDate);
+        var tglFrom = dapatkanAngkaTanggal(dFromObj);
+        var tglTo = dapatkanAngkaTanggal(dToObj);
+
+        // Jika terjadi kondisi timezone bergeser +1 hari pada data lookup server, kita selaraskan di sini
+        if (tglCreated < tglFrom && (tglFrom - tglCreated === 1)) {
+            log.debug('Sistem info', 'Timezone server bergeser 1 hari. Menyelaraskan...');
+            tglFrom = tglCreated; // Paksa samakan hari karena di UI aslinya sama
+        }
+
+        log.debug('Pengecekan Angka Tanggal Murni', {
+            tglCreated: tglCreated, // Nilai integer contoh: 20260609
+            tglFrom: tglFrom, 
+            tglTo: tglTo
+        });
+        
+        // Perbandingan matematika angka murni jauh lebih aman dibanding Date Object bawaan JS
+        if (tglCreated >= tglFrom && tglCreated <= tglTo) {
+            appSubtitue = firstCek[0].value;
+            log.debug('Status', 'Masuk Range Delegasi. Substitute Assigned.');
+        } else {
+            log.debug('Status', 'Di luar periode delegasi. Substitute Ignored.');
+        }
     }
+    log.debug('appSubtitue', appSubtitue);
+    return appSubtitue;
+}
+
     const getBudgetHolderApproval = (paramSof, paramAccount, paramAmount, createdBy, costCenter, projectCode, groupLevel) => {
         log.debug('filterSearchBH Approfer', {
             paramSof : paramSof,

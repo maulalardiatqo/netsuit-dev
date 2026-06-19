@@ -95,12 +95,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     
                     var approveSupervisiorBy = recLoad.getText('custrecord_tar_next_approver');
                     var lastApproveManager = recLoad.getText('custrecord_tar_last_apprv_mngr');
+                    if(lastApproveManager){
+                        var formattedDate = format.format({
+                            value: lastApproveManager,
+                            type: format.Type.DATETIMETZ,
+                            timezone: format.Timezone.ASIA_JAKARTA
+                        });
+                    }
                     
-                    var formattedDate = format.format({
-						value: lastApproveManager,
-						type: format.Type.DATETIMETZ,
-						timezone: format.Timezone.ASIA_JAKARTA
-					});
                     var allDataPassenger = [];
                     var countPassenger = recLoad.getLineCount({
                         sublistId : 'recmachcustrecord_link_id_tar'
@@ -211,10 +213,14 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             var sof = getInitialNumber(sofName)
                             var deaName = recLoad.getSublistText({
                                 sublistId : 'recmachcustrecord_tar_e_id',
-                                fieldId : 'custrecord_tare_project_task',
+                                fieldId : 'custrecord_tar_dea',
                                 line : i
                             });
-                            var dea = getInitialNumber(deaName)
+                            var dea = ""
+                            if(deaName){
+                                dea = getInitialNumber(deaName)
+                            }
+                            
                             var estimateCost = recLoad.getSublistValue({
                                 sublistId : 'recmachcustrecord_tar_e_id',
                                 fieldId : 'custrecord_tare_amount',

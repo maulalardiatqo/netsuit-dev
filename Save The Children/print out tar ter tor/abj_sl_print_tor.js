@@ -213,25 +213,45 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 fieldId : 'custrecord_tori_cost_center',
                                 line : k
                             })
-                            var costCenter = getInitialNumber(costText);
+                            log.debug('costText', costText)
+                            var costCenter = "";
+                            if(costText){
+                                costCenter = getInitialNumber(costText);
+                                log.debug('constCenter', costCenter)
+                            } 
                             var projText = recLoad.getSublistText({
                                 sublistId : 'recmachcustrecord_tori_id',
                                 fieldId : 'custrecord_tori_project_code',
                                 line : k
                             })
-                            var projectCode = getInitialNumber(projText);
+                            log.debug('projText', projText)
+                            var projectCode = ""
+                            if(projText){
+                                projectCode = getInitialNumber(projText);
+                            }
+                            
                             var sof = recLoad.getSublistText({
                                 sublistId : 'recmachcustrecord_tori_id',
                                 fieldId : 'custrecord_tori_source_of_funding',
                                 line : k
                             })
-                            var sofCode = getInitialNumber(sof)
+                            log.debug('sof', sof)
+                            var sofCode = ""
+                            if(sof){
+                                sofCode = getInitialNumber(sof)
+                            }
+                            
                             var projetTaks = recLoad.getSublistText({
                                 sublistId : 'recmachcustrecord_tori_id',
-                                fieldId : 'custrecord_tor_project_task',
+                                fieldId : 'custrecord_tor_dea',
                                 line : k
                             })
-                            var dea = getInitialNumber(projetTaks)
+                            log.debug('projetTaks', projetTaks)
+                            var dea = ""
+                            if(projetTaks){
+                                dea = getInitialNumber(projetTaks)
+                            }
+                            
                             var item = recLoad.getSublistText({
                                 sublistId : 'recmachcustrecord_tori_id',
                                 fieldId : 'custrecord_tori_item',
@@ -458,8 +478,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                         if(dataBudget.length > 0){
                             var total = 0
+                            log.debug('dataBudget', dataBudget)
                             dataBudget.forEach((budget)=>{
                                 var costCenter = budget.costCenter;
+                                log.debug('costCenter', costCenter)
                                 var projectCode = budget.projectCode;
                                 var sofCode = budget.sofCode;
                                 var dea = budget.dea;

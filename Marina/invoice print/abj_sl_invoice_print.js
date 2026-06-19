@@ -67,7 +67,6 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var tlcCurr = recCurrenc.getValue('symbol');
                     
                 }
-                
                 var subsidiari = invoiceRecord.getValue('subsidiary');
                 // load subsidiarie
                 var infoBank = '';
@@ -84,6 +83,8 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     var name = subsidiariRec.getValue('name');
                     var retEmailAddres = subsidiariRec.getValue('email');
                     var Npwp = subsidiariRec.getValue('federalidnumber');
+                    var Npwp2 = subsidiariRec.getValue('federalidnumber');
+
     
                     var bankName = subsidiariRec.getValue('custrecord_msa_sub_bank_name');
                     var swiftCode = subsidiariRec.getValue('custrecord_msa_sub_swift_code');
@@ -361,6 +362,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     });
                 }
                 var empName = ''
+                var NoPORef = invoiceRecord.getValue('otherrefnum');
                 var empId = invoiceRecord.getValue('custbody_fcn_sales_employee');
                 if(empId){
                     var recEmp = record.load({
@@ -403,10 +405,10 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body+= "<table class='tg' width=\"100%\"  style=\"table-layout:fixed; font-size:12px;\">";
                 body+= "<tbody>";
                 body+= "<tr>";
-                body+= "<td style='width:50%'></td>"
-                body+= "<td style='width:15%'></td>"
+                body+= "<td style='width:60%'></td>"
+                body+= "<td style='width:10%'></td>"
                 body+= "<td style='width:1%'></td>"
-                body+= "<td style='width:34%'></td>"
+                body+= "<td style='width:29%'></td>"
                 body+= "</tr>";
 
                 body+= "<tr>";
@@ -431,17 +433,25 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 const dateAfter = addDaysToDate(InvDate, 30);
                 log.debug('dateAfter', dateAfter)
                 body+= "<tr>";
-                body+= "<td style=''>"+addresParts[1] +"-"+addresParts[2]+"</td>"
+                body+= "<td style=''>"+addresParts[1]+"</td>"
                 body+= "<td style=''>Tgl. Tempo</td>"
                 body+= "<td style=''>:</td>"
                 body+= "<td style=''>"+dateAfter+"</td>"
                 body+= "</tr>";
 
                 body+= "<tr>";
-                body+= "<td style=''>No. Rek : "+infoBank+"</td>"
+            //    body+= "<td style=''>No. Rek : "+infoBank+"</td>"
+                body+= "<td style=''>No. NPWP : "+Npwp2+"</td>"
                 body+= "<td style=''>Pelanggan</td>"
                 body+= "<td style=''>:</td>"
                 body+= "<td style=''>"+custName+"</td>"
+                body+= "</tr>";
+
+                body+= "<tr>";
+                body+= "<td style=''>No. Telp : (0401) 3136567</td>"
+                body+= "<td style=''>No. PO</td>"
+                body+= "<td style=''>:</td>"
+                body+= "<td style=''>"+NoPORef+"</td>"
                 body+= "</tr>";
         
                 body+= "</tbody>";
@@ -466,6 +476,34 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                 body += "</tbody>";
                 body += "</table>";
+
+          //tambahan Rekening bank         
+          body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed; font-size:8pt;\">";
+          body += "<tbody>";
+          body += "<tr>"
+          body += "<td style='' colspan='1' >No. Rek : "+infoBank+"</td>"
+          body += "</tr>"
+          body += "</tbody>";
+          body += "</table>";
+              
+          //tambahan memo         
+          var Mmemo = invoiceRecord.getValue('memo');
+          body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed; font-size:8pt;\">";
+          body += "<tbody>";
+          body += "<tr>"
+          body += "<td style='' colspan='1' >Memo : "+Mmemo+"</td>"
+          body += "</tr>"
+          body += "</tbody>";
+          body += "</table>";
+              
+          body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed; font-size:8pt;\">";
+          body += "<tbody>";
+              body += "<tr>"
+              body += "<td style='font-weight: bold;' colspan='1' >*Harga sudah termasuk PPN</td>"
+              body += "</tr>"
+          body += "</tbody>";
+          body += "</table>";
+        
 
                 body += "<table class='tg' width=\"100%\" style=\"table-layout:fixed; font-size:8pt;\">";
                 body += "<tbody>";
@@ -527,6 +565,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 body += "<td style='align:center;'></td>"
                 body += "<td style='align:center; border-bottom: solid black 1px;'></td>"
                 body += "<td style='align:center;'></td>"
+              
                 body += "<td style='align:right; border: solid black 1px; border-top: none; font-size:11pt;'><b>Total</b></td>"
                 body += "<td style='align:right; border: solid black 1px; border-top: none; border-left: none; font-size:11pt;'><b>"+totalAmount+"</b></td>"
                 body += "</tr>"
@@ -551,6 +590,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 
                 log.debug('cekTime', cekTime)
                 log.debug('currentTime', currentTime)
+              
                 body += "<tr>"
                 body += "<td style='align:center;'></td>"
                 body += "<td style='align:center;'>"+empName+"</td>"
@@ -676,11 +716,36 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 }
                             }
                             
-                            var unit = invoiceRecord.getSublistText({
+                            var unitId = invoiceRecord.getSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'units',
                                 line: index
                             });
+                            log.debug('unitId', unitId)
+                            var unit = ""
+                            if(unitId){
+                                 const unitstypeSearchObj = search.create({
+                                type: "unitstype",
+                                filters:
+                                [
+                                    ["internalid","anyof",unitId]
+                                ],
+                                columns:
+                                [
+                                    search.createColumn({name: "name", label: "Name"})
+                                ]
+                                });
+                                const searchResultCount = unitstypeSearchObj.runPaged().count;
+                                log.debug("unitstypeSearchObj result count",searchResultCount);
+                                unitstypeSearchObj.run().each(function(result){
+                                unit = result.getValue({
+                                    name : "name"
+                                })
+                                return true;
+                                });
+                            }
+                           
+
                             var rate;
                             var rateBef = invoiceRecord.getSublistValue({
                                 sublistId: 'item',
@@ -689,7 +754,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                             });
                             var ammount = invoiceRecord.getSublistValue({
                                 sublistId: 'item',
-                                fieldId: 'amount',
+                                fieldId: 'grossamt',
                                 line: index
                             });
                             if(rateBef){

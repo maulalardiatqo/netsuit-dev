@@ -79,8 +79,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
                 }
                 const rec    = context.newRecord;
                 const recOld = context.oldRecord;
+                const recType = rec.type
+                log.debug('recType', recType)
                 const recLoad = record.load({
-                    type: rec.type,
+                    type: recType,
                     id: rec.id,
                     isDynamic: false
                 });
@@ -109,14 +111,31 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
                 log.debug('transType', transType)
                 // var newtriggerFA = recLoad.getValue('custbody_stc_approval_budget_holder');
                 var fieldTriggerFa = 'custbody_stc_approval_budget_holder'
+                var oldtriggerFA = 'custbody_stc_approval_budget_holder'
                 var lookupField = search.lookupFields({
                         type: rec.type,
                         id: rec.id,
                         columns: [fieldTriggerFa]
                     });
-                    
-                var newtriggerFA = lookupField[fieldTriggerFa];
-                var oldtriggerFA = recOld.getValue('custbody_stc_approval_budget_holder');
+                var toBeSent = true
+                log.debug('transType', transType)
+                if(transType == 'purchaseorder'){
+                    var cForm = recLoad.getValue('customform');
+                    log.debug('cForm', cForm)
+                    if(cForm == '123'){
+                        var cekType = recLoad.getValue('custbody_stc_po_type');
+                        log.debug('cekType', cekType)
+                        if(cekType == '1'){
+                            toBeSent = false
+                            fieldTriggerFa = 'custbody_stc_sent_email_finance'
+                            oldtriggerFA = 'custbody_stc_sent_email_finance'
+                        }
+                    }
+                }
+                var newtriggerFA = recLoad.getValue(fieldTriggerFa)
+                log.debug('newtriggerFA', newtriggerFA)
+                var oldtriggerFA = recOld.getValue(oldtriggerFA);
+                log.debug('oldtriggerFA', oldtriggerFA)
                 var trandId = recLoad.getValue('tranid')
                 var createdBy = recLoad.getValue('custbody_stc_create_by');
                 var empName
@@ -136,8 +155,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
             const trandate = trandateRaw ? trandateRaw.toString() : '-';
             log.debug('trandate', trandate)
                 var totalAmount = recLoad.getValue('total')
-                    
-                if(oldTrigger == false && newTrigger == true){
+                if(recType == 'purchaserequisition'){
+                    totalAmount = recLoad.getValue('estimatedtotal')
+                }
+                
+                log.debug('cek trigger budget Holder', { oldTrigger : oldTrigger, newTrigger : newTrigger, toBeSent : toBeSent})
+                if(oldTrigger == false && newTrigger == true && toBeSent == true){
                     log.debug('masuk kondisi budget')
                     var cekLineItem = recLoad.getLineCount({
                         sublistId : 'item'
@@ -174,6 +197,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
                     }
                     allApprover = removeDuplicate(allApprover)
                     log.debug('allApprover', allApprover)
+                    log.debug('totalAmount', totalAmount)
                     if(allApprover.length > 0){
                         allApprover.forEach((emp)=>{
                             var emailId = getEmail(emp);

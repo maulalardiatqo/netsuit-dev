@@ -45,90 +45,137 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             console.error('Error parsing dataParamsString', e);
         }
     }
-
-    async function processDataAsync(data, rec) {
-        let totalAmount = 0;
-
-        for (let i = 0; i < data.length; i++) {
-            let lineData = data[i];
-            
-            rec.selectNewLine({ sublistId: 'expense' });
-
-            const forceSet = (field, val, ignore) => {
-                if (val !== null && val !== undefined && val !== '') {
-                    rec.setCurrentSublistValue({
-                        sublistId: 'expense',
-                        fieldId: field,
-                        value: val,
-                        ignoreFieldChange: ignore
-                    });
+    function eksekusiHide(context){
+        try {
+                var headerApprover = document.querySelector('td[data-label="Approver FA"]');
+                if (headerApprover) {
+                    headerApprover.style.setProperty('display', 'none', 'important');
+                    
+                    var columnIndex = headerApprover.cellIndex;
+                    
+                    var tableEl = headerApprover.closest('table');
+                    if (tableEl) {
+                        var rows = tableEl.querySelectorAll('tr');
+                        rows.forEach(function(row) {
+                            if (row.cells[columnIndex]) {
+                                row.cells[columnIndex].style.setProperty('display', 'none', 'important');
+                            }
+                        });
+                    }
                 }
-            };
-            forceSet('category', '1', true)
-            forceSet('expenseaccount', '281', true); 
-            forceSet('currency', '1', true);
-            
-            if (data[0].date) {
-                let parsedDate = parseDateString(data[0].date);
-                forceSet('expensedate', parsedDate, true);
-            }
 
-            if (lineData.project) {
-                forceSet('customer', lineData.project, false); 
-                
-                await new Promise(resolve => setTimeout(resolve, 800));
-
-                if (lineData.projectTask) {
-                    rec.setCurrentSublistValue({
-                        sublistId: 'expense',
-                        fieldId: 'projecttask',
-                        value: lineData.projectTask,
-                        ignoreFieldChange: true 
-                    });
+                var headerStatus = document.querySelector('td[data-label="Approval Status FA"]');
+                if (headerStatus) {
+                    headerStatus.style.setProperty('display', 'none', 'important');
+                    
+                    var columnIndexStatus = headerStatus.cellIndex;
+                    var tableElStatus = headerStatus.closest('table');
+                    if (tableElStatus) {
+                        var rowsStatus = tableElStatus.querySelectorAll('tr');
+                        rowsStatus.forEach(function(row) {
+                            if (row.cells[columnIndexStatus]) {
+                                row.cells[columnIndexStatus].style.setProperty('display', 'none', 'important');
+                            }
+                        });
+                    }
                 }
-            }
 
-            if (lineData.amount) {
-                totalAmount += Number(lineData.amount);
-                forceSet('amount', lineData.amount, true);
-            }
-            
-            if (lineData.description) {
-                forceSet('memo', lineData.description, true);
-            }
-
-            if (lineData.costCenter) forceSet('department', lineData.costCenter, true);
-            if (lineData.projectCode) forceSet('class', lineData.projectCode, true);
-            if (lineData.sof) forceSet('cseg_stc_sof', lineData.sof, true);
-            if (lineData.activityCode) forceSet('cseg_paactivitycode', lineData.activityCode, true);
-            if (lineData.bussinessUnit) forceSet('cseg1', lineData.bussinessUnit, true);
-            if (lineData.drc) forceSet('cseg_stc_drc_segmen', lineData.drc, true);
-            if (lineData.dea) forceSet('cseg_stc_segmentdea', lineData.dea, true);
-
-            let finalAcc = rec.getCurrentSublistValue({ sublistId: 'expense', fieldId: 'expenseaccount' });
-            if (!finalAcc || finalAcc != '281') {
-                forceSet('expenseaccount', '281', true);
-            }
-
-            try {
-                rec.commitLine({ sublistId: 'expense' });
-                console.log('Baris ' + i + ' Berhasil Commit. Task ID: ' + lineData.projectTask);
-                log.debug('Line Committed', 'Index: ' + i);
+                console.log('DOM Manipulation Sukses: Kolom Approver FA & Approval Status FA Berhasil Disembunyikan.');
             } catch (e) {
-                console.error('Gagal Commit Baris ' + i + ': ' + e.message);
-                log.debug('Commit Failed', e.message);
-                rec.cancelLine({ sublistId: 'expense' });
+                console.error('Gagal eksekusi DOM manipulation:', e.message);
             }
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+    }   
+    async function processDataAsync(data, rec) {
+    let totalAmount = 0;
+
+    for (let i = 0; i < data.length; i++) {
+        let lineData = data[i];
+        
+        rec.selectNewLine({ sublistId: 'expense' });
+
+        const forceSet = (field, val, ignore) => {
+            if (val !== null && val !== undefined && val !== '') {
+                rec.setCurrentSublistValue({
+                    sublistId: 'expense',
+                    fieldId: field,
+                    value: val,
+                    ignoreFieldChange: ignore
+                });
+            }
+        };
+        
+        forceSet('category', '1', true);
+        forceSet('expenseaccount', '281', true); 
+        forceSet('currency', '1', true);
+        
+        if (data[0].date) {
+            let parsedDate = parseDateString(data[0].date);
+            forceSet('expensedate', parsedDate, true);
         }
 
-        rec.setValue({
-            fieldId: 'custbody_amount_from_tor',
-            value: totalAmount,
-            ignoreFieldChange: true
-        });
+        if (lineData.project) {
+            forceSet('customer', lineData.project, false); 
+            
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            if (lineData.projectTask) {
+                rec.setCurrentSublistValue({
+                    sublistId: 'expense',
+                    fieldId: 'projecttask',
+                    value: lineData.projectTask,
+                    ignoreFieldChange: true 
+                });
+            }
+        }
+
+        if (lineData.amount) {
+            totalAmount += Number(lineData.amount);
+            forceSet('amount', lineData.amount, true);
+        }
+
+        // --- TAMBAHAN: SET VALUE UNTUK FIELD LIMIT TOR ---
+        if (lineData.custcol_amount_limit_from_tor) {
+            forceSet('custcol_amount_limit_from_tor', lineData.custcol_amount_limit_from_tor, true);
+        }
+        // -------------------------------------------------
+        
+        if (lineData.description) {
+            forceSet('memo', lineData.description, true);
+        }
+
+        if (lineData.costCenter) forceSet('department', lineData.costCenter, true);
+        if (lineData.projectCode) forceSet('class', lineData.projectCode, true);
+        if (lineData.sof) forceSet('cseg_stc_sof', lineData.sof, true);
+        if (lineData.activityCode) forceSet('cseg_paactivitycode', lineData.activityCode, true);
+        if (lineData.bussinessUnit) forceSet('cseg1', lineData.bussinessUnit, true);
+        if (lineData.drc) forceSet('cseg_stc_drc_segmen', lineData.drc, true);
+        if (lineData.dea) forceSet('cseg_stc_segmentdea', lineData.dea, true);
+
+        let finalAcc = rec.getCurrentSublistValue({ sublistId: 'expense', fieldId: 'expenseaccount' });
+        if (!finalAcc || finalAcc != '281') {
+            forceSet('expenseaccount', '281', true);
+        }
+
+        try {
+            rec.commitLine({ sublistId: 'expense' });
+            console.log('Baris ' + i + ' Berhasil Commit. Task ID: ' + lineData.projectTask);
+            log.debug('Line Committed', 'Index: ' + i);
+        } catch (e) {
+            console.error('Gagal Commit Baris ' + i + ': ' + e.message);
+            log.debug('Commit Failed', e.message);
+            rec.cancelLine({ sublistId: 'expense' });
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 100));
     }
+
+    rec.setValue({
+        fieldId: 'custbody_amount_from_tor',
+        value: totalAmount,
+        ignoreFieldChange: true
+    });
+}
 
     function parseDateString(dateStr) {
         var parts = dateStr.split('/');
@@ -140,6 +187,13 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             var sublistFieldName = context.fieldId;
             var sublistName = context.sublistId;
             var expReportTye = currentRecordObj.getValue('custbody_stc_expense_report_type');
+            if(context.fieldId == 'custbody_stc_expense_report_type'){
+                console.log('triggered')
+                var expType = currentRecordObj.getValue('custbody_stc_expense_report_type');
+                if(expType == '2' || expType == '3'){
+                    eksekusiHide(context)
+                }
+            }
             if(expReportTye == '3' || expReportTye == '2'){
                 if(sublistName == 'expense'){
                     if(sublistFieldName == 'custcol_stc_npwp_line'){

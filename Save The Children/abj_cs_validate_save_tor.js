@@ -53,12 +53,14 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                     });
                     
                     console.log(`Line ${i} -> itemCost: ${itemCost}, costInItem: ${costInItem}, justification: "${justification}"`);
-                    
-                    if (costInItem > itemCost && (!justification || justification.toString().trim() === '')) {
-                        alert('Harap isi field justification jika mau merubah itemcost lebih besar dari data di item (Baris ' + (i + 1) + ')');
-                        
-                        return false; 
+                    if(itemCost > 0){
+                        if (costInItem > itemCost && (!justification || justification.toString().trim() === '')) {
+                            alert('Harap isi field justification jika mau merubah itemcost lebih besar dari data di item (Baris ' + (i + 1) + ')');
+                            
+                            return false; 
+                        }
                     }
+                    
                 }
             }
             

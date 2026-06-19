@@ -7,7 +7,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/search'], (currentRecord, dialog, s
     const pageInit = (context) => {
         console.log('pageInit call');
         const currentRec = currentRecord.get();
-        const customLink = document.getElementById('custom169lnk');
+        const customLink = document.getElementById('custom118lnk');
         console.log('customLink', customLink);
 
         if (customLink) {
@@ -25,7 +25,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/search'], (currentRecord, dialog, s
     const checkAnyTrueLine = (sublistId) => {
         const currentRec = currentRecord.get();
         var customForm = currentRec.getValue('customform');
-        if(customForm == '126'){
+        if(customForm == '125'){
             const lineCount = currentRec.getLineCount({ sublistId: sublistId });
             let result = false;
 
@@ -54,7 +54,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/search'], (currentRecord, dialog, s
         });
         console.log(`CekValue ${sublistId}:`, value);
 
-        const customLink = document.getElementById('custom169lnk');
+        const customLink = document.getElementById('custom118lnk');
         if (customLink) {
             customLink.style.display = (value === true || value === 'T') ? 'block' : 'none';
         }
@@ -64,7 +64,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/search'], (currentRecord, dialog, s
         const currentRec = currentRecord.get();
         var cekCustomForm = currentRec.getValue('customform')
         console.log('cekCustomForm', cekCustomForm)
-        if(cekCustomForm == '126'){
+        if(cekCustomForm == '125'){
             if (
                 (context.sublistId === 'item' || context.sublistId === 'expense') &&
                 context.fieldId === 'custcol_4601_witaxapplies'
@@ -88,7 +88,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/search'], (currentRecord, dialog, s
                         const result = search.create({
                             type: 'customrecord_sos_list_kode_objek_pajak',
                             filters: [
-                                ['name', 'is', kodePjk]   // ganti hardcode "22-100-08"
+                                ['name', 'is', kodePjk]  
                             ],
                             columns: [
                                 search.createColumn({ name: 'internalid' })
@@ -122,7 +122,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/search'], (currentRecord, dialog, s
     const saveRecord = (context) => {
         const currentRec = currentRecord.get();
         var customForm = currentRec.getValue('customform');
-        if(customForm == '126'){
+        if(customForm == '125'){
             const isAnyTrue = checkAnyTrueLine('item') || checkAnyTrueLine('expense');
             console.log('isAnyTrue', isAnyTrue);
             
@@ -141,7 +141,7 @@ define(['N/currentRecord', 'N/ui/dialog', 'N/search'], (currentRecord, dialog, s
                 var missingFields = requiredFields.filter(function(field) {
                     return currentRec.getValue(field.id) === '' || currentRec.getValue(field.id) == null;
                 });
-
+                console.log('missingFields', missingFields)
                 if (missingFields.length > 0) {
                     var missingFieldNames = missingFields.map(function(field) {
                         return '- ' + field.label;

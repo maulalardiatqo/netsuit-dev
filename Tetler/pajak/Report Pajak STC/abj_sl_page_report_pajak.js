@@ -132,12 +132,12 @@ define(['N/ui/serverWidget', 'N/task', 'N/search', 'N/log', 'N/record', 'N/ui/me
             });
 
             fakturRecord.setValue({
-                fieldId: 'custrecord_subsidiary', 
+                fieldId: 'custrecord_subsidiary_tax', 
                 value: subsId
             });
 
             fakturRecord.setValue({
-                fieldId: 'custrecord_date', 
+                fieldId: 'custrecord_date_tax', 
                 value: new Date()
             });
             var newRecordId = fakturRecord.save();

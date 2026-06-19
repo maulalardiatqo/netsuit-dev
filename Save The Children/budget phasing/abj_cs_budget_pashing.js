@@ -10,6 +10,7 @@ define(['N/record', 'N/ui/dialog', 'N/url', 'N/currentRecord', 'N/search', 'N/ht
     const onTriggerExport = () => {
         const rec = currentRecord.get();
         const recordId = rec.id;
+        console.log('recordId', recordId)
         const recordType = rec.getValue('custrecord_stc_grant_module_prj_budg');
         const startDate = rec.getValue('custrecord_stc_start_date_prj_budg');
         const endDate = rec.getValue('custrecord_stc_end_date_prj_budg');

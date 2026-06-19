@@ -42,6 +42,10 @@ define(['N/record', 'N/log', 'N/error', 'N/format', 'N/search', 'N/runtime', 'N/
             fieldId : "custbody_execution_as",
             value : executionAs
         })
+        recCreate.setValue({
+            fieldId : "custbody_abj_source_name",
+            value : "Vision"
+        })
         var saveRecCreate = recCreate.save();
         log.debug('saveRecCreate', saveRecCreate);
 
