@@ -291,20 +291,26 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
         }
         function getData(context, allData) {
             var body = "";
-            allData = allData
             log.debug('allData', allData);
             var No = 1;
+            var processedItemsTracker = {}; 
+
             allData.forEach((data) => {
                 var itemName = data.itemName;
                 var custName = data.custName;
-                // var expireDate = data.expireDate;
                 var qty = data.qty;
                 var packing = data.tandId;
                 var itemId = data.itemId;
                 var idFulfill = data.idFulfill;
-                var unitConversion = data.unitConversion
+                var unitConversion = data.unitConversion;
                 
                 var lotNumberItem = [];
+
+                var trackerKey = idFulfill + "_" + itemId;
+                
+                if (processedItemsTracker[trackerKey] === undefined) {
+                    processedItemsTracker[trackerKey] = 0;
+                }
 
                 var itemfulfillmentSearchObj = search.create({
                     type: "itemfulfillment",
@@ -332,34 +338,41 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 });
                 
                 var searchResultCount = itemfulfillmentSearchObj.runPaged().count;
-                log.debug("itemfulfillmentSearchObj result count", searchResultCount);
+                var currentResultIndex = 0; 
 
                 itemfulfillmentSearchObj.run().each(function (result) {
-                    var lot = result.getText({
-                        name: "inventorynumber",
-                        join: "inventoryDetail",
-                    });
-                    var qtyLot = result.getValue({
-                        name: "quantity",
-                        join: "inventoryDetail",
-                    });
-
-                    if (lot) {
-                        lotNumberItem.push({
-                            lot: lot,
-                            qtyLot: qtyLot
+                    if (currentResultIndex === processedItemsTracker[trackerKey]) {
+                        var lot = result.getText({
+                            name: "inventorynumber",
+                            join: "inventoryDetail",
                         });
+                        var qtyLot = result.getValue({
+                            name: "quantity",
+                            join: "inventoryDetail",
+                        });
+
+                        if (lot) {
+                            lotNumberItem.push({
+                                lot: lot,
+                                qtyLot: qtyLot
+                            });
+                        }
+                        
+                        return false; 
                     }
-                    return true;
+                    
+                    currentResultIndex++;
+                    return true; 
                 });
+
+                processedItemsTracker[trackerKey]++;
 
                 log.debug('lotNumberItem', {lotNumberItem : lotNumberItem, idFulfill : idFulfill, itemId : itemId});
 
                 var ket = '';
 
                 lotNumberItem.forEach(function (lotData) {
-                    log.debug('unitConversion', unitConversion)
-                    var qtySet = Number(lotData.qtyLot) / Number(unitConversion)
+                    var qtySet = Number(lotData.qtyLot) / Number(unitConversion);
                     body += "<tr>";
                     body += "<td style='font-size: 10px; border: 1px solid black; border-right:none; text-align:center'>" + No + "</td>";
                     body += "<td style='text-align:left; font-size:10px; border: 1px solid black; border-right:none;'>" + custName + "</td>";
@@ -375,6 +388,92 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
             return body;
         }
+        // function getData(context, allData) {
+        //     var body = "";
+        //     allData = allData
+        //     log.debug('allData', allData);
+        //     var No = 1;
+        //     allData.forEach((data) => {
+        //         var itemName = data.itemName;
+        //         var custName = data.custName;
+        //         // var expireDate = data.expireDate;
+        //         var qty = data.qty;
+        //         var packing = data.tandId;
+        //         var itemId = data.itemId;
+        //         var idFulfill = data.idFulfill;
+        //         var unitConversion = data.unitConversion
+                
+        //         var lotNumberItem = [];
+
+        //         var itemfulfillmentSearchObj = search.create({
+        //             type: "itemfulfillment",
+        //             filters: [
+        //                 ["type", "anyof", "ItemShip"],
+        //                 "AND",
+        //                 ["internalid", "anyof", idFulfill],
+        //                 "AND",
+        //                 ["inventorydetail.inventorynumber", "noneof", "@NONE@"],
+        //                 "AND",
+        //                 ["item", "anyof", itemId]
+        //             ],
+        //             columns: [
+        //                 search.createColumn({
+        //                     name: "inventorynumber",
+        //                     join: "inventoryDetail",
+        //                     label: "Number"
+        //                 }),
+        //                 search.createColumn({
+        //                     name: "quantity",
+        //                     join: "inventoryDetail",
+        //                     label: "Quantity"
+        //                 })
+        //             ]
+        //         });
+                
+        //         var searchResultCount = itemfulfillmentSearchObj.runPaged().count;
+        //         log.debug("itemfulfillmentSearchObj result count", searchResultCount);
+
+        //         itemfulfillmentSearchObj.run().each(function (result) {
+        //             var lot = result.getText({
+        //                 name: "inventorynumber",
+        //                 join: "inventoryDetail",
+        //             });
+        //             var qtyLot = result.getValue({
+        //                 name: "quantity",
+        //                 join: "inventoryDetail",
+        //             });
+
+        //             if (lot) {
+        //                 lotNumberItem.push({
+        //                     lot: lot,
+        //                     qtyLot: qtyLot
+        //                 });
+        //             }
+        //             return true;
+        //         });
+
+        //         log.debug('lotNumberItem', {lotNumberItem : lotNumberItem, idFulfill : idFulfill, itemId : itemId});
+
+        //         var ket = '';
+
+        //         lotNumberItem.forEach(function (lotData) {
+        //             log.debug('unitConversion', unitConversion)
+        //             var qtySet = Number(lotData.qtyLot) / Number(unitConversion)
+        //             body += "<tr>";
+        //             body += "<td style='font-size: 10px; border: 1px solid black; border-right:none; text-align:center'>" + No + "</td>";
+        //             body += "<td style='text-align:left; font-size:10px; border: 1px solid black; border-right:none;'>" + custName + "</td>";
+        //             body += "<td style='text-align:left; font-size:10px; border: 1px solid black; border-right:none;'>" + itemName + "</td>";
+        //             body += "<td style='text-align:center; font-size:10px; border: 1px solid black; border-right:none;'>" + lotData.qtyLot + "</td>";
+        //             body += "<td style='text-align:center; font-size:10px; border: 1px solid black; border-right:none;'>" + qtySet + "</td>";
+        //             body += "<td style='text-align:center; font-size:10px; border: 1px solid black; border-right:none;'>" + lotData.lot + "</td>";
+        //             body += "<td style='text-align:left; font-size:10px; border: 1px solid black;'>" + ket + "</td>";
+        //             body += "</tr>";
+        //             No++;
+        //         });
+        //     });
+
+        //     return body;
+        // }
         return {
             onRequest: onRequest,
         };

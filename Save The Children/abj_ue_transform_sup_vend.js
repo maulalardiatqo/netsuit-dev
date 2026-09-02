@@ -223,6 +223,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                 };
                 var name = recLoad.getValue('name');
                 var addr = recLoad.getValue('custrecord_srf_registered_address');
+                var addr = recLoad.getValue('custrecord_srf_registered_address') || '';
+                addr = addr.substring(0, 100);
                 var countryName = recLoad.getText('custrecord_srf_country');
                 log.debug('countryName', countryName)
                 var country = COUNTRY_MAP[countryName] || 'ID';
@@ -266,10 +268,10 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/error"], fu
                     fieldId : 'companyname',
                     value : name
                 })
-                recCreate.setValue({
-                    fieldId : 'category',
-                    value : 20
-                })
+                // recCreate.setValue({
+                //     fieldId : 'category',
+                //     value : 20
+                // })
                 recCreate.setValue({
                     fieldId : 'payablesaccount',
                     value : 110

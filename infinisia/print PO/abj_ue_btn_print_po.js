@@ -14,20 +14,21 @@ define(["N/runtime", "N/log"], (runtime, log) => {
         log.debug('cForm', cForm)
         var status = rec.getValue('approvalstatus');
         log.debug('status', status)
+        const userRole = runtime.getCurrentUser().role;
         if(cForm.indexOf('PR') !== -1){
             // var cekLinePR = rec.getLineCount({
             //     sublistId : 'recmachcustrecord_iss_pr_parent'
             // })
             // log.debug('cekLinePR', cekLinePR)
             // if(cekLinePR > 0){
-             const userRole = runtime.getCurrentUser().role;
+             
              if(userRole == 1019 || userRole == 3){
                 form.addButton({
                     id: 'custpage_button_pr',
                     label: "Print PR Purchasing",
                     functionName: "printPDFPRPurchase()"
                 });
-                context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js "
+                context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js"
              }
              if(userRole != 1019){
                 form.addButton({
@@ -35,7 +36,7 @@ define(["N/runtime", "N/log"], (runtime, log) => {
                     label: "Print PR",
                     functionName: "printPDFPR()"
                 });
-                context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js "
+                context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js"
              }
                 
             // }
@@ -43,12 +44,14 @@ define(["N/runtime", "N/log"], (runtime, log) => {
            
         }else{
             //if(status == '2'){
-                form.addButton({
-                    id: 'custpage_button_po',
-                    label: "Print PO",
-                    functionName: "printPDF()"
-                });
-                context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js "
+                if(userRole !== 1016 && userRole !== 1076){
+                    form.addButton({
+                        id: 'custpage_button_po',
+                        label: "Print PO",
+                        functionName: "printPDF()"
+                    });
+                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_po.js"
+                }
             //}
         }
        

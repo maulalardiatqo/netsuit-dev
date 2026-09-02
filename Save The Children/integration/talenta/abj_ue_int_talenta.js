@@ -37,8 +37,6 @@ define(['N/task', 'N/log', 'N/record'], (task, log, record) => {
                     
                 }
                 
-                
-                
                 if(context.type == context.UserEventType.EDIT){
                     log.debug('triggered Edit')
                     const newRecord = context.newRecord;

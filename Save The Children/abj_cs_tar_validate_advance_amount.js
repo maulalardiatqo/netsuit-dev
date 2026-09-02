@@ -64,6 +64,7 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             }
             return true
         }
+        return true
     }
     return{
         pageInit : pageInit,

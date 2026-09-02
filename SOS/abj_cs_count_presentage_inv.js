@@ -42,14 +42,20 @@ define(['N/currentRecord'], function(currentRecord) {
             }
 
             if (percentage) {
-                let taxRate = rec.getCurrentSublistValue({
+                let taxRate = Number(rec.getCurrentSublistValue({
                     sublistId: 'item',
                     fieldId: 'taxrate1'
-                }) || 0;
+                })) || 0;
+                
+                let discHeader1amt = parseFloat(rec.getCurrentSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'custcol_sos_disc_header1_amount'
+                })) || 0;
 
-                const chargeAmount = (percentage * amountAfterDisc) / 100;
-                const amountAfterCharge = amountAfterDisc - chargeAmount;
-                const amountAfterChargeExtax = amountAfterCharge / (1 + (taxRate/100));
+                const chargeAmount = (percentage * (amountAfterDisc - discHeader1amt)) / 100;
+                const amountAfterCharge = amountAfterDisc - chargeAmount - discHeader1amt;
+                
+                const amountAfterChargeExtax = taxRate ? amountAfterCharge / (1 + taxRate / 100) : amountAfterCharge;
 
                 rec.setCurrentSublistValue({
                     sublistId: 'item',

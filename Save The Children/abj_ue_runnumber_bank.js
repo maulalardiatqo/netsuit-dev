@@ -11,7 +11,7 @@ define(["N/record", "N/search"], function(
     function afterSubmit(context) {
         try {
             log.debug('context.type', context.type)
-            if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.PAYBILLS || context.type == context.UserEventType.EDIT) {
+            if (context.type == context.UserEventType.CREATE || context.type == context.UserEventType.PAYBILLS || context.type == context.UserEventType.EDIT || context.type == context.UserEventType.COPY) {
                 log.debug('triggerred')
                 function formatDateToDDMMYYYY(dateStr) {
                     var date = new Date(dateStr);
@@ -62,6 +62,7 @@ define(["N/record", "N/search"], function(
                 if(TransType){
                    if (context.type === context.UserEventType.EDIT) {
                         const currentTranId = recordLoad.getValue('tranid') || '';
+                        log.debug('currentTranId', currentTranId)
                         if (currentTranId.includes('CRV') || currentTranId.includes('CDV')) {
                             log.debug('Validation', 'Document already has CRV/CDV format. Script stopped.');
                             return; 

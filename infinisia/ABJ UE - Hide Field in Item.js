@@ -8,7 +8,7 @@ define(['N/runtime', 'N/ui/serverWidget', 'N/log'], function(runtime, serverWidg
             var currentUserRole = runtime.getCurrentUser().role;
             log.debug('Current User Role', currentUserRole);
 
-            if (currentUserRole == 3) { // Ganti dengan ID role yang sesuai
+            if (currentUserRole == 3) { 
                 var form = context.form;
 
                 var sublistIds = ['price1', 'price2', 'price3', 'price4', 'price5', 'price6'];

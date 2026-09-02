@@ -189,7 +189,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                 var legalName = companyInfo.getValue("legalname");
 
                 log.debug('legalName', legalName);
-                var logo = companyInfo.getValue('formlogo');
+                var logo = 12879
                 var filelogo;
                 var urlLogo = '';
                 if (logo) {

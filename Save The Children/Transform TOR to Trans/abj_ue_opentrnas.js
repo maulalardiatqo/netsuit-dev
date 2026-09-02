@@ -3,7 +3,7 @@
  * @NScriptType UserEventScript
  */
 
-define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", "N/redirect", "N/format", "N/runtime"], function (record, search, serverWidget, runtime, currency, redirect, format, runtime) {
+define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", "N/redirect", "N/format", "N/runtime", "N/cache"], function (record, search, serverWidget, runtime, currency, redirect, format, runtime, cache) {
     function formatDateDDMMYYYY(dateString) {
         if (!dateString) return '';
 
@@ -21,18 +21,18 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 fieldId : 'trandate',
                 value : data[0].date
             });
-            
             createPO.setValue({
                 fieldId : 'custbody_id_to',
                 value : data[0].idTor
             });
+            
              createPO.setValue({
                 fieldId : 'custbody_stc_link_to_tor',
                 value : data[0].idTor
             });
               createPO.setValue({
                 fieldId : 'custbody_stc_po_type',
-                value : 2
+                value : '2'
             });
             createPO.setValue({
                 fieldId : 'department',
@@ -55,182 +55,8 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             log.debug('cekAccountafter',cekAccountafter)
             var indexL = 0
             for(var i = 0; i < data.length; i++){
-                createPO.insertLine({
-                     sublistId: 'item',
-                     line : indexL 
-                    
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'item',
-                    line      : indexL,
-                    value     : data[i].item
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'quantity',
-                    line      : indexL,
-                    value     : data[i].qty
-                });
-                log.debug('data[i].amount', data[i].amount)
                 var amount = data[i].amount
                 totalAmount = Number(totalAmount) + Number(amount)
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'rate',
-                    line      : indexL,
-                    value     : data[i].amount
-                });
-                if(data[i].uom){
-                    createPO.setSublistValue({
-                        sublistId : 'item',
-                        fieldId   : 'units',
-                        line      : indexL,
-                        value     : data[i].uom
-                    });
-                }
-                
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'estimaterate',
-                    line      : indexL,
-                    value     : data[i].amount
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'estimatedamount',
-                    line      : indexL,
-                    value     : data[i].amount
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'description',
-                    line      : indexL,
-                    value     : data[i].description
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'amount',
-                    line      : indexL,
-                    value     : data[i].amount
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'taxcode',
-                    line      : indexL,
-                    value     : '5'
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'department',
-                    line      : indexL,
-                    value     : data[i].costCenter
-                });
-                 
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'class',
-                    line      : indexL,
-                    value     : data[i].projectCode
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'currency',
-                    line      : indexL,
-                    value     : '1'
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'custrecord_tare_project_task',
-                    line      : indexL,
-                    value     : data[i].projectTask
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'projecttask',
-                    line      : indexL,
-                    value     : data[i].projectTask
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'cseg_stc_drc_segmen',
-                    line      : indexL,
-                    value     : data[i].drc
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'cseg_stc_segmentdea',
-                    line      : indexL,
-                    value     : data[i].dea
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'cseg_stc_sof',
-                    line      : indexL,
-                    value     : data[i].sof
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId : 'cseg_paactivitycode',
-                    line      : indexL,
-                    value : data[i].activityCode
-                })
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId : 'cseg1',
-                    line      : indexL,
-                    value : data[i].bussinessUnit
-                })
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'custcol_stc_approval_status_line',
-                    line      : indexL,
-                    value     : '1'
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'custcol_stc_approver_linetrx',
-                    line      : indexL,
-                    value     : data[i].approver
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'custcol_stc_apprvl_sts_fa',
-                    line      : indexL,
-                    value     : '1'
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'custcol_stc_approver_fa',
-                    line      : indexL,
-                    value     : data[i].approverFa
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'customer',
-                    line      : indexL,
-                    value     : data[i].project
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'custcol_stc_asset',
-                    line      : indexL,
-                    value     : 2,
-                    ignoreFieldChange: true
-                });
-                createPO.setSublistValue({
-                    sublistId : 'item',
-                    fieldId   : 'custcolid_line_tor',
-                    line      : indexL,
-                    value     : data[i].idLine
-                })
-                var cekAsset = createPO.getSublistValue({
-                    sublistId : 'item',
-                    fieldId : 'custcol_stc_asset',
-                    line : indexL
-                })
-                log.debug('cekAsset', cekAsset)
-                log.debug('before commit')  
                 indexL++;
             }
             createPO.setValue({
@@ -894,69 +720,115 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
         });
     }
     function beforeLoad(context) {
-        try{
+        try {
             if (context.type == context.UserEventType.CREATE) {
                 var transData = context.newRecord;
+                var cekLine = transData.getLineCount({
+                    sublistId : "item"
+                })
+                log.debug('cekLine', cekLine)
+                if (transData.getLineCount({ sublistId: 'item' }) > 0) {
+                    log.debug('Duplicate Prevented', 'Baris sudah ada, abaikan injeksi ulang.');
+                    return;
+                }
                 var currentUser = runtime.getCurrentUser();
                 var roleId = currentUser.role;
-                if (context.request) {
-                    if (context.request && context.request.parameters) {
+
+                if (context.request && context.request.parameters) {
+                    var dataParamsString = context.request.parameters.dataParamsString;
+                    log.debug('dataParamsString Raw dari URL', dataParamsString);
+
+                    if (!dataParamsString) {
+                        log.debug('Validation Info', 'Parameter dataParamsString kosong.');
+                        return;
+                    }
+
+                    var dataParsing;
+
+                    if (dataParamsString.indexOf('temp_id_') === 0) {
+                        var internalRecId = dataParamsString.replace('temp_id_', '');
+                        log.debug('Loading Temporary Record ID', internalRecId);
+
+                        // Muat record temporary di server
+                        var tempLoad = record.load({
+                            type: 'customrecord_temporary_data_transfer',
+                            id: internalRecId
+                        });
+
+                        var realJsonData = tempLoad.getValue('custrecord_temp_json_data');
                         
-                        var dataParamsString = context.request.parameters.dataParamsString;
-                        log.debug('dataParamsString Raw', dataParamsString);
-                        if (!dataParamsString) {
-                            log.debug('Validation Info', 'Parameter dataParamsString kosong atau tidak ditemukan.');
+                        if (realJsonData) {
+                            dataParsing = JSON.parse(realJsonData);
                         }
 
-                        var dataParsing;
-                        
+                        // Proteksi Keamanan Jaringan / Housekeeping: Hapus record temporary setelah selesai dibaca
+                        // try {
+                        //     record.delete({
+                        //         type: 'customrecord_temporary_data_transfer',
+                        //         id: internalRecId
+                        //     });
+                        //     log.debug('Housekeeping Success', 'Temporary record ' + internalRecId + ' berhasil dihapus.');
+                        // } catch (errDel) {
+                        //     log.error('Housekeeping Failed', errDel.message);
+                        // }
+
+                    } else {
+                        // Jalankan fungsi lama jika parameter yang masuk berupa string JSON langsung
                         try {
                             dataParsing = JSON.parse(dataParamsString);
                         } catch (e) {
                             log.error('JSON Parse Error', 'Format JSON invalid: ' + e.message);
                             return;
                         }
+                    }
 
-                        log.debug('dataParsing Object', dataParsing);
+                    log.debug('dataParsing Object untuk di-inject', dataParsing);
 
-                        if (!dataParsing || !Array.isArray(dataParsing) || dataParsing.length === 0) {
-                            log.error('Data Structure Error', 'Data hasil parsing bukan array atau array kosong.');
-                            return;
+                    if (!dataParsing || !Array.isArray(dataParsing) || dataParsing.length === 0) {
+                        log.error('Data Structure Error', 'Data hasil parsing kosong atau bukan array.');
+                        return;
+                    }
+
+                    // --- Tambahan: Decode Deskripsi agar karakter % kembali normal ---
+                    dataParsing.forEach(function(item) {
+                        if (item.description) {
+                            try {
+                                item.description = item.description;
+                            } catch (e) {
+                                log.error('Fail to decode desc', e.message);
+                            }
                         }
+                    });
 
-                        var obj = dataParsing[0];
-                        
-                        if (!obj || !obj.transactionType) {
-                            log.error('Missing Transaction Type', 'Field transactionType tidak ditemukan pada data[0].');
-                            return;
-                        }
+                    var obj = dataParsing[0];
+                    if (!obj || !obj.transactionType) {
+                        log.error('Missing Transaction Type', 'Field transactionType tidak ditemukan.');
+                        return;
+                    }
 
-                        var transactionType = obj.transactionType;
-                        log.debug('Processing Transaction Type', transactionType);
+                    var transactionType = obj.transactionType;
+                    log.debug('Processing Transaction Type', transactionType);
 
-                        if (transactionType == '1') {
-                            transPO(dataParsing, transData);
-                        } else if (transactionType == '2') {
-                            // context.form.clientScriptModulePath = "SuiteScripts/abj_cs_set_exp_report.js"
-                            // log.debug('cek exp')
-                            transExp(dataParsing, transData, roleId);
-                        } else if (transactionType == '3') {
-                            transPR(dataParsing, transData);
-                        } else if (transactionType == '4') {
-                            transTar(dataParsing, transData);
-                        } else if (transactionType == '5') {
-                            transPoVen(dataParsing, transData);
-                        } else {
-                            log.debug('Unknown Transaction Type', 'Tipe transaksi tidak dikenali: ' + transactionType);
-                        }
+                    // Menjalankan fungsi bawaan Anda tanpa mengubah apapun di bawah ini
+                    if (transactionType == '1') {
+                        transPO(dataParsing, transData);
+                    } else if (transactionType == '2') {
+                        transExp(dataParsing, transData, roleId);
+                    } else if (transactionType == '3') {
+                        transPR(dataParsing, transData);
+                    } else if (transactionType == '4') {
+                        transTar(dataParsing, transData);
+                    } else if (transactionType == '5') {
+                        transPoVen(dataParsing, transData);
+                    } else {
+                        log.debug('Unknown Transaction Type', 'Tipe tidak dikenali: ' + transactionType);
                     }
                 }
             }
-        }catch(e){
-            log.debug('error', e)
+        } catch (e) {
+            log.debug('error', e);
         }
     }
-
     function afterSubmit(context) {
         try {
             var rec = (context.type == context.UserEventType.DELETE) ? context.oldRecord : context.newRecord;

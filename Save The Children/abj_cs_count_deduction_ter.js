@@ -22,7 +22,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             ]
         });
 
-        // jalankan hanya sekali (karena id unik)
         var result = customrecord_stc_setup_deduction_diemSearchObj.run().getRange({ start: 0, end: 1 });
         
         if (result && result.length > 0) {

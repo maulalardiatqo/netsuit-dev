@@ -2,216 +2,143 @@
  * @NApiVersion 2.1
  * @NScriptType UserEventScript
  */
-define(['N/record', 'N/https', 'N/runtime', 'N/file', 'N/log', 'N/search'], (record, https, runtime, file, log, search) => {
-    
-    const WEBSITE_API_URL = 'https://sbapproval.phintraco.com/api/netsuite/';
+define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, search, runtime, serverWidget) => {
 
-
-    function setReject(rec){
-        rec.setValue({
-            fieldId : 'approvalstatus',
-            value : '1'
-        })
-        var cekLine = rec.getLineCount({
-            sublistId : 'recmachcustrecord_abj_a_id'
-        });
-        if(cekLine > 0){
-            for(var i = 0; i < cekLine; i++){
-                rec.setSublistValue({
-                    sublistId : 'recmachcustrecord_abj_a_id',
-                    fieldId : 'custrecord_abj_status_approve',
-                    value : '1',
-                    line : i
-                })
-            }
-        }
-    }
-    const afterSubmit = (context) => {
-        try {
-            if(context.type === context.UserEventType.EDIT){
-                var form = context.form;
-                const recordV = context.newRecord;
-                const oldRec = context.oldRecord;
-                const newApp = recordV.getValue('approvalstatus')
-                const oldApp = oldRec.getValue('approvalstatus');
-                
-                const idRec = recordV.id
-                const rec = record.load({
-                    type : recordV.type,
-                    id : idRec
-                })
-
-                const isEverApprove = rec.getValue('custbody_ever_approve');
-                log.debug('isEverApprove', isEverApprove)
-                if(isEverApprove == false && oldApp == '1' && newApp == '2' ){
-                    rec.setValue({
-                        fieldId : 'custbody_ever_approve',
-                        value : true
-                    })
-                    rec.save()
-                }
-
-
-            }
-        }catch(e){
-            log.debug('error', e)
-        }
-    }
     const beforeLoad = (context) => {
-        try{
-            if(context.type === context.UserEventType.VIEW){
-                var form = context.form;
-                const rec = context.newRecord;
-                const recId = rec.id
-                const roleAdmin = 3
-                const cekAppralStat = rec.getValue('approvalstatus');
-                log.debug('cekAppralStat', cekAppralStat)
-                const cekFlagApproval = rec.getValue('custbody_abj_flag_approval');
-                const cekIdWeb = rec.getValue('custbody_id_web');
-                log.debug('cekFlagApproval', cekFlagApproval)
-                const cekResubmit = rec.getValue('custbody_abj_trigger_resubmit');
-                const cekAfterRecall = rec.getValue('custbody_after_recall');
-                const cekRevision = rec.getValue('custbody_is_revision');
-                const currentRole = runtime.getCurrentUser().role;
-                const creatorPo = rec.getValue('custbody_abj_creator');
-                log.debug("currentRole", currentRole);
-                
-                var isAttach = false
-                var isApprover = false
-                const cekLineAttach = search.create({
-                    type: 'customrecord_attachment', 
-                    filters: [['custrecord_a_id', 'anyof', recId]],
-                    count: true
-                }).runPaged().count;
-                if(cekLineAttach > 0){
-                    isAttach = true
-                }
-                log.debug('cekLineAttach', cekLineAttach)
-                const cekApproverLine = search.create({
-                    type: 'customrecord_abj_approval',
-                    filters: [['custrecord_abj_a_id', 'anyof', recId]],
-                    count: true
-                }).runPaged().count;
-                    
-                log.debug('cekApproverLine', cekApproverLine)
-                if(cekApproverLine > 0){
-                    isApprover = true
-                }
-                log.debug('cek kondisi submit approval', {cekAppralStat : cekAppralStat, isApprover : isApprover, isAttach : isAttach})
-                if(cekAppralStat == '1' && isApprover && isAttach && !cekIdWeb && creatorPo){
-                    form.addButton({
-                        id: 'custpage_button_submit_app',
-                        label: "Submit For Approval",
-                        functionName: "submitApp()"
-                    });
-                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
-                }
-                if (currentRole == roleAdmin && (cekIdWeb != '' || cekIdWeb != null)) {
-                    return; 
-                }
-                if(cekIdWeb && cekAppralStat != '2' && !cekResubmit && cekAppralStat != '3' && cekAfterRecall == false){
-                    form.addButton({
-                        id: 'custpage_button_recall',
-                        label: "Recall",
-                        functionName: "recall()"
-                    });
-                    form.removeButton('edit');
-                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
-                }
-                if(cekIdWeb && cekAppralStat != '2' && !cekResubmit && cekAppralStat != '3' && cekAfterRecall == true){
-                    form.addButton({
-                        id: 'custpage_button_resubmit_data',
-                        label: "Resubmit Data",
-                        functionName: "resubmitData()"
-                    });
-                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
-                }
-                if(cekAppralStat == '2' && cekIdWeb){
-                    form.addButton({
-                        id: 'custpage_button_resubmit_rev',
-                        label: "Resubmit Revision",
-                        functionName: "resubmitRevission()"
-                    });
-                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
-                }
-                if(cekAppralStat == '3' && cekIdWeb){
-                    form.addButton({
-                        id: 'custpage_button_resubmit_app',
-                        label: "Resubmit Approval",
-                        functionName: "resubmitApproval()"
-                    });
-                    form.removeButton('edit');
-                    context.form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js"
-                }
-                
-            }
-            if(context.type === context.UserEventType.COPY){
-                const rec = context.newRecord;
-                const cekFlagApproval = rec.getValue('custbody_abj_flag_approval');
-                log.debug('cekFlagApproval on bfload copy', cekFlagApproval)
-                const cekIdWeb = rec.getValue('custbody_id_web');
-                const triggerResubmit = rec.getValue('custbody_abj_trigger_resubmit');
-                log.debug('cekIdWeb', cekIdWeb);
-                rec.setValue({
-                    fieldId : 'custbody_id_web',
-                    value : ''
-                })
-                if(cekFlagApproval == true){
-                    log.debug('true');
-                    // rec.setValue({
-                    //     fieldId : 'custbody_abj_flag_approval',
-                    //     value : false
-                    // })
-                }
-                if(triggerResubmit){
-                    rec.setValue({
-                        fieldId : 'custbody_abj_trigger_resubmit',
-                        value : false
-                    })
-                }
-                rec.setValue({
-                    fieldId: 'custbody_after_recall',
-                    value: false
-                });
-                rec.setValue({
-                    fieldId : 'custbody_abj_revision',
-                    value : false
-                })
-                rec.setValue({
-                    fieldId : 'custbody_trigger_after_resubmit',
-                    value : false
-                })
-                 rec.setValue({
-                    fieldId : 'custbody_is_revision',
-                    value : false
-                })
-                rec.setValue({
-                    fieldId : 'custbody_abj_revision_code',
-                    value : ''
-                })
-                rec.setValue({
-                    fieldId : 'custbody_ever_approve',
-                    value : false
-                })
-                
-            }
-            if(context.type === context.UserEventType.EDIT){
-                var form = context.form;
-                const rec = context.newRecord;
+        try {
+            const { form, newRecord, type } = context;
+            const recId = newRecord.id;
 
-                const isEverApprove = rec.getValue('custbody_ever_approve');
-                log.debug('isEverApprove', isEverApprove)
+            if (type === context.UserEventType.VIEW) {
+                const appStatus = newRecord.getValue('approvalstatus'); 
+                const idWeb = newRecord.getValue('custbody_id_web');
+                const isAfterRecall = newRecord.getValue('custbody_after_recall');
+                const readyResubmit = newRecord.getValue('custbody_abj_ready_resubmit');
+                const isEverApprove = newRecord.getValue('custbody_ever_approve');
+                const isAfterRevision = newRecord.getValue('custbody_abj_revision');
+                const isAfterEdit = newRecord.getValue('custbody_after_edit_save');
+                log.debug('condition', {isEverApprove : isEverApprove, isAfterRecall : isAfterRecall, readyResubmit : readyResubmit, isAfterRevision : isAfterRevision})
+                const currentRole = runtime.getCurrentUser().role;
+                const roleAdmin = 3;
+
+                let hasAttach = checkAttachment(recId);
+                let hasApprover = checkApprover(recId);
+
+                if ((!idWeb && appStatus == '1' && hasAttach && hasApprover)) {
+                    form.addButton({
+                        id: 'custpage_btn_submit_app',
+                        label: 'Submit For Approval',
+                        functionName: 'submitApp()'
+                    });
+                }
+                log.debug('isAfterRecall', isAfterRecall)
+                if (idWeb && appStatus == '1' && !isAfterRecall) {
+                    if (currentRole != roleAdmin) {
+                        form.removeButton('edit');
+                        form.addButton({
+                            id: 'custpage_btn_recall',
+                            label: 'Recall',
+                            functionName: 'recall()'
+                        });
+                    }
+                    
+                }
+
+                // --- 3. RESUBMIT APPROVAL (Setelah Reject atau Recall + Save) ---
+                log.debug('readyResubmit', readyResubmit)
+                if (readyResubmit && (appStatus == '3' || (appStatus == '1' && isAfterRecall) || (appStatus == '1' && currentRole == roleAdmin))) {
+                    form.addButton({
+                        id: 'custpage_btn_resubmit_app',
+                        label: 'Resubmit For Approval',
+                        functionName: 'resubmitApproval()'
+                    });
+                }
+
+                // --- 4. SUBMIT REVISION (Setelah Approved + Save) ---
+                // Syarat: Status 2 (Approved), Ada ID Web, dan SUDAH melalui proses Edit & Save (readyResubmit)
+                if (appStatus == '2' && idWeb && readyResubmit) {
+                    form.addButton({
+                        id: 'custpage_btn_revision',
+                        label: 'Submit Revision',
+                        functionName: 'resubmitRevission()'
+                    });
+                }
+
+                form.clientScriptModulePath = "SuiteScripts/abj_cs_recall_po.js";
+            }
+            if(type === context.UserEventType.EDIT){
+                const isEverApprove = newRecord.getValue('custbody_id_web');
                 if(isEverApprove){
-                    let field = form.getField({ id: 'custbody_ever_approve' });
-                    if (field) {
-                        field.updateDisplayType({ displayType: 'disabled' }); 
+                    let fieldCreator = context.form.getField({
+                        id: 'custbody_abj_creator'
+                    });
+
+                    // Pastikan field ditemukan sebelum melakukan update
+                    if (fieldCreator) {
+                        fieldCreator.updateDisplayType({
+                            displayType: serverWidget.FieldDisplayType.DISABLED
+                        });
+                        
+                        log.debug('UI Change', 'Field custbody_abj_creator has been disabled.');
                     }
                 }
-                
             }
-        }catch(e){
-            log.debug('error', e)
+            if (type === context.UserEventType.COPY) {
+                const fieldsToReset = ['custbody_id_web', 'custbody_after_recall', 'custbody_ever_approve', 'custbody_abj_revision_code', 'custbody_abj_ready_resubmit', 'custbody_abj_revision', 'custbody_after_edit_save'];
+                fieldsToReset.forEach(f => newRecord.setValue(f, (f === 'custbody_id_web' || f === 'custbody_abj_revision_code') ? '' : false));
+            }
+
+        } catch (e) {
+            log.error('Error beforeLoad', e);
         }
+    };
+
+    const afterSubmit = (context) => {
+        try {
+            if (context.type === context.UserEventType.EDIT) {
+                const newRec = context.newRecord;
+                const appStatus = newRec.getValue('approvalstatus');
+                const isAfterRecall = newRec.getValue('custbody_after_recall');
+                const idWeb = newRec.getValue('custbody_id_web');
+                const isEverApprove = newRec.getValue('custbody_ever_approve');
+                const roleAdmin = 3;
+                const currentRole = runtime.getCurrentUser().role;
+
+                let updateValues = {};
+
+                if (idWeb && (appStatus == '3' || appStatus == '2' || (appStatus == '1' && isAfterRecall) || (appStatus == '1' && currentRole == roleAdmin) )) {
+                    log.debug('masuk kondisi ready resubmit')
+                    updateValues['custbody_abj_ready_resubmit'] = true;
+                }
+                if (appStatus == '2' && !newRec.getValue('custbody_ever_approve')) {
+                    updateValues['custbody_ever_approve'] = true;
+                }
+                
+                if (Object.keys(updateValues).length > 0) {
+                    record.submitFields({
+                        type: newRec.type,
+                        id: newRec.id,
+                        values: updateValues
+                    });
+                }
+            }
+        } catch (e) {
+            log.error('Error afterSubmit', e);
+        }
+    };
+    function checkAttachment(recId) {
+        return search.create({
+            type: 'customrecord_attachment',
+            filters: [['custrecord_a_id', 'anyof', recId]]
+        }).runPaged().count > 0;
     }
- return { afterSubmit : afterSubmit, beforeLoad : beforeLoad };
+
+    function checkApprover(recId) {
+        return search.create({
+            type: 'customrecord_abj_approval',
+            filters: [['custrecord_abj_a_id', 'anyof', recId]]
+        }).runPaged().count > 0;
+    }
+
+    return { beforeLoad, afterSubmit };
 });

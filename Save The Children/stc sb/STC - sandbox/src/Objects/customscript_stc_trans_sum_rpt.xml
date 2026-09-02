@@ -1,0 +1,15 @@
+<suitelet scriptid="customscript_stc_trans_sum_rpt">
+    <name>STC Trans Summary Report</name>
+    <description>Suitelet untuk menampilkan report grouped transaction summary berdasarkan Account, Cost Center, Project Code, Period, dan CAM Account Mapping.</description>
+    <notifyowner>F</notifyowner>
+    <scriptfile>[/SuiteScripts/stc_transaction_summary_report.js]</scriptfile>
+    <scriptdeployments>
+        <scriptdeployment scriptid="customdeploy_stc_trans_sum_rpt">
+            <allroles>T</allroles>
+            <isdeployed>T</isdeployed>
+            <loglevel>DEBUG</loglevel>
+            <status>TESTING</status>
+            <title>STC Transaction Summary Report</title>
+        </scriptdeployment>
+    </scriptdeployments>
+</suitelet>

@@ -26,6 +26,7 @@ define(["N/record", "N/search"], function(
                 var totalMix = 0
                 var allDataParent = [];
                 var allDataChild = [];
+                var totalBudgetYear1 = 0
                 var projecttaskSearchObj = search.create({
                 type: "projecttask",
                 filters:
@@ -46,7 +47,11 @@ define(["N/record", "N/search"], function(
                         label: "Cost"
                     }),
                     search.createColumn({name: "parent", label: "Parent Task"}),
-                    search.createColumn({name: "internalid", label: "Internal ID"})
+                    search.createColumn({name: "internalid", label: "Internal ID"}),
+                    search.createColumn({name: "custevent13", label: "Budget Year 2"}),
+                    search.createColumn({name: "custevent14", label: "Budget Year 3"}),
+                    search.createColumn({name: "custevent15", label: "Budget Year 4"}),
+                    search.createColumn({name: "custevent16", label: "Budget Year 5"})
                 ]
                 });
                 var searchResultCount = projecttaskSearchObj.runPaged().count;
@@ -54,7 +59,19 @@ define(["N/record", "N/search"], function(
                 projecttaskSearchObj.run().each(function(result){
                     var cost = result.getValue({
                         name : 'cost'
-                    });
+                    }) || 0
+                    var by2 = result.getValue({
+                        name : 'custevent13'
+                    }) || 0
+                    var by3 = result.getValue({
+                        name : 'custevent14'
+                    }) || 0
+                    var by4 = result.getValue({
+                        name : 'custevent15'
+                    }) || 0
+                    var by5 = result.getValue({
+                        name : 'custevent16'
+                    }) || 0
                     var impBy = result.getValue({
                         name : 'custevent3'
                     })
@@ -66,7 +83,8 @@ define(["N/record", "N/search"], function(
                         name : "internalid"
                     })
                     if(parent == '' || parent == null){
-                        allTotal = Number(allTotal) + Number(cost)
+                        allTotal = Number(allTotal) + Number(cost) + Number(by2) + Number(by3) + Number(by4) + Number(by5)
+                        totalBudgetYear1 = Number(totalBudgetYear1) + Number(cost)
                         allDataParent.push({
                             idProject : idProject,
                             cost : cost
@@ -81,13 +99,13 @@ define(["N/record", "N/search"], function(
                     }
                      
                     if(impBy == '1'){
-                        totalStc = Number(totalStc) + Number(cost);
+                        totalStc = Number(totalStc) + Number(cost) + Number(by2) + Number(by3) + Number(by4) + Number(by5);
                     }
                     if(impBy == '2'){
-                        totalPartNer = Number(totalPartNer) + Number(cost)
+                        totalPartNer = Number(totalPartNer) + Number(cost) + Number(by2) + Number(by3) + Number(by4) + Number(by5);
                     }
                     if(impBy == '3'){
-                        totalMix = Number(totalMix) + Number(cost)
+                        totalMix = Number(totalMix) + Number(cost) + Number(by2) + Number(by3) + Number(by4) + Number(by5);
                     }
                     log.debug('data', {
                         cost : cost,
@@ -96,9 +114,18 @@ define(["N/record", "N/search"], function(
                 return true;
                 });
                 log.debug('allTotal', allTotal)
+                //set ke total budget
                 recLoad.setValue({
-                    fieldId : 'custentity_stc_project_total_cost',
+                    fieldId : 'custentity7',
                     value : allTotal
+                })
+                var oportunityAmount = recLoad.getValue('custentity4') || 0;
+                log.debug('oportunityAmount', oportunityAmount)
+                var variance = (Number(oportunityAmount) - Number(allTotal)).toFixed(2)
+                log.debug('variance', variance)
+                recLoad.setValue({
+                    fieldId : 'custentity5',
+                    value : variance
                 })
                 recLoad.setValue({
                     fieldId : 'custentity_stc_implementing_by_stc',
@@ -108,9 +135,21 @@ define(["N/record", "N/search"], function(
                     fieldId : 'custentity_stc_implementing_by_partner',
                     value : totalPartNer
                 })
+                
                 recLoad.setValue({
                     fieldId : 'custentity_stc_implementing_by_stc_partn',
                     value : totalMix
+                })
+                recLoad.setValue({
+                    fieldId : 'custentity_stc_project_total_cost',
+                    value : totalBudgetYear1
+                })
+                var excRate = recLoad.getValue('fxrate');
+                log.debug('excRate', excRate)
+                var totalInIDR = Number(allTotal) * Number(excRate)
+                recLoad.setValue({
+                    fieldId : 'custentity_sos_project_total_cost',
+                    value : totalInIDR
                 })
                 log.debug('allDataParent', allDataParent);
                 log.debug('allDataChild', allDataChild);

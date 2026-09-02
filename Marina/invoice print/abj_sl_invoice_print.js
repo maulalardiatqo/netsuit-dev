@@ -716,34 +716,34 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 }
                             }
                             
-                            var unitId = invoiceRecord.getSublistValue({
+                            var unit = invoiceRecord.getSublistValue({
                                 sublistId: 'item',
-                                fieldId: 'units',
+                                fieldId: 'units_display',
                                 line: index
                             });
-                            log.debug('unitId', unitId)
-                            var unit = ""
-                            if(unitId){
-                                 const unitstypeSearchObj = search.create({
-                                type: "unitstype",
-                                filters:
-                                [
-                                    ["internalid","anyof",unitId]
-                                ],
-                                columns:
-                                [
-                                    search.createColumn({name: "name", label: "Name"})
-                                ]
-                                });
-                                const searchResultCount = unitstypeSearchObj.runPaged().count;
-                                log.debug("unitstypeSearchObj result count",searchResultCount);
-                                unitstypeSearchObj.run().each(function(result){
-                                unit = result.getValue({
-                                    name : "name"
-                                })
-                                return true;
-                                });
-                            }
+                            log.debug('unit', unit)
+                            // var unit = ""
+                            // if(unitId){
+                            //      const unitstypeSearchObj = search.create({
+                            //     type: "unitstype",
+                            //     filters:
+                            //     [
+                            //         ["internalid","anyof",unitId]
+                            //     ],
+                            //     columns:
+                            //     [
+                            //         search.createColumn({name: "name", label: "Name"})
+                            //     ]
+                            //     });
+                            //     const searchResultCount = unitstypeSearchObj.runPaged().count;
+                            //     log.debug("unitstypeSearchObj result count",searchResultCount);
+                            //     unitstypeSearchObj.run().each(function(result){
+                            //     unit = result.getValue({
+                            //         name : "name"
+                            //     })
+                            //     return true;
+                            //     });
+                            // }
                            
 
                             var rate;

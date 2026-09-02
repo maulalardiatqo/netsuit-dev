@@ -31,109 +31,45 @@ define([], function () {
         }
     }
 
-    function lineInit(context) {
+
+    function validateLine(context) {
         var rec = context.currentRecord;
-
         var sublistId = context.sublistId;
-        if (sublistId !== "recmachcustrecord_abj_a_id") return;
 
-        // ambil nilai ONLY untuk current line
-        var statusValue = rec.getCurrentSublistValue({
-            sublistId,
-            fieldId: 'custrecord_abj_status_approve'
-        });
-        console.log('statusValue', statusValue)
-        if (statusValue == 2) {
-            var fld = rec.getCurrentSublistField({
-                sublistId,
+        if (sublistId === "recmachcustrecord_abj_a_id") {
+            console.log('Masuk eksekusi')
+            var currentUser = rec.getCurrentSublistValue({
+                sublistId: sublistId,
                 fieldId: 'custrecord_abj_user_need_approval'
             });
-            if (fld) {
-                fld.isDisabled = true;
-            }
-            var fldGroup = rec.getCurrentSublistField({
-                sublistId,
-                fieldId: 'custrecord_approval_group'
-            });
-            if (fldGroup) {
-                fldGroup.isDisabled = true;
-            }
-            var fldStts = rec.getCurrentSublistField({
-                sublistId,
-                fieldId: 'custrecord_abj_status_approve'
-            });
-            if (fldStts) {
-                fldStts.isDisabled = true;
-            }
-            var fldTgl = rec.getCurrentSublistField({
-                sublistId,
-                fieldId: 'custrecord_abj_tgl_appprove'
-            });
-            if (fldTgl) {
-                fldTgl.isDisabled = true;
-            }
-            var fldNotes = rec.getCurrentSublistField({
-                sublistId,
-                fieldId: 'custrecord_abj_notes'
-            });
-            if (fldNotes) {
-                fldNotes.isDisabled = true;
-            }
-            var fldDvc = rec.getCurrentSublistField({
-                sublistId,
-                fieldId: 'custrecord_abj_device'
-            });
-            if (fldDvc) {
-                fldDvc.isDisabled = true;
-            }
-        }else{
-            var fld = rec.getCurrentSublistField({
-                sublistId,
-                fieldId: 'custrecord_abj_user_need_approval'
-            });
+            console.log('currentUser', currentUser)
+            if (currentUser) {
+                var lineCount = rec.getLineCount({ sublistId: sublistId });
+                var currentIndex = rec.getCurrentSublistIndex({ sublistId: sublistId });
+                console.log('lineCount', lineCount)
+                // Looping ke baris-baris sebelumnya untuk mengecek kesamaan
+                for (var i = 0; i < lineCount; i++) {
+                    // Skip pengecekan jika index-nya sama dengan line yang sedang diedit
+                    if (i === currentIndex) continue; 
 
-            if (fld) {
-                fld.isDisabled = false;
-            }
-            var fldGroup = rec.getCurrentSublistField({
-                sublistId,
-                fieldId: 'custrecord_approval_group'
-            });
-            if (fldGroup) {
-                fldGroup.isDisabled = false;
-            }
-            var fldStts = rec.getCurrentSublistField({
-                sublistId,
-                fieldId: 'custrecord_abj_status_approve'
-            });
-            if (fldStts) {
-                fldStts.isDisabled = false;
-            }
-            var fldTgl = rec.getCurrentSublistField({
-                sublistId,
-                fieldId: 'custrecord_abj_tgl_appprove'
-            });
-            if (fldTgl) {
-                fldTgl.isDisabled = false;
-            }
-            var fldNotes = rec.getCurrentSublistField({
-                sublistId,
-                fieldId: 'custrecord_abj_notes'
-            });
-            if (fldNotes) {
-                fldNotes.isDisabled = false;
-            }
-            var fldDvc = rec.getCurrentSublistField({
-                sublistId,
-                fieldId: 'custrecord_abj_device'
-            });
-            if (fldDvc) {
-                fldDvc.isDisabled = false;
+                    var existingUser = rec.getSublistValue({
+                        sublistId: sublistId,
+                        fieldId: 'custrecord_abj_user_need_approval',
+                        line: i
+                    });
+                    console.log('existingUser', existingUser)
+                    // Jika ada value yang sama, block proses penambahan line
+                    if (currentUser === existingUser) {
+                        alert("User untuk approval ini sudah ada di baris lain. Silakan pilih user yang berbeda.");
+                        return false; 
+                    }
+                }
             }
         }
+        return true;
     }
-    function validateDelete(context) {
 
+    function validateDelete(context) {
         var rec = context.currentRecord;
         var sublistId = context.sublistId;
 
@@ -153,6 +89,7 @@ define([], function () {
 
         return true;
     }
+
     function saveRecord(context) {
         var rec = context.currentRecord;
 
@@ -175,10 +112,10 @@ define([], function () {
     }
 
     return {
-        lineInit: lineInit,
-        validateDelete : validateDelete,
         pageInit : pageInit,
+        lineInit: lineInit,
+        validateLine: validateLine, 
+        validateDelete : validateDelete,
         saveRecord : saveRecord
     };
-
 });

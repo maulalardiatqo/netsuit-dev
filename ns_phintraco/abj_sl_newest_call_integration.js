@@ -4,7 +4,7 @@
  */
 define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, search, file, log) => {
 
-    const WEBSITE_API_URL = 'https://sbapproval.phintraco.com/netsuite/';
+    const WEBSITE_API_URL = 'https://sb.approvalphintraco.com/netsuite/';
 
     const onRequest = (scriptContext) => {
         if (scriptContext.request.method === 'POST') {
@@ -280,7 +280,10 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
         const response = https.post({
             url: WEBSITE_API_URL + endpointAction,
             body: JSON.stringify(payload),
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-api-key': 'S3cr3t_K3y_Y4ng_S4ng4t_P4nj4ng_D4n_R4h4s1a'
+             }
         });
         return JSON.parse(response.body || '{}');
     }

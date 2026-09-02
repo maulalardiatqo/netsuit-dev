@@ -93,28 +93,12 @@ define(["N/runtime", "N/log", "N/ui/serverWidget"], (runtime, log, serverWidget)
             });
         }
     }
-    function beforeLoad(context) {
-        var userObj = runtime.getCurrentUser();
-        log.debug('Custom script ID of current user role: ' + userObj.role, userObj.role);
-        var currentRole = userObj.role
-        var form = context.form;
-        var rec = context.newRecord;
-        if ( context.type === context.UserEventType.EDIT || context.type === context.UserEventType.CREATE || context.type === context.UserEventType.VIEW) {
-            var cekFrom = rec.getValue('customform');
-            log.debug('cekFrom', cekFrom)
-            log.debug('currentRole', currentRole)
-            if(currentRole == 1016 || currentRole == 1004 || currentRole == 1013 || currentRole == 1025 || currentRole == 1026 || currentRole == 1005 || currentRole == 1024){
-                hideField(form);
-            }
-
-        }
-        // if(context.type === context.UserEventType.VIEW){
-        //     var cForm = rec.getValue('tranid');
-        //     log.debug('cForm', cForm)
-        //     if(cForm.indexOf('PR') !== -1){
-        //         hideField(form);
-        //     }
-        // }
+    function beforeLoad(context) { 
+        var currentRole = runtime.getCurrentUser().role; 
+        var allowedRoles = [1016, 1004, 1013, 1025, 1026, 1005, 1024, 1076, 1077, 1081, 1083, 1084, 1079, 1078, 1085]; 
+        if ( [context.UserEventType.EDIT, context.UserEventType.CREATE, context.UserEventType.VIEW].includes(context.type) && allowedRoles. includes(Number(currentRole)) ) {
+            var form = context.form; hideField(form); 
+        } 
     }
 return {
     beforeLoad: beforeLoad,

@@ -28,13 +28,41 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
             });
             const SOFset = loadRec.getText('cseg_stc_sof')
             const grandModul = loadRec.getValue('custrecord_stc_grant_module_prj_budg');
-            const startPeriod = loadRec.getValue('custrecord_stc_start_date_prj_budg'); 
+            const startPeriod = loadRec.getValue('custrecord_stc_start_date_prj_budg');     
             const endPeriod = loadRec.getValue('custrecord_stc_end_date_prj_budg');     
 
             if (!grandModul) {
                 log.error('MISSING_GRANT_MODULE', 'Grant Module (Project) tidak ditemukan pada record.');
                 return [];
             }
+            
+            // PERBAIKAN: Ubah menjadi Map / Object agar mudah dicari berdasarkan Project Task ID
+            var cashflowMap = {}; 
+
+            const customrecord_stc_prj_budg_lineSearchObj = search.create({
+                type: "customrecord_stc_prj_budg_line",
+                filters: [
+                    ["custrecord_stc_prj_budg_link", "anyof", recId]
+                ],
+                columns: [
+                    search.createColumn({ name: "cseg_stc_cashflow", label: "Cash Flows" }),
+                    search.createColumn({ name: "custrecord_stc_prj_budg_line_task", label: "Project Task" })
+                ]
+            });
+
+            const searchResultCount = customrecord_stc_prj_budg_lineSearchObj.runPaged().count;
+            log.debug("customrecord_stc_prj_budg_lineSearchObj result count", searchResultCount);
+
+            customrecord_stc_prj_budg_lineSearchObj.run().each(function(result) {
+                var cFlow = result.getValue({ name: "cseg_stc_cashflow" });
+                var pTask = result.getValue({ name: "custrecord_stc_prj_budg_line_task" });
+                
+                // Masukkan ke dalam map dengan key = Project Task ID
+                if (pTask) {
+                    cashflowMap[pTask.toString()] = cFlow;
+                }
+                return true;
+            });
 
             var allProjectTask = [];
             var projectTaskDataMap = {};
@@ -181,7 +209,7 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
                 var cols = result.columns;
                 var pTask = result.getValue(cols[0]);
                 var amountVal = Number(result.getValue(cols[5])) || 0;
-                log.debug('amountVal', amountVal)
+                
                 if (pTask) {
                     var keyStr = pTask.toString();
                     if (!expenseMap[keyStr]) {
@@ -255,7 +283,7 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
                 });
                 return true;
             });
-
+            
             var searchResults = [];
             
             var periodHeaderRow = {
@@ -292,6 +320,8 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
             }
             searchResults.push(periodHeaderRow);
             
+            log.debug('allProjectTask', allProjectTask);
+
             allProjectTask.forEach(function(taskId, index) {
                 var keyStr = taskId.toString();
                 var taskDetails = projectTaskDataMap[keyStr] || {};
@@ -302,6 +332,9 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
                 var actualAmount = expenseMap[keyStr] || 0;
                 var baselineBudget = budgetMap[keyStr] || 0;
                 var remainingBudget = baselineBudget - actualAmount;
+
+                // PERBAIKAN: Ambil Cash Flow dari map yang telah dibuat
+                var mappedCashFlow = cashflowMap[keyStr] || "";
 
                 var rowData = {
                     "dataType": "BUDGET_REPORT",
@@ -317,10 +350,20 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
                     "Baseline Budget": baselineBudget,
                     "Actual Usage Budget YTD": actualAmount,
                     "Remaining Budget": remainingBudget,
-                    "Cost Center": "", "Account Budget": "", 
-                    "Category": "", "Cost Category": "", "Requested Amount": 0, "SOF % - Non Project": "", 
-                    "SOF % - Project": "", "Total Funded By CAM/ICR/IG": 0, "Quantity": 0, "Unit Cost": 0, 
-                    "Unit Value": 0, "Component": "", "Remarks": ""
+                    "Cost Center": "", 
+                    "Account Budget": "", 
+                    "Category": "", 
+                    "Cost Category": "", 
+                    "Requested Amount": 0, 
+                    "SOF % - Non Project": "", 
+                    "SOF % - Project": "", 
+                    "Total Funded By CAM/ICR/IG": 0, 
+                    "Quantity": 0, 
+                    "Unit Cost": 0, 
+                    "Unit Value": 0, 
+                    "Component": "", 
+                    "Remarks": "", 
+                    "Cash Flow": mappedCashFlow // Syntax di sini sudah diperbaiki
                 };
 
                 for (var p = 1; p <= 60; p++) {
@@ -392,7 +435,7 @@ define(['N/file', 'N/log', 'N/runtime', 'N/search', 'N/record'], function(file, 
                 "DRC Segment", "Cost Center", "Activity Code", "Award Management", "Account Budget", 
                 "Project Code", "Baseline Budget", "Actual Usage Budget YTD", "Remaining Budget", "Category", "Cost Category", 
                 "Requested Amount", "SOF % - Non Project", "SOF % - Project", "Total Funded By CAM/ICR/IG", 
-                "Quantity", "Unit Cost", "Unit Value", "Component", "Remarks", "Total Budget will Allocated"
+                "Quantity", "Unit Cost", "Unit Value", "Component", "Remarks", "Total Budget will Allocated", "Cash Flow"
             ];
             
             var periodHeaders = [];

@@ -4,206 +4,112 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog) {
+define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog", "N/https"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog, https) {
     try{
+        
         var records = currentRecord.get();
         var budgetContorlGolbal
-        var msgGlobal
+        var msgGlobal = '<b style="color:red; font-size:20px;">WARNING<br>One or more line transaction is exceeded Budget</b>';
+
+
         function pageInit(context) {
             console.log('init masuk')
         }
-        function convertNumberToMonth(number) {
-            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            if (number < 1 || number > 12) {
-                return "Invalid month number"; 
-            }
-            return months[number - 1];
+        function getMonthIndex(dateObj) {
+            if (!dateObj) return null;
+            return dateObj.getMonth() + 1;
         }
-        function getBudget(periodText, subsId, account, department, dateText){
-            log.debug('filter search budget', {periodText : periodText, subsId: subsId, account: account, department: department, dateText: dateText})
-            console.log('filter search budget', {periodText : periodText, subsId: subsId, account: account, department: department, dateText: dateText})
 
-            var transactionSearchObj = search.create({
-                type: "transaction",
-                settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
-                filters:
-                [
-                    ["type","anyof","Custom111"], 
-                    "AND", 
-                    ["account","noneof","53"], 
-                    "AND", 
-                    ["custbody_bm_budget_current","is","T"], 
-                    "AND", 
-                    //['formulatext: {custbody_bm_period_range}', 'contains', periodText],
-                    ["formulatext: TO_CHAR({custcol_bm_start_date}, 'MM/YYYY')","contains",dateText],
-                    "AND", 
-                    ["subsidiary","anyof",subsId], 
-                    "AND", 
-                    ["account","anyof",account], 
-                    "AND", 
-                    ["department","anyof",department]
-                ],
-                columns:
-                [
-                    search.createColumn({name: "custbody_bm_budget_name", label: "Budget Name"}),
-                    search.createColumn({name: "subsidiarynohierarchy", label: "Subsidiary (no hierarchy)"}),
-                    search.createColumn({name: "departmentnohierarchy", label: "Department (no hierarchy)"}),
-                    search.createColumn({name: "account", label: "Account"}),
-                    search.createColumn({name: "amount", label: "Amount"}),
-                    search.createColumn({name: "custcol_bm_line_bdg_val", label: "Budget Period"}),
-                    search.createColumn({name: "custbody_bm_budget_control", label: "Budget Control"}),
-                    search.createColumn({name: "custbody_bm_period_range", label: "Period Range"}),
-                    search.createColumn({
-                        name: "custrecord_bm_warn_msg_tran_save",
-                        join: "CUSTBODY_BM_BUDGET_CONTROL",
-                        label: "Message (Transaction Save)"
-                    }),
-                    search.createColumn({
-                        name: "custrecord_bm_warn_line",
-                        join: "CUSTBODY_BM_BUDGET_CONTROL",
-                        label: "Message (Line)"
-                    }),
-                    search.createColumn({
-                        name: "custrecord_bm_status_header_msg",
-                        join: "CUSTBODY_BM_BUDGET_CONTROL",
-                        label: "Status Message (Within Budget)"
-                    }),
-                    search.createColumn({
-                        name: "custrecord_bm_control_pref",
-                        join: "CUSTBODY_BM_BUDGET_CONTROL",
-                        label: "Budget Control Action"
-                    }),
-                    search.createColumn({
-                        name: "custrecord_bm_budget_head_msg",
-                        join: "CUSTBODY_BM_BUDGET_CONTROL",
-                        label: "Status Message (Exceeds Budget)"
-                     })
-                ]
+        function callPeriodMulti(yearName, periodName) {
+            const suiteletUrl = url.resolveScript({
+                scriptId: "customscript_abj_sl_get_period_id",
+                deploymentId: "customdeploy_abj_sl_get_period_id",
+                params: {
+                    custscript_year_name: yearName,
+                    custscript_period_name: periodName
+                }
             });
-            var transSearchResult = transactionSearchObj.run().getRange({ start: 0, end: 1 });
-            //log.debug('transSearchResult : '+transSearchResult.length, transSearchResult);
-            var allDataBudget = []
-            if (transSearchResult.length > 0) {
-                var budget = transSearchResult[0].getValue({ name: "amount",});
-                var statusErr = transSearchResult[0].getValue({ 
-                    name: "custrecord_bm_warn_msg_tran_save",
-                    join: "CUSTBODY_BM_BUDGET_CONTROL",
-                });
-                var statusErrLine = transSearchResult[0].getValue({ 
-                    name: "custrecord_bm_warn_line",
-                    join: "CUSTBODY_BM_BUDGET_CONTROL",
-                });
-                var statusSuccLine = transSearchResult[0].getValue({ 
-                    name: "custrecord_bm_status_header_msg",
-                    join: "CUSTBODY_BM_BUDGET_CONTROL",
-                });
-                var budgetCOntrol = transSearchResult[0].getValue({
-                    name: "custrecord_bm_control_pref",
-                    join: "CUSTBODY_BM_BUDGET_CONTROL",
-                })
-                if(budgetCOntrol){
-                    budgetContorlGolbal = budgetCOntrol
-                }
-                var msg =  transSearchResult[0].getValue({
-                    name: "custrecord_bm_budget_head_msg",
-                    join: "CUSTBODY_BM_BUDGET_CONTROL",
-                })
-                if(msg)[
-                    msgGlobal = msg
-                ]
-                allDataBudget.push({
-                    budget : budget,
-                    statusErr : statusErr,
-                    statusErrLine : statusErrLine,
-                    statusSuccLine : statusSuccLine
-                })
-            }
-            return allDataBudget
+
+            const response = https.get({ url: suiteletUrl });
+            var data = JSON.parse(response.body);
+
+            return {
+                yearId: data.yearId || '',
+                periodId: data.periodId || ''
+            };
         }
-        function callSearch(subsId, account, department, estAmount, period, dateText){
-            log.debug('filterSearch consumed', {subsId : subsId, account : account, estAmount : estAmount, period : period, dateText: dateText})
-            var purchaserequisitionSearchObj = search.create({
-                type: "transaction",
-                settings:[{"name":"consolidationtype","value":"ACCTTYPE"},{"name":"includeperiodendtransactions","value":"F"}],
-                filters:
-                [
-                    ["type","anyof","PurchReq","Check"], 
-                    "AND", 
-                    ["account","noneof","220"], 
-                    "AND", 
-                    ["accounttype","anyof","Expense","OthExpense","DeferExpense"], 
-                    "AND", 
-                    ["subsidiary","anyof",subsId], 
-                    "AND", 
-                    ["department","anyof",department], 
-                    "AND", 
-                    ["account","anyof",account], 
-                    "AND", 
-                    ["formulatext: TO_CHAR({trandate}, 'MM/YYYY')","contains",dateText]
-                ],
-                columns:
-                [
-                   search.createColumn({
-                      name: "estimatedamount",
-                      summary: "SUM",
-                      label: "Estimated Amount"
-                   }),
-                   search.createColumn({
-                      name: "amount",
-                      summary: "SUM",
-                      label: "Amount"
-                   }),
-                   search.createColumn({
-                      name: "account",
-                      summary: "GROUP",
-                      label: "Account"
-                   }),
-                   search.createColumn({
-                      name: "subsidiary",
-                      summary: "GROUP",
-                      label: "Subsidiary"
-                   }),
-                   search.createColumn({
-                      name: "department",
-                      summary: "GROUP",
-                      label: "Department"
-                   }),
-                   search.createColumn({
-                      name: "formulatext",
-                      summary: "GROUP",
-                      formula: "TO_CHAR({trandate}, 'MM-YYYY')",
-                      label: "Period"
-                   }),
-                   search.createColumn({
-                      name: "formulatext",
-                      summary: "GROUP",
-                      formula: "TO_CHAR({trandate}, 'MM/YYYY')",
-                      label: "Period Number"
-                   })
-                ]
-             });
-            var searchResults = purchaserequisitionSearchObj.run().getRange({ start: 0, end: 1 });
-            var amtFromSearch = 0
-            log.debug('searchResults : '+searchResults.length, searchResults);
-            if (searchResults.length > 0) {
-                var amtSearch = searchResults[0].getValue({ name: "amount", summary: "SUM", });
-                log.debug('amtSearch cek search', amtSearch)
-                var period = searchResults[0].getValue({
-                    name: "formulatext",
-                    summary: "GROUP",
-                    formula: "TO_CHAR({trandate}, 'MM-YYYY')",
-                });
-                if(amtSearch){
-                    amtFromSearch = amtSearch
+
+        function getFiscalInfo(dateObj) {
+            if (!dateObj) return { tahun: "", periodName: "" };
+
+            // Daftar nama bulan dalam format NetSuite (3 huruf)
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+            const year = dateObj.getFullYear();
+            const month = monthNames[dateObj.getMonth()];
+
+            return {
+                tahun: `FY ${year}`,
+                periodName: `${month} ${year}`
+            };
+        }
+
+        function getBudget(account, department, classId, sofId, yearId, periodId, monthIndex, deaSeg, drcSeg){
+            log.debug('filter search budget', {account, department, classId, sofId})
+            console.log('filter search budget', {account, department, classId, sofId})
+            var budgetAmt = 0
+            const suiteletUrl = url.resolveScript({
+                scriptId: "customscript_abj_sl_get_budget",
+                deploymentId: "customdeploy_abj_sl_get_budget",
+                params: {
+                    custscript_account_id: account,
+                    custscript_department_id: department,
+                    custscript_class_id: classId,
+                    custscript_sof_id: sofId,
+                    custscript_year_id: yearId,
+                    custscript_period_id: periodId,
+                    custscript_monthidx: monthIndex,
+                    custscript_dea_seg: deaSeg,
+                    custscript_drc_seg: drcSeg,
                 }
-            }
-            var newAmount = Number(amtFromSearch) + Number(estAmount)
+            });
+
+            const response = https.get({ url: suiteletUrl });
+            var data = JSON.parse(response.body);
+            console.log('data', data)
+            budgetAmt = data.amount || 0
+
+            return budgetAmt
+        }
+        function callSearch( account, department, estAmount, classId, sofId, periodId){
+            log.debug('filterSearch consumed', { account : account, estAmount : estAmount, classId : classId, sofId: sofId, department : department, periodId : periodId})
+            const suiteletUrl = url.resolveScript({
+                scriptId: "customscript_abj_sl_get_coonsumedamt",
+                deploymentId: "customdeploy_abj_sl_get_coonsumedamt",
+                params: {
+                    custscript_account_id: account,
+                    custscript_department_id: department,
+                    custscript_class_id: classId,
+                    custscript_sof_id: sofId,
+                    custscript_period_id: periodId,
+                    custscript_est_amt: estAmount,
+                    
+
+                }
+            });
+
+            const response = https.get({ url: suiteletUrl });
+            var data = JSON.parse(response.body);
+            console.log('data', data)
+            var newAmount = data.newAmt || 0
             return newAmount
         }
-        function setSblValue(currentRecordObj, subsId, department, account, period, periodText, estAmount, additionalAmt, sblsId, dateText){
+        var isProcessing = false;
+        function setSblValue(currentRecordObj, account, department, classId, sofId, estAmount, additionalAmt, sblsId, yearId, periodId, monthIndex, deaSeg, drcSeg){
             var newAmount = 0
-            if(subsId && account && department && estAmount && period && dateText){
-                newAmount = callSearch(subsId, account, department, estAmount, period, dateText)
+            if(account && department && estAmount && classId && sofId){
+                newAmount = callSearch( account, department, estAmount, classId, sofId, periodId, deaSeg, drcSeg)
             }
             
             log.debug('newAmount', newAmount)
@@ -212,68 +118,145 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
             if(amtSet){
                 currentRecordObj.setCurrentSublistValue({
                     sublistId: sblsId,
-                    fieldId: "custcol_bm_budgetamountconsumed",
+                    fieldId: "custcol_stc_budget_consumed",
                     value: amtSet || 0,
+                    ignoreFieldChange: true
+                });
+            }else{
+                currentRecordObj.setCurrentSublistValue({
+                    sublistId: sblsId,
+                    fieldId: "custcol_stc_budget_consumed",
+                    value: estAmount,
+                    ignoreFieldChange: true
                 });
             }
-            var dataBudget = []
-            if(periodText && subsId && account && department && dateText){
-                dataBudget = getBudget(periodText, subsId, account, department, dateText)
+            var dataBudget = 0
+            console.log('account & depart', {
+                account : account,
+                department : department
+            })
+            if(account && department && deaSeg && drcSeg){
+                dataBudget = getBudget(account, department, classId, sofId, yearId, periodId, monthIndex, deaSeg, drcSeg)
             }
             console.log('DATA BUDGET', dataBudget)
             log.debug('DATA BUDGET', dataBudget)
             
-            if(dataBudget.length > 0){
-                var budgetAmt = dataBudget[0].budget
+            if(dataBudget){
+                var budgetAmt = dataBudget
                 var statLine = ''
                 if(amtSet > budgetAmt){
-                    statLine = dataBudget[0].statusErrLine
+                    statLine = "Transaction line amount exceeds budget."
                 }else{
-                    statLine = dataBudget[0].statusSuccLine
+                    statLine = "Amount in all transaction lines is within budget."
                 }
-            
+                console.log('statLine', statLine)
+                log.debug('statLine', statLine)
                 currentRecordObj.setCurrentSublistValue({
                     sublistId: sblsId,
-                    fieldId: "custcol_bm_budgetwarning",
+                    fieldId: "custcolstc_budget_warning",
                     value: statLine,
+                    ignoreFieldChange: true
                 }); 
                 currentRecordObj.setCurrentSublistValue({
                     sublistId: sblsId,
-                    fieldId: "custcol_bm_budgetamount",
+                    fieldId: "custcol_stc_budget_amount",
                     value: budgetAmt,
+                    ignoreFieldChange: true
+                });
+            }else{
+                console.log('masuk els data budget')
+                log.debug('masuk els data budget')
+                currentRecordObj.setCurrentSublistValue({
+                    sublistId: sblsId,
+                    fieldId: "custcolstc_budget_warning",
+                    value: '',
+                    ignoreFieldChange: true
+                }); 
+                currentRecordObj.setCurrentSublistValue({
+                    sublistId: sblsId,
+                    fieldId: "custcol_stc_budget_amount",
+                    value: 0,
+                    ignoreFieldChange: true
                 });
             }
         }
-        function actionSublist(currentRecordObj, sblsId){
-            var accountName = ''
-            if(sblsId == "expense"){
-                accountName = "account"
+        function actionSublist(currentRecordObj, sblsId, yearId, periodId, monthIndex){
+            var cekType = currentRecordObj.getValue('type');
+            console.log('cekType', cekType)
+            var department = currentRecordObj.getCurrentSublistValue({  
+                sublistId: sblsId,
+                fieldId: "department",
+            });
+            var classId = currentRecordObj.getCurrentSublistValue({  
+                sublistId: sblsId,
+                fieldId: "class",
+            });
+            var sofId = currentRecordObj.getCurrentSublistValue({  
+                sublistId: sblsId,
+                fieldId: "cseg_stc_sof",
+            });
+            var deaSeg = currentRecordObj.getCurrentSublistValue({
+                sublistId : sblsId,
+                fieldId : 'cseg_stc_segmentdea'
+            })
+            var drcSeg = currentRecordObj.getCurrentSublistValue({
+                sublistId : sblsId,
+                fieldId : 'cseg_stc_drc_segmen'
+            })
+            var account = ''
+            console.log('sblsId cek before', sblsId);
+
+                if(sblsId == "expense"){
+                    console.log('masuk expense')
+                    if(cekType == 'exprept'){
+                        log.debug('masuk expenreport')
+                        console.log('masuk expenreport')
+                        account = currentRecordObj.getCurrentSublistValue({  
+                            sublistId: sblsId,
+                            fieldId: 'expenseaccount',
+                        });
+                        console.log('account', account)
+                    }else{
+                        account = currentRecordObj.getCurrentSublistValue({  
+                            sublistId: sblsId,
+                            fieldId: 'account',
+                        });
+                    }
+                    
             }else{
-                accountName = "custcol_bm_itemaccount"
+                var itemId = currentRecordObj.getCurrentSublistValue({  
+                    sublistId: sblsId,
+                    fieldId: "item",
+                });
+                const suiteletUrl = url.resolveScript({
+                    scriptId: "customscript_abj_sl_get_item",
+                    deploymentId: "customdeploy_abj_sl_get_item",
+                    params: {
+                        custscript_item_id: itemId,
+                    }
+                });
+
+                const response = https.get({ url: suiteletUrl });
+                account = response.body || ''
+                console.log('response', response)
             }
-            var subsId = currentRecordObj.getValue('subsidiary');
-            var trandate = currentRecordObj.getValue('trandate');
-            var month = String(trandate.getMonth() + 1); 
-            var year = trandate.getFullYear();
-            var period = month + '-' + year;
-            var bulan = convertNumberToMonth(month);
-            var periodText = bulan + ' ' + year;
-            var dateText = month + '/' + year;
             
-            if (subsId) {
-                var department = currentRecordObj.getCurrentSublistValue({  
-                    sublistId: sblsId,
-                    fieldId: "department",
-                });
-                var account = currentRecordObj.getCurrentSublistValue({  
-                    sublistId: sblsId,
-                    fieldId: accountName,
-                });
-                var estAmount = currentRecordObj.getCurrentSublistValue({
+            var estAmount = 0
+            if(cekType == 'purchreq'){
+                
+                    estAmount = currentRecordObj.getCurrentSublistValue({
                     sublistId: sblsId,
                     fieldId: "estimatedamount",
                 });
-                if(sblsId == "item"){
+            }else{
+               estAmount = currentRecordObj.getCurrentSublistValue({
+                    sublistId: sblsId,
+                    fieldId: "amount",
+                });
+            }
+            if(sblsId == "item"){
+                if(cekType == 'purchreq'){
+                    
                     var qty = currentRecordObj.getCurrentSublistValue({
                         sublistId: sblsId,
                         fieldId: "quantity",
@@ -283,172 +266,222 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
                         fieldId: "estimatedrate",
                     });
                     estAmount = Number(estRate) * Number(qty);
-                    log.debug('estAmount', estAmount);
+                }else{
+                    estAmount = currentRecordObj.getCurrentSublistValue({
+                        sublistId: sblsId,
+                        fieldId: "amount",
+                    });
                 }
-                
                
+                console.log('estAmount', estAmount);
+            }
+            var additionalAmt = 0;
+            if (department && classId && sofId) {
+                var cekLineCount = currentRecordObj.getLineCount({
+                    sublistId: sblsId
+                });
                 
-                if (department) {
-                    var additionalAmt = 0;
-                    var cekLineCount = currentRecordObj.getLineCount({
-                        sublistId: sblsId
-                    });
+                // if (cekLineCount > 0) {
+                //     var currentLine = currentRecordObj.getCurrentSublistIndex({
+                //         sublistId: sblsId
+                //     });
                     
-                    if (cekLineCount > 0) {
-                        var currentLine = currentRecordObj.getCurrentSublistIndex({
-                            sublistId: sblsId
-                        });
-                        
-                        for (var i = 0; i < cekLineCount; i++) {
-                            log.debug('currentLine', currentLine)
-                            if (i === currentLine) {
-                                log.debug('masuk currentLine', i)
-                                continue; 
-                            }
+                //     for (var i = 0; i < cekLineCount; i++) {
+                //         log.debug('currentLine', currentLine)
+                //         console.log('currentLine', currentLine)
+                //         if (i === currentLine) {
+                //             log.debug('masuk currentLine', i)
+                //             console.log('masuk currentLine', i)
+                //             continue; 
+                //         }
+                //         var departmentCek = currentRecordObj.getSublistValue({  
+                //             sublistId: sblsId,
+                //             fieldId: "department",
+                //             line: i
+                //         });
+                //         var classCek = currentRecordObj.getSublistValue({  
+                //             sublistId: sblsId,
+                //             fieldId: "class",
+                //             line: i
+                //         });
+                //         var sofCek = currentRecordObj.getSublistValue({  
+                //             sublistId: sblsId,
+                //             fieldId: "cseg_stc_sof",
+                //             line: i
+                //         });
+                //         console.log('cekType', cekType)
+                //         log.debug('cekType', cekType)
+                //         var accountCek 
+                //         if(sblsId == 'expense'){
+                //             console.log('sunlisId cek expense', sblsId)
+                //             if(cekType == 'exprept'){
+                //                 log.debug('masuk expenreport')
+                //                 console.log('masuk expenreport')
+                //                 accountCek = currentRecordObj.getSublistValue({  
+                //                     sublistId: sblsId,
+                //                     fieldId: 'expenseaccount',
+                //                     line: i
+                //                 });
+                //             }else{
+                //                 accountCek = currentRecordObj.getSublistValue({  
+                //                     sublistId: sblsId,
+                //                     fieldId: 'account',
+                //                     line: i
+                //                 });
+                //             }   
                             
-                            var departmentCek = currentRecordObj.getSublistValue({  
-                                sublistId: sblsId,
-                                fieldId: "department",
-                                line: i
-                            });
-                            var accountCek = currentRecordObj.getSublistValue({  
-                                sublistId: sblsId,
-                                fieldId: accountName,
-                                line: i
-                            });
-                            
-                            if (departmentCek == department && accountCek == account) {
-                                log.debug('department dan account Sama');
-                                var amtLine = currentRecordObj.getSublistValue({  
-                                    sublistId: sblsId,
-                                    fieldId: "estimatedamount",
-                                    line: i
-                                });
-                                
-                                if (amtLine) {
-                                    additionalAmt += Number(amtLine);
-                                }
-                            }
-                        }
-                    }
-                    setSblValue(currentRecordObj, subsId, department, account, period, periodText, estAmount, additionalAmt, sblsId, dateText);
-                }
-            }
-        }
-        function fieldChanged(context){
-            var currentRecordObj = context.currentRecord;
-            var sublistFieldName = context.fieldId;
-            var sublistName = context.sublistId;
-            if (sublistName == 'expense'){
-                var sblsId = "expense";
-                if (sublistFieldName == 'estimatedamount') {
-                    
-                    actionSublist(currentRecordObj, sblsId)
-                }
-                
-                if(sublistFieldName == 'department'){
-                    actionSublist(currentRecordObj, sblsId)
-                }
-            }
-            if (sublistName == 'item'){
-                var sblsId = "item";
-                if (sublistFieldName == 'estimatedamount') {
-                    
-                    actionSublist(currentRecordObj, sblsId)
-                }
-                
-                if(sublistFieldName == 'department'){
-                    actionSublist(currentRecordObj, sblsId)
-                }
-                if(sublistFieldName == 'estimatedrate'){
-                    actionSublist(currentRecordObj, sblsId)
-                }
-            }
+                //         }else{
+                //             var itemCek = currentRecordObj.getSublistValue({  
+                //                 sublistId: sblsId,
+                //                 fieldId: "item",
+                //                 line: i
+                //             });
+                //             const suiteletUrl = url.resolveScript({
+                //                 scriptId: "customscript_abj_sl_get_item",
+                //                 deploymentId: "customdeploy_abj_sl_get_item",
+                //                 params: {
+                //                     custscript_item_id: itemCek,
+                //                 }
+                //             });
 
-        }
-        function saveRecord(context) {
-            var currentRecordObj = context.currentRecord;
-            log.debug('masuk save record')
-            var cekLineExp = currentRecordObj.getLineCount({ sublistId: 'expense' });
-            if (cekLineExp > 0) {
-                for (var i = 0; i < cekLineExp; i++) {
-                    var budget = currentRecordObj.getSublistValue({  
-                        sublistId: "expense",
-                        fieldId: "custcol_bm_budgetamount",
-                        line: i
-                    });
-                    var consumed = currentRecordObj.getSublistValue({  
-                        sublistId: "expense",
-                        fieldId: "custcol_bm_budgetamountconsumed",
-                        line: i
-                    });
-                    log.debug('msgGlobal', msgGlobal);
-                    if(budget && consumed){
-                        if (consumed > budget) {
-                            log.debug('budgetContorlGolbal', budgetContorlGolbal)
-                            if(budgetContorlGolbal == "1"){
-                                
-                                currentRecordObj.setValue({
-                                    fieldId : "custbody_bm_budgetstatus",
-                                    value : msgGlobal
-                                });
-                                return true
-                            }else{
-                                dialog.alert({
-                                    title: 'Warning!',
-                                    message: '<div style="color: red;">One or more transaction lines in the "Expense" sublist either do not have a matching budget or are exceeding budget. Check the transaction lines and update.</div>'
-                                });
-                                return true;
-                            }
+                //             const response = https.get({ url: suiteletUrl });
+                //             accountCek = response.body || ''
+                //             console.log('response', response)
+                //         }
+                        
+                //         if (departmentCek == department && accountCek == account && classId == classCek && sofId == sofCek) {
+                //             log.debug('department dan account Sama');
+                //             var amtLine = currentRecordObj.getSublistValue({  
+                //                 sublistId: sblsId,
+                //                 fieldId: "estimatedamount",
+                //                 line: i
+                //             });
                             
+                //             if (amtLine) {
+                //                 additionalAmt += Number(amtLine);
+                //             }
+                //         }
+                //     }
+                // }
+                if (cekLineCount > 0) {
+                    var currentLine = currentRecordObj.getCurrentSublistIndex({ sublistId: sblsId });
+                    var itemsToFetch = []; 
+
+                    if (sblsId !== 'expense') {
+                        for (var i = 0; i < cekLineCount; i++) {
+                            if (i === currentLine) continue;
+
+                            var itemCek = currentRecordObj.getSublistValue({
+                                sublistId: sblsId,
+                                fieldId: "item",
+                                line: i
+                            });
+
+                            if (itemCek && itemsToFetch.indexOf(itemCek) === -1) {
+                                itemsToFetch.push(itemCek); 
+                            }
                         }
                     }
-                    
-                    
-                }
-            }
-        
-            var cekLineItem = currentRecordObj.getLineCount({ sublistId: 'item' });
-            if (cekLineItem > 0) {
-                for (var k = 0; k < cekLineItem; k++) {
-                    var budget = currentRecordObj.getSublistValue({  
-                        sublistId: "item",
-                        fieldId: "custcol_bm_budgetamount",
-                        line: k
-                    });
-                    var consumed = currentRecordObj.getSublistValue({  
-                        sublistId: "item",
-                        fieldId: "custcol_bm_budgetamountconsumed",
-                        line: k
-                    });
-                    log.debug('SAVE budget', budget)
-                    log.debug('SAVE consumed', consumed)
-                    if(budget && consumed){
-                        if (consumed > budget) {
-                            log.debug('budgetContorlGolbal', budgetContorlGolbal)
-                            if(budgetContorlGolbal == "1"){
-                                log.debug('msgGlobal', msgGlobal);
-                                currentRecordObj.setValue({
-                                    fieldId : "custbody_bm_budgetstatus",
-                                    value : msgGlobal
-                                });
-                                return true
-                            }else{
-                                dialog.alert({
-                                    title: 'Warning!',
-                                    message: '<div style="color: red;">One or more transaction lines in the "Item" sublist either do not have a matching budget or are exceeding budget. Check the transaction lines and update.</div>'
-                                });
-                                return true;
+
+                    var accountMap = {}; 
+                    if (itemsToFetch.length > 0) {
+                        const suiteletUrl = url.resolveScript({
+                            scriptId: "customscript_abj_sl_get_item_in_bulk",
+                            deploymentId: "customdeploy_abj_sl_get_item_in_bulk",
+                            params: {
+                                custscript_item_ids: JSON.stringify(itemsToFetch)
                             }
-                            
+                        });
+
+                        const response = https.get({ url: suiteletUrl });
+                        if (response.body) {
+                            try {
+                                accountMap = JSON.parse(response.body);
+                            } catch (e) {
+                                log.error('Error parsing Suitelet response', e);
+                            }
                         }
                     }
-                    
+
+                    for (var i = 0; i < cekLineCount; i++) {
+                        if (i === currentLine) {
+                            continue; 
+                        }
+
+                        var departmentCek = currentRecordObj.getSublistValue({ sublistId: sblsId, fieldId: "department", line: i });
+                        var classCek = currentRecordObj.getSublistValue({ sublistId: sblsId, fieldId: "class", line: i });
+                        var sofCek = currentRecordObj.getSublistValue({ sublistId: sblsId, fieldId: "cseg_stc_sof", line: i });
+
+                        var accountCek = '';
+                        if (sblsId == 'expense') {
+                            if (cekType == 'exprept') {
+                                accountCek = currentRecordObj.getSublistValue({ sublistId: sblsId, fieldId: 'expenseaccount', line: i });
+                            } else {
+                                accountCek = currentRecordObj.getSublistValue({ sublistId: sblsId, fieldId: 'account', line: i });
+                            }   
+                        } else {
+                            var itemCek = currentRecordObj.getSublistValue({ sublistId: sblsId, fieldId: "item", line: i });
+                            accountCek = accountMap[itemCek] || ''; 
+                        }
+                        
+                        if (departmentCek == department && accountCek == account && classId == classCek && sofId == sofCek) {
+                            var amtLine = currentRecordObj.getSublistValue({ sublistId: sblsId, fieldId: "estimatedamount", line: i });
+                            if (amtLine) {
+                                additionalAmt += Number(amtLine);
+                            }
+                        }
+                    }
                 }
+                setSblValue(currentRecordObj, account, department, classId, sofId, estAmount, additionalAmt, sblsId, yearId, periodId, monthIndex, deaSeg, drcSeg);
             }
-        
-            return true;
+            
         }
+        function validateLine(context) {
+            if (isProcessing) {
+                return true; 
+            }
+            try{
+                isProcessing = true;
+                console.log('isProcessing', isProcessing)
+                var currentRecordObj = context.currentRecord;
+                var sublistName = context.sublistId;
+                var date = currentRecordObj.getValue('trandate');
+
+                var result = getFiscalInfo(date);
+                var yearPeriodName = result.tahun;
+                var periodName = result.periodName;
+
+                // call suitelet sekali saja
+                var periodData = callPeriodMulti(yearPeriodName, periodName);
+
+                var yearId = periodData.yearId;
+                var periodId = periodData.periodId;
+
+                var monthIndex = getMonthIndex(date);
+
+                if (sublistName === 'expense') {
+                    actionSublist(currentRecordObj, 'expense', yearId, periodId, monthIndex);
+                }
+
+                if (sublistName === 'item') {
+                    console.log('actionSublist Item Terpanggil')
+                    actionSublist(currentRecordObj, 'item', yearId, periodId, monthIndex);
+                }
+
+                return true;
+            }catch(e){
+                log.error('Error in validateLine', e.message);
+                console.error('Error in validateLine:', e);
+                return true;
+            }finally {
+                isProcessing = false;
+                console.log('isProcessing finally', isProcessing)
+            }
+                    
+        }
+
+
+       
     }catch(e){
         log.debug('error', e)
     }
@@ -456,7 +489,6 @@ define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/recor
     
     return {
         pageInit: pageInit,
-        fieldChanged : fieldChanged,
-        saveRecord : saveRecord
+        validateLine : validateLine
     };
 });

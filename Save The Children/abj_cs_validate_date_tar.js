@@ -5,6 +5,20 @@
  */
 
 define(["N/ui/dialog"], function (dialog) {
+    function pageInit(context){
+        if (context.mode !== 'create') {
+            console.log('masuk kondisi')
+            return;
+        }
+
+        const autoNameField = context.currentRecord.getField({
+            fieldId: 'autoname'
+        });
+        console.log('autoNameField', autoNameField)
+        if (autoNameField) {
+            autoNameField.isDisabled = true;
+        }
+    }
     function saveRecord(context) {
         var rec = context.currentRecord;
         
@@ -58,6 +72,7 @@ define(["N/ui/dialog"], function (dialog) {
     }
 
     return {
-        saveRecord: saveRecord
+        saveRecord: saveRecord,
+        pageInit : pageInit
     };
 });

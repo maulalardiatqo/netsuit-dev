@@ -32,8 +32,13 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     * @returns {Object} - A JSON object representing the sales order data.
     * @since 2015.2
     */
+   
     function get(requestParams) {
         try{
+            function getFirstWord(teks) {
+                if (!teks) return ""; 
+                return teks.split(';')[0].trim(); 
+            }
             var pageSize = parseInt(requestParams.pageSize, 10);
             var pageIndex = parseInt(requestParams.pageIndex, 10);
 
@@ -105,7 +110,8 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
                         sofName : result.getText({name :'cseg_stc_sof'})
 
                     },
-                    quantity:         result.getValue({ name: 'custrecord_ncfar_quantity' })
+                    quantity:         result.getValue({ name: 'custrecord_ncfar_quantity' }),
+                    alternateAssetNumb : getFirstWord(result.getValue({name : 'custrecord_assetalternateno'}))
                 };
                 Object.keys(row).forEach(key => row[key] = row[key] || '');
 

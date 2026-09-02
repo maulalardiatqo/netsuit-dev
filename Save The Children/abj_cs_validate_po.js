@@ -4,29 +4,55 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message", "N/ui/dialog", "N/https"], function (runtime, log, url, currentRecord, currency, record, search, message, dialog, https) {
-    function saveRecord(context){
-        var rec = context.currentRecord;
-        var cekTypePO = rec.getValue('custbody_stc_po_type');
-        console.log('cekTypePO', cekTypePO)
-        if(cekTypePO == 2){
-            var cektypeRecruitment = rec.getValue('custbody_stc_type_recruitement');
-            var cekTotalTrans = rec.getValue('total');
-                console.log('cekTotalTrans', cekTotalTrans);
-            if(cektypeRecruitment == 1){
-                if(Number(cekTotalTrans) < 25000000){
-                    alert('The FAS amount must be greater than 25 million');
-                    return false
+define([
+    'N/search', 
+    'N/log', 
+    'N/https', 
+    'N/url', 
+    'N/runtime', 
+    'N/format', 
+    'N/ui/dialog', 
+    'N/currentRecord', 
+    'N/currency', 
+    'N/record', 
+    'N/ui/message'
+], (search, log, https, url, runtime, format, dialog, currentRecord, currency, record, message) => {
+
+    // =====================================================================
+    // ENTRY POINT
+    // =====================================================================
+    function saveRecord(scriptContext) {
+        console.log('validate saved record jalan')
+        const rec = scriptContext.currentRecord;
+
+        // ---------------------------------------------------------------
+        // 1. VALIDASI PO TYPE & RECRUITMENT (Dari Script Kedua)
+        // ---------------------------------------------------------------
+        const cekTypePO = rec.getValue('custbody_stc_po_type');
+        console.log('cekTypePO', cekTypePO);
+
+        if (cekTypePO == 2) {
+            const cektypeRecruitment = rec.getValue('custbody_stc_type_recruitement');
+            const cekTotalTrans = Number(rec.getValue('total')) || 0;
+            console.log('cekTotalTrans', cekTotalTrans);
+
+            if (cektypeRecruitment == 1) {
+                if (cekTotalTrans < 25000000) {
+                    dialog.alert({ title: 'Validasi FAS', message: 'The FAS amount must be greater than 25 million' });
+                    return false;
                 }
-            }else{
-                if(Number(cekTotalTrans) > 25000000){
-                    alert('The PAF amount must be less than 25 million')
+            } else {
+                if (cekTotalTrans > 25000000) {
+                    dialog.alert({ title: 'Validasi PAF', message: 'The PAF amount must be less than 25 million' });
+                    return false;
                 }
             }
         }
-        return true
+
+        return true;   // ← WAJIB ada return true di akhir kalau semua validasi lolos
     }
-    return{
-        saveRecord : saveRecord
-    }
-})
+
+    return {
+        saveRecord: saveRecord
+    };
+});

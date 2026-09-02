@@ -111,49 +111,52 @@ define(["N/runtime", "N/log", "N/ui/serverWidget"], (runtime, log, serverWidget)
     }
     function beforeLoad(context) {
         var userObj = runtime.getCurrentUser();
+        var currentRole = Number(userObj.role);
+        
+        var poHiddenRoles = [1016, 1004, 1013, 1025, 1026, 1005, 1024, 1076, 1077, 1081, 1083, 1084, 1079, 1078, 1085];
+        var soHiddenRoles = [1025, 1026, 1005, 1024, 1076, 1077, 1081, 1083, 1084, 1079, 1078, 1085];
+
         log.debug('Custom script ID of current user role: ' + userObj.role, userObj.role);
-        var currentRole = userObj.role
+        
         var form = context.form;
         var rec = context.newRecord;
-        var recType = rec.type
-        log.debug('recType', recType)
-        if ( context.type === context.UserEventType.EDIT || context.type === context.UserEventType.CREATE || context.type === context.UserEventType.VIEW) {
+        var recType = rec.type;
+        
+        log.debug('recType', recType);
+        
+        if (context.type === context.UserEventType.EDIT || context.type === context.UserEventType.CREATE || context.type === context.UserEventType.VIEW) {
             var cekFrom = rec.getValue('customform');
-            log.debug('cekFrom', cekFrom)
-            if(recType == 'purchaseorder'){
-                if(currentRole == 1016 || currentRole == 1004 || currentRole == 1013 || currentRole == 1025 || currentRole == 1026 || currentRole == 1005 || currentRole == 1024){
+            log.debug('cekFrom', cekFrom);
+            
+            if (recType === 'purchaseorder') {
+                if (poHiddenRoles.indexOf(currentRole) !== -1) {
                     hideField(form);
                 }
-                log.debug('recType PO')
+                log.debug('recType PO');
             }
-            if(recType == 'salesorder'){
+            
+            if (recType === 'salesorder') {
                 log.debug('recSO');
-                if(currentRole == 1025 || currentRole == 1026 || currentRole == 1005 || currentRole == 1024){
+                
+                if (soHiddenRoles.indexOf(currentRole) !== -1) {
                     hideField(form);
+                    
                     var discountTotal = form.getField({
-                        id: 'discounttotal',
-                    })
+                        id: 'discounttotal'
+                    });
                     discountTotal.updateDisplayType({
                         displayType: serverWidget.FieldDisplayType.HIDDEN
                     });
+                    
                     var discountRate = form.getField({
-                        id: 'discountrate',
-                    })
+                        id: 'discountrate'
+                    });
                     discountRate.updateDisplayType({
                         displayType: serverWidget.FieldDisplayType.HIDDEN
                     });
                 }
             }
-            
-
         }
-        // if(context.type === context.UserEventType.VIEW){
-        //     var cForm = rec.getValue('tranid');
-        //     log.debug('cForm', cForm)
-        //     if(cForm.indexOf('PR') !== -1){
-        //         hideField(form);
-        //     }
-        // }
     }
 return {
     beforeLoad: beforeLoad,

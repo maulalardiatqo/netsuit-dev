@@ -62,6 +62,9 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                     }
                     
                 }
+            }else{
+                alert('Harap Isi Detail Pada Record TOR');
+                return false;
             }
             
         } catch (e) {

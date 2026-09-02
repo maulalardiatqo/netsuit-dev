@@ -98,7 +98,9 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
             filters: [
                 ["posting","is","T"], "AND", ["amount","greaterthan","0.00"], "AND", 
                 ["postingperiod","abs",periodId], "AND",
-                ["account.custrecord_stc_account_cam_mapping","anyof",accountHead]
+                ["account.custrecord_stc_account_cam_mapping","anyof",accountHead],
+                "AND", 
+                [["cseg_stc_sof","anyof","57"],"OR",["line.cseg_stc_sof","anyof","57"]]
             ],
             columns: [
                 {name: "account", summary: "GROUP"},
@@ -119,12 +121,116 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
             });
             return true;
         });
+        function parseDateIndo(dateStr) {
+            if (!dateStr) return new Date(0);
+            var parts = dateStr.split('/');
+            return new Date(parts[2], parts[1] - 1, parts[0]);
+        }
+        var startDate = '';
+        var endDate = '';
+
+        search.create({
+            type: search.Type.ACCOUNTING_PERIOD,
+            filters: [['internalid', 'anyof', periodId]],
+            columns: ['startdate', 'enddate']
+        }).run().each(function(res) {
+            startDate = res.getValue('startdate');
+            endDate = res.getValue('enddate');
+            return false; 
+        });
+
+        var budgetRawData = [];
+        var projectIds = [];
+
+        var projectbudgetSearchObj = search.create({
+            type: "projectbudget",
+            filters: [
+                ["amounttype", "anyof", "Cost"], "AND", 
+                ["amountdate", "within", startDate, endDate]
+            ],
+            columns: [
+                search.createColumn({ name: "project", summary: "GROUP" }),
+                search.createColumn({ name: "amountdate", summary: "GROUP" }),
+                search.createColumn({ name: "eac", summary: "SUM" })
+            ]
+        });
+
+        projectbudgetSearchObj.run().each(function(res) {
+            var prj = res.getValue({ name: "project", summary: "GROUP" });
+            var amtDate = res.getValue({ name: "amountdate", summary: "GROUP" });
+            var eac = Number(res.getValue({ name: "eac", summary: "SUM" }) || 0);
+            
+            budgetRawData.push({ project: prj, dateStr: amtDate, dateObj: parseDateIndo(amtDate), eac: eac });
+            
+            if (projectIds.indexOf(prj) === -1) {
+                projectIds.push(prj);
+            }
+            return true;
+        });
+
+        var exchangeRateMap = {}; 
+
+        if (projectIds.length > 0) {
+            var exRateSearch = search.create({
+                type: "customrecord_stc_exchange_rate_donor_cur",
+                filters: [
+                    ["custrecord_stc_sof_segment", "anyof", projectIds]
+                ],
+                columns: [
+                    "custrecord_stc_sof_segment",
+                    "custrecord_stc_exchng_rate",
+                    "custrecord_stc_effective_date"
+                ]
+            });
+            
+            exRateSearch.run().each(function(res) {
+                var sofId = res.getValue("custrecord_stc_sof_segment");
+                var rate = Number(res.getValue("custrecord_stc_exchng_rate") || 0);
+                var effDateStr = res.getValue("custrecord_stc_effective_date");
+                var effDateObj = parseDateIndo(effDateStr);
+                
+                if (!exchangeRateMap[sofId]) exchangeRateMap[sofId] = [];
+                
+                exchangeRateMap[sofId].push({
+                    rate: rate,
+                    dateObj: effDateObj
+                });
+                return true;
+            });
+        }
+
+        var finalBudgetMap = {};
+
+        budgetRawData.forEach(function(data) {
+            var rates = exchangeRateMap[data.project] || [];
+            var validRate = 0;
+            var closestDate = new Date(0);
+            for (var i = 0; i < rates.length; i++) {
+                if (rates[i].dateObj <= data.dateObj && rates[i].dateObj > closestDate) {
+                    closestDate = rates[i].dateObj;
+                    validRate = rates[i].rate;
+                }
+            }
+            
+            var calculatedBudget = data.eac * validRate;
+            finalBudgetMap[data.project] = (finalBudgetMap[data.project] || 0) + calculatedBudget;
+        });
 
         var remainingMap = {};
-        search.load({ id: 'customsearch326' }).run().each(function(res){
-            var budget = Number(res.getValue(res.columns[1]) || 0);
+        var search326 = search.load({ id: 'customsearch326' });
+
+        search326.filters.push(search.createFilter({ 
+            name: 'postingperiod', 
+            operator: search.Operator.ANYOF, 
+            values: periodId 
+        }));
+
+        search326.run().each(function(res){
+            var projectId = res.getValue(res.columns[0]);
             var actual = Number(res.getValue(res.columns[2]) || 0);
-            remainingMap[res.getValue(res.columns[0])] = budget - actual;
+            var budget = Number(finalBudgetMap[projectId] || 0);
+            
+            remainingMap[projectId] = budget - actual;
             return true;
         });
 
@@ -188,6 +294,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 amtDebit = row.amtRemaining; sisa = round2(allocation - row.amtRemaining); 
             }
 
+
             if (sisa > 0) {
                 console.log('masuk sisa', sisa)
                 dataSisa.push({ sisa: sisa, costCenter: row.costCenter, project: row.project, sofId: row.sof, sofText: row.sofText, prosent: (bobot * 100), remaining: row.amtRemaining , prosentText : prosentText});
@@ -201,6 +308,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'department', value: row.costCenter });
                 rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'class', value: row.project });
                 rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_sof', value: row.sof });
+                rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'memo', value: memoBase });
                 rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'custcol_abj_remaining_budget_sof', value: row.amtRemaining });
                 rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'custcol_stc_percentage_allocation_cam', value:  prosentText});
                 
@@ -209,7 +317,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     rec.commitLine({ sublistId: 'line' });
                     doFinalData(idx + 1);
                 }, 500);
-            } else {
+            } else {        
                 doFinalData(idx + 1);
             }
         }
@@ -264,7 +372,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
             rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'debit', value: round2(s.sisa) });
             rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'department', value: s.costCenter });
             rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'class', value: s.project });
-            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_sof', value: "24" });
+            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_sof', value: "615" });
             rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'memo', value: memoSet });
             rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'custcol_stc_percentage_allocation_cam', value: s.prosentText });
             

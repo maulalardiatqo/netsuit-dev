@@ -168,11 +168,18 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
 
                     
                     var allDataLine = [];
+                    // function getInitialNumber(costCenter) {
+                    //     var match = costCenter.match(/^\d+/);
+                    //     return match ? match[0] : '';
+                    // }
                     function getInitialNumber(costCenter) {
-                        var match = costCenter.match(/^\d+/);
+                        if (!costCenter) return '';
+                        var stringCostCenter = String(costCenter).trim(); 
+                        var match = stringCostCenter.match(/\d+/);
+                        
                         return match ? match[0] : '';
                     }
-                    var countLine = recLoad.getLineCount({
+                                        var countLine = recLoad.getLineCount({
                         sublistId : 'recmachcustrecord_tar_e_id'
                     });
                     if(countLine > 0){
@@ -210,7 +217,9 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                                 fieldId : 'custrecord_tare_source_of_funding',
                                 line : i
                             });
+                            log.debug('sofName', sofName)
                             var sof = getInitialNumber(sofName)
+                            log.debug('sof', sof)
                             var deaName = recLoad.getSublistText({
                                 sublistId : 'recmachcustrecord_tar_e_id',
                                 fieldId : 'custrecord_tar_dea',

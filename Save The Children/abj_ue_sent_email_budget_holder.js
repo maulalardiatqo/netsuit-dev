@@ -119,7 +119,9 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
                     });
                 var toBeSent = true
                 log.debug('transType', transType)
+                var poType = ''
                 if(transType == 'purchaseorder'){
+                    poType = recLoad.getValue('custbody_stc_po_type');
                     var cForm = recLoad.getValue('customform');
                     log.debug('cForm', cForm)
                     if(cForm == '123'){
@@ -222,41 +224,49 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/email"], fu
                     }
                 }
                 var allApproverFa = []
+                
                 if(oldtriggerFA == false && newtriggerFA == true){
                     log.debug('eksekusi FA email', {oldtriggerFA : oldtriggerFA, newtriggerFA : newtriggerFA})
-                    var cekLineItemFA = recLoad.getLineCount({
-                        sublistId : 'item'
-                    });
                     var allApprover = []
-                    if(cekLineItemFA > 0){
-                        for(var iFa = 0; iFa < cekLineItemFA; iFa++){
-                            var approverFa = recLoad.getSublistValue({
-                                sublistId : 'item',
-                                fieldId : 'custcol_stc_approver_fa',
-                                line : iFa
-                            })
-                            log.debug('approverFa', approverFa)
-                            if(approverFa){
-                                allApproverFa.push(approverFa)
-                            }
-                            
-                        }
-                    }
-                    var cekLineExpFA = recLoad.getLineCount({
-                        sublistId : 'expense'
-                    });
-                    if(cekLineExpFA > 0){
-                        for(var jFa = 0; jFa < cekLineExpFA; jFa++){
-                            var approverExpFa = recLoad.getSublistValue({
-                                sublistId : 'expense',
-                                fieldId : 'custcol_stc_approver_fa',
-                                line : jFa
-                            })
-                            if(approverExpFa){
-                                allApproverFa.push(approverExpFa)
+                   if(poType == "4"){
+                        log.debug('Skipping FA email: poType adalah 4', {poType: poType});
+                        var allApprover = []
+                    }else{
+                        var cekLineItemFA = recLoad.getLineCount({
+                            sublistId : 'item'
+                        });
+                        
+                        if(cekLineItemFA > 0){
+                            for(var iFa = 0; iFa < cekLineItemFA; iFa++){
+                                var approverFa = recLoad.getSublistValue({
+                                    sublistId : 'item',
+                                    fieldId : 'custcol_stc_approver_fa',
+                                    line : iFa
+                                })
+                                log.debug('approverFa', approverFa)
+                                if(approverFa){
+                                    allApproverFa.push(approverFa)
+                                }
+                                
                             }
                         }
+                        var cekLineExpFA = recLoad.getLineCount({
+                            sublistId : 'expense'
+                        });
+                        if(cekLineExpFA > 0){
+                            for(var jFa = 0; jFa < cekLineExpFA; jFa++){
+                                var approverExpFa = recLoad.getSublistValue({
+                                    sublistId : 'expense',
+                                    fieldId : 'custcol_stc_approver_fa',
+                                    line : jFa
+                                })
+                                if(approverExpFa){
+                                    allApproverFa.push(approverExpFa)
+                                }
+                            }
+                        }
                     }
+                    
                     allApproverFa = removeDuplicate(allApproverFa)
                     log.debug('allApproverFa', allApproverFa)
                     if(allApproverFa.length > 0){

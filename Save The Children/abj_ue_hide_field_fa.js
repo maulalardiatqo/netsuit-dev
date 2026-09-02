@@ -18,6 +18,7 @@ define(['N/ui/serverWidget', 'N/record'], (serverWidget, record) => {
 
             var sublist;
             var isNeedHide = false;
+            var isNeedHideBA = false;
             var idFieldFa;
             var idFieldStatus;
 
@@ -33,7 +34,7 @@ define(['N/ui/serverWidget', 'N/record'], (serverWidget, record) => {
                     var expType = recLoad.getValue('custbody_stc_expense_report_type');
                     log.debug('expType', expType)
                     if(expType == '2' || expType == '3'){
-                        isNeedHide = true;
+                        // isNeedHide = true;
                         sublist = 'expense';
                         idFieldFa = 'custcol_stc_approver_fa';
                         idFieldStatus = 'custcol_stc_apprvl_sts_fa';
@@ -41,11 +42,26 @@ define(['N/ui/serverWidget', 'N/record'], (serverWidget, record) => {
                 }
                 
             }
+            if (transType === 'purchaseorder'){
+                var cForm = recLoad.getValue('customform');
+                log.debug('cForm', cForm)
+                if(cForm == '130'){
+                    var poType = recLoad.getValue('custbody_stc_po_type');
+                    log.debug('poType', poType)
+                    if(poType == '2'){
+                        isNeedHideBA = true;
+                    }
+                }
+            }   
 
             log.debug('isNeedHide', isNeedHide);
 
             if (isNeedHide) {
                 form.clientScriptModulePath = "SuiteScripts/abj_cs_hide_field_fa.js";
+            }
+            log.debug('isNeedHideBA', isNeedHideBA)
+            if(isNeedHideBA){
+                form.clientScriptModulePath = "SuiteScripts/abj_cs_hide_field_ba.js";
             }
         }
     };

@@ -37,9 +37,9 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
 
         var dataTransform = [];
         var linkedTrxIds = [];
-        var sofTorAmountMap = {}; 
-        var sofAllocatedAmountMap = {};
-        var sofDataMap = {}; 
+        var groupingTorAmountMap = {}; 
+        var groupingAllocatedAmountMap = {};
+        var groupingDataMap = {}; 
 
         var linkFieldId = (transType === '4') ? 'custrecord_tor_link_tar' : 'custrecord_tor_link_trx_no';
 
@@ -79,6 +79,12 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                         line: i
                     });
 
+                    var item = recLoad.getSublistValue({
+                        sublistId: 'recmachcustrecord_tori_id',
+                        fieldId: 'custrecord_tori_item',
+                        line: i
+                    });
+
                     var amount = parseFloat(recLoad.getSublistValue({
                         sublistId: 'recmachcustrecord_tori_id',
                         fieldId: 'custrecord_tori_amount',
@@ -90,6 +96,12 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                         fieldId: 'custrecord_amount_allocated',
                         line: i
                     })) || 0;
+
+                    var idLine = recLoad.getSublistValue({
+                        sublistId: 'recmachcustrecord_tori_id',
+                        fieldId: 'id',
+                        line: i
+                    })
 
                     var lineData = {
                         noTor : noTor,
@@ -107,42 +119,44 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                         approver: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_approver', line: i }),
                         approverFa: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_approver_fa', line: i }),
                         costCenter: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_cost_center', line: i }),
-                        item: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_item', line: i }),
+                        item: item,
                         projectCode: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_project_code', line: i }),
                         sof: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_source_of_funding', line: i }),
                         bussinessUnit: recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_business_unit', line : i }),
                         idLine : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'id', line : i }),
                         activityCode : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_activity_code', line : i }),
-                        description : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_description', line : i }),
+                        description : encodeURIComponent(recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_description', line : i }) || ""),
                         unitCost : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_unit_cost', line : i }),
                         qty : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_quantity', line : i }),
                         uom : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_uom', line : i }),
-                        vendor : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_rpv_vendor', line : i})
+                        vendor : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_rpv_vendor', line : i}),
+                        idLine : idLine
                     };
 
-                    if (sof) {
-                        var sofStr = sof.toString();
+                    var groupKey = (transType != '2') ? (idLine ? idLine.toString() : '') : (sof ? sof.toString() : '');
+
+                    if (groupKey) {
                         console.log('amount', amount);
                         console.log('allocated', allocated);
 
-                        if (!sofTorAmountMap[sofStr]) sofTorAmountMap[sofStr] = 0;
-                        sofTorAmountMap[sofStr] += amount;
-                        sofAllocatedAmountMap[sofStr] = allocated;
+                        if (!groupingTorAmountMap[groupKey]) groupingTorAmountMap[groupKey] = 0;
+                        groupingTorAmountMap[groupKey] += amount;
+                        groupingAllocatedAmountMap[groupKey] = allocated;
 
-                        if (!sofDataMap[sofStr]) {
+                        if (!groupingDataMap[groupKey]) {
                             var cleanTemplate = JSON.parse(JSON.stringify(lineData));
                             cleanTemplate.amount = 0; 
-                            sofDataMap[sofStr] = cleanTemplate;
+                            groupingDataMap[groupKey] = cleanTemplate;
                         }
                     }
                 }
             }
 
-            for (var sofKey in sofDataMap) {
-                if (sofDataMap.hasOwnProperty(sofKey)) {
-                    var itemData = sofDataMap[sofKey];
-                    var totalTorBudget = sofTorAmountMap[sofKey] || 0;
-                    var totalUsedBudget = sofAllocatedAmountMap[sofKey] || 0;
+            for (var groupKey in groupingDataMap) {
+                if (groupingDataMap.hasOwnProperty(groupKey)) {
+                    var itemData = groupingDataMap[groupKey];
+                    var totalTorBudget = groupingTorAmountMap[groupKey] || 0;
+                    var totalUsedBudget = groupingAllocatedAmountMap[groupKey] || 0;
                     var remainingBudget = totalTorBudget - totalUsedBudget;
 
                     if (remainingBudget > 0) {
@@ -151,7 +165,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                         itemData.linkedTrxIds = linkedTrxIds;
                         dataTransform.push(itemData);
                     } else {
-                        console.log('SOF ' + sofKey + ' dilewati karena budget sudah habis / 0.');
+                        console.log('Group Key ' + groupKey + ' dilewati karena budget sudah habis / 0.');
                     }
                 }
             }
@@ -212,7 +226,6 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
         window.open(createURL, "_blank");
     }
 
-    // Transform Request Payment Vendor
     function transformPoVen(){
         var dataParams = getData('5');
         console.log('dataParams', dataParams);

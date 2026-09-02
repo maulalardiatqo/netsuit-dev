@@ -15,59 +15,29 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
             empName = searchSvp.firstname;
             return empName
         }
-        // function repairRichText(input) {
-        //     if (!input || typeof input !== "string") {
-        //         return "";
-        //     }
-
-        //     return input
-        //         // 1. AMANKAN AMPERSAND (&)
-        //         // Regex ini mencari '&' yang TIDAK diikuti oleh kode entity (seperti &nbsp; atau &lt;)
-        //         // Jadi "Tom & Jerry" berubah jadi "Tom &amp; Jerry", tapi "&nbsp;" tetap "&nbsp;"
-        //         .replace(/&(?![a-zA-Z0-9#]+;)/g, "&amp;")
-
-        //         // 2. PERBAIKI TAG <br> (HTML biasa <br>, XML butuh <br/>)
-        //         .replace(/<br\s*\/?>/gi, "<br/>")
-
-        //         // 3. PERBAIKI TAG <img> (jika ada gambar, harus ditutup slash)
-        //         .replace(/<img([^>]+)>/gi, "<img$1 />")
-                
-        //         // 4. (Opsional) Hapus atribut class/style jika sering bikin error
-        //         // .replace(/\sclass="[^"]*"/g, "") 
-        //         ;
-        // }
         function repairRichText(input) {
-    if (!input || typeof input !== "string") {
-        return "";
-    }
+            if (!input || typeof input !== "string") {
+                return "";
+            }
 
-    return input
-        // A. BUANG TAG SAMPAH yang merusak CSS tabel utama Anda
-        .replace(/<meta[^>]*>/gi, "")
-        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-        
-        // B. BERSIHKAN ATRIBUT INLINE (seperti font-family bawaan yang bikin berantakan)
-        // Ini opsional, aktifkan jika jenis huruf di tabel Anda ingin seragam
-        .replace(/\sstyle="[^"]*"/gi, "") 
-        .replace(/\sclass="[^"]*"/gi, "")
-
-        // C. AMANKAN SIMBOL AMPERSAND (&) agar tidak error XML
-        // Menghindari double-encoding pada &amp; atau &lt; yang sudah valid
-        .replace(/&(?!(#[0-9]+|[a-zA-Z0-9]+);)/g, "&amp;")
-
-        // D. VALIDASI SELF-CLOSING TAGS (Standar wajib XML)
-        .replace(/<br\s*\/?>/gi, "<br/>")
-        .replace(/<hr\s*\/?>/gi, "<hr/>")
-        .replace(/<img([^>]*?)\s*\/?>/gi, "<img$1 />")
-        
-        // E. BUANG PARAGRAF KOSONG YANG TIDAK PERLU
-        .replace(/<p>\s*<\/p>/gi, "")
-        .replace(/<p>&nbsp;<\/p>/gi, "")
-        
-        // F. BERSIHKAN KARAKTER GAIB (Control Characters)
-        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
-        .trim();
-}
+            return input
+                .replace(/<meta[^>]*>/gi, "")
+                .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+                .replace(/\sstyle="[^"]*"/gi, "") 
+                .replace(/\sclass="[^"]*"/gi, "")
+                .replace(/\sdata-[a-zA-Z0-9\-]+="[^"]*"/gi, "")
+                .replace(/\srel="[^"]*"/gi, "")
+                .replace(/\stabindex="[^"]*"/gi, "")
+                .replace(/\sid="[^"]*"/gi, "")
+                .replace(/<img[^>]*>/gi, "") 
+                .replace(/&(?!(#[0-9]+|[a-zA-Z0-9]+);)/g, "&amp;")
+                .replace(/<br\s*\/?>/gi, "<br/>")
+                .replace(/<hr\s*\/?>/gi, "<hr/>")
+                .replace(/<p>\s*<\/p>/gi, "")
+                .replace(/<p>&nbsp;<\/p>/gi, "")
+                .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+                .trim();
+        }
         function escapeXmlSymbols(input) {
             if (!input || typeof input !== "string") {
                 return input;
@@ -87,16 +57,11 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
         }
         function formatDateToDDMMYYYY(dateObj) {
             if (!dateObj) return '';
-
-            // Pastikan input adalah Date object
             var date = new Date(dateObj);
 
-            // Ambil komponen tanggal
             var day = String(date.getDate()).padStart(2, '0');
-            var month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() dimulai dari 0
+            var month = String(date.getMonth() + 1).padStart(2, '0');
             var year = date.getFullYear();
-
-            // Gabungkan ke format DD/MM/YYYY
             return `${day}/${month}/${year}`;
         }
          function getInitialNumber(costCenter) {
@@ -135,7 +100,7 @@ define(["N/render", "N/search", "N/record", "N/log", "N/file", "N/http", 'N/conf
                     log.debug('objective', objective)
                     var expectedOutput = recLoad.getValue('custrecord_tor_expected_output');
                     var attachment = recLoad.getValue('custrecord_tor_attachment');
-
+                    log.debug('attachment', attachment)
                     var activityFrom = recLoad.getText('custrecord_tor_timeline_p_from');
                     var activityTo = recLoad.getText('custrecord_tor_timeline_period_to');
                     var createdById = recLoad.getValue('custrecord_tor_create_by');

@@ -32,6 +32,18 @@ define(['N/record', 'N/file', 'N/search', 'N/log', 'N/runtime', 'N/format'], (re
         const logId = input.logId;
         
         try {
+            record.submitFields({
+                type: 'customtransaction_abj_integration_log',
+                id: logId,
+                values: {
+                    custbody_stc_map_reuce_process: true
+                },
+                options: {
+                    enableSourcing: false,
+                    ignoreMandatoryFields: true
+                }
+            });
+
             const empItem = input.employeeData;
             const endDate = input.endDate;
 
@@ -65,15 +77,79 @@ define(['N/record', 'N/file', 'N/search', 'N/log', 'N/runtime', 'N/format'], (re
         
         try {
             const rawEndDate = employeeItems[0].periodEndDate;
-            const parsedEndDate = format.parse({
-                value: new Date(rawEndDate),
-                type: format.Type.DATE
+            log.debug('rawEndDate', rawEndDate);
+            const formatted = rawEndDate.split("-").reverse().join("/");
+            const [year, month, day] = rawEndDate.split('-');
+
+            const parsedEndDate = new Date(
+                Number(year),
+                Number(month) - 1,
+                Number(day)
+            );
+            log.debug('formatted', formatted)
+            log.debug('parsedEndDate', parsedEndDate)
+            
+            var empExisting = []; 
+            const journalentrySearchObj = search.create({
+                type: "journalentry",
+                filters:
+                [
+                    ["type","anyof","Journal"], 
+                    "AND", 
+                    ["custbody_stc_from_integration","is","T"], 
+                    "AND", 
+                    ["cogs","is","F"], 
+                    "AND", 
+                    ["taxline","is","F"], 
+                    "AND", 
+                    ["trandate","on",formatted]
+                ],
+                columns:
+                [
+                    search.createColumn({name: "trandate", label: "Date"}),
+                    search.createColumn({name: "entity", label: "Name"})
+                ]
             });
+            
+            const searchResultCount = journalentrySearchObj.runPaged().count;
+            log.debug("journalentrySearchObj result count",searchResultCount);
+            
+            journalentrySearchObj.run().each(function(result){
+                // Ambil string value dari entity untuk perbandingan yang aman
+                var exsEmp = String(result.getValue({
+                    name : "entity"
+                }));
+                empExisting.push(exsEmp);
+                return true;
+            });
+
+            // ====================================================================
+            // TAMBAHAN VALIDASI: Cek apakah employee sudah ada di empExisting
+            // ====================================================================
+            let isEmployeeExists = false;
+            for (let i = 0; i < employeeItems.length; i++) {
+                let currentEmpId = String(employeeItems[i].employee.nsInternalId);
+                if (empExisting.includes(currentEmpId)) {
+                    isEmployeeExists = true;
+                    break; // Keluar dari loop jika menemukan minimal 1 yang duplikat
+                }
+            }
+
+            if (isEmployeeExists) {
+                const errorMsg = "Salah Satu data employee sudah terbentuk journal";
+                log.audit('Validation Failed', errorMsg);
+                // Langsung submit ke customtransaction_abj_integration_log
+                updateLogStatus(logId, 2, errorMsg); 
+                return; // Hentikan eksekusi, jangan buat Journal Entry baru
+            }
+            // ====================================================================
 
             let jeRecord = record.create({ type: record.Type.JOURNAL_ENTRY, isDynamic: true });
             jeRecord.setValue({ fieldId: 'custbody_stc_journal_type', value: 1 }); 
             jeRecord.setValue({ fieldId: 'trandate', value: parsedEndDate });
             jeRecord.setValue({ fieldId: 'subsidiary', value: 1 });
+            jeRecord.setValue({ fieldId: 'custbody_stc_from_integration', value:true});
+            jeRecord.setValue({fieldId: 'custbody_stc_journal_type', value : "7"})
 
 
             let totalType2 = 0;
@@ -85,13 +161,16 @@ define(['N/record', 'N/file', 'N/search', 'N/log', 'N/runtime', 'N/format'], (re
                 'Provisional Allowance', 'Back Pay', 'PKWT Compensation', 
                 'Ex Employee Allowance', 'Others Deduction', 'PPH 21 Resign', 'PPH 21'
             ];
-            var departMent
+            
+            var departMent;
+            
             employeeItems.forEach(empItem => {
                 const components = empItem.components;
                 const nsEmpId = empItem.employee.nsInternalId;
                 const nsDept = empItem.employee.nsDepartment;
+                
                 if(nsDept){
-                    departMent = nsDept
+                    departMent = nsDept;
                 }
 
                 const allLines = [
@@ -103,6 +182,7 @@ define(['N/record', 'N/file', 'N/search', 'N/log', 'N/runtime', 'N/format'], (re
                 allLines.forEach(line => {
                     if (line.amount <= 0) return; 
                     let mapping = lookupMappingAccount(line.name);
+                    
                     if (mapping) {
                         let side = mapping.side.toLowerCase() === 'debit' ? 'debit' : 'credit';
 
@@ -110,8 +190,9 @@ define(['N/record', 'N/file', 'N/search', 'N/log', 'N/runtime', 'N/format'], (re
                             totalType2 += parseFloat(line.amount);
                             log.debug('penjumlahan JHT', {
                                 mappingName : line.name, amountMapping : line.amount
-                            })
+                            });
                         }
+                        
                         if (targetComponents.indexOf(line.name) !== -1) {
                             if (side === 'debit') {
                                 totalFormula += parseFloat(line.amount);
@@ -119,15 +200,16 @@ define(['N/record', 'N/file', 'N/search', 'N/log', 'N/runtime', 'N/format'], (re
                                 totalFormula -= parseFloat(line.amount);
                             }
                         }
-                        log.debug('nsDept', nsDept)
+                        
                         jeRecord.selectNewLine({ sublistId: 'line' });
                         jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account', value: mapping.accountId });
                         jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: side, value: line.amount });
                         jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'entity', value: nsEmpId });
                         if (nsDept) jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'department', value: nsDept });
                         jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'class', value: 114 });
-                        jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'location', value: 3 });
-                        jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg1', value: 3 });
+                        jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_sof', value: "66" });
+                        jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'location', value: "-1"});
+                        jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg1', value: 2 });
                         jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'memo', value: `${line.name} - ${empItem.employee.employee_name}` });
                         jeRecord.commitLine({ sublistId: 'line' });
                     } else {
@@ -135,32 +217,38 @@ define(['N/record', 'N/file', 'N/search', 'N/log', 'N/runtime', 'N/format'], (re
                     }
                 });
             });
-            log.debug('department', departMent)
-            log.debug('totalType2', totalType2)
+            
+            log.debug('department', departMent);
+            log.debug('totalType2', totalType2);
+            
             if (totalType2 > 0) {
                 jeRecord.selectNewLine({ sublistId: 'line' });
                 jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account', value: 268 }); 
                 jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'credit', value: totalType2 });
                 jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'department', value: departMent });
                 jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'class', value: 114 });
-                jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'location', value: 3 });
-                jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg1', value: 3 });
+                jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_sof', value: "66" });
+                
+                jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'location', value: "-1" });
+                jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg1', value: 2 });
                 jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'memo', value: 'Total JHT' });
                 jeRecord.commitLine({ sublistId: 'line' });
             }
-            log.debug('totalFormula', totalFormula)
+            
+            log.debug('totalFormula', totalFormula);
+            
             if (totalFormula !== 0) {
                 jeRecord.selectNewLine({ sublistId: 'line' })
                 jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account', value: 265 }); 
                 jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'credit', value: Math.abs(totalFormula) });
                 jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'department', value: departMent });
                 jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'class', value: 114 });
-                jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'location', value: 3 });
-                jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg1', value: 3 });
+                jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_sof', value: "66" });
+                jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'location', value: "-1" });
+                jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg1', value: 2 });
                 jeRecord.setCurrentSublistValue({ sublistId: 'line', fieldId: 'memo', value: 'Take Home Pay' });
                 jeRecord.commitLine({ sublistId: 'line' });
             }
-
 
             const jeId = jeRecord.save();
             

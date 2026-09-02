@@ -329,6 +329,7 @@
             
             log.debug('Processed Data', dataPross.length);
             var dataLength = dataPross.length
+            log.debug('dataPross', dataPross)
             var currentRecord = createSublist("custpage_sublist_item", form, dataLength);
             dataPross.forEach((data, i) => {
               var itemName = data.itemName;
@@ -968,7 +969,7 @@
           .addField({
             id: "custpage_sublist_pocust",
             label: "POCust",
-            type: serverWidget.FieldType.TEXT,
+            type: serverWidget.FieldType.TEXTAREA,
           })
           .updateDisplayType({
             displayType: serverWidget.FieldDisplayType.HIDDEN,

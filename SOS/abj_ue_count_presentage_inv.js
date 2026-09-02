@@ -66,12 +66,12 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                             sublistId: 'item',
                             fieldId: 'custcol_sos_disc_amount'
                         }) || 0;
-
+                        log.debug('discAmt', discAmt)
                         var grsAmt = rec.getCurrentSublistValue({
                             sublistId: 'item',
                             fieldId: 'grossamt'
                         }) || 0;
-
+                        log.debug('grsAmt', grsAmt)
                         amountAfterDisc = Number(grsAmt) - Number(discAmt);
 
                         rec.setCurrentSublistValue({
@@ -82,7 +82,7 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                     } else {
                         amountAfterDisc = discountAmountAfter;
                     }
-
+                    log.debug('amountAfterDisc', amountAfterDisc)
                     if (percentage) {
                         var taxRate = Number(
                             rec.getCurrentSublistValue({
@@ -90,9 +90,14 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                                 fieldId: 'taxrate1'
                             })
                         ) || 0;
-
-                        const chargeAmount = (percentage * amountAfterDisc) / 100;
-                        const amountAfterCharge = amountAfterDisc - chargeAmount;
+                        var discHeader1amt = parseFloat(rec.getCurrentSublistValue({
+                            sublistId : 'item',
+                            fieldId : 'custcol_sos_disc_header1_amount'
+                        })) || 0
+                        log.debug('discHeader1amt', discHeader1amt)
+                        const chargeAmount = (percentage * (amountAfterDisc - discHeader1amt)) / 100;
+                        log.debug('chargeAmount', {chargeAmount : chargeAmount, percentage : percentage, amountAfterDisc : amountAfterDisc, discHeader1amt : discHeader1amt})
+                        const amountAfterCharge = amountAfterDisc - chargeAmount - discHeader1amt;
                         const amountAfterChargeExtax =
                             taxRate ? amountAfterCharge / (1 + taxRate / 100) : amountAfterCharge;
 
@@ -125,7 +130,7 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                     }
 
                     rec.commitLine({ sublistId: 'item' });
-}
+                }
 
                 log.debug('totalChargeAMount', totalChargeAmount);
                 if(totalChargeAmount > 0){
@@ -146,7 +151,6 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
 
                     rec.commitLine({ sublistId: 'item' });
                 }
-                // Simpan record hasil update
                 rec.save();
             }
         }catch(e){

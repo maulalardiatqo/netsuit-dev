@@ -4,186 +4,228 @@
  */
 define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, search, file, log) => {
 
-    const WEBSITE_API_URL = 'https://sbapproval.phintraco.com/netsuite/';
+    const WEBSITE_API_URL = 'https://sb.approvalphintraco.com/netsuite/';
 
     const onRequest = (scriptContext) => {
         if (scriptContext.request.method === 'POST') {
             try {
                 const requestData = JSON.parse(scriptContext.request.body);
-                const recId = requestData.recId;
-                const recType = requestData.recType;
-                const action = requestData.action;
+                const { recId, recType, action } = requestData;
 
-                log.debug('Processing ID', `${recId} | Action: ${action}`);
+                log.debug('Main Process', `ID: ${recId} | Action: ${action}`);
 
                 const rec = record.load({ type: recType, id: recId, isDynamic: true });
-                const currentRev = rec.getValue('custbody_abj_revision_code');
-                let nextRevisionCode = 'R1';
-
-                if (currentRev) {
-                    let numberPart = parseInt(currentRev.replace(/\D/g, ''), 10);
-                    
-                    if (!isNaN(numberPart)) {
-                        nextRevisionCode = 'R' + (numberPart + 1);
-                    } else {
-                        nextRevisionCode = 'R1';
-                    }
-                }
-                
-                log.debug('Revision Logic', `Current: ${currentRev} | Next: ${nextRevisionCode}`);
-                let result;
                 let isRecordUpdated = false;
-                log.debug('action', action)
-                if (action == 'recall') {
-                    result = sendRecallData(rec);
-                    
-                    if (result && result.status === 'success_recall') {
-                        rec.setValue({ fieldId: 'custbody_after_recall', value: true });
-                        isRecordUpdated = true;
-                    }
+                let result = {};
 
-                } else if (action == 'submitApp') {
-                    result = sendFullData(rec, 'create');
-                    if (result && result.status === 'success') {
-                        rec.setValue({ fieldId: 'custbody_abj_flag_approval', value: true });
-                        if (result.po_id) { 
+                const currentRev = rec.getValue('custbody_abj_revision_code');
+                const old_id_web = rec.getValue('custbody_id_web') || null;
+                log.debug('currentRev', currentRev)
+                let nextRevCode = currentRev ? 'R' + (parseInt(currentRev.replace(/\D/g, '') || 0) + 1) : 'R1';
+                log.debug('nextRevCode', nextRevCode)
+                switch (action) {
+                    case 'submitApp':
+                        // Create Record baru di website
+                        result = sendFullData(rec, 'create', null, "APPROVAL PROCESS");
+                        if (result.status === 'success' && result.po_id) {
                             rec.setValue({ fieldId: 'custbody_id_web', value: result.po_id });
+                            isRecordUpdated = true;
                         }
-                        isRecordUpdated = true;
-                    }
+                        break;
 
-                } else if (action == 'resubmitData') {
-                    result = sendFullData(rec, 'update');
-
-                    if (result && result.status === 'success_update') {
-                        rec.setValue({ fieldId: 'custbody_after_recall', value: false });
-                        isRecordUpdated = true;
-                    }
-
-                } else if (action == 'resubmitRevission') {
-                    result = sendFullData(rec, 'revission', nextRevisionCode);
-
-                    if (result && result.status === 'success_revission') {
-                        rec.setValue({ fieldId: 'custbody_abj_revision_code', value: nextRevisionCode });
-                        rec.setValue({ fieldId: 'custbody_id_web', value : result.new_po_id})
-                        rec.setValue({ fieldId: 'approvalstatus', value : '1'})
-                        var cekLineApp = rec.getLineCount({
-                            sublistId : 'recmachcustrecord_abj_a_id'
-                        });
-
-                        if (cekLineApp > 0) {
-                            for (var i = 0; i < cekLineApp; i++) {
-                                rec.selectLine({
-                                    sublistId: 'recmachcustrecord_abj_a_id',
-                                    line: i
-                                });
-                                rec.setCurrentSublistValue({
-                                    sublistId: 'recmachcustrecord_abj_a_id',
-                                    fieldId: 'custrecord_abj_status_approve',
-                                    value: '1'
-                                });
-                                rec.commitLine({
-                                    sublistId: 'recmachcustrecord_abj_a_id'
-                                });
-                            }
+                    case 'recall':
+                        // Update status di website menjadi 'DRAFT'
+                        result = sendFullData(rec, 'update', null, 'DRAFT');
+                        if (result.status === 'success' || result.status === 'success_update') {
+                            rec.setValue({ fieldId: 'custbody_after_recall', value: true });
+                            isRecordUpdated = true;
                         }
-                        isRecordUpdated = true;
-                    }
-                } else if(action == 'resubmitApproval'){
-                    log.debug('masuk sini')
-                    result = sendFullData(rec, 'create', null, true);
-                    log.debug('result', result)
-                    if (result && result.status === 'success') {
-                        rec.setValue({ fieldId: 'custbody_abj_flag_approval', value: true });
-                        if (result.po_id) { 
-                            rec.setValue({ fieldId: 'custbody_id_web', value: result.po_id });
+                        break;
+
+                    case 'resubmitApproval':
+                        // Update record yang ada berdasarkan id_web
+                        result = sendFullData(rec, 'update', null, 'APPROVAL PROCESS');
+                        if (result.status === 'success' || result.status === 'success_update') {
                             rec.setValue({ fieldId: 'approvalstatus', value: '1' });
-                            var cekLineApp = rec.getLineCount({
-                                sublistId : 'recmachcustrecord_abj_a_id'
-                            });
-
-                            if (cekLineApp > 0) {
-                                for (var i = 0; i < cekLineApp; i++) {
-                                    // 1. Pilih Baris
-                                    rec.selectLine({
-                                        sublistId: 'recmachcustrecord_abj_a_id',
-                                        line: i
-                                    });
-                                    rec.setCurrentSublistValue({
-                                        sublistId: 'recmachcustrecord_abj_a_id',
-                                        fieldId: 'custrecord_abj_status_approve',
-                                        value: '1'
-                                    });
-                                    rec.commitLine({
-                                        sublistId: 'recmachcustrecord_abj_a_id'
-                                    });
-                                }
-                            }
+                            rec.setValue({ fieldId: 'custbody_after_recall', value: false });
+                            resetApproverLines(rec);
+                            isRecordUpdated = true;
                         }
-                        isRecordUpdated = true;
-                    }
+                        break;
+
+                    case 'resubmitRevission':
+                        // Create Record baru + parameter revision_code
+                        result = sendFullData(rec, 'create', nextRevCode, 'APPROVAL PROCESS', old_id_web);
+                        if (result.status === 'success' || result.status === 'success') {
+                            const newIdWeb = result.new_po_id || result.po_id;
+                            rec.setValue({ fieldId: 'custbody_id_web', value: newIdWeb });
+                            rec.setValue({ fieldId: 'custbody_abj_revision_code', value: nextRevCode });
+                            rec.setValue({ fieldId: 'approvalstatus', value: '1' });
+                            resetApproverLines(rec);
+                            isRecordUpdated = true;
+                        }
+                        break;
                 }
+
                 if (isRecordUpdated) {
-                    rec.save({
-                        enableSourcing: false,
-                        ignoreMandatoryFields: true 
-                    });
-                    log.audit('Record Updated', `Record ${recType} ID ${recId} updated successfully.`);
+                    rec.save({ ignoreMandatoryFields: true });
                 }
+                log.debug('result', result)
                 scriptContext.response.setHeader({ name: 'Content-Type', value: 'application/json' });
                 scriptContext.response.write(JSON.stringify(result));
 
             } catch (e) {
-                log.error('Error in Suitelet', e);
+                log.error('Error Suitelet', e);
                 scriptContext.response.write(JSON.stringify({ status: 'failed', message: e.message }));
             }
         }
     };
-    function sendRecallData(rec) {
-        log.debug('Mode', 'Sending Light Payload (Recall)');
 
-        const payload = {
-            id: rec.id, 
-            id_web: rec.getValue('custbody_id_web'),
-        };
-
-        const response = https.post({
-            url: WEBSITE_API_URL + 'recall',
-            body: JSON.stringify(payload),
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        log.debug('Recall Response', response.body);
-        return JSON.parse(response.body || '{}');
+    /**
+     * RESET SEMUA APPROVER KE STATUS PENDING (1)
+     */
+    function resetApproverLines(rec) {
+        const count = rec.getLineCount({ sublistId: 'recmachcustrecord_abj_a_id' });
+        for (let i = 0; i < count; i++) {
+            rec.selectLine({ sublistId: 'recmachcustrecord_abj_a_id', line: i });
+            rec.setCurrentSublistValue({ sublistId: 'recmachcustrecord_abj_a_id', fieldId: 'custrecord_abj_status_approve', value: '1' });
+            rec.commitLine({ sublistId: 'recmachcustrecord_abj_a_id' });
+        }
     }
 
-    function sendFullData(rec, endpointAction, revisionCode, flaging) {
-        log.debug('Mode', `Sending Heavy Payload (${endpointAction}) with Rev: ${revisionCode}`);
-        const appStatus = rec.getValue('approvalstatus') || '';
-        const created_by = rec.getValue('custbody_abj_creator') || ''; 
-        var created_byToSend = ''
-        if(created_by){
-            recCreated = record.load({
-                type : "customrecord_list_users_web",
-                id : created_by
-            })
-            created_byToSend = recCreated.getValue('custrecord_id_users_web')
+    /**
+     * PENGIRIMAN DATA LENGKAP (REFRACTORED)
+     */
+    function sendFullData(rec, endpointAction, revisionCode, customStatus, old_id_web) {
+        log.debug('old_id_web', old_id_web)
+        // Look up Creator Web ID
+        let created_by_web = '';
+        const creatorNs = rec.getValue('custbody_abj_creator');
+        if (creatorNs) {
+            const lookup = search.lookupFields({
+                type: 'customrecord_list_users_web',
+                id: creatorNs,
+                columns: ['custrecord_id_users_web']
+            });
+            created_by_web = lookup.custrecord_id_users_web;
         }
-        const formC = rec.getText('customform');
-        log.debug('formC', formC)
+        var shipping_address
+        var no_iso
+        var fieldNoIso 
+        var isNoSO = true
+        var subsidiry = rec.getValue('subsidiary')
+        log.debug('subsidiry', subsidiry)
+        if(subsidiry){
+            if(subsidiry == '1' || subsidiry == '4'){
+                var cekKondisi = rec.getValue('custbody6');
+                log.debug('cekKondisi', cekKondisi)
+                if(cekKondisi == '1'){
+                    fieldNoIso = 'custrecord_no_iso_po'
+                }else if(cekKondisi == '2'){
+                    fieldNoIso = 'custrecord_no_iso_po_2'
+                }else{
+                    isNoSO = false
+                }
+            }else if(subsidiry == '6'){
+                var cekKondisi = rec.getValue('custbody_docser_series');
+                if(cekKondisi){
+                    if(cekKondisi.includes('PO/UM/ASP')){
+                        log.debug('masuk sini PO/UM/ASP');
+                        fieldNoIso = 'custrecord_no_iso_po_2'
+                    }else{
+                        fieldNoIso = 'custrecord_no_iso_po'
+                    }
+                }else{
+                     fieldNoIso = 'custrecord_no_iso_po_2'
+                }
+            }else{
+                 fieldNoIso = 'custrecord_no_iso_po'
+            }
+            // untuk no iso 
+            // field : custbody_docser_series, custbody6
+            log.debug('fieldNoIso', fieldNoIso)
+            const subsidiarySearchObj = search.create({
+            type: "subsidiary",
+            filters:
+            [
+                ["internalid","anyof",subsidiry]
+            ],
+            columns:
+            [
+                search.createColumn({
+                    name: "address",
+                    join: "shippingAddress",
+                    label: " Address"
+                }),
+                search.createColumn({name: fieldNoIso, label: "No ISO PO"})
+            ]
+            });
+            const searchResultCount = subsidiarySearchObj.runPaged().count;
+            log.debug("subsidiarySearchObj result count",searchResultCount);
+            subsidiarySearchObj.run().each(function(result){
+                no_iso = result.getValue({
+                    name : fieldNoIso
+                }) || ''
+                shipping_address = result.getValue({
+                    name: "address",
+                    join: "shippingAddress",
+                }) ||  ''
+            return true;
+            });
 
+        }
+        if(isNoSO == false){
+            no_iso = ""
+        }
+        var discountValue
+        var cekDiscount = rec.getValue('custbody14_2');
+        var subtotal = rec.getValue('subtotal')
+        if(cekDiscount && Number(cekDiscount) > 0){
+            discountValue = Number(cekDiscount) - Number(subtotal)
+        }   
+        var bill_address
+        var vendor = rec.getValue('entity')
+        if(vendor){
+            const vendorSearchObj = search.create({
+            type: "vendor",
+            filters:
+            [
+                ["internalid","anyof",vendor]
+            ],
+            columns:
+            [
+                search.createColumn({name: "billaddress", label: "Billing Address"})
+            ]
+            });
+            const searchResultCount = vendorSearchObj.runPaged().count;
+            log.debug("vendorSearchObj result count",searchResultCount);
+            vendorSearchObj.run().each(function(result){
+                bill_address = result.getValue({
+                    name: "billaddress"
+                })
+            return true;
+            });
+        }
+        log.debug('databaru', {
+            shipping_address : shipping_address, no_iso : no_iso, bill_address : bill_address
+        })
         const payload = {
-            id: rec.id,
-            isRevision: rec.getValue('custbody_abj_revision'),
+            // Meta & Parameters
+            action_type: endpointAction, 
+            id_netsuite: rec.id,
+            id_web: rec.getValue('custbody_id_web') || '',
+            codeRevision: revisionCode || rec.getValue('custbody_abj_revision_code') || '',
+            status_override: customStatus || '', // Untuk 'DRAFT' saat recall
+
+            // Header Fields
             tranid: rec.getValue('tranid'),
             vendor: rec.getValue('entity'),
             employee: rec.getValue('employee'),
             date: rec.getValue('trandate'),
-            trandId: rec.getValue('tranid'),
             memo: rec.getValue('memo') || '',
             categoryPo: rec.getValue('custbodykategori_po') || '',
-            product: rec.getValue('custbody17') || '',
-            subProduct: rec.getValue('custbodysub_produk') || '',
+            product: rec.getText('custbody17') || '',
+            subProduct: rec.getText('custbodysub_produk') || '',
             noAf: rec.getText('custbody_po_no_af') || '',
             lineCode: rec.getValue('custbody_po_line_code') || '',
             itemAf: rec.getText('custbody_po_af_item_af') || '',
@@ -194,47 +236,59 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             lineCodeBc: rec.getValue('custbody_p_line_code_bc') || '',
             itemBc: rec.getText('custbody_p_item_bc') || '',
             signPo: rec.getValue('custbody_sign_po') || '',
-            appStatus: appStatus,
             subsidiry: rec.getValue('subsidiary') || '',
-            location: rec.getValue('location') || '',
+            location: rec.getText('location') || '',
             class: rec.getValue('class') || '',
             department: rec.getValue('department') || '',
             currency: rec.getValue('currency') || '',
             exchangeRate: rec.getValue('exchangerate') || '',
             totalAmount: rec.getValue('total'),
-            submission_status: appStatus,
-            id_web: rec.getValue('custbody_id_web') || '',
-            created_by: created_byToSend,
-            codeRevision: revisionCode, 
-            
+            created_by: created_by_web,
             customForm: rec.getValue('customform') || '',
-            series: rec.getValue('custbody_docser_series') || '',
-            refertosc: rec.getValue('custbody_ph_refertosc') || '',
-            refertopr: rec.getValue('custbodycustbody_ph_refertopr') || '',
+            customform_text: rec.getText('customform') || '',
+            series: rec.getText('custbody_docser_series') || '',
+            refertosc: rec.getText('custbody_ph_refertosc') || '',
+            refertopr: rec.getText('custbodycustbody_ph_refertopr') || '',
             budgetcost_period: rec.getText('custbody_bc_period') || '',
             project_segment: rec.getText('cseg1') || '',
-            customform_text : rec.getText('customform') || '',
-            note_pc : rec.getValue('custbody_po_note_pc') || '',
-            note_pc : rec.getValue('custbody_po_note_bc') || '',
+            note_pc: rec.getValue('custbody_po_note_pc') || '',
+            note_bc: rec.getValue('custbody_po_note_bc') || '',
+            old_id_web : old_id_web || '',
+            jenis_po : rec.getText('custbody6') || '',
+            po_term : rec.getText('terms') || '',
+            po_shipment : rec.getText('incoterm') || '',
+            po_duedate : rec.getValue('duedate') ||  '',
+            po_ppn : rec.getValue('taxtotal'),
+            shipping_address : shipping_address || '',
+            no_iso : no_iso || '',
+            bill_address : bill_address || '',
+            subtotal : rec.getValue('subtotal') || '',
+            discount_header : discountValue || '',
+            nextapprover : rec.getText('nextapprover') || '',
+            approve_time : rec.getValue('custbodyph_timestamp') || '',
 
-            
-            action_type: endpointAction, 
-            
+
+            // Sublists & Complex Data
             line_items: getLineItems(rec),
             expenses: getExpenses(rec),
-            approvers: getApprovers(rec, flaging, endpointAction),
+            approvers: getApprovers(rec, (endpointAction === 'create')),
             attachments: getAttachments(rec)
         };
-        log.debug('payload', payload)
+
+        log.debug(`Sending ${endpointAction}`, payload);
+
         const response = https.post({
             url: WEBSITE_API_URL + endpointAction,
             body: JSON.stringify(payload),
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-api-key': 'S3cr3t_K3y_Y4ng_S4ng4t_P4nj4ng_D4n_R4h4s1a'
+             }
         });
-
-        log.debug(`${endpointAction} Response`, response.body);
         return JSON.parse(response.body || '{}');
     }
+
+    // --- HELPER GETTERS (ITEM, EXPENSE, APPROVER, ATTACH) ---
 
     function getLineItems(rec) {
         const lines = [];
@@ -261,7 +315,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                 no_pc: rec.getSublistText({ sublistId: 'item', fieldId: 'custcol_p_line_no_pc', line: i }),
                 item_pc: rec.getSublistText({ sublistId: 'item', fieldId: 'custcol_p_line_item_pc', line: i }),
                 line_code_pc: rec.getSublistValue({ sublistId: 'item', fieldId: 'custcol_p_line_line_code_pc', line: i }),
-                sub_product: rec.getSublistValue({ sublistId: 'item', fieldId: 'custcolsub_produk_line', line: i }),
+                sub_product: rec.getSublistText({ sublistId: 'item', fieldId: 'custcolsub_produk_line', line: i }),
                 descItem: rec.getSublistValue({ sublistId: 'item', fieldId: 'description', line: i }),
                 taxCode: rec.getSublistText({ sublistId: 'item', fieldId: 'taxcode', line: i }),
                 taxRate: rec.getSublistText({ sublistId: 'item', fieldId: 'taxrate1', line: i }),
@@ -292,131 +346,48 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
         return lines;
     }
 
-    function getApprovers(rec, flaging, endpointAction) {
-        var approvers = [];
-        const approvalCount = rec.getLineCount({ sublistId: 'recmachcustrecord_abj_a_id' });
+    function getApprovers(rec, isNew) {
+        const approvers = [];
+        const count = rec.getLineCount({ sublistId: 'recmachcustrecord_abj_a_id' });
         
-        var minGroupVal = null;
-        if (endpointAction === 'create') {
-            for (let j = 0; j < approvalCount; j++) {
-                let currentGroup = rec.getSublistValue({
-                    sublistId: 'recmachcustrecord_abj_a_id',
-                    fieldId: 'custrecord_approval_group',
-                    line: j
-                });
-                let val = parseInt(currentGroup);
-                if (!isNaN(val)) {
-                    if (minGroupVal === null || val < minGroupVal) {
-                        minGroupVal = val;
-                    }
-                }
+        let minGroup = null;
+        if (isNew) {
+            for (let j = 0; j < count; j++) {
+                let g = parseInt(rec.getSublistValue({ sublistId: 'recmachcustrecord_abj_a_id', fieldId: 'custrecord_approval_group', line: j }));
+                if (minGroup === null || g < minGroup) minGroup = g;
             }
         }
 
-        var approvalNo = 1;
-        for (let i = 0; i < approvalCount; i++) {
-            var appId = rec.getSublistValue({
-                sublistId: 'recmachcustrecord_abj_a_id',
-                fieldId: 'custrecord_abj_user_need_approval',
-                line: i
-            });
-            
-            var appGroup = rec.getSublistValue({
-                sublistId : 'recmachcustrecord_abj_a_id',
-                fieldId : 'custrecord_approval_group',
-                line : i
-            });
-
-            let userId = '';
-            try {
-                if (appId) {
-                    var lookupF = search.lookupFields({
-                        type: "customrecord_list_users_web",
-                        id: appId,
-                        columns: ["custrecord_id_users_web"],
-                    });
-                    userId = lookupF.custrecord_id_users_web;
-                }
-            } catch(e) {
-                log.error("Lookup Approver Error", e.message);
+        for (let i = 0; i < count; i++) {
+            const appNsId = rec.getSublistValue({ sublistId: 'recmachcustrecord_abj_a_id', fieldId: 'custrecord_abj_user_need_approval', line: i });
+            let webUserId = '';
+            if (appNsId) {
+                const look = search.lookupFields({ type: 'customrecord_list_users_web', id: appNsId, columns: ['custrecord_id_users_web'] });
+                webUserId = look.custrecord_id_users_web;
             }
 
-            let statusKirim = '';
-            log.debug('cek data', {
-                endpointAction : endpointAction,
-                flaging : flaging
-            })
-
-            if (endpointAction === 'create') {
-                if (minGroupVal !== null && parseInt(appGroup) === minGroupVal) {
-                    statusKirim = '1';
-                } else {
-                    statusKirim = ''; 
-                }
-            } else if(endpointAction === 'revission'){
-                log.debug('resubmit revission', {
-                    endpointAction : endpointAction
-                })
-                if (minGroupVal !== null && parseInt(appGroup) === minGroupVal) {
-                    statusKirim = '1';
-                } else {
-                    statusKirim = ''; 
-                }
-            } else if (flaging === true) {
-                statusKirim = '1';
-            } else {
-                statusKirim = rec.getSublistValue({ 
-                    sublistId: 'recmachcustrecord_abj_a_id', 
-                    fieldId: 'custrecord_abj_status_approve', 
-                    line: i 
-                });
-            }
+            let group = parseInt(rec.getSublistValue({ sublistId: 'recmachcustrecord_abj_a_id', fieldId: 'custrecord_approval_group', line: i }));
 
             approvers.push({
-                po_id: rec.id,
-                user_approver: userId,
-                status_approve: statusKirim,
-                tgl_approve: rec.getSublistValue({ sublistId: 'recmachcustrecord_abj_a_id', fieldId: 'custrecord_abj_tgl_appprove', line: i }),
-                approval_group: appGroup,
-                approval_no: approvalNo
+                user_approver: webUserId,
+                approval_group: group,
+                status_approve: (isNew && group === minGroup) ? '1' : rec.getSublistValue({ sublistId: 'recmachcustrecord_abj_a_id', fieldId: 'custrecord_abj_status_approve', line: i }),
+                approval_no: i + 1
             });
-            
-            approvalNo++;
         }
-        log.debug('approvers', approvers)
         return approvers;
     }
 
     function getAttachments(rec) {
-        var files = [];
-        const attachCount = rec.getLineCount({ sublistId: 'recmachcustrecord_a_id' });
-        for (let i = 0; i < attachCount; i++) {
-            const fileId = rec.getSublistValue({
-                sublistId: 'recmachcustrecord_a_id',
-                fieldId: 'custrecord_a_attachment',
-                line: i
-            });
-            const desc = rec.getSublistValue({
-                sublistId: 'recmachcustrecord_a_id',
-                fieldId: 'custrecord_abj_a_keterangan',
-                line: i
-            });
-            
-            if (!fileId) continue;
-
-            try {
-                const fileObj = file.load({ id: fileId });
-                const fileContent = fileObj.getContents();
-
-                files.push({
-                    id: fileId,
-                    name: fileObj.name,
-                    type: fileObj.fileType,
-                    content: fileContent,
-                    desc: desc
-                });
-            } catch (e) {
-                log.error('Failed to load file', `File ID: ${fileId} | ${e.message}`);
+        const files = [];
+        const count = rec.getLineCount({ sublistId: 'recmachcustrecord_a_id' });
+        for (let i = 0; i < count; i++) {
+            const fId = rec.getSublistValue({ sublistId: 'recmachcustrecord_a_id', fieldId: 'custrecord_a_attachment', line: i });
+            if (fId) {
+                try {
+                    const fObj = file.load({ id: fId });
+                    files.push({ name: fObj.name, type: fObj.fileType, content: fObj.getContents() });
+                } catch (e) { log.error('File Load Error', e); }
             }
         }
         return files;

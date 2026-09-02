@@ -13,9 +13,6 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
         var records = currentRecord.get();
         var recId = records.id;
 
-        console.log('recId', recId);
-        console.log('transType', transType);
-
         if (!recId) return [];
 
         var recLoad = record.load({
@@ -32,8 +29,6 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
         var cekLine = recLoad.getLineCount({
             sublistId: 'recmachcustrecord_tori_id'
         });
-
-        console.log('cekLine', cekLine);
 
         var dataTransform = [];
         var linkedTrxIds = [];
@@ -101,7 +96,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                         sublistId: 'recmachcustrecord_tori_id',
                         fieldId: 'id',
                         line: i
-                    })
+                    });
 
                     var lineData = {
                         noTor : noTor,
@@ -123,9 +118,8 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                         projectCode: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_project_code', line: i }),
                         sof: recLoad.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tori_source_of_funding', line: i }),
                         bussinessUnit: recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_business_unit', line : i }),
-                        idLine : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'id', line : i }),
                         activityCode : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_activity_code', line : i }),
-                        description : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_description', line : i }),
+                        description : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_description', line : i }) || "",
                         unitCost : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_unit_cost', line : i }),
                         qty : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_quantity', line : i }),
                         uom : recLoad.getSublistValue({ sublistId : 'recmachcustrecord_tori_id', fieldId : 'custrecord_tor_uom', line : i }),
@@ -136,9 +130,6 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                     var groupKey = (transType != '2') ? (idLine ? idLine.toString() : '') : (sof ? sof.toString() : '');
 
                     if (groupKey) {
-                        console.log('amount', amount);
-                        console.log('allocated', allocated);
-
                         if (!groupingTorAmountMap[groupKey]) groupingTorAmountMap[groupKey] = 0;
                         groupingTorAmountMap[groupKey] += amount;
                         groupingAllocatedAmountMap[groupKey] = allocated;
@@ -164,27 +155,41 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
                         itemData.custcol_amount_limit_from_tor = remainingBudget; 
                         itemData.linkedTrxIds = linkedTrxIds;
                         dataTransform.push(itemData);
-                    } else {
-                        console.log('Group Key ' + groupKey + ' dilewati karena budget sudah habis / 0.');
                     }
                 }
             }
         }
-        
-        console.log('dataTransform Final Result:', dataTransform);
         return dataTransform;
+    }
+
+    function storeInTempRecord(dataParams, transType) {
+        // Buat record penampung sementara di server NetSuite
+        var tempRec = record.create({
+            type: 'customrecord_temporary_data_transfer',
+            isDynamic: true
+        });
+
+        tempRec.setValue({
+            fieldId: 'custrecord_temp_json_data',
+            value: JSON.stringify(dataParams)
+        });
+
+        var tempRecId = tempRec.save();
+        
+        return 'temp_id_' + tempRecId;
     }
     
     function transformPO(){
+        console.log('transformPO terpanggil')
         var dataParams = getData('1');
-        console.log('dataParams', dataParams);
-        var dataParamsString = JSON.stringify(dataParams);
+        var paramValue = storeInTempRecord(dataParams, '1'); 
+        
         var createURL = url.resolveRecord({
             recordType: "purchaseorder",
             isEditMode: true,
             params: {
                 cf: 130,  
-                dataParamsString : dataParamsString
+                dataParamsString : paramValue 
             },
         });
         window.open(createURL, "_blank");
@@ -192,50 +197,50 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
 
     function transformPR(){
         var dataParams = getData('3');
-        var dataParamsString = JSON.stringify(dataParams);
-        console.log('dataParamsString', dataParamsString);
+        var paramValue = storeInTempRecord(dataParams, '3');
+        
         var createURL = url.resolveRecord({
             recordType: "purchaserequisition",
             isEditMode: true,
-            params: { dataParamsString },
+            params: { dataParamsString: paramValue },
         });
         window.open(createURL, "_blank");
     }
 
     function transformTar(){
         var dataParams = getData('4');
-        var dataParamsString = JSON.stringify(dataParams);
-        console.log('dataParamsString', dataParamsString);
+        var paramValue = storeInTempRecord(dataParams, '4');
+        
         var createURL = url.resolveRecord({
             recordType: "customrecord_tar",
             isEditMode: true,
-            params: { dataParamsString },
+            params: { dataParamsString: paramValue },
         });
         window.open(createURL, "_blank");
     }
 
     function transformExp(){
         var dataParams = getData('2');
-        console.log('dataParams', dataParams);
-        var dataParamsString = JSON.stringify(dataParams);
+        var paramValue = storeInTempRecord(dataParams, '2');
+        
         var createURL = url.resolveRecord({
             recordType: "expensereport",
             isEditMode: true,
-            params: { dataParamsString },
+            params: { dataParamsString: paramValue },
         });
         window.open(createURL, "_blank");
     }
 
     function transformPoVen(){
         var dataParams = getData('5');
-        console.log('dataParams', dataParams);
-        var dataParamsString = JSON.stringify(dataParams);
+        var paramValue = storeInTempRecord(dataParams, '5');
+        
         var createURL = url.resolveRecord({
             recordType: "purchaseorder",
             isEditMode: true,
             params: { 
                 cf: 130, 
-                dataParamsString: dataParamsString 
+                dataParamsString: paramValue 
             },
         });
         window.open(createURL, "_blank");

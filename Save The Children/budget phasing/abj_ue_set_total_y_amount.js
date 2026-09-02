@@ -15,45 +15,58 @@ define(['N/record', 'N/log'], (record, log) => {
             const objRecord = record.load({
                 type: newRecord.type,
                 id: newRecord.id,
-                isDynamic: true
+                isDynamic: false 
             });
 
             const sublistId = 'recmachcustrecord_stc_prj_budg_link';
             const lineCount = objRecord.getLineCount({ sublistId: sublistId });
 
             if (lineCount <= 0) return;
-
+            var totalAll = 0
             for (let i = 0; i < lineCount; i++) {
-                objRecord.selectLine({ sublistId: sublistId, line: i });
+                
+                let grandTotal = 0; 
 
                 for (let year = 1; year <= 5; year++) {
                     let yearTotal = 0;
                     const startPeriod = ((year - 1) * 12) + 1;
                     const endPeriod = year * 12;
-
                     for (let period = startPeriod; period <= endPeriod; period++) {
-                        const periodValue = Number(objRecord.getCurrentSublistValue({
+                        const periodValue = Number(objRecord.getSublistValue({
                             sublistId: sublistId,
-                            fieldId: `custrecord_prj_budg_line_period_${period}`
+                            fieldId: `custrecord_prj_budg_line_period_${period}`,
+                            line: i
                         })) || 0;
 
                         yearTotal += periodValue;
                     }
-
-                    objRecord.setCurrentSublistValue({
+                    
+                    objRecord.setSublistValue({
                         sublistId: sublistId,
                         fieldId: `custrecord_stc_budg_phase_totaly${year}`,
-                        value: yearTotal,
-                        ignoreFieldChange: true
+                        line: i,
+                        value: yearTotal
                     });
+
+                    grandTotal += yearTotal;
                 }
+                log.debug('grandTotal', grandTotal)
+                objRecord.setSublistValue({
+                    sublistId: sublistId,
+                    fieldId: 'custrecord_stc_total_amount_budget_phase',
+                    line: i,
+                    value: grandTotal
+                });
+                totalAll = Number(totalAll) + Number(grandTotal)
 
-                objRecord.commitLine({ sublistId: sublistId });
             }
-
+            objRecord.setValue({
+                fieldId : "custrecord_stc_total_draft_prj_budg",
+                value : totalAll
+            })
             objRecord.save({
                 enableSourcing: true,
-                ignoreMandatoryFields: true
+                ignoreMandatoryFields: true 
             });
 
         } catch (e) {

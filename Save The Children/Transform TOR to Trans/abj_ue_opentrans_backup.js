@@ -218,6 +218,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     value     : 2,
                     ignoreFieldChange: true
                 });
+                createPO.setSublistValue({
+                    sublistId : 'item',
+                    fieldId   : 'custcolid_line_tor',
+                    line      : indexL,
+                    value     : data[i].idLine
+                })
                 var cekAsset = createPO.getSublistValue({
                     sublistId : 'item',
                     fieldId : 'custcol_stc_asset',
@@ -444,7 +450,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     line      : indexL,
                     value     : data[i].project
                 });
-
+                createPO.setSublistValue({
+                    sublistId : 'item',
+                    fieldId   : 'custcolid_line_tor',
+                    line      : indexL,
+                    value     : data[i].idLine
+                })
                 log.debug('before commit')  
                 indexL++;
             }
@@ -634,7 +645,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     sublistId : 'item',
                     fieldId : 'estimatedrate',
                     line : indexL,
-                    value : data[i].amount
+                    value : data[i].unitCost
                 })
                 createPr.setSublistValue({
                     sublistId : 'item',
@@ -754,6 +765,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                     enableSourcing : false,
                     ignoreFieldChange : true
                 });
+                createPr.setSublistValue({
+                    sublistId : 'item',
+                    fieldId   : 'custcolid_line_tor',
+                    line      : indexL,
+                    value     : data[i].idLine
+                })
                 indexL ++;
 
             }
@@ -801,6 +818,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             var expAcc = null;
 
             if (rowData.item) {
+                log.debug('idLine', rowData.idLine)
                 var itemSearchObj = search.create({
                     type: "item",
                     filters: [["internalid", "anyof", rowData.item]],
@@ -867,6 +885,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
             if (rowData.projectCode) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tare_project_code', line: i, value: rowData.projectCode });
             if (rowData.bussinessUnit) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_ter_business_unit', line: i, value: rowData.bussinessUnit });
             if (rowData.activityCode) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tar_activity_code', line: i, value: rowData.activityCode });
+             if (rowData.idLine) createTar.setSublistValue({ sublistId: sublistId, fieldId: 'custrecord_id_item_form_tar', line: i, value: rowData.idLine });
             
         }
          createTar.setValue({
@@ -956,7 +975,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 typeToCheck = (cekCustomForm == '3') ? '5' : '1';
                 lineSublistId = 'item';
                 amountFieldId = 'amount';
-                sofFieldId = 'customer';
+                sofFieldId = 'custcolid_line_tor';
             } else if (recType == 'expensereport') {
                 typeToCheck = '2';
                 lineSublistId = 'expense';
@@ -966,12 +985,12 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 typeToCheck = '3';
                 lineSublistId = 'item';
                 amountFieldId = 'estimatedamount';
-                sofFieldId = 'customer';
+                sofFieldId = 'custcolid_line_tor';
             } else {
                 typeToCheck = '4'; 
                 lineSublistId = 'recmachcustrecord_tar_e_id'; 
                 amountFieldId = 'custrecord_tare_amount'; 
-                sofFieldId = 'custrecord_tare_donor'; 
+                sofFieldId = 'custrecord_id_item_form_tar'; 
             }
 
             var cekIdTOR = rec.getValue('custbody_id_to');
@@ -1014,7 +1033,17 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 for (var i = 0; i < torLineCount; i++) {
                     var torTxType = recLoadTOR.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tor_transaction_type', line: i });
                     var torSof = recLoadTOR.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tor_project', line: i });
-
+                    
+                    if(torTxType != '2'){
+                        var torSof = recLoadTOR.getSublistValue({ 
+                            sublistId: 'recmachcustrecord_tori_id', 
+                            fieldId: 'id', 
+                            line: i 
+                        });
+                    }
+                    log.debug('currentRecordSummaryMap', currentRecordSummaryMap[String(torSof)])
+                    log.debug('torTxType', torTxType)
+                    log.debug('typeToCheck', typeToCheck)
                     if (torTxType == typeToCheck && currentRecordSummaryMap[String(torSof)] !== undefined) {
                         var fieldToSet = (torTxType == '4') ? 'custrecord_tor_link_tar' : 'custrecord_tor_link_trx_no';
                         log.debug('fieldToSet', fieldToSet)
@@ -1058,7 +1087,13 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                 for (var i = 0; i < torLineCount; i++) {
                     var torTxType = recLoadTOR.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tor_transaction_type', line: i });
                     var torSof = recLoadTOR.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_tor_project', line: i });
-
+                    if(torTxType != '2'){
+                        var torSof = recLoadTOR.getSublistValue({ 
+                            sublistId: 'recmachcustrecord_tori_id', 
+                            fieldId: 'id', 
+                            line: i 
+                        });
+                    }
                     if (torTxType == typeToCheck) {
                         var fieldToSet = (torTxType == '4') ? 'custrecord_tor_link_tar' : 'custrecord_tor_link_trx_no';
                         var existingValues = recLoadTOR.getSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: fieldToSet, line: i }) || [];
@@ -1076,7 +1111,7 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/currency", 
                             var updatedAllocated = currentAllocated - oldSofAmt + newSofAmt;
                             recLoadTOR.setSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: 'custrecord_amount_allocated', line: i, value: updatedAllocated });
                             isChangedTOR = true;
-                        } else {n
+                        } else {
                             if (existingValues.indexOf(idRec.toString()) > -1) {
                                 var updatedValues = existingValues.filter(function(val) { return val != idRec.toString(); });
                                 recLoadTOR.setSublistValue({ sublistId: 'recmachcustrecord_tori_id', fieldId: fieldToSet, line: i, value: updatedValues });

@@ -30,21 +30,21 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
             var countLine = item.countLabel;
            
             var itemName = item.itemName
-            var charCount = itemName.length;
-            if (charCount > 25) {
-                itemName = itemName.substring(0, 25); 
-                log.debug('Trimmed itemName', itemName);
-            }
+            // var charCount = itemName.length;
+            // if (charCount > 40) {
+            //     itemName = itemName.substring(0, 40); 
+            //     log.debug('Trimmed itemName', itemName);
+            // }
             itemName = escapeXmlSymbols(itemName)
             log.debug('itemName', itemName)
             for (var i = 0; i < countLine; i++) {
                 xml += '<pdf>';
                 xml += '<head>';
                 xml += '<style type="text/css">';
-                xml += 'body {font-family: sans-serif; margin: 0; font-size:8pt; padding: 1mm 1mm 1mm 1mm; width: 60mm; height: 40mm;}';
+                xml += 'body {font-family: sans-serif; margin: 0; font-size:8pt; padding: 1mm 1mm 1mm 1mm; width: 55mm; height: 35mm;}';
                 xml += 'table {border-collapse: collapse;}'; 
                 xml += 'td {padding: 0; vertical-align: middle;}'; 
-                xml += '.green {/* green */ height: 28.57%; font-size: 8pt; text-align: center; font-weight:bold;}';
+                xml += '.green {/* green */ height: 28.57%; font-size: 8pt; align: center; font-weight:bold;}';
                 xml += '.yellow { /* yellow */ height: 71.43%; font-size: 14pt; padding: 0mm; font-weight:bold;}';
                 xml += '.itemName {font-size: 12pt; font-weight:bold;}';
                 xml += '</style>';
@@ -57,22 +57,34 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
                 xml += item.internalID + ' / ' + item.upcCode + ' / ' + formatDate(new Date()) + ' <br/>';
                 xml += '</td>';
                 xml += '</tr>';
-                xml += '<tr>'
-                xml += '<td class="green" style="align:center; font-size:10pt; font-weight:bold;">' + itemName + '</td>';
+                xml += '<tr>';
+                xml += '<td><p style="align:center; font-size:8pt; font-weight:bold; margin:0;">' + itemName + '</p></td>';
                 xml += '</tr>';
                 xml += '<tr style="height:5%">';
                 xml += '</tr>';
                 xml += '<tr style="height:15%">';
                 xml += '<td class="yellow">';
-                item.rangeHarga.forEach(function (hargaItem) {
+                // item.rangeHarga.forEach(function (hargaItem) {
                     
+                //     var batasVolume = hargaItem.batasVolume == 0 ? 1 : hargaItem.batasVolume;
+                //     xml += '<table width="100%" height="71.43%" cellpadding="0" cellspacing="0" style="font-size:10pt;">';
+                //     xml += '<tr>';
+                //     xml += '<td style="width:4%; "></td>';
+                //     xml += '<td style="width:59%; align:Left; font-size:12pt"> Rp. ' + new Intl.NumberFormat('id-ID').format(Number(removeDecimalFormat(hargaItem.harga))) + '</td>';
+                //     xml += '<td style="width:2%;"></td>';
+                //     xml += '<td style="width:35%; padding-left:3mm; font-size:10pt">' + batasVolume + ' PCS</td>';
+                //     xml += '<td style="width:5%;"></td>';
+                //     xml += '</tr>';
+                //     xml += '</table>';
+                // });
+                item.rangeHarga.slice(0, 3).forEach(function (hargaItem) {
                     var batasVolume = hargaItem.batasVolume == 0 ? 1 : hargaItem.batasVolume;
-                    xml += '<table width="100%" height="71.43%" cellpadding="0" cellspacing="0" style="font-size:12pt;">';
+                    xml += '<table width="100%" height="71.43%" cellpadding="0" cellspacing="0" style="font-size:10pt;">';
                     xml += '<tr>';
-                    xml += '<td style="width:5%; "></td>';
-                    xml += '<td style="width:45%; align:Left;"> Rp. ' + removeDecimalFormat(hargaItem.harga) + '</td>';
-                    xml += '<td style="width:15%;"></td>';
-                    xml += '<td style="width:30%; padding-left:3mm; font-size:12pt">' + batasVolume + ' PCS</td>';
+                    xml += '<td style="width:4%; "></td>';
+                    xml += '<td style="width:59%; align:Left; font-size:12pt"> Rp. ' + new Intl.NumberFormat('id-ID').format(Number(removeDecimalFormat(hargaItem.harga))) + '</td>';
+                    xml += '<td style="width:2%;"></td>';
+                    xml += '<td style="width:35%; padding-left:3mm; font-size:10pt">' + batasVolume + ' PCS</td>';
                     xml += '<td style="width:5%;"></td>';
                     xml += '</tr>';
                     xml += '</table>';
@@ -113,3 +125,4 @@ define(["N/ui/serverWidget", "N/search", "N/record", "N/url", "N/runtime", "N/cu
         onRequest: onRequest,
     };
 });
+    

@@ -154,7 +154,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message, d
             recCreate.setValue({ fieldId: "custrecord43", value: donorCategor || ''})
 
             var sofId = recCreate.save();
-
+            console.log('sofId', sofId)
             processMsg.hide();
 
             if (sofId) {

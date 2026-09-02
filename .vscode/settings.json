@@ -1,0 +1,5 @@
+{
+    "suitecloud.developerAssistant.enable": true,
+    "suitecloud.developerAssistant.authID": "stc-sandbox",
+    "suitecloud.developerAssistant.disableWelcomeNotification": true
+}
