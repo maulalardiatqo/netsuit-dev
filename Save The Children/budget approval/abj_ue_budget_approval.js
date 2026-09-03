@@ -4,13 +4,14 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/url", "N/https"], function(
+define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/url", "N/https", "N/task"], function(
     record,
     search,
     serverWidget,
     runtime,
     url,
-    https
+    https,
+    task
     ) {
 function beforeLoad(context) {
         if(context.type == context.UserEventType.VIEW){
@@ -538,6 +539,12 @@ function beforeLoad(context) {
                     if (isAllApprovedFA()) {
                         recLoad.setValue({ fieldId: 'custbody_stc_approved_by_finance', value: true });
                         log.debug('Header', 'Semua line approved -> approvalstatusFA = 2');
+                        if(typeRec == 'expensereport'){
+                            recLoad.setValue({
+                                fieldId : "approvalstatus",
+                                value : "2"
+                            })
+                        }
                     } else {
                         log.debug('Header', 'Masih ada line belum approved FA');
                     }
@@ -733,13 +740,751 @@ function beforeLoad(context) {
             //     rec.save({ ignoreMandatoryFields: true });
                 
             // }
-
-
+           
+          //add by Kurnia 24 may 2026
+          log.debug('script Kurnia','==START==')
+           setBalancePartner(context)
+          log.debug('script Kurnia','==END==')
         
         } catch (e) {
             log.error('Error in afterSubmit', e);
         }
     }
+
+  function setBalancePartner(context) {
+        var newRec = context.newRecord;
+        log.debug('approval newRec', newRec.getValue('approvalstatus'))
+        var oldRec = context.oldRecord;
+        log.debug('context.type after submit', context.type)
+
+        try {
+
+            if (context.type === 'create' || context.type === 'edit') {
+                var recId = context.newRecord.id;
+                var recType = context.newRecord.type;
+
+              if(recType != 'expensereport'){
+                return;
+              }
+
+                var rec = record.load({
+                    type: recType,
+                    id: recId,
+                    isDynamic: true
+                });
+
+                var expType = rec.getValue('custbody_stc_expense_report_type')
+                var employee = rec.getValue('entity')
+                var apprStat = rec.getValue('approvalstatus')
+                var apprStatOld = oldRec.getValue('approvalstatus')
+                var setCurrency = rec.getValue('expensereportcurrency');
+                var setCostCenter = rec.getValue('department')
+                var setProjectCode = rec.getValue('class')
+                var status = rec.getValue('status')
+                log.debug('status', status)
+                var statusRef = rec.getValue('statusRef') || ''
+                log.debug('statusRef', statusRef)
+                var statusref = rec.getValue('statusref') || ''
+                log.debug('statusref', statusref)
+                var approvalByBudgetHolder = rec.getValue('custbody_stc_approval_budget_holder')
+                log.debug('approvalByBudgetHolder', approvalByBudgetHolder)
+                var approvalByBudgetHolderOld = oldRec.getValue('custbody_stc_approval_budget_holder')
+                log.debug('approvalByBudgetHolderOld', approvalByBudgetHolderOld)
+                var approvalByFinance = rec.getValue('custbody_stc_approved_by_finance')
+                log.debug('approvalByFinance', approvalByFinance)
+              
+                if (approvalByBudgetHolder == true) {
+                    apprStat = 2
+                } else {
+                    apprStat = 1
+                }
+
+                if (approvalByBudgetHolderOld == true) {
+                    apprStatOld = 2
+                } else {
+                    apprStatOld = 1
+                }
+
+                var customForm = rec.getValue('customform')
+                if (Number(customForm) != 139) {
+                    log.debug('customform', 'custom form is not for partner')
+                    return
+                }
+                if (Number(expType) != 2) {
+                    log.debug('expense type', ' exptype is not realization')
+                    //add 26 May 2026 set installment dan spending update
+                    if (approvalByFinance == true) {
+                        try {
+                            let scheduledTask = task.create({
+                                taskType: task.TaskType.SCHEDULED_SCRIPT,
+                                scriptId: 'customscript_abj_set_ins_spend_ss',
+                                deploymentId: 'customdeploy_abj_set_ins_spend_ss',
+                                params: {
+                                    custscript_param_emp_id: employee
+                                }
+                            });
+
+                            let taskId = scheduledTask.submit();
+                            log.audit('Scheduled Script Triggered', 'Task ID: ' + taskId);
+                        } catch (e) {
+                            log.error('Error triggering Scheduled Script', e);
+                        }
+                    }
+                    return
+                }
+                var linkCa = rec.getValue('custbody_stc_link_expense_report_prtnr')
+
+                //get segment
+                const expensereportSearchObj = search.create({
+                    type: "expensereport",
+                    filters:
+                        [
+                            ["type", "anyof", "ExpRept"],
+                            "AND",
+                            ["mainline", "is", "F"],
+                            "AND",
+                            ["cogs", "is", "F"],
+                            "AND",
+                            ["customform", "anyof", "139"],
+                            "AND",
+                            ["internalid", "anyof", linkCa]
+                        ],
+                    columns:
+                        [
+                            search.createColumn({ name: "amount", label: "Amount" }),
+                            search.createColumn({ name: "line.cseg_stc_sof", label: "Source of Funding" }),
+                            search.createColumn({ name: "line.cseg_stc_segmentdea", label: "DEA Segment" }),
+                            search.createColumn({ name: "line.cseg_stc_drc_segmen", label: "DRC Segment" }),
+                            search.createColumn({ name: "projecttask", label: "Project Task" }),
+                            'entity', 'class', 'department'
+                        ]
+                });
+
+                var dataCashAdvance = []
+
+                var searchResult = expensereportSearchObj.run().getRange({
+                    start: 0,
+                    end: 1
+                });
+
+                if (searchResult && searchResult.length > 0) {
+                    var result = searchResult[0];
+                    log.debug('result', result)
+
+                    dataCashAdvance.push({
+                        setCustomer: result.getValue('entity'),
+                        setDeaActivity: result.getValue({ name: "projecttask" }),
+                        setSof: result.getValue({ name: "line.cseg_stc_sof" }),
+                        setDrc: result.getValue({ name: "line.cseg_stc_drc_segmen" }),
+                        setDea: result.getValue({ name: "line.cseg_stc_segmentdea" }),
+                        setClass: result.getValue({ name: "class" }),
+                        setDept: result.getValue({ name: "department" })
+                    })
+
+                }
+                log.debug('dataCashAdvance', dataCashAdvance)
+
+                //check partner or employee
+                var empRec = search.lookupFields({
+                    type: 'employee',
+                    id: employee,
+                    columns: ['custentity_stc_employee_type', 'custentity_sos_adv_partner_balance']
+                })
+
+                var empType;
+                if (empRec.custentity_stc_employee_type.length > 0) {
+                    empType = empRec.custentity_stc_employee_type[0].value || ''
+                }
+
+
+                //cek remaining
+                // var lookupEmp = search.lookupFields({
+                //     type: 'employee',
+                //     id: employee,
+                //     columns: ['custentity_sos_adv_partner_balance']
+                // })
+
+                var remaining = empRec.custentity_sos_adv_partner_balance || 0
+                remaining = parseFloat(remaining)
+                log.debug('remaining', remaining)
+                //
+
+                var lineCount = rec.getLineCount({ sublistId: 'expense' })
+
+                /////==============================================
+
+                if (context.type == 'create') {
+                    //just add line
+                    if (expType == 2 && empType == 2) {
+                        var totalAmountLine = 0
+
+                        for (var i = 0; i < lineCount; i++) {
+                            var amount = rec.getSublistValue({
+                                sublistId: 'expense',
+                                fieldId: 'amount',
+                                line: i
+                            });
+                            totalAmountLine += parseFloat(amount)
+                        }
+
+                        totalAmountLine = parseFloat(totalAmountLine)
+                        var setAmount = totalAmountLine
+                        if (totalAmountLine > remaining) {
+                            setAmount = remaining
+                        }
+
+                        //add new line
+                        rec.selectNewLine({ sublistId: 'expense' });
+                        rec.setCurrentSublistValue({
+                            sublistId: 'expense',
+                            fieldId: 'category',
+                            value: 10
+                        });
+                        rec.setCurrentSublistValue({
+                            sublistId: 'expense',
+                            fieldId: 'currency',
+                            value: setCurrency
+                        });
+                        rec.setCurrentSublistValue({
+                            sublistId: 'expense',
+                            fieldId: 'amount',
+                            value: -1 * parseFloat(setAmount)
+                        });
+                        //
+                        rec.setCurrentSublistValue({
+                            sublistId: 'expense',
+                            fieldId: 'customer',
+                            value: dataCashAdvance[0].setCustomer
+                        });
+                        rec.setCurrentSublistValue({
+                            sublistId: 'expense',
+                            fieldId: 'department',
+                            value: dataCashAdvance[0].setDept
+                        });
+                        rec.setCurrentSublistValue({
+                            sublistId: 'expense',
+                            fieldId: 'class',
+                            value: dataCashAdvance[0].setClass
+                        });
+                        rec.setCurrentSublistValue({
+                            sublistId: 'expense',
+                            fieldId: 'projecttask',
+                            value: dataCashAdvance[0].setDeaActivity
+                        });
+                        if(dataCashAdvance[0].setSof){
+                            rec.setCurrentSublistValue({
+                                sublistId: 'expense',
+                                fieldId: 'cseg_stc_sof',
+                                value: dataCashAdvance[0].setSof
+                            });
+                            rec.setCurrentSublistValue({
+                                sublistId: 'expense',
+                                fieldId: 'cseg_stc_drc_segmen',
+                                value: dataCashAdvance[0].setDrc
+                            });
+                            rec.setCurrentSublistValue({
+                                sublistId: 'expense',
+                                fieldId: 'cseg_stc_segmentdea',
+                                value: dataCashAdvance[0].setDea
+                            });
+                        }
+                        //
+                        rec.commitLine({ sublistId: 'expense' });
+                        log.debug('add', 'addnewline')
+                    }
+
+                }
+
+                var setBalance = 0
+                if (context.type == 'edit') {
+                    if (expType == 2 && empType == 2) { //realization & partner emoloyee
+
+                        var currentPartnerAmount = 0
+                        var currentItemAmount = 0
+                        var isLinePartner;
+                        var linePartner;
+                        for (var j = 0; j < lineCount; j++) {
+                            var categ = rec.getSublistValue({
+                                sublistId: 'expense',
+                                fieldId: 'category',
+                                line: j
+                            })
+                            var amt = rec.getSublistValue({
+                                sublistId: 'expense',
+                                fieldId: 'amount',
+                                line: j
+                            })
+                            if (categ == 10) {
+                                currentPartnerAmount += parseFloat(amt)
+                                isLinePartner = true
+                                linePartner = j
+                            } else {
+                                currentItemAmount += parseFloat(amt)
+                            }
+                        }
+                        currentPartnerAmount = parseFloat(currentPartnerAmount)
+                        currentItemAmount = parseFloat(currentItemAmount)
+                        log.debug('currentPartnerAmount', currentPartnerAmount)
+                        log.debug('currentItemAmount', currentItemAmount)
+
+                        var oldPartnerAmount = 0
+                        var oldItemAmount = 0
+                        var oldLineCount = oldRec.getLineCount({ sublistId: 'expense' })
+                        for (var k = 0; k < oldLineCount; k++) {
+                            var categOld = oldRec.getSublistValue({
+                                sublistId: 'expense',
+                                fieldId: 'category',
+                                line: k
+                            })
+                            var amtOld = oldRec.getSublistValue({
+                                sublistId: 'expense',
+                                fieldId: 'amount',
+                                line: k
+                            })
+                            if (categOld == 10) {
+                                oldPartnerAmount += parseFloat(amtOld)
+                            } else {
+                                oldItemAmount += parseFloat(amtOld)
+                            }
+                        }
+                        oldPartnerAmount = parseFloat(oldPartnerAmount)
+                        oldItemAmount = parseFloat(oldItemAmount)
+                        log.debug('oldPartnerAmount', oldPartnerAmount)
+                        log.debug('oldItemAmount', oldItemAmount)
+
+
+                        log.debug('apprStat', apprStat)
+                        log.debug('apprStatOld', apprStatOld)
+                        var isSetBalance;
+
+                        if (apprStatOld == 1 && apprStat == 2) { //pending to approved
+                            //cek apakah amountnya melebihi balance?
+                            if (currentItemAmount == (-1 * currentPartnerAmount)) {
+                                setBalance = remaining - (-1 * currentPartnerAmount)
+                                isSetBalance = true
+
+                            } else { //kalo ga sama
+                                var setAmount = currentItemAmount
+                                if (currentItemAmount > remaining) {
+                                    setAmount = remaining
+                                }
+
+                                if (linePartner) {
+                                    rec.selectLine({ sublistId: 'expense', line: linePartner });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'foreignamount',
+                                        value: -1 * parseFloat(setAmount)
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'amount',
+                                        value: -1 * parseFloat(setAmount)
+                                    });
+                                    rec.commitLine({ sublistId: 'expense' });
+                                } else {
+                                    rec.selectNewLine({ sublistId: 'expense' });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'category',
+                                        value: 10
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'currency',
+                                        value: setCurrency
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'amount',
+                                        value: -1 * parseFloat(setAmount)
+                                    });
+                                    //
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'customer',
+                                        value: dataCashAdvance[0].setCustomer
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'department',
+                                        value: dataCashAdvance[0].setDept
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'class',
+                                        value: dataCashAdvance[0].setClass
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'projecttask',
+                                        value: dataCashAdvance[0].setDeaActivity
+                                    });
+                                    if(dataCashAdvance[0].setSof){
+                                        rec.setCurrentSublistValue({
+                                            sublistId: 'expense',
+                                            fieldId: 'cseg_stc_sof',
+                                            value: dataCashAdvance[0].setSof
+                                        });
+                                        rec.setCurrentSublistValue({
+                                            sublistId: 'expense',
+                                            fieldId: 'cseg_stc_drc_segmen',
+                                            value: dataCashAdvance[0].setDrc
+                                        });
+                                        rec.setCurrentSublistValue({
+                                            sublistId: 'expense',
+                                            fieldId: 'cseg_stc_segmentdea',
+                                            value: dataCashAdvance[0].setDea
+                                        });
+                                    }
+                                    //
+                                    rec.commitLine({ sublistId: 'expense' });
+                                    log.debug('add', 'addnewline')
+                                }
+
+                                if (currentItemAmount <= remaining) {
+                                    setBalance = remaining - parseFloat(currentItemAmount)
+                                    isSetBalance = true
+                                } else {
+                                    //ke payment
+                                }
+
+
+                            }
+
+                        }
+
+                        if (apprStatOld == 2 && apprStat == 1) { //approved to pending
+                            //kembalikan amountnya, karena dia balik pending
+                            //cek, apakah sebelumnya melebihi balance?
+                            if (oldItemAmount == (-1 * oldPartnerAmount)) {
+                                setBalance = remaining + (-1 * oldPartnerAmount)
+                                isSetBalance = true
+                            } else {
+                                //maka sebelumnya balance tidak dikembalikan, karena masuk payment
+                            }
+                        }
+
+                        if (apprStatOld == 2 && apprStat == 2) {
+                            if (currentItemAmount != oldItemAmount) {
+                                var remainingNow;
+                                if (oldItemAmount == (-1 * oldPartnerAmount)) {
+                                    remainingNow = remaining + (-1 * oldPartnerAmount)
+                                } else {
+                                    remainingNow = remaining
+                                }
+                                remainingNow = parseFloat(remainingNow)
+
+                                var setAmount = currentItemAmount
+                                if (currentItemAmount > remainingNow) {
+                                    setAmount = remainingNow
+                                }
+
+                                //ubah amount line partnernya dengan yang terbaru
+                                if (isLinePartner) {
+                                    rec.selectLine({ sublistId: 'expense', line: linePartner });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'foreignamount',
+                                        value: -1 * parseFloat(setAmount)
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'amount',
+                                        value: -1 * parseFloat(setAmount)
+                                    });
+                                    rec.commitLine({ sublistId: 'expense' });
+                                } else {
+                                    rec.selectNewLine({ sublistId: 'expense' });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'category',
+                                        value: 10
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'currency',
+                                        value: setCurrency
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'amount',
+                                        value: -1 * parseFloat(setAmount)
+                                    });
+                                    //
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'customer',
+                                        value: dataCashAdvance[0].setCustomer
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'department',
+                                        value: dataCashAdvance[0].setDept
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'class',
+                                        value: dataCashAdvance[0].setClass
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'projecttask',
+                                        value: dataCashAdvance[0].setDeaActivity
+                                    });
+                                    if(dataCashAdvance[0].setSof){
+                                        rec.setCurrentSublistValue({
+                                            sublistId: 'expense',
+                                            fieldId: 'cseg_stc_sof',
+                                            value: dataCashAdvance[0].setSof
+                                        });
+                                        rec.setCurrentSublistValue({
+                                            sublistId: 'expense',
+                                            fieldId: 'cseg_stc_drc_segmen',
+                                            value: dataCashAdvance[0].setDrc
+                                        });
+                                        rec.setCurrentSublistValue({
+                                            sublistId: 'expense',
+                                            fieldId: 'cseg_stc_segmentdea',
+                                            value: dataCashAdvance[0].setDea
+                                        });
+                                    }
+                                    //
+                                    rec.commitLine({ sublistId: 'expense' });
+                                    log.debug('add', 'addnewline')
+                                }
+
+                                if (currentItemAmount == setAmount) {
+                                    setBalance = remainingNow - parseFloat(setAmount)
+                                    isSetBalance = true
+                                } else {
+                                    setBalance = remainingNow
+                                    isSetBalance = true
+                                    //ke payment
+                                }
+                            } else {
+                                //current = old, tidak ada perubahan
+                                //jika linenya didelete
+                                var setAmount = currentItemAmount
+                                if (currentItemAmount > remaining) {
+                                    setAmount = remaining
+                                }
+
+                                if (!isLinePartner) {
+                                    rec.selectNewLine({ sublistId: 'expense' });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'category',
+                                        value: 10
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'currency',
+                                        value: setCurrency
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'amount',
+                                        value: -1 * parseFloat(setAmount)
+                                    });
+                                    //
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'customer',
+                                        value: dataCashAdvance[0].setCustomer
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'department',
+                                        value: dataCashAdvance[0].setDept
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'class',
+                                        value: dataCashAdvance[0].setClass
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'projecttask',
+                                        value: dataCashAdvance[0].setDeaActivity
+                                    });
+                                    if(dataCashAdvance[0].setSof){
+                                        rec.setCurrentSublistValue({
+                                            sublistId: 'expense',
+                                            fieldId: 'cseg_stc_sof',
+                                            value: dataCashAdvance[0].setSof
+                                        });
+                                        rec.setCurrentSublistValue({
+                                            sublistId: 'expense',
+                                            fieldId: 'cseg_stc_drc_segmen',
+                                            value: dataCashAdvance[0].setDrc
+                                        });
+                                        rec.setCurrentSublistValue({
+                                            sublistId: 'expense',
+                                            fieldId: 'cseg_stc_segmentdea',
+                                            value: dataCashAdvance[0].setDea
+                                        });
+                                    }
+                                    //
+                                    rec.commitLine({ sublistId: 'expense' });
+                                    log.debug('add', 'addnewline')
+
+                                }
+                            }
+                        }
+
+                        if (apprStatOld == 1 && apprStat == 1) {
+                            var setAmount = currentItemAmount
+                            if (currentItemAmount > remaining) {
+                                setAmount = remaining
+                            }
+
+                            if (isLinePartner) {
+                                rec.selectLine({ sublistId: 'expense', line: linePartner });
+                                rec.setCurrentSublistValue({
+                                    sublistId: 'expense',
+                                    fieldId: 'foreignamount',
+                                    value: -1 * parseFloat(setAmount)
+                                });
+                                rec.setCurrentSublistValue({
+                                    sublistId: 'expense',
+                                    fieldId: 'amount',
+                                    value: -1 * parseFloat(setAmount)
+                                });
+                                rec.commitLine({ sublistId: 'expense' });
+                            } else {
+                                rec.selectNewLine({ sublistId: 'expense' });
+                                rec.setCurrentSublistValue({
+                                    sublistId: 'expense',
+                                    fieldId: 'category',
+                                    value: 10
+                                });
+                                rec.setCurrentSublistValue({
+                                    sublistId: 'expense',
+                                    fieldId: 'currency',
+                                    value: setCurrency
+                                });
+                                rec.setCurrentSublistValue({
+                                    sublistId: 'expense',
+                                    fieldId: 'amount',
+                                    value: -1 * parseFloat(setAmount)
+                                });
+                                //
+                                rec.setCurrentSublistValue({
+                                    sublistId: 'expense',
+                                    fieldId: 'customer',
+                                    value: dataCashAdvance[0].setCustomer
+                                });
+                                rec.setCurrentSublistValue({
+                                    sublistId: 'expense',
+                                    fieldId: 'department',
+                                    value: dataCashAdvance[0].setDept
+                                });
+                                rec.setCurrentSublistValue({
+                                    sublistId: 'expense',
+                                    fieldId: 'class',
+                                    value: dataCashAdvance[0].setClass
+                                });
+                                rec.setCurrentSublistValue({
+                                    sublistId: 'expense',
+                                    fieldId: 'projecttask',
+                                    value: dataCashAdvance[0].setDeaActivity
+                                });
+                                if(dataCashAdvance[0].setSof){
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'cseg_stc_sof',
+                                        value: dataCashAdvance[0].setSof
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'cseg_stc_drc_segmen',
+                                        value: dataCashAdvance[0].setDrc
+                                    });
+                                    rec.setCurrentSublistValue({
+                                        sublistId: 'expense',
+                                        fieldId: 'cseg_stc_segmentdea',
+                                        value: dataCashAdvance[0].setDea
+                                    });
+                                }
+                                //
+                                rec.commitLine({ sublistId: 'expense' });
+                                log.debug('add', 'addnewline')
+                            }
+                        }
+
+                        if (status == 'Voided' && apprStatOld == 2) {
+                            if (oldItemAmount == (-1 * oldPartnerAmount)) {
+                                setBalance = remaining + (-1 * oldPartnerAmount)
+                                isSetBalance = true
+                            }
+                        }
+
+
+                    }
+                }
+
+                rec.setValue({
+                    fieldId: 'advance',
+                    value: 0
+                })
+
+                var savedId = rec.save({
+                    enableSourcing: false,
+                    ignoreMandatoryFields: true
+                });
+
+                log.debug('savedId', savedId)
+                log.debug('isSetBalance', isSetBalance)
+
+                if (savedId) {
+                    if (isSetBalance) {
+                        log.debug('setBalance', setBalance)
+                        if (setBalance < 0) {
+                            setBalance = 0
+                        }
+                        record.submitFields({
+                            type: record.Type.EMPLOYEE,
+                            id: employee,
+                            values: {
+                                custentity_sos_adv_partner_balance: setBalance
+                            },
+                            options: {
+                                enableSourcing: false,
+                                ignoreMandatoryFields: true
+                            }
+                        })
+                        log.debug('set balance', 'done')
+                    }
+                }
+
+                //add 26 May 2026 set installment dan spending update
+                if (apprStat == true) { //khusus realization
+                    try {
+                        let scheduledTask = task.create({
+                            taskType: task.TaskType.SCHEDULED_SCRIPT,
+                            scriptId: 'customscript_abj_set_ins_spend_ss',
+                            deploymentId: 'customdeploy_abj_set_ins_spend_ss',
+                            params: {
+                                custscript_param_emp_id: employee
+                            }
+                        });
+
+                        let taskId = scheduledTask.submit();
+                        log.audit('Scheduled Script Triggered', 'Task ID: ' + taskId);
+                    } catch (e) {
+                        log.error('Error triggering Scheduled Script', e);
+                    }
+                }
+              
+            }
+
+        } catch (e) {
+            log.error('error', e)
+        }
+
+    }
+  
     return{
         afterSubmit : afterSubmit,
         beforeLoad : beforeLoad
