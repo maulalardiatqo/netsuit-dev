@@ -6,8 +6,6 @@ define([], function () {
     function pageInit(context){
        
     }
-
-
     function validateLine(context) {
         var rec = context.currentRecord;
         var sublistId = context.sublistId;

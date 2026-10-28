@@ -10,9 +10,9 @@ define(['N/search', 'N/record', 'N/runtime', 'N/log'], (search, record, runtime,
         const dateFrom = scriptObj.getParameter({ name: 'custscript_dal_date_from' });
         const dateTo = scriptObj.getParameter({ name: 'custscript_dal_date_to' });
 
-        log.audit('Starting Search', { approverId, dateFrom, dateTo });
+        log.audit('Starting Search Combined', { approverId, dateFrom, dateTo });
 
-        return search.create({
+        const transactionSearch = search.create({
             type: "transaction",
             filters: [
                 ["type", "anyof", "ExpRept", "PurchOrd", "PurchReq", "VendBill"], 
@@ -21,9 +21,7 @@ define(['N/search', 'N/record', 'N/runtime', 'N/log'], (search, record, runtime,
                 "AND", ["taxline", "is", "F"], 
                 "AND", ["datecreated", "within", dateFrom, dateTo],
                 "AND", [
-                    ["custcol_stc_approver_linetrx", "anyof", approverId], 
-                    "OR", 
-                    ["custcol_stc_approver_fa", "anyof", approverId]
+                    ["custcol_stc_approver_linetrx", "anyof", approverId], "OR", ["custcol_stc_approver_fa", "anyof", approverId]
                 ]
             ],
             columns: [
@@ -31,93 +29,112 @@ define(['N/search', 'N/record', 'N/runtime', 'N/log'], (search, record, runtime,
                 search.createColumn({ name: "type", summary: "GROUP" })
             ]
         });
+
+        const results = [];
+
+        transactionSearch.run().each(res => {
+            results.push({
+                isCustomRecord: false,
+                id: res.getValue({ name: "internalid", summary: "GROUP" }),
+                type: res.getValue({ name: "type", summary: "GROUP" })
+            });
+            return true;
+        });
+
+        const addCustomRecordResults = (recType, dateField, fieldAppr, fieldApprFa) => {
+            const customSearch = search.create({
+                type: recType,
+                filters: [
+                    [dateField, "within", dateFrom, dateTo],
+                    "AND", [
+                        [fieldAppr, "anyof", approverId], "OR", [fieldApprFa, "anyof", approverId]
+                    ]
+                ],
+                columns: ['internalid']
+            });
+            customSearch.run().each(res => {
+                results.push({
+                    isCustomRecord: true,
+                    id: res.id,
+                    type: recType,
+                    f1: fieldAppr,
+                    f2: fieldApprFa
+                });
+                return true;
+            });
+        };
+
+        addCustomRecordResults('customrecord_tor_items', 'custrecord_tori_id.created', 'custrecord_tori_approver', 'custrecord_tori_approver_fa');
+        addCustomRecordResults('customrecord_tar_expenses', 'custrecord_tar_e_id.created', 'custrecord_tare_approver', 'custrecord_tar_approver_fa');
+        addCustomRecordResults('customrecord_ter_diem', 'custrecord_terd_id.created', 'custrecord_terd_approver', 'custrecord_ter_approver_fa');
+
+        return results;
     };
 
     const map = (context) => {
-        const searchResult = JSON.parse(context.value);
-        log.debug('searchResult', searchResult)
+        const data = JSON.parse(context.value);
         const scriptObj = runtime.getCurrentScript();
-        
         const targetApproverId = scriptObj.getParameter({ name: 'custscript_data_id' });
         const delegationApproval = scriptObj.getParameter({ name: 'custscript_data_approval' });
 
         try {
-            const transactionId = searchResult.values["GROUP(internalid)"] ? 
-            searchResult.values["GROUP(internalid)"].value : null;
-            const typeCode = searchResult.values["GROUP(type)"] ? 
-                            searchResult.values["GROUP(type)"].value : null;
-            const typeMap = {
-                'PurchOrd': 'purchaseorder',
-                'PurchReq': 'purchaserequisition',
-                'ExpRept': 'expensereport',
-                'VendBill': 'vendorbill'
-            };
+            if (data.isCustomRecord) {
+                const rec = record.load({ type: data.type, id: data.id, isDynamic: true });
+                let isChanged = false;
 
-            const transactionType = typeMap[typeCode];
-
-            log.debug('Processing', `ID: ${transactionId} Type Code: ${typeCode} -> Final Type: ${transactionType}`);
-
-            if (!transactionId || !transactionType) {
-                log.error('Missing Data', `Skipping: ID ${transactionId} / Type ${transactionType}`);
-                return;
-            }
-
-            const rec = record.load({
-                type: transactionType,
-                id: transactionId,
-                isDynamic: true
-            });
-
-            const sublists = ['item', 'expense'];
-            let isChanged = false;
-
-            sublists.forEach(sublistId => {
-                const lineCount = rec.getLineCount({ sublistId: sublistId });
-                if (lineCount <= 0) return;
-
-                for (let i = 0; i < lineCount; i++) {
-                    let lineChanged = false;
-                    let valLineTrx = rec.getSublistValue({ sublistId, fieldId: 'custcol_stc_approver_linetrx', line: i });
-                    let valFA = rec.getSublistValue({ sublistId, fieldId: 'custcol_stc_approver_fa', line: i });
-
-                    if (valLineTrx == targetApproverId || valFA == targetApproverId) {
-                        rec.selectLine({ sublistId: sublistId, line: i });
-
-                        if (valLineTrx == targetApproverId) {
-                            rec.setCurrentSublistValue({ sublistId, fieldId: 'custcol_stc_approver_linetrx', value: delegationApproval });
-                        }
-                        if (valFA == targetApproverId) {
-                            rec.setCurrentSublistValue({ sublistId, fieldId: 'custcol_stc_approver_fa', value: delegationApproval });
-                        }
-
-                        rec.commitLine({ sublistId: sublistId });
-                        lineChanged = true;
-                        isChanged = true;
-                    }
+                if (rec.getValue(data.f1) == targetApproverId) {
+                    rec.setValue(data.f1, delegationApproval);
+                    isChanged = true;
                 }
-            });
+                if (rec.getValue(data.f2) == targetApproverId) {
+                    rec.setValue(data.f2, delegationApproval);
+                    isChanged = true;
+                }
 
-            if (isChanged) {
-                const idSaved = rec.save();
-                log.audit('Success', `Updated Transaction ID: ${idSaved}`);
+                if (isChanged) {
+                    rec.save();
+                    log.audit('Success Custom Rec', `Updated ${data.type} ID: ${data.id}`);
+                }
+
+            } else {
+                const typeMap = { 'PurchOrd': 'purchaseorder', 'PurchReq': 'purchaserequisition', 'ExpRept': 'expensereport', 'VendBill': 'vendorbill' };
+                const transactionType = typeMap[data.type];
+
+                if (!data.id || !transactionType) return;
+
+                const rec = record.load({ type: transactionType, id: data.id, isDynamic: true });
+                const sublists = ['item', 'expense'];
+                let isChanged = false;
+
+                sublists.forEach(sublistId => {
+                    const lineCount = rec.getLineCount({ sublistId });
+                    for (let i = 0; i < lineCount; i++) {
+                        let valLineTrx = rec.getSublistValue({ sublistId, fieldId: 'custcol_stc_approver_linetrx', line: i });
+                        let valFA = rec.getSublistValue({ sublistId, fieldId: 'custcol_stc_approver_fa', line: i });
+
+                        if (valLineTrx == targetApproverId || valFA == targetApproverId) {
+                            rec.selectLine({ sublistId, line: i });
+                            if (valLineTrx == targetApproverId) rec.setCurrentSublistValue({ sublistId, fieldId: 'custcol_stc_approver_linetrx', value: delegationApproval });
+                            if (valFA == targetApproverId) rec.setCurrentSublistValue({ sublistId, fieldId: 'custcol_stc_approver_fa', value: delegationApproval });
+                            rec.commitLine({ sublistId });
+                            isChanged = true;
+                        }
+                    }
+                });
+
+                if (isChanged) {
+                    rec.save();
+                    log.audit('Success Transaction', `Updated ${transactionType} ID: ${data.id}`);
+                }
             }
-            
         } catch (e) {
-            log.error('Error in Map Stage', `ID: ${context.key} Error: ${e.message}`);
+            log.error('Error in Map Stage', `Type: ${data.type} ID: ${data.id} Error: ${e.message}`);
         }
     };
 
     const summarize = (summary) => {
         log.audit('Process Finished', 'Check execution logs for details');
-        summary.mapSummary.errors.iterator().each((key, error) => {
-            log.error(`Map Error for key: ${key}`, error);
-            return true;
-        });
     };
 
-    return {
-        getInputData,
-        map,
-        summarize
-    };
+    return { getInputData, map, summarize };
 });

@@ -14,6 +14,49 @@ define(["N/record", "N/search", "N/ui/serverWidget", "N/runtime", "N/url", "N/ht
     task
     ) {
 function beforeLoad(context) {
+    if (context.type === context.UserEventType.COPY) {
+            try {
+                const rec = context.newRecord;
+
+                // Reset status di sublist 'item'
+                const itemCount = rec.getLineCount({ sublistId: 'item' });
+                for (let i = 0; i < itemCount; i++) {
+                    rec.setSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_stc_approval_status_line',
+                        line: i,
+                        value: 1
+                    });
+                    rec.setSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custcol_stc_apprvl_sts_fa',
+                        line: i,
+                        value: 1
+                    });
+                }
+
+                // Reset status di sublist 'expense'
+                const expCount = rec.getLineCount({ sublistId: 'expense' });
+                for (let j = 0; j < expCount; j++) {
+                    rec.setSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'custcol_stc_approval_status_line',
+                        line: j,
+                        value: 1
+                    });
+                    rec.setSublistValue({
+                        sublistId: 'expense',
+                        fieldId: 'custcol_stc_apprvl_sts_fa',
+                        line: j,
+                        value: 1
+                    });
+                }
+                
+                log.debug('COPY Mode', 'Successfully reset approval status lines to 1');
+            } catch (e) {
+                log.error('Error in beforeLoad COPY', e);
+            }
+        }
         if(context.type == context.UserEventType.VIEW){
             try {
                 const currentUser = runtime.getCurrentUser();
@@ -544,6 +587,15 @@ function beforeLoad(context) {
                                 fieldId : "approvalstatus",
                                 value : "2"
                             })
+                        }
+                        if(typeRec == 'purchaseorder'){
+                            var poType = recLoad.getValue('custbody_stc_po_type');
+                            if(poType == "3"){
+                                recLoad.setValue({
+                                    fieldId : "approvalstatus",
+                                    value : "2"
+                                })
+                            }
                         }
                     } else {
                         log.debug('Header', 'Masih ada line belum approved FA');

@@ -12,7 +12,6 @@ define(['N/ui/dialog', 'N/url', 'N/currentRecord', 'N/https', 'N/ui/message'],
         function changeDelegate() {
             const rec = currentRecord.get();
             const button = document.getElementById('custpage_set_delegate');
-            
             const params = {
                 id: rec.id,
                 delegationApproval: rec.getValue('custentity_stc_subtitute_apprvl'),

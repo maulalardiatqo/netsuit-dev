@@ -19,7 +19,8 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                 const transactionType = rec.getValue({ fieldId: 'custbody_sos_transaction_types' });
                 const locationHeader = rec.getValue('location');
                 const sbu = rec.getValue('class');
-                if (transactionType !== '3') return;
+                log.debug('transactionType', transactionType)
+                if (transactionType !== '3' && transactionType !== '12') return;
 
                 var lineCount = rec.getLineCount({ sublistId: 'item' });
 
@@ -83,7 +84,6 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                         amountAfterDisc = discountAmountAfter;
                     }
                     log.debug('amountAfterDisc', amountAfterDisc)
-                    if (percentage) {
                         var taxRate = Number(
                             rec.getCurrentSublistValue({
                                 sublistId: 'item',
@@ -127,7 +127,7 @@ define(['N/url', 'N/log', 'N/record'], function (url, log, record) {
                                 fieldId: 'taxcode'
                             });
                         }
-                    }
+                    
 
                     rec.commitLine({ sublistId: 'item' });
                 }

@@ -59,6 +59,24 @@ define(["N/runtime", "N/log", "N/record", "N/search"], (runtime, log, record, se
                     functionName: "onClickGenerate()"
                 });
                 context.form.clientScriptModulePath = "SuiteScripts/abj_cs_je_non_premis.js"
+                if(context.type === context.UserEventType.EDIT){
+                    log.debug('masuk kondisi validate budget')
+                    var rec = context.newRecord;
+                    var isNoBudgetCheck = rec.getValue('custbody_abj_stc_no_budget_cam_check');
+                    var lineCount = rec.getLineCount({ sublistId: 'line' });
+                    log.debug('isNoBudgetCheck', isNoBudgetCheck)
+                    log.debug('lineCount', lineCount)
+                   
+                    var form = context.form;
+
+                    form.addButton({
+                        id: 'custpage_btn_validate_budget',
+                        label: 'No Check Budget',
+                        functionName: 'onClickValidateBudget' 
+                    });
+                    
+                
+                }
             }
             if(cForm == 149){
                 form.addButton({

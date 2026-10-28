@@ -1,0 +1,36 @@
+/**
+ * @NApiVersion 2.1
+ * @NScriptType UserEventScript
+ * @NModuleScope SameAccount
+ */
+
+define(["N/runtime", "N/log"], (runtime, log) => {
+    function beforeLoad(context) {
+        if (context.type === context.UserEventType.VIEW) {
+            var form = context.form;
+            var rec = context.newRecord;
+            var cektype = rec.getValue('custbody_pdt_sales_type');
+            log.debug('cektype', cektype)
+            if(cektype && cektype == '1'){
+                form.addButton({
+                    id: 'custpage_button_print_so_expert',
+                    label: "Print Proforma Invoice",
+                    functionName: "printPDFexp()"
+                });
+            }else{
+                 form.addButton({
+                    id: 'custpage_button_print_so_local',
+                    label: "Print Proforma Invoice",
+                    functionName: "printPDFLocal()"
+                });
+            }
+            
+            context.form.clientScriptModulePath = "SuiteScripts/abj_cs_print_so.js"
+            
+        
+        }
+}
+return {
+    beforeLoad: beforeLoad,
+};
+});

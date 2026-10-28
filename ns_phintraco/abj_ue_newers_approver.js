@@ -2,7 +2,7 @@
  * @NApiVersion 2.1
  * @NScriptType UserEventScript
  */
-define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, search, runtime, serverWidget) => {
+define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget', 'N/https', 'N/url'], (record, search, runtime, serverWidget, https, url) => {
 
     const beforeLoad = (context) => {
         try {
@@ -17,7 +17,7 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
                 const isEverApprove = newRecord.getValue('custbody_ever_approve');
                 const isAfterRevision = newRecord.getValue('custbody_abj_revision');
                 const isAfterEdit = newRecord.getValue('custbody_after_edit_save');
-                log.debug('condition', {isEverApprove : isEverApprove, isAfterRecall : isAfterRecall, readyResubmit : readyResubmit, isAfterRevision : isAfterRevision})
+                log.debug('condition', {isEverApprove : isEverApprove, isAfterRecall : isAfterRecall, readyResubmit : readyResubmit, isAfterRevision : isAfterRevision});
                 const currentRole = runtime.getCurrentUser().role;
                 const roleAdmin = 3;
 
@@ -31,7 +31,7 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
                         functionName: 'submitApp()'
                     });
                 }
-                log.debug('isAfterRecall', isAfterRecall)
+                log.debug('isAfterRecall', isAfterRecall);
                 if (idWeb && appStatus == '1' && !isAfterRecall) {
                     if (currentRole != roleAdmin) {
                         form.removeButton('edit');
@@ -41,11 +41,9 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
                             functionName: 'recall()'
                         });
                     }
-                    
                 }
 
-                // --- 3. RESUBMIT APPROVAL (Setelah Reject atau Recall + Save) ---
-                log.debug('readyResubmit', readyResubmit)
+                log.debug('readyResubmit', readyResubmit);
                 if (readyResubmit && (appStatus == '3' || (appStatus == '1' && isAfterRecall) || (appStatus == '1' && currentRole == roleAdmin))) {
                     form.addButton({
                         id: 'custpage_btn_resubmit_app',
@@ -54,8 +52,6 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
                     });
                 }
 
-                // --- 4. SUBMIT REVISION (Setelah Approved + Save) ---
-                // Syarat: Status 2 (Approved), Ada ID Web, dan SUDAH melalui proses Edit & Save (readyResubmit)
                 if (appStatus == '2' && idWeb && readyResubmit) {
                     form.addButton({
                         id: 'custpage_btn_revision',
@@ -73,12 +69,10 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
                         id: 'custbody_abj_creator'
                     });
 
-                    // Pastikan field ditemukan sebelum melakukan update
                     if (fieldCreator) {
                         fieldCreator.updateDisplayType({
                             displayType: serverWidget.FieldDisplayType.DISABLED
                         });
-                        
                         log.debug('UI Change', 'Field custbody_abj_creator has been disabled.');
                     }
                 }
@@ -93,6 +87,34 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
         }
     };
 
+    const beforeSubmit = (context) => {
+        try {
+            if (context.type === context.UserEventType.DELETE) {
+                const idWeb = context.oldRecord.getValue('custbody_id_web');
+                
+                if (idWeb) {
+                    const WEBSITE_API_URL = 'https://sb.approvalphintraco.com/netsuite/';
+                    
+                    const response = https.post({
+                        url: WEBSITE_API_URL + 'delete',
+                        body: JSON.stringify({
+                            action_type: 'delete',
+                            id_web: idWeb
+                        }),
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'x-api-key': 'S3cr3t_K3y_Y4ng_S4ng4t_P4nj4ng_D4n_R4h4s1a'
+                        }
+                    });
+                    
+                    log.debug('Trigger Delete Web API', `ID Web: ${idWeb} | Res Code: ${response.code} | Body: ${response.body}`);
+                }
+            }
+        } catch (e) {
+            log.error('Error beforeSubmit Delete', e);
+        }
+    };
+
     const afterSubmit = (context) => {
         try {
             if (context.type === context.UserEventType.EDIT) {
@@ -100,14 +122,13 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
                 const appStatus = newRec.getValue('approvalstatus');
                 const isAfterRecall = newRec.getValue('custbody_after_recall');
                 const idWeb = newRec.getValue('custbody_id_web');
-                const isEverApprove = newRec.getValue('custbody_ever_approve');
                 const roleAdmin = 3;
                 const currentRole = runtime.getCurrentUser().role;
 
                 let updateValues = {};
 
                 if (idWeb && (appStatus == '3' || appStatus == '2' || (appStatus == '1' && isAfterRecall) || (appStatus == '1' && currentRole == roleAdmin) )) {
-                    log.debug('masuk kondisi ready resubmit')
+                    log.debug('masuk kondisi ready resubmit');
                     updateValues['custbody_abj_ready_resubmit'] = true;
                 }
                 if (appStatus == '2' && !newRec.getValue('custbody_ever_approve')) {
@@ -126,6 +147,7 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
             log.error('Error afterSubmit', e);
         }
     };
+
     function checkAttachment(recId) {
         return search.create({
             type: 'customrecord_attachment',
@@ -140,5 +162,5 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
         }).runPaged().count > 0;
     }
 
-    return { beforeLoad, afterSubmit };
+    return { beforeLoad, beforeSubmit, afterSubmit };
 });

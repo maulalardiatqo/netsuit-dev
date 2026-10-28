@@ -10,9 +10,29 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
         if (scriptContext.request.method === 'POST') {
             try {
                 const requestData = JSON.parse(scriptContext.request.body);
-                const { recId, recType, action } = requestData;
+                const { recId, recType, action, idWeb } = requestData;
 
                 log.debug('Main Process', `ID: ${recId} | Action: ${action}`);
+
+                if (action === 'delete') {
+                    const payload = {
+                        action_type: 'delete',
+                        id_web: idWeb
+                    };
+                    log.debug('payload delete', payload)
+                    const response = https.post({
+                        url: WEBSITE_API_URL,
+                        body: JSON.stringify(payload),
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'x-api-key': 'S3cr3t_K3y_Y4ng_S4ng4t_P4nj4ng_D4n_R4h4s1a'
+                        }
+                    });
+
+                    scriptContext.response.setHeader({ name: 'Content-Type', value: 'application/json' });
+                    scriptContext.response.write(response.body || '{}');
+                    return; 
+                }
 
                 const rec = record.load({ type: recType, id: recId, isDynamic: true });
                 let isRecordUpdated = false;
@@ -20,12 +40,12 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
 
                 const currentRev = rec.getValue('custbody_abj_revision_code');
                 const old_id_web = rec.getValue('custbody_id_web') || null;
-                log.debug('currentRev', currentRev)
+                log.debug('currentRev', currentRev);
                 let nextRevCode = currentRev ? 'R' + (parseInt(currentRev.replace(/\D/g, '') || 0) + 1) : 'R1';
-                log.debug('nextRevCode', nextRevCode)
+                log.debug('nextRevCode', nextRevCode);
+                
                 switch (action) {
                     case 'submitApp':
-                        // Create Record baru di website
                         result = sendFullData(rec, 'create', null, "APPROVAL PROCESS");
                         if (result.status === 'success' && result.po_id) {
                             rec.setValue({ fieldId: 'custbody_id_web', value: result.po_id });
@@ -34,7 +54,6 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                         break;
 
                     case 'recall':
-                        // Update status di website menjadi 'DRAFT'
                         result = sendFullData(rec, 'update', null, 'DRAFT');
                         if (result.status === 'success' || result.status === 'success_update') {
                             rec.setValue({ fieldId: 'custbody_after_recall', value: true });
@@ -43,7 +62,6 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                         break;
 
                     case 'resubmitApproval':
-                        // Update record yang ada berdasarkan id_web
                         result = sendFullData(rec, 'update', null, 'APPROVAL PROCESS');
                         if (result.status === 'success' || result.status === 'success_update') {
                             rec.setValue({ fieldId: 'approvalstatus', value: '1' });
@@ -54,7 +72,6 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                         break;
 
                     case 'resubmitRevission':
-                        // Create Record baru + parameter revision_code
                         result = sendFullData(rec, 'create', nextRevCode, 'APPROVAL PROCESS', old_id_web);
                         if (result.status === 'success' || result.status === 'success') {
                             const newIdWeb = result.new_po_id || result.po_id;
@@ -70,7 +87,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                 if (isRecordUpdated) {
                     rec.save({ ignoreMandatoryFields: true });
                 }
-                log.debug('result', result)
+                log.debug('result', result);
                 scriptContext.response.setHeader({ name: 'Content-Type', value: 'application/json' });
                 scriptContext.response.write(JSON.stringify(result));
 
@@ -81,9 +98,6 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
         }
     };
 
-    /**
-     * RESET SEMUA APPROVER KE STATUS PENDING (1)
-     */
     function resetApproverLines(rec) {
         const count = rec.getLineCount({ sublistId: 'recmachcustrecord_abj_a_id' });
         for (let i = 0; i < count; i++) {
@@ -93,12 +107,8 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
         }
     }
 
-    /**
-     * PENGIRIMAN DATA LENGKAP (REFRACTORED)
-     */
     function sendFullData(rec, endpointAction, revisionCode, customStatus, old_id_web) {
-        log.debug('old_id_web', old_id_web)
-        // Look up Creator Web ID
+        log.debug('old_id_web', old_id_web);
         let created_by_web = '';
         const creatorNs = rec.getValue('custbody_abj_creator');
         if (creatorNs) {
@@ -109,115 +119,102 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             });
             created_by_web = lookup.custrecord_id_users_web;
         }
-        var shipping_address
-        var no_iso
-        var fieldNoIso 
-        var isNoSO = true
-        var subsidiry = rec.getValue('subsidiary')
-        log.debug('subsidiry', subsidiry)
+        
+        var shipping_address;
+        var no_iso;
+        var fieldNoIso; 
+        var isNoSO = true;
+        var subsidiry = rec.getValue('subsidiary');
+        log.debug('subsidiry', subsidiry);
+        
         if(subsidiry){
             if(subsidiry == '1' || subsidiry == '4'){
                 var cekKondisi = rec.getValue('custbody6');
-                log.debug('cekKondisi', cekKondisi)
+                log.debug('cekKondisi', cekKondisi);
                 if(cekKondisi == '1'){
-                    fieldNoIso = 'custrecord_no_iso_po'
+                    fieldNoIso = 'custrecord_no_iso_po';
                 }else if(cekKondisi == '2'){
-                    fieldNoIso = 'custrecord_no_iso_po_2'
+                    fieldNoIso = 'custrecord_no_iso_po_2';
                 }else{
-                    isNoSO = false
+                    isNoSO = false;
                 }
             }else if(subsidiry == '6'){
                 var cekKondisi = rec.getValue('custbody_docser_series');
                 if(cekKondisi){
                     if(cekKondisi.includes('PO/UM/ASP')){
                         log.debug('masuk sini PO/UM/ASP');
-                        fieldNoIso = 'custrecord_no_iso_po_2'
+                        fieldNoIso = 'custrecord_no_iso_po_2';
                     }else{
-                        fieldNoIso = 'custrecord_no_iso_po'
+                        fieldNoIso = 'custrecord_no_iso_po';
                     }
                 }else{
-                     fieldNoIso = 'custrecord_no_iso_po_2'
+                     fieldNoIso = 'custrecord_no_iso_po_2';
                 }
             }else{
-                 fieldNoIso = 'custrecord_no_iso_po'
+                 fieldNoIso = 'custrecord_no_iso_po';
             }
-            // untuk no iso 
-            // field : custbody_docser_series, custbody6
-            log.debug('fieldNoIso', fieldNoIso)
+            
+            log.debug('fieldNoIso', fieldNoIso);
             const subsidiarySearchObj = search.create({
-            type: "subsidiary",
-            filters:
-            [
-                ["internalid","anyof",subsidiry]
-            ],
-            columns:
-            [
-                search.createColumn({
-                    name: "address",
-                    join: "shippingAddress",
-                    label: " Address"
-                }),
-                search.createColumn({name: fieldNoIso, label: "No ISO PO"})
-            ]
+                type: "subsidiary",
+                filters: [["internalid","anyof",subsidiry]],
+                columns: [
+                    search.createColumn({
+                        name: "address",
+                        join: "shippingAddress",
+                        label: " Address"
+                    }),
+                    search.createColumn({name: fieldNoIso, label: "No ISO PO"})
+                ]
             });
             const searchResultCount = subsidiarySearchObj.runPaged().count;
             log.debug("subsidiarySearchObj result count",searchResultCount);
             subsidiarySearchObj.run().each(function(result){
-                no_iso = result.getValue({
-                    name : fieldNoIso
-                }) || ''
-                shipping_address = result.getValue({
-                    name: "address",
-                    join: "shippingAddress",
-                }) ||  ''
-            return true;
+                no_iso = result.getValue({ name : fieldNoIso }) || '';
+                shipping_address = result.getValue({ name: "address", join: "shippingAddress" }) ||  '';
+                return true;
             });
-
         }
+        
         if(isNoSO == false){
-            no_iso = ""
+            no_iso = "";
         }
-        var discountValue
+        
+        var discountValue;
         var cekDiscount = rec.getValue('custbody14_2');
-        var subtotal = rec.getValue('subtotal')
+        var subtotal = rec.getValue('subtotal');
         if(cekDiscount && Number(cekDiscount) > 0){
-            discountValue = Number(cekDiscount) - Number(subtotal)
+            discountValue = Number(cekDiscount) - Number(subtotal);
         }   
-        var bill_address
-        var vendor = rec.getValue('entity')
+        
+        var bill_address;
+        var vendor = rec.getValue('entity');
         if(vendor){
             const vendorSearchObj = search.create({
-            type: "vendor",
-            filters:
-            [
-                ["internalid","anyof",vendor]
-            ],
-            columns:
-            [
-                search.createColumn({name: "billaddress", label: "Billing Address"})
-            ]
+                type: "vendor",
+                filters: [["internalid","anyof",vendor]],
+                columns: [
+                    search.createColumn({name: "billaddress", label: "Billing Address"})
+                ]
             });
             const searchResultCount = vendorSearchObj.runPaged().count;
             log.debug("vendorSearchObj result count",searchResultCount);
             vendorSearchObj.run().each(function(result){
-                bill_address = result.getValue({
-                    name: "billaddress"
-                })
-            return true;
+                bill_address = result.getValue({ name: "billaddress" });
+                return true;
             });
         }
         log.debug('databaru', {
             shipping_address : shipping_address, no_iso : no_iso, bill_address : bill_address
-        })
+        });
+        
         const payload = {
-            // Meta & Parameters
             action_type: endpointAction, 
             id_netsuite: rec.id,
             id_web: rec.getValue('custbody_id_web') || '',
             codeRevision: revisionCode || rec.getValue('custbody_abj_revision_code') || '',
-            status_override: customStatus || '', // Untuk 'DRAFT' saat recall
+            status_override: customStatus || '',
 
-            // Header Fields
             tranid: rec.getValue('tranid'),
             vendor: rec.getValue('entity'),
             employee: rec.getValue('employee'),
@@ -267,8 +264,6 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
             nextapprover : rec.getText('nextapprover') || '',
             approve_time : rec.getValue('custbodyph_timestamp') || '',
 
-
-            // Sublists & Complex Data
             line_items: getLineItems(rec),
             expenses: getExpenses(rec),
             approvers: getApprovers(rec, (endpointAction === 'create')),
@@ -287,8 +282,6 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
         });
         return JSON.parse(response.body || '{}');
     }
-
-    // --- HELPER GETTERS (ITEM, EXPENSE, APPROVER, ATTACH) ---
 
     function getLineItems(rec) {
         const lines = [];
@@ -324,8 +317,7 @@ define(['N/https', 'N/record', 'N/search', 'N/file', 'N/log'], (https, record, s
                 discount: rec.getSublistValue({ sublistId: 'item', fieldId: 'custcol_ph_discountpercentage', line: i }),
                 rateAfterDisc: rec.getSublistValue({ sublistId: 'item', fieldId: 'custcol_ph_customrateafterdiscount', line: i }),
                 itm_note_pc: rec.getSublistValue({ sublistId: 'item', fieldId: 'custcol_note_pc', line: i }),
-                itm_note_bc: rec.getSublistValue({ sublistId: 'item', fieldId: 'custcol_note_bc', line: i }),
-                
+                itm_note_bc: rec.getSublistValue({ sublistId: 'item', fieldId: 'custcol_note_bc', line: i })
             });
         }
         return lines;

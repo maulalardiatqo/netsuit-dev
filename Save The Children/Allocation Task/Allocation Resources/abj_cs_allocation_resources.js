@@ -75,32 +75,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     id: period,
                     columns: ['startdate', 'enddate']
                 });
-                var searchProjectCode = search.load({
-                    id: "customsearch_abj_premise_allocate_amou_2"
-                });
 
-                var fltrs = searchProjectCode.filters;
-                fltrs.push(search.createFilter({ name: 'account', operator: search.Operator.ANYOF, values: accountHeader }));
-                fltrs.push(search.createFilter({ name: 'postingperiod', operator: search.Operator.ANYOF, values: period }));
-                searchProjectCode.filters = fltrs;
-
-                var searchResult = searchProjectCode.run().getRange({ start: 0, end: 1 });
-                console.log('searchResult', searchResult)
-                var projectCodeValue = "";
-                if (searchResult && searchResult.length > 0) {
-                    var result = searchResult[0];
-                    var allColumns = result.columns;
-                    if (allColumns.length >= 5) { 
-                        var targetColumn = allColumns[4]; 
-                        projectCodeValue = result.getValue(targetColumn);
-                        
-                        console.log('Column Index 4 Name:', targetColumn.name);
-                        console.log('Value:', projectCodeValue);
-                    } else {
-                        console.log('Error: Kolom tidak cukup. Total: ' + allColumns.length);
-                    }
-                }           
-                console.log('projectCodeValue', projectCodeValue)
                 var allSofId = [];
                 var searchSof = search.load({ id: 'customsearch_sof_resource_timesheet' });
                 searchSof.run().each(function (result) {
@@ -109,28 +84,62 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 });
 
                 if (allSofId.length > 0) {
+                    var deaDrcMap = {};
+                    var deaSearchObj = search.create({
+                        type: "customrecord_stc_dea_allocation",
+                        filters: [
+                            ["custrecord_stc_account_allocation", "anyof", accountHeader], 
+                            "AND", 
+                            ["custrecord_stc_allocation_type", "anyof", "1"]
+                        ],
+                        columns: [
+                            search.createColumn({name: "custrecord_stc_sof_link", label: "SOF Link"}),
+                            search.createColumn({name: "custrecord_stc_drc_from_dea", label: "DRC from DEA"}),
+                            search.createColumn({name: "custrecord_dea_allocation", label: "DEA Allocation"})
+                        ]
+                    });
+                    
+                    deaSearchObj.run().each(function(res){
+                        var sofLink = res.getValue({name: "custrecord_stc_sof_link"});
+                        if(sofLink){
+                            deaDrcMap[sofLink] = {
+                                drc: res.getValue({name: "custrecord_stc_drc_from_dea"}),
+                                dea: res.getValue({name: "custrecord_dea_allocation"})
+                            };
+                        }
+                        return true;
+                    });
+
                     var allDataMaster = [];
-                    var search580 = search.load({ id: 'customsearch580' });
-                    var filters = search580.filters;
-                    filters.push(search.createFilter({ name: 'startdate', operator: search.Operator.ONORAFTER, values: [periodFields.startdate] }));
-                    filters.push(search.createFilter({ name: 'enddate', operator: search.Operator.ONORBEFORE, values: [periodFields.enddate] }));
-                    filters.push(search.createFilter({
-                        name: 'department',         
-                        join: 'employee',          
-                        operator: search.Operator.ANYOF,
-                        values: costCenterHead      
-                    }));
-                    search580.filters = filters;
+                    var resourceallocationSearchObj = search.create({
+                        type: "resourceallocation",
+                        filters: [
+                            ["internalid","noneof","@NONE@"], "AND", 
+                            ["numberhours","greaterthan","0"], "AND", 
+                            ["project","noneof","@NONE@"], "AND", 
+                            ["job.cseg_stc_sof","noneof","@NONE@"], "AND", 
+                            ["custevent_stc_rsc_cost_center","noneof","@NONE@"], "AND",
+                            ["startdate", "onorafter", periodFields.startdate], "AND",
+                            ["enddate", "onorbefore", periodFields.enddate], "AND",
+                            ["employee.department", "anyof", costCenterHead]
+                        ],
+                        columns: [
+                            search.createColumn({name: "formulacurrency", summary: "SUM", formula: "{numberhours}"}),
+                            search.createColumn({name: "department", join: "employee", summary: "GROUP"}),
+                            search.createColumn({name: "class", join: "employee", summary: "GROUP"}),
+                            search.createColumn({name: "cseg_stc_sof", join: "job", summary: "GROUP"})
+                        ]
+                    });
 
-                    var resultSet = search580.run();
-                    var columns = search580.columns;
+                    var rsAlloc = resourceallocationSearchObj.run();
+                    var allocCols = resourceallocationSearchObj.columns;
 
-                    resultSet.each(function (res) {
+                    rsAlloc.each(function (res) {
                         allDataMaster.push({
-                            numberHour: parseFloat(res.getValue(columns[0])) || 0,
-                            costCenter: res.getValue(columns[1]),
-                            projectCode: res.getValue(columns[2]),
-                            sof: res.getValue(columns[3])
+                            numberHour: parseFloat(res.getValue(allocCols[0])) || 0,
+                            costCenter: res.getValue(allocCols[1]),
+                            projectCode: res.getValue(allocCols[2]), 
+                            sof: res.getValue(allocCols[3])
                         });
                         return true;
                     });
@@ -142,8 +151,10 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                     var totalHourFiltered = dataValid.reduce(function(sum, row) {
                         return sum + row.numberHour;
                     }, 0);
-                    console.log('totalHourFiltered', totalHourFiltered)
-                    console.log('dataValid', dataValid)
+
+                    console.log('totalHourFiltered', totalHourFiltered);
+                    console.log('dataValid', dataValid);
+
                     if (totalHourFiltered > 0) {
                         var dataToProcess = [];
                         var runningTotalPct = 0;
@@ -164,13 +175,14 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                             row.amountDebit = prosentHour * Number(amountHeader);
                             var pct = roundedPct || Math.round(roundedPct * 100);
                             row.memo = "Allocation Premis " + accountHeaderText + " " + periodText + " - " + pct + "%";
+                            
+                            row.dea = deaDrcMap[row.sof] ? deaDrcMap[row.sof].dea : "";
+                            row.drc = deaDrcMap[row.sof] ? deaDrcMap[row.sof].drc : "";
+
                             dataToProcess.push(row);
                         });
-                        if(projectCodeValue){
-                            prosesJournalRecursive(rec, dataToProcess, accountHeader, btn, amountHeader, projectCodeValue);
-                        }else{
-                            finishProcess(btn, "Project Code Not Found");
-                        }
+                        
+                        prosesJournalRecursive(rec, dataToProcess, accountHeader, btn, amountHeader);
                         
                     } else {
                         finishProcess(btn, "Total hours for selected SOFs is zero.");
@@ -186,7 +198,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
         }
     }
 
-    function prosesJournalRecursive(rec, dataToProcess, accountHeader, btn, amountHeader, projectCodeValue) {
+    function prosesJournalRecursive(rec, dataToProcess, accountHeader, btn, amountHeader) {
         console.log('dataToProcess', dataToProcess);
         
         var runningTotalDebit = 0;
@@ -215,17 +227,16 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 var amountToSet = 0;
                 if (index === dataToProcess.length - 1) {
                     amountToSet = Number((totalHeader - runningTotalDebit).toFixed(2));
-                    console.log("Adjusting last debit line with amount: " + amountToSet);
                 } else {
                     amountToSet = Number(Number(data.amountDebit).toFixed(2));
                     runningTotalDebit += amountToSet;
                 }
 
                 rec.setCurrentSublistValue({ sublistId: "line", fieldId: "debit", value: amountToSet });
-                
                 rec.setCurrentSublistValue({ sublistId: "line", fieldId: "department", value: data.costCenter, ignoreFieldChange: false });
                 rec.setCurrentSublistValue({ sublistId: "line", fieldId: "cseg_stc_sof", value: data.sof, ignoreFieldChange: false });
 
+                // TIMEOUT 1: Menunggu field standar selesai di-set
                 setTimeout(function () {
                     try {
                         var lineCur = rec.getCurrentSublistValue({ sublistId: "line", fieldId: "account_cur" });
@@ -233,26 +244,43 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                             rec.setCurrentSublistValue({ sublistId: "line", fieldId: "account_cur", value: headerCurrency });
                         }
                         
-                        rec.setCurrentSublistValue({ sublistId: "line", fieldId: "class", value: projectCodeValue});
+                        if(data.projectCode) rec.setCurrentSublistValue({ sublistId: "line", fieldId: "class", value: data.projectCode});
                         rec.setCurrentSublistValue({ sublistId: "line", fieldId: "memo", value: data.memo });
                         
                         var pct = data.calculatedPct || Math.round(data.prosentHour * 100);
                         rec.setCurrentSublistValue({ sublistId: "line", fieldId: "custcol_tar_percentage", value: pct });
+                        console.log('data drc dan dea', {dea : data.dea, drc : data.drc})
+                        if(data.drc) {
+                            rec.setCurrentSublistValue({ sublistId: "line", fieldId: "cseg_stc_drc_segmen", value: data.drc, ignoreFieldChange: false});
+                        }
 
                         setTimeout(function() {
                             try {
-                                rec.commitLine({ sublistId: "line" });
-                                doLine(index + 1);
-                            } catch (e) {
-                                console.error("Commit error at index " + index, e.message);
+                                if(data.dea) {
+                                    rec.setCurrentSublistValue({ sublistId: "line", fieldId: "cseg_stc_segmentdea", value: data.dea, ignoreFieldChange: false}); 
+                                }
+
+                                setTimeout(function() {
+                                    try {
+                                        rec.commitLine({ sublistId: "line" });
+                                        doLine(index + 1);
+                                    } catch (e) {
+                                        console.error("Commit error at index " + index, e.message);
+                                        doLine(index + 1);
+                                    }
+                                }, 1000);
+
+                            } catch (errDEA) {
+                                console.error("Error setting DEA at index " + index, errDEA.message);
                                 doLine(index + 1);
                             }
-                        }, 200); 
+                        }, 1000); 
+                        
                     } catch (innerE) {
                         console.error("Error at line processing " + index, innerE.message);
                         doLine(index + 1);
                     }
-                }, 200); 
+                }, 1000); 
             } catch (outerE) {
                 console.error("Error selecting line " + index, outerE.message);
                 finishProcess(btn, "Critical Error: " + outerE.message);
@@ -265,9 +293,8 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                 rec.selectNewLine({ sublistId: "line" });
                 
                 rec.setCurrentSublistValue({ sublistId: "line", fieldId: "account", value: accountHeader });
-                
                 rec.setCurrentSublistValue({ sublistId: "line", fieldId: "credit", value: totalHeader });
-                
+                rec.setCurrentSublistValue({ sublistId: "line", fieldId: "memo", value: "-" });
                 rec.setCurrentSublistValue({ sublistId: "line", fieldId: "department", value: 17, ignoreFieldChange: false });
                 rec.setCurrentSublistValue({ sublistId: "line", fieldId: "cseg_stc_sof", value: 58, ignoreFieldChange: false });
 
@@ -283,7 +310,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
                         var commitStatus = rec.commitLine({ sublistId: "line" });
                         console.log("Credit Line Commit: " + commitStatus);
                         
-                        finishProcess(btn,);
+                        finishProcess(btn);
                     } catch (e) {
                         console.error("Error committing credit line", e.message);
                         finishProcess(btn, "Completed with error on credit line.");
@@ -297,6 +324,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
 
         doLine(0);
     }
+
     function finishProcess(btn, msg) {
         if (processMsg) processMsg.hide();
         if (btn) {

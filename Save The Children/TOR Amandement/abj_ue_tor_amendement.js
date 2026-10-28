@@ -5,6 +5,40 @@
  */
 
 define(["N/runtime", "N/log", "N/record", "N/search"], (runtime, log, record, search) => {
+
+    function generateUniqueAmendmentName(recType, torNo, sourceId, excludeRecId) {
+        var usedSuffixes = {};
+
+        var filters = [
+            ['custrecord_source_tor_amendment', 'anyof', sourceId]
+        ];
+        if (excludeRecId) {
+            filters.push('AND');
+            filters.push(['internalid', 'noneof', excludeRecId]);
+        }
+
+        var s = search.create({
+            type: recType,
+            filters: filters,
+            columns: ['name']
+        });
+
+        s.run().each(function (result) {
+            var nm = result.getValue({ name: 'name' }) || '';
+            var match = nm.match(/\/A(\d+)$/i);
+            if (match) {
+                usedSuffixes[parseInt(match[1], 10)] = true;
+            }
+            return true;
+        });
+
+        var n = 1;
+        while (usedSuffixes[n]) {
+            n++;
+        }
+        return torNo + '/A' + n;
+    }
+
     function beforeLoad(context) {
         if (context.type === context.UserEventType.VIEW) {
             var form = context.form;
@@ -58,16 +92,14 @@ define(["N/runtime", "N/log", "N/record", "N/search"], (runtime, log, record, se
                         id : sourceTor
                     })
                     var torNo = cekSource.getValue('name');
-                    var cekAmandement = cekSource.getValue('custrecord_abj_tor_amendment_list');
-                    log.debug('cekAmandement', cekAmandement)
-                    var newTorNo
-                    if(cekAmandement.length < 1){
-                        newTorNo = torNo + '/A1';
-                    }else if(cekAmandement.length == 1){
-                        newTorNo = torNo + '/A2';
-                    }else{
-                        newTorNo = torNo + '/A3';
-                    }
+
+                    var newTorNo = generateUniqueAmendmentName(
+                        newRec.type,
+                        torNo,
+                        sourceTor,
+                        newRec.id
+                    );
+
                     log.debug('newTorNo', newTorNo)
                     if(newTorNo){
                         log.debug('masuk konisi')

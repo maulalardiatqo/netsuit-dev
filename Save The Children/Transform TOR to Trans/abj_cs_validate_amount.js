@@ -72,6 +72,15 @@ define(['N/ui/dialog', 'N/log', 'N/search', 'N/record', 'N/runtime'], (dialog, l
     const validateLine = (scriptContext) => {
         const rec = scriptContext.currentRecord;
         const sublistId = scriptContext.sublistId;
+        var typeTransaksi = rec.type;
+        if (typeTransaksi === 'purchaseorder') {
+            let customForm = rec.getValue('customform');
+            let poType = rec.getValue('custbody_stc_po_type');
+            
+            if (customForm == '130' && poType == '2') {
+                return true; 
+            }
+        }
         var sblId 
         var typeTran
         var fieldSOF
@@ -202,6 +211,16 @@ define(['N/ui/dialog', 'N/log', 'N/search', 'N/record', 'N/runtime'], (dialog, l
         const recId = currentRecord.id;
         
         console.log('transactionType', transactionType);
+        if (transactionType === 'purchaseorder') {
+            let customForm = currentRecord.getValue('customform');
+            let poType = currentRecord.getValue('custbody_stc_po_type');
+            
+            // Bypass validasi approver dan TOR jika kondisi terpenuhi
+            if (customForm == '130' && poType == '2') {
+                console.log('Bypass validasi untuk PO Form 130 dan PO Type 2');
+                return true; 
+            }
+        }
         if(transactionType == 'purchaseorder'){
              var currentUser = runtime.getCurrentUser();
             var userRole = currentUser.role;

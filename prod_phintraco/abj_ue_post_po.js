@@ -2,7 +2,7 @@
  * @NApiVersion 2.1
  * @NScriptType UserEventScript
  */
-define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, search, runtime, serverWidget) => {
+define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget', 'N/https', 'N/url'], (record, search, runtime, serverWidget, https, url) => {
 
     const beforeLoad = (context) => {
         try {
@@ -92,7 +92,33 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
             log.error('Error beforeLoad', e);
         }
     };
-
+    const beforeSubmit = (context) => {
+        try {
+            if (context.type === context.UserEventType.DELETE) {
+                const idWeb = context.oldRecord.getValue('custbody_id_web');
+                
+                if (idWeb) {
+                    const WEBSITE_API_URL = 'https://approvalphintraco.com/netsuite/';
+                    
+                    const response = https.post({
+                        url: WEBSITE_API_URL + 'delete',
+                        body: JSON.stringify({
+                            action_type: 'delete',
+                            id_web: idWeb
+                        }),
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'x-api-key': 'S3cr3t_K3y_Y4ng_S4ng4t_P4nj4ng_D4n_R4h4s1a'
+                        }
+                    });
+                    
+                    log.debug('Trigger Delete Web API', `ID Web: ${idWeb} | Res Code: ${response.code} | Body: ${response.body}`);
+                }
+            }
+        } catch (e) {
+            log.error('Error beforeSubmit Delete', e);
+        }
+    };
     const afterSubmit = (context) => {
         try {
             if (context.type === context.UserEventType.EDIT) {
@@ -140,5 +166,5 @@ define(['N/record', 'N/search', 'N/runtime', 'N/ui/serverWidget'], (record, sear
         }).runPaged().count > 0;
     }
 
-    return { beforeLoad, afterSubmit };
+    return { beforeLoad, beforeSubmit, afterSubmit };
 });

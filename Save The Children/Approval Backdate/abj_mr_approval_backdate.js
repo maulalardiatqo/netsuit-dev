@@ -105,7 +105,6 @@ define(['N/search', 'N/record', 'N/runtime', 'N/log'], (search, record, runtime,
                 const rec = record.load({ type: transactionType, id: data.id, isDynamic: true });
                 const sublists = ['item', 'expense'];
                 let isChanged = false;
-
                 sublists.forEach(sublistId => {
                     const lineCount = rec.getLineCount({ sublistId });
                     for (let i = 0; i < lineCount; i++) {

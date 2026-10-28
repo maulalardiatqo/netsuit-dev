@@ -1,0 +1,24 @@
+<customlist scriptid="customlist_stc_type_of_business">
+  <description></description>
+  <isinactive>F</isinactive>
+  <isordered>T</isordered>
+  <name>Type of Business</name>
+  <customvalues>
+    <customvalue scriptid="val_20939_11635025_962">
+      <isinactive>F</isinactive>
+      <value>Manufacturer</value>
+    </customvalue>
+    <customvalue scriptid="val_20940_11635025_806">
+      <isinactive>F</isinactive>
+      <value>Wholesaler</value>
+    </customvalue>
+    <customvalue scriptid="val_20941_11635025_914">
+      <isinactive>F</isinactive>
+      <value>Retailer</value>
+    </customvalue>
+    <customvalue scriptid="val_20942_11635025_513">
+      <isinactive>F</isinactive>
+      <value>Other</value>
+    </customvalue>
+  </customvalues>
+</customlist>

@@ -5,27 +5,27 @@
 define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime', 'N/record', 'N/format', 'N/error'], (search, log, https, url, runtime, record, format, error) => {
 
     const beforeSubmit = (scriptContext) => {
-        try {
+
+        try{
             const { newRecord, oldRecord, type, UserEventType } = scriptContext;
-            
+        
             if (type !== UserEventType.CREATE && type !== UserEventType.EDIT && type !== UserEventType.COPY) return;
 
             const createdBy = newRecord.getValue('custbody_stc_create_by') || runtime.getCurrentUser().id;
             
             var recId = newRecord.id
+        
             const recType = newRecord.type;
-            const datecreated = newRecord.getValue('createddate');
-            var poType = null;
+            const datecreated = newRecord.getValue('trandate');
+
+            var excRate = newRecord.getValue('exchangerate')
+            if(recType == 'expensereport'){
+                excRate = newRecord.getValue('expensereportexchangerate')
+            }
+            var poType = null
             if(recType == 'purchaseorder'){
                 poType = newRecord.getValue('custbody_stc_po_type')
             }
-            var expType = null;
-            var expCform = null;
-            if(recType == 'expensereport'){
-                expType = newRecord.getValue('custbody_stc_expense_report_type')
-                expCform = newRecord.getValue('customform');
-            }
-            log.debug('expType', expType)
             const groupMap = {};
             const financeMap = {};
             const sublists = ['item', 'expense'];
@@ -148,12 +148,15 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime', 'N/record', 'N/for
                         amountField = (recType === 'expensereport' || recType === 'exprept') ? 'amount' : 'grossamt';
                         if (recType === 'purchaserequisition' || recType === 'purchasereq') amountField = 'estimatedamount';
                     }
-                    const amount = parseFloat(newRecord.getSublistValue({ sublistId, fieldId: amountField, line: i })) || 0;
+                    
+                    const amount = (parseFloat(newRecord.getSublistValue({ sublistId, fieldId: amountField, line: i })) || 0) * (Number(excRate)||1);
                     
                     if (amount < 0) {
                         log.debug('Skip Grouping', 'Line ' + i + ' skipped because amount is negative: ' + amount);
                         continue; 
                     }
+                    
+                    log.debug('amount', {amount : amount, excRate : excRate});
                     const statusLine = newRecord.getSublistValue({ sublistId, fieldId: 'custcol_stc_approval_status_line', line: i });
                     const statusFa = newRecord.getSublistValue({ sublistId, fieldId: 'custcol_stc_apprvl_sts_fa', line: i });
 
@@ -213,27 +216,13 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime', 'N/record', 'N/for
                 const validFinanceTypes = ['vendorbill', 'purchaserequisition', 'purchaseorder', 'expensereport', 'vendbill', 'purchreq', 'purchord', 'exprept'];
                 
                 if (validFinanceTypes.includes(recType)) {
-                    finApprover = getFinanceMatric(data.sofId, totalFinanceForSof, createdBy, recType, poType, data.projectCode, expType, expCform);
+                    finApprover = getFinanceMatric(data.sofId, totalFinanceForSof, createdBy, recType, poType, data.projectCode);
                     log.debug('finApprover', finApprover)
                     if(finApprover){
                         var cekFinSubtitue = getSubtitue(finApprover, datecreated, format, type, UserEventType );
                         if(cekFinSubtitue) finApprover = cekFinSubtitue;
                     }
                 }
-
-                // =========================================================================
-                // TAMBAHAN LOGIKA VALIDASI
-                // =========================================================================
-                const currentUserRole = runtime.getCurrentUser().role;
-                
-                if (currentUserRole == 15 || currentUserRole == '15') {
-                    const requiresFinApprover = validFinanceTypes.includes(recType);
-                    
-                    if (!bhApprover || (requiresFinApprover && !finApprover)) {
-                        throw new Error('Approver not found. Data tidak bisa di-save karena Budget Holder Approver atau Finance Approver tidak ditemukan pada salah satu line.');
-                    }
-                }
-                // =========================================================================
 
                 data.lines.forEach(item => {
                         const isLineApproved = (item.statusLine == "2" || item.statusLine == 2);
@@ -249,13 +238,10 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime', 'N/record', 'N/for
                         }
                 });
             }
-        } catch (e) {
-            log.debug('error', e);
-            
-            if (e.message && e.message.indexOf('Approver not found') !== -1) {
-                throw e;
-            }
+        }catch(e){
+            log.debug('error', e)
         }
+        
     };
 
     
@@ -274,6 +260,7 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime', 'N/record', 'N/for
         var delegateToStr = empLook.custentity_stc_delegation_date_to;   
 
         if (firstCek && firstCek.length > 0 && delegateFromStr && delegateToStr) {
+            log.debug('masuk date empsubtitue');
             var createdDate; 
 
             var dFromObj = format.parse({ value: delegateFromStr, type: format.Type.DATE });
@@ -321,7 +308,15 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime', 'N/record', 'N/for
     }
     const getBudgetHolderApproval = (paramSof, paramAccount, paramAmount, createdBy, costCenter, projectCode, groupLevel) => {
 
-
+        log.debug('parameter bh',{
+            paramSof : paramSof,
+            paramAccount : paramAccount,
+            paramAmount : paramAmount,
+            createdBy : createdBy,
+            costCenter : costCenter,
+            projectCode : projectCode,
+            groupLevel : groupLevel
+        })
         const runSearch = (useAccount) => {
             let filters = [
                 ["custrecord_stc_sof", "anyof", paramSof], "AND",
@@ -395,11 +390,11 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime', 'N/record', 'N/for
         }
     };
 
-    const getFinanceMatric = (sofId, amount, createdBy, recordType, poType, projectCode, expType, expCform) => {
-        log.debug('paramFA', {
-            sofId : sofId, amount : amount, createdBy : createdBy, recordType : recordType, poType : poType, projectCode : projectCode
-        })
-        log.debug('poType', poType);
+    const getFinanceMatric = (sofId, amount, createdBy, recordType, poType, projectCode) => {
+        // log.debug('paramFA', {
+        //     sofId : sofId, amount : amount, createdBy : createdBy, recordType : recordType, poType : poType, projectCode : projectCode
+        // })
+        // log.debug('poType', poType);
         if(poType == 3){
             recordType = 'non-po'
         }
@@ -409,22 +404,9 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime', 'N/record', 'N/for
             ["isinactive", "is", "F"]
         ];
         // log.debug('recordType', recordType)
-        var approvalField = (recordType === 'purchaseorder') 
+        const approvalField = (recordType === 'purchaseorder') 
             ? "custrecord_stc_apprvl_finance" 
             : "custrecord_stc_apprvl_finance_non_po";
-
-        if(expType && expType!== null){
-            log.debug('expCform', expCform)
-            if(expCform == '139'){
-                if (expType == '2' || expType == '3') {
-                approvalField = "custrecord_stc_apprvl_finance";
-                } else {
-                    approvalField = "custrecord_stc_apprvl_finance_non_po";
-                }
-            }else{
-                approvalField = "custrecord_stc_apprvl_finance_non_po";
-            }
-        }
         log.debug('approvalField', approvalField)
         const searchObj = search.create({
             type: "customrecord_stc_apprvl_mtrix_finance",
@@ -440,9 +422,7 @@ define(['N/search', 'N/log', 'N/https', 'N/url', 'N/runtime', 'N/record', 'N/for
         log.debug('results FA', results)
         if (results && results.length > 0) {
             for (let res of results) {
-                const approverId = res.getValue({
-                    name : approvalField
-                });
+                const approverId = res.getValue(approvalField);
                 log.debug('approverId', approverId)
                 if (approverId && approverId != createdBy) {
                     return approverId;

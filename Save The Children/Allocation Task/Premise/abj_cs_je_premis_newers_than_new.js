@@ -4,9 +4,9 @@
  * @NModuleScope SameAccount
  */
 
-define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message"],
+define(["N/runtime", "N/log", "N/url", "N/currentRecord", "N/currency", "N/record", "N/search", "N/ui/message"], 
 function (runtime, log, url, currentRecord, currency, record, search, message) {
-
+    
     var records = currentRecord.get();
     var processMsg;
 
@@ -18,7 +18,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
         var rec = context.currentRecord;
         var amountAllocated = rec.getValue('custbody_abj_amount_to_allocate');
         var cForm = rec.getValue('customform');
-
+        
         if (cForm == 140) {
             var fieldName = context.fieldId;
             var sublistFieldName = context.sublistId;
@@ -64,10 +64,11 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
         var sofIdHead = rec.getValue('cseg_stc_sof');
         var accountHeader = rec.getValue('custbody_stc_source_account_allocation');
         var accountHeaderText = rec.getText('custbody_stc_source_account_allocation');
+        var periodId = rec.getValue('postingperiod');
         var periodText = rec.getText('postingperiod');
 
-        if (!sofIdHead || !accountHeader) {
-            alert('Please select SOF and Account in Header');
+        if (!sofIdHead || !accountHeader || !periodId) {
+            alert('Please select SOF, Account, and Period in Header');
             return false;
         }
 
@@ -78,134 +79,210 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
         });
         processMsg.show();
 
-        var searchSof = search.load({ id: 'customsearch_sof_premise' });
-        var sofResult = [];
-        searchSof.run().each(function (result) {
-            sofResult.push({
-                sofId: result.getValue({ name: 'internalid' }),
-                projectId: result.getValue({ name: 'custrecord_sof_project' })
+        try {
+            const periodFields = search.lookupFields({
+                type: record.Type.ACCOUNTING_PERIOD,
+                id: periodId,
+                columns: ['startdate', 'enddate']
             });
-            return true;
-        });
 
-        var idDea = '';
-        var deaSearch = search.load({ id: 'customsearch_mapping_dea_je_premise' });
-        var dFilters = deaSearch.filters;
-        dFilters.push(search.createFilter({ name: 'custrecord_stc_account_allocation', operator: search.Operator.IS, values: accountHeader }));
-        dFilters.push(search.createFilter({ name: 'custrecord_stc_account_allocation', operator: search.Operator.IS, values: sofIdHead }));
-        deaSearch.filters = dFilters;
-        var dResult = deaSearch.run().getRange({ start: 0, end: 1 });
-        if (dResult.length > 0) {
-            idDea = dResult[0].getValue({ name: "custrecord_dea_allocation" });
+            // 1. Ambil data baris SOF
+            var searchSof = search.load({ id: 'customsearch_sof_premise' });
+            var sofResult = [];
+            searchSof.run().each(function (result) {
+                sofResult.push({ sofId: result.getValue({ name: 'internalid' }) });
+                return true;
+            });
+
+            // 2. Map DEA & DRC berdasarkan SOF Link
+            var deaDrcMap = {};
+            var deaSearch = search.create({
+                type: "customrecord_stc_dea_allocation",
+                filters: [
+                    ["custrecord_stc_account_allocation", "anyof", accountHeader], 
+                    "AND", 
+                    ["custrecord_stc_allocation_type", "anyof", "1"]
+                ],
+                columns: [
+                    search.createColumn({name: "custrecord_stc_sof_link", label: "SOF Link"}),
+                    search.createColumn({name: "custrecord_stc_drc_from_dea", label: "DRC from DEA"}),
+                    search.createColumn({name: "custrecord_dea_allocation", label: "DEA Allocation"})
+                ]
+            });
+            deaSearch.run().each(function(res){
+                var sLink = res.getValue({name: "custrecord_stc_sof_link"});
+                if (sLink) {
+                    deaDrcMap[sLink] = {
+                        drc: res.getValue({name: "custrecord_stc_drc_from_dea"}),
+                        dea: res.getValue({name: "custrecord_dea_allocation"})
+                    };
+                }
+                return true;
+            });
+
+            // 3. Map Project Code (Class) dari Resource Allocation (Asumsi department 17 seperti di form ini)
+            var projectCodeMap = {};
+            var resAllocSearch = search.create({
+                type: "resourceallocation",
+                filters: [
+                    ["internalid","noneof","@NONE@"], "AND", 
+                    ["numberhours","greaterthan","0"], "AND", 
+                    ["project","noneof","@NONE@"], "AND", 
+                    ["job.cseg_stc_sof","noneof","@NONE@"], "AND", 
+                    ["custevent_stc_rsc_cost_center","noneof","@NONE@"], "AND",
+                    ["startdate", "onorafter", periodFields.startdate], "AND",
+                    ["enddate", "onorbefore", periodFields.enddate], "AND",
+                    ["employee.department", "anyof", "17"]
+                ],
+                columns: [
+                    search.createColumn({name: "class", join: "employee", summary: "GROUP"}),
+                    search.createColumn({name: "cseg_stc_sof", join: "job", summary: "GROUP"})
+                ]
+            });
+            resAllocSearch.run().each(function (res) {
+                var sLink = res.getValue({name: "cseg_stc_sof", join: "job", summary: "GROUP"});
+                var pCode = res.getValue({name: "class", join: "employee", summary: "GROUP"});
+                if (sLink && pCode) {
+                    projectCodeMap[sLink] = pCode;
+                }
+                return true;
+            });
+
+            var lineCount = rec.getLineCount({ sublistId: 'line' });
+            for (var i = lineCount - 1; i >= 0; i--) {
+                rec.removeLine({ sublistId: 'line', line: i, ignoreRecalc: true });
+            }
+
+            prosesRecursive(rec, sofResult, accountHeader, accountHeaderText, periodText, deaDrcMap, projectCodeMap, sofIdHead, 0);
+            
+        } catch (e) {
+            log.error('Generate Data Collection Error', e);
+            if (processMsg) processMsg.hide();
+            alert('Error generating data: ' + e.message);
         }
-
-        var lineCount = rec.getLineCount({ sublistId: 'line' });
-        for (var i = lineCount - 1; i >= 0; i--) {
-            rec.removeLine({ sublistId: 'line', line: i, ignoreRecalc: true });
-        }
-
-        prosesRecursive(rec, sofResult, accountHeader, accountHeaderText, periodText, idDea, 0);
     }
 
-    function prosesRecursive(rec, lines, accountHeader, accountHeaderText, periodText, idDea, index) {
-        const sublistId = 'line';
-        if (index >= lines.length) {
-            addFinalCreditLine(rec, accountHeader, accountHeaderText, periodText, idDea);
+    function prosesRecursive(rec, sofResult, accountHeader, accountHeaderText, periodText, deaDrcMap, projectCodeMap, sofIdHead, index) {
+        var headerCurrency = rec.getValue('currency');
+        var memoSet = 'Allocation Premise ' + accountHeaderText + ' ' + periodText;
+        var costCenterIdDepartment = 17;
+        
+        if (index >= sofResult.length) {
+            addFinalCreditLine(rec, accountHeader, memoSet, costCenterIdDepartment, deaDrcMap, sofIdHead);
             return;
         }
 
-        const lineData = lines[index];
-        const headerCurrency = rec.getValue('currency');
-        const memoSet = 'Allocation Premise ' + accountHeaderText + ' ' + periodText;
+        var item = sofResult[index];
+        var currentSof = item.sofId;
+        
+        var defaultProjectCode = 12; 
+        var lineProj = projectCodeMap[currentSof] ? projectCodeMap[currentSof] : defaultProjectCode;
+        var lineDrc = deaDrcMap[currentSof] ? deaDrcMap[currentSof].drc : '';
+        var lineDea = deaDrcMap[currentSof] ? deaDrcMap[currentSof].dea : '';
 
         try {
-            rec.selectNewLine({ sublistId: sublistId });
-
-            safeSet(rec, sublistId, 'account', accountHeader, false);
-            safeSet(rec, sublistId, 'debit', 0);
-            safeSet(rec, sublistId, 'department', 17, false);
-
-            if (lineData.projectId) {
-                safeSet(rec, sublistId, 'entity', lineData.projectId, false);
-            }
-
-            setTimeout(function() {
+            console.log("Processing Debit Line: SOF " + currentSof);
+            rec.selectNewLine({ sublistId: 'line' });
+            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account', value: accountHeader });
+            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'debit', value: 0 });
+            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'department', value: costCenterIdDepartment, ignoreFieldChange: false });
+            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_sof', value: currentSof, ignoreFieldChange: false });
+            setTimeout(function () {
                 try {
-                    safeSet(rec, sublistId, 'cseg_stc_sof', lineData.sofId, false);
-                    
-                    safeSet(rec, sublistId, 'class', 12);
-                    safeSet(rec, sublistId, 'memo', memoSet);
-                    
-                    if (idDea) {
-                        safeSet(rec, sublistId, 'cseg_stc_segmentdea', idDea);
-                    }
-
-                    var lineCur = rec.getCurrentSublistValue({ sublistId: sublistId, fieldId: 'account_cur' });
+                    var lineCur = rec.getCurrentSublistValue({ sublistId: 'line', fieldId: 'account_cur' });
                     if (!lineCur && headerCurrency) {
-                        safeSet(rec, sublistId, 'account_cur', headerCurrency);
+                        rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account_cur', value: headerCurrency });
                     }
 
-                    rec.commitLine({ sublistId: sublistId });
-                    
+                    rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'class', value: lineProj });
+                    rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'memo', value: memoSet });
+                    if (lineDrc) {
+                        rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_drc_segmen', value: lineDrc, ignoreFieldChange: false });
+                    }
+
                     setTimeout(function() {
-                        prosesRecursive(rec, lines, accountHeader, accountHeaderText, periodText, idDea, index + 1);
-                    }, 100);
+                        try {
+                            if (lineDea) {
+                                rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_segmentdea', value: lineDea, ignoreFieldChange: false });
+                            }
+                            setTimeout(function() {
+                                rec.commitLine({ sublistId: 'line' });
+                                prosesRecursive(rec, sofResult, accountHeader, accountHeaderText, periodText, deaDrcMap, projectCodeMap, sofIdHead, index + 1);
+                            }, 200);
 
+                        } catch (errDea) {
+                            log.error('Error setting DEA line ' + index, errDea);
+                            prosesRecursive(rec, sofResult, accountHeader, accountHeaderText, periodText, deaDrcMap, projectCodeMap, sofIdHead, index + 1);
+                        }
+                    }, 400); 
                 } catch (e) {
-                    log.error('Error in Timeout line ' + index, e);
-                    prosesRecursive(rec, lines, accountHeader, accountHeaderText, periodText, idDea, index + 1);
+                    log.error('Error line ' + index, e);
+                    prosesRecursive(rec, sofResult, accountHeader, accountHeaderText, periodText, deaDrcMap, projectCodeMap, sofIdHead, index + 1);
                 }
-            }, 200);
+            }, 300); 
 
-        } catch (err) {
-            log.error('Error processing line ' + index, err);
-            prosesRecursive(rec, lines, accountHeader, accountHeaderText, periodText, idDea, index + 1);
+        } catch (e) {
+            log.error('Critical Error Line ' + index, e);
+            prosesRecursive(rec, sofResult, accountHeader, accountHeaderText, periodText, deaDrcMap, projectCodeMap, sofIdHead, index + 1);
         }
     }
 
-    function addFinalCreditLine(rec, accountHeader, accountHeaderText, periodText, idDea) {
+    function addFinalCreditLine(rec, accountHeader, memoSet, dept, deaDrcMap, sofIdHead) {
         try {
-            const sublistId = 'line';
-            const headerCurrency = rec.getValue('currency');
-            const memoSet = 'Allocation Premise ' + accountHeaderText + ' ' + periodText;
+            console.log("Processing Final Credit Line");
+            
+            // Ambil DEA dan DRC mapping berdasarkan SOF Header
+            var headDrc = deaDrcMap[sofIdHead] ? deaDrcMap[sofIdHead].drc : 3; // Fallback 3 sesuai script asli
+            var headDea = deaDrcMap[sofIdHead] ? deaDrcMap[sofIdHead].dea : '';
+            var headProj = 12; // Tetap menggunakan 12 untuk line credit seperti script lama
 
-            rec.selectNewLine({ sublistId: sublistId });
-            safeSet(rec, sublistId, 'account', accountHeader, false);
-            safeSet(rec, sublistId, 'credit', 0);
-            safeSet(rec, sublistId, 'department', 17, false);
-            safeSet(rec, sublistId, 'entity', 3763, false)
+            var headerCurrency = rec.getValue('currency');
+            rec.selectNewLine({ sublistId: 'line' });
+            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account', value: accountHeader });
+            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'credit', value: 0 }); 
+            
+            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'department', value: dept, ignoreFieldChange: false });
+            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_sof', value: '58', ignoreFieldChange: false });
+
+            // TIMEOUT 1: Credit Line
             setTimeout(function() {
-                safeSet(rec, sublistId, 'cseg_stc_sof', '58', false);
-                safeSet(rec, sublistId, 'class', 12);
-                safeSet(rec, sublistId, 'memo', memoSet);
-                safeSet(rec, sublistId, 'cseg_stc_drc_segmen', 3);
+                try {
+                    var lineCur = rec.getCurrentSublistValue({ sublistId: 'line', fieldId: 'account_cur' });
+                    if (!lineCur && headerCurrency) {
+                        rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account_cur', value: headerCurrency });
+                    }
+                    
+                    rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'class', value: headProj });
+                    rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'memo', value: memoSet });
+                    
+                    // Set DRC
+                    if(headDrc) {
+                        rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_drc_segmen', value: headDrc, ignoreFieldChange: false });
+                    }
 
-                if (idDea) {
-                    safeSet(rec, sublistId, 'cseg_stc_segmentdea', idDea);
+                    // TIMEOUT 2: Credit line sourcing DRC -> DEA
+                    setTimeout(function() {
+                        if (headDea) {
+                            rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'cseg_stc_segmentdea', value: headDea, ignoreFieldChange: false });
+                        }
+
+                        // TIMEOUT 3: Credit Line commit
+                        setTimeout(function() {
+                            rec.commitLine({ sublistId: 'line' });
+                            if (processMsg) processMsg.hide();
+                            alert('Generate Completed');
+                        }, 200);
+
+                    }, 400);
+
+                } catch(e) {
+                    log.error('Error in Credit Line timeout', e);
+                    if (processMsg) processMsg.hide();
                 }
-
-                if (headerCurrency) {
-                    safeSet(rec, sublistId, 'account_cur', headerCurrency);
-                }
-
-                rec.commitLine({ sublistId: sublistId });
-                if (processMsg) processMsg.hide();
-                alert('Generate Completed');
             }, 300);
         } catch (e) {
             log.error('Error Credit Line', e);
-        }
-    }
-
-    function safeSet(rec, sublist, fieldId, value, ignoreChange = true) {
-        if (value !== null && value !== undefined && value !== '') {
-            rec.setCurrentSublistValue({
-                sublistId: sublist,
-                fieldId: fieldId,
-                value: value,
-                ignoreFieldChange: ignoreChange,
-                forceSyncSourcing: true
-            });
+            if (processMsg) processMsg.hide();
         }
     }
 
@@ -229,7 +306,7 @@ function (runtime, log, url, currentRecord, currency, record, search, message) {
             rec.selectLine({ sublistId: 'line', line: creditLineIndex });
             rec.setCurrentSublistValue({ sublistId: 'line', fieldId: 'credit', value: totalDebit });
             rec.commitLine({ sublistId: 'line' });
-        } catch (e) { log.error('Error calculate', e); }
+        } catch (e) { console.log('Error calculate', e); }
     }
 
     function saveRecord(context) {

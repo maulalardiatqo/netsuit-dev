@@ -104,20 +104,9 @@ define(["N/record", "N/log", "N/search"], function (record, log, search) {
 
                 var sublistId = "recmachcustrecord_tori_id";
                 var cekLine = recLoad.getLineCount({ sublistId: sublistId });
-                
-                // ==========================================
-                // DEFINISI INTERNAL ID STATUS APPROVAL
-                // Berdasarkan gambar: 1 = Approved, 2 = Pending Approval
-                // ==========================================
-                // ==========================================
-                // DEFINISI INTERNAL ID STATUS APPROVAL
-                // ==========================================
                 var STATUS_APPROVED = 2;
                 var STATUS_PENDING_APPROVAL = 1;
 
-                // ==========================================
-                // TAHAP 1: Pre-kalkulasi grouping amount
-                // ==========================================
                 var groupSummaries = {};
                 
                 for (var i = 0; i < cekLine; i++) {
@@ -125,8 +114,6 @@ define(["N/record", "N/log", "N/search"], function (record, log, search) {
                     
                     var linkFieldId = (transType == 4) ? 'custrecord_tor_link_tar' : 'custrecord_tor_link_trx_no';
                     var linkValue = recLoad.getSublistValue({ sublistId: sublistId, fieldId: linkFieldId, line: i });
-                    
-                    // PERBAIKAN: Pastikan linkValue ada dan bukan array kosong []
                     if (linkValue && linkValue.length > 0) {
                         var torProject = recLoad.getSublistValue({ sublistId: sublistId, fieldId: 'custrecord_tor_project', line: i });
                         var lineId = recLoad.getSublistValue({ sublistId: sublistId, fieldId: 'id', line: i });
@@ -149,9 +136,6 @@ define(["N/record", "N/log", "N/search"], function (record, log, search) {
                     }
                 }
 
-                // ==========================================
-                // TAHAP 2: Set Value & Override Approval
-                // ==========================================
                 log.debug('groupSummaries', groupSummaries);
                 
                 for (var i = 0; i < cekLine; i++) {
@@ -161,7 +145,6 @@ define(["N/record", "N/log", "N/search"], function (record, log, search) {
                     
                     var newApprovalStatus = null;
                     
-                    // KONDISI 1: Link kosong / array kosong
                     if (!linkValue || linkValue.length === 0) {
                         newApprovalStatus = STATUS_PENDING_APPROVAL;
                     } 
@@ -176,11 +159,9 @@ define(["N/record", "N/log", "N/search"], function (record, log, search) {
                             var summaryData = groupSummaries[stringKey];
                             
                             if (summaryData && summaryData.allocationAmount > 0) {
-                                // KONDISI 2: Amount Allocated LEBIH SEDIKIT dari Total Amount (Overbudget)
                                 if (summaryData.allocationAmount < summaryData.summaryAmount) {
                                     newApprovalStatus = STATUS_PENDING_APPROVAL;
                                 } 
-                                // KONDISI 3: Full Allocate (Sama dengan) atau masih ada sisa budget
                                 else {
                                     newApprovalStatus = STATUS_APPROVED;
                                 }
@@ -188,7 +169,6 @@ define(["N/record", "N/log", "N/search"], function (record, log, search) {
                         }
                     }
 
-                    // Loop untuk set ke field di masing-masing kolom
                     for (var f = 0; f < sublistFields.length; f++) {
                         var fieldId = sublistFields[f];
                         
@@ -197,8 +177,6 @@ define(["N/record", "N/log", "N/search"], function (record, log, search) {
                             fieldId: fieldId,
                             line: i
                         });
-                        
-                        // Timpa status persetujuan jika ada status baru dari perhitungan di atas
                         if (newApprovalStatus !== null && (fieldId === 'custrecord_tori_approval_status' || fieldId === 'custrecord_tori_approval_status_fa')) {
                             val = newApprovalStatus; 
                         }
@@ -239,14 +217,37 @@ define(["N/record", "N/log", "N/search"], function (record, log, search) {
                         });
                     }
 
-                    var loadSorce = record.load({
-                        type : recType,
-                        id : source
+                    var sourceLookup = search.lookupFields({
+                        type: recType,
+                        id: source,
+                        columns: ['name', 'custrecord_abj_tor_amendment_list']
                     });
-                    var torNo = loadSorce.getValue('name');
-                    var cekAmandement = loadSorce.getValue('custrecord_abj_tor_amendment_list') || [];
-                    if (!Array.isArray(cekAmandement)) {
-                        cekAmandement = [cekAmandement];
+
+                    var torNo = sourceLookup.name;
+
+                    var rawAmandement = sourceLookup.custrecord_abj_tor_amendment_list || [];
+                    var cekAmandementRaw = rawAmandement
+                        .filter(function (v) { return v && v.value !== null && v.value !== undefined && v.value !== ''; })
+                        .map(function (v) { return String(v.value); });
+
+                    var cekAmandement = [];
+                    if (cekAmandementRaw.length > 0) {
+                        var validationSearch = search.create({
+                            type: recType,
+                            filters: [["internalid", "anyof", cekAmandementRaw]],
+                            columns: ["internalid"]
+                        });
+                        validationSearch.run().each(function (result) {
+                            cekAmandement.push(result.getValue({ name: "internalid" }));
+                            return true;
+                        });
+
+                        var staleIds = cekAmandementRaw.filter(function (id) {
+                            return cekAmandement.indexOf(id) === -1;
+                        });
+                        if (staleIds.length > 0) {
+                            log.audit('Stale amendment reference dibuang', staleIds);
+                        }
                     }
 
                     var newTorNo;
@@ -254,14 +255,21 @@ define(["N/record", "N/log", "N/search"], function (record, log, search) {
                     else if (cekAmandement.length == 1) newTorNo = torNo + '/A2';
                     else newTorNo = torNo + '/A3';
 
-                    cekAmandement.push(newRecordId);
+                    cekAmandement.push(String(newRecordId));
 
-                    loadSorce.setValue({
-                        fieldId: 'custrecord_abj_tor_amendment_list',
-                        value: cekAmandement
+                    log.debug('cekAmandement (final, before submitFields)', cekAmandement);
+
+                    record.submitFields({
+                        type: recType,
+                        id: source,
+                        values: {
+                            custrecord_abj_tor_amendment_list: cekAmandement
+                        },
+                        options: {
+                            enablesourcing: false,
+                            ignoreMandatoryFields: true
+                        }
                     });
-
-                    loadSorce.save({ ignoreMandatoryFields: true });
 
                     context.response.write(JSON.stringify({
                         success: true,

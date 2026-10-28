@@ -1,0 +1,16 @@
+<customlist scriptid="customlist_stc_list_yes_or_no">
+  <description></description>
+  <isinactive>F</isinactive>
+  <isordered>T</isordered>
+  <name>STC - List Yes or No</name>
+  <customvalues>
+    <customvalue scriptid="val_19849_11635025_632">
+      <isinactive>F</isinactive>
+      <value>Yes</value>
+    </customvalue>
+    <customvalue scriptid="val_19850_11635025_660">
+      <isinactive>F</isinactive>
+      <value>No</value>
+    </customvalue>
+  </customvalues>
+</customlist>
